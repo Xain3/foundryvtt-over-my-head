@@ -1,36 +1,10 @@
 // ./src/data/settings.mjs
 
-import { context } from "../contexts/context.mjs";
+import CONST from "../../config/CONST.mjs";
 
-const MODULENAME = context.get("module").title;  // Module name
-const MODULE_ID = context.get("module").id;  // Module ID
-const DEBUG_MODE = context.get("config").debugMode; // Debug mode flag
+const SETTINGS = CONST.SETTINGS; // Settings to be registered on Foundry VTT
+const MODULE_ID = CONST.MODULE_ID; // Module ID
 
-// The settings for the module
-const SETTINGS = {
-    "enableModule": {
-        name: `Enable ${MODULENAME}`, // TODO - Implement localization
-        hint: "Enable or disable the module", // TODO - Implement localization
-        scope: "world",
-        config: true,
-        type: Boolean,
-        default: true,
-        onChange: value => {
-            Hooks.callAll("updateRoofVisionFadeEnabled", value);
-        }
-    },
-    "debugMode": {
-        name: "Debug Mode", // TODO - Implement localization
-        hint: "Enable or disable debug mode",   // TODO - Implement localization
-        scope: "world",
-        config: true,
-        type: Boolean,
-        default: DEBUG_MODE,
-        onChange: value => {
-            Hooks.callAll("updateRoofVisionFadeDebugMode", value);
-        }
-    }
-}
 
 /** 
  * A class to hold the setting data
@@ -69,4 +43,4 @@ const settings = Object.keys(SETTINGS).reduce((acc, key) => {
 }
 , {});
 
-export { settings };
+export default settings;

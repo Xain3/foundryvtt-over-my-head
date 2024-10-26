@@ -1,2 +1,0 @@
-// ./src/data/settings.mjs
-

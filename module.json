@@ -3,10 +3,13 @@
   "id": "over-my-head",
   "title": "OverMyHead",
   "version": "12.0.1-alpha",
+  "license": "Gnu GPL v3",
+  
   "compatibility": {
     "minimum": "12",
     "verified": "12"
   },
+
   "authors": [
     {
       "name": "Xain_it",
@@ -15,6 +18,7 @@
       "flags": {}
     }
   ],
+
   "languages": [
     {
       "lang": "en",
@@ -23,13 +27,20 @@
       "flags": {}
     }
   ],
+
+  "scripts": [
+
+  ],
+
+  "styles": [
+    "styles/over-my-head.css"
+  ],
+
   "esmodules": [
     "src/main.mjs"
   ],
-  "license": "MIT",
-  "readme": "https://raw.githubusercontent.com/xain3/foundryvtt-vision-with-fade/dev/README.md",
-  "url": "https://github.com/xain3/foundryvtt-vision-with-fade",
-  "license_url": "https://raw.githubusercontent.com/xain3/foundryvtt-vision-with-fade/dev/LICENSE",
-  "manifest": "https://"
 
+  "readme": "https://raw.githubusercontent.com/xain3/foundryvtt-vision-with-fade/releases/latest/README.md",
+  "manifest": "https://raw.githubusercontent.com/xain3/foundryvtt-vision-with-fade/releases/latest/module.json",
+  "url": "https://github.com/xain3/foundryvtt-vision-with-fade"
 }

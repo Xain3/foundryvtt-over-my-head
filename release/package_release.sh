@@ -4,6 +4,7 @@ PRERELEASE=""
 DRAFT=""
 RELEASE=""
 PACKAGE_ONLY=false
+TARGET=""
 
 # Function to display help message
 show_help() {
@@ -18,7 +19,7 @@ show_help() {
 }
 
 # Parse command line arguments
-while getopts "prdPh" opt; do
+while getopts "prdPht:" opt; do
     case $opt in
         p)
             PRERELEASE="--prerelease"
@@ -34,7 +35,9 @@ while getopts "prdPh" opt; do
             ;;
         P)
             PACKAGE_ONLY=true
-            P=true
+            ;;
+        t)
+            TARGET=--target $OPTARG
             ;;
         h)
             show_help
@@ -122,5 +125,5 @@ if [ "$PACKAGE_ONLY" = false ]; then
     if CHANGELOG in files; then
         changelog=--notes-file CHANGELOG.md
     fi
-    gh release create "v$version" $attachments --title "v$version" $changelog $PRERELEASE $DRAFT
+    gh release create "v$version" module.zip $attachments --title "v$version" $changelog $PRERELEASE $DRAFT $TARGET
 fi

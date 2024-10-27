@@ -4,7 +4,7 @@
 ## Foundry VTT Module
 
 Vesion: {version}
-Release Date: {release_date}
+Release Date: {date}
 
 Author: Xain_it ([GitHub](https://github.com/xain3/foundryvtt-vision-with-fade)) ([email](mailto:andrea.pandolfo@gmail.com))
 License: [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)

@@ -4,5 +4,9 @@ release/module.tar.gz
 release/README.md
 release/CHANGELOG.md
 release/LICENSE
+release/LICENSE.md
 release/CONTRIBUTING.md
 release/COPYING
+release/COPYING.md
+release/CHANGELOG.md
+release/module.json

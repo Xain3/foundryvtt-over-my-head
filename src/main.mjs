@@ -1,13 +1,22 @@
 // ./src/main.mjs
 
-import visionFadeModule from '../module.json';
-import config from '../config/config.json';
+import context from './contexts/context.mjs';
+import logger from './utils/logger.mjs';
+import settings from './handlers/settingsHandler.mjs';
 
-import {context} from './contexts/context.mjs';
+function registerSettings() {
+    logger.log('Registering settings');
+    settings.registerSettings();
+    logger.log('Settings registered');
+}
 
-// Add the module and the configs to the context
-context.set('module', visionFadeModule);
-context.set('config', config);
+const main = () => {
+    // Register the settings once localization is ready
+    logger.log('Initializing module');
+    Hooks.once('i18nInit', registerSettings);
+};
+
+main();
 
 
 

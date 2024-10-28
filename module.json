@@ -1,5 +1,5 @@
 {
-  "name": "over-my-head",
+  "name": "foundryvtt-over-my-head",
   "id": "over-my-head",
   "title": "OverMyHead",
   "version": "12.0.1-alpha",
@@ -37,10 +37,14 @@
   ],
 
   "esmodules": [
+    "config/constants.mjs",
+    "src/contexts/context.mjs",
+    "utils/logger.mjs",
     "src/main.mjs"
   ],
 
   "readme": "https://raw.githubusercontent.com/xain3/foundryvtt-vision-with-fade/releases/latest/README.md",
   "manifest": "https://raw.githubusercontent.com/xain3/foundryvtt-vision-with-fade/releases/latest/module.json",
+  "download": "https://www.github.com/xain3/foundryvtt-vision-with-fade/releases/latest/download/module.zip",
   "url": "https://github.com/xain3/foundryvtt-vision-with-fade"
 }

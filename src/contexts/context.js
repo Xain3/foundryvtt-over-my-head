@@ -1,15 +1,10 @@
-// ./src/contexts/context.mjs
+// ./src/contexts/context.js
 
-import visionFadeModule from '../module.json';
-import config from '../config/config.json';
-import CONST from '../config/constants.mjs';
-
+import configs from '../../config/configs.js';
 
 const initialState = {
   settingsReady: false,
-  module: visionFadeModule,
-  config: config,
-  CONST: CONST
+  configs: configs
 };
 
 /**

@@ -33,14 +33,11 @@
   ],
 
   "styles": [
-    "styles/over-my-head.css"
+    "styles/foundryvtt-over-my-head.css"
   ],
 
   "esmodules": [
-    "config/constants.mjs",
-    "src/contexts/context.mjs",
-    "utils/logger.mjs",
-    "src/main.mjs"
+    "src/main.js"
   ],
 
   "readme": "https://raw.githubusercontent.com/xain3/foundryvtt-vision-with-fade/releases/latest/README.md",

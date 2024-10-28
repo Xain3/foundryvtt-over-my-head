@@ -1,7 +1,7 @@
-// ./src/handlers/settingsHandler.mjs
-import context from '../contexts/context.mjs';
-import settings, {SettingData} from '../data/settingData.mjs';
-import logger from '../utils/logger.mjs';
+// ./src/handlers/settingsHandler.js
+import context from '../contexts/context.js';
+import settings, {SettingData} from '../data/settingData.js';
+import logger from '../utils/logger.js';
 
 /**
  * Class representing a handler for managing settings.

@@ -1,11 +1,11 @@
-// ./src/data/settings.mjs
+// ./src/data/settings.js
 
-import context from "../contexts/context.mjs";
-import logger from "../utils/logger.mjs";
+import context from "../contexts/context.js";
+import logger from "../utils/logger.js";
 
-const CONST = context.get("CONST");
-const SETTINGS = CONST.SETTINGS;  // Settings to be registered on Foundry VTT
-const MODULE_ID = CONST.MODULE_ID; // The ID of the module
+const configs = context.get("configs");
+const SETTINGS = configs.SETTINGS;  // Settings to be registered on Foundry VTT
+const MODULE_ID = configs.MODULE_ID; // The ID of the module
 
 /** 
  * A class to hold the setting data

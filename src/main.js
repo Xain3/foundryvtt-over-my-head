@@ -1,8 +1,8 @@
-// ./src/main.mjs
+// ./src/main.js
 
-import context from './contexts/context.mjs';
-import logger from './utils/logger.mjs';
-import settings from './handlers/settingsHandler.mjs';
+import context from './contexts/context.js';
+import logger from './utils/logger.js';
+import settings from './handlers/settingsHandler.js';
 
 function registerSettings() {
     logger.log('Registering settings');

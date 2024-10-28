@@ -37,7 +37,7 @@ while getopts "prdPht:" opt; do
             PACKAGE_ONLY=true
             ;;
         t)
-            TARGET=--target $OPTARG
+            TARGET="--target $OPTARG"
             ;;
         h)
             show_help

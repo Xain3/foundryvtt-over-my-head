@@ -82,7 +82,7 @@ export class SettingsHandler {
     registerSettings() {
         if (!this.settings) {
             logger.error('Settings are not valid.');
-            settingsReady = false;
+            this.settingsReady = false;
             return;
         }
         try {

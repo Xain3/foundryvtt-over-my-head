@@ -1,11 +1,11 @@
-// ./src/data/settings.js
+// ./src/data/settingData.js
 
 import context from "../contexts/context.js";
 import logger from "../utils/logger.js";
 
-const configs = context.get("configs");
+const configs = context.get("config");
 const SETTINGS = configs.SETTINGS;  // Settings to be registered on Foundry VTT
-const MODULE_ID = configs.MODULE_ID; // The ID of the module
+const MODULE_ID = configs.MODULE.ID; // The ID of the module
 
 /** 
  * A class to hold the setting data
@@ -39,6 +39,13 @@ export class SettingData {
             if (typeof game !== 'undefined' && game.settings) {
                 game.settings.register(MODULE_ID, this.id, this.data);
                 logger.debug(`Setting registered: ${this.id}`);
+                
+                // Check if 'settings' object exists in context state, if not initialize it
+                let settings = getOrCreateSettings();
+                
+                // Set the key this.id to this.data within the 'settings' object
+                settings[this.id] = this.data;
+                context.set('settings', settings);
             } else {
                 logger.error(`'game.settings' is undefined. Cannot register setting: ${this.id}`);
             }
@@ -46,13 +53,25 @@ export class SettingData {
             logger.error(`Error registering setting: ${this.id}`);
             logger.error(error);
         }
+
+        function getOrCreateSettings() {
+            let settings = context.get('settings');
+            if (!settings) {
+                settings = {};
+                context.set('settings', settings);
+            }
+            return settings;
+        }
     }
 }
 
 const settings = SETTINGS ? Object.keys(SETTINGS).reduce((acc, key) => {
+    if (typeof SETTINGS[key] === 'object') {
         acc[key] = new SettingData(key, SETTINGS[key]);
-        return acc;
-        }, {}) 
-    : {};
+    } else {
+        logger.error(`Invalid data type for setting: ${key}. Expected object, but received $${typeof SETTINGS[key]}`);
+    }
+    return acc;
+}, {}) : {};
 
 export default settings;

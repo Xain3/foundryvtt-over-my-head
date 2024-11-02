@@ -1,10 +1,16 @@
 // ./src/contexts/context.js
 
-import configs from '../../config/configs.js';
+import moduleConfig from '../../config/config.js';
 
+/**
+ * Initial state of the context.
+ * @type {Object}
+ * @property {boolean} settingsReady - Whether the settings are ready.
+ * @property {Object} config - The module config.
+ */
 const initialState = {
   settingsReady: false,
-  configs: configs
+  config: moduleConfig
 };
 
 /**
@@ -14,6 +20,7 @@ const initialState = {
 class Context {
   /**
    * Create a context.
+   * @param {Object} initialState - The initial state of the context.
    */
   constructor(initialState) {
     this.initialState = initialState;
@@ -48,6 +55,10 @@ class Context {
 
   initializeState() {
     this.state = { ...this.initialState };
+  };
+
+  logState(){
+    console.log(this.state);
   }
 }
 

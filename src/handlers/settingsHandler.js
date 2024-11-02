@@ -2,6 +2,7 @@
 import context from '../contexts/context.js';
 import settings, {SettingData} from '../data/settingData.js';
 import logger from '../utils/logger.js';
+import Hooks from './hooksHandler.js';
 
 /**
  * Class representing a handler for managing settings.
@@ -92,7 +93,7 @@ export class SettingsHandler {
             }
             this.settingsReady = true;
             context.set('settingsReady', true);
-            hooks.callAll('VFSettingsReady');
+            Hooks.callAll('settingsReady', ['out']);
         } catch (error) {
             logger.error(`Error registering settings: ${error}`);
             this.settingsReady = false;

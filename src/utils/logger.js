@@ -1,6 +1,6 @@
 import context from '../contexts/context.js';
 
-const MODULE_NAME = context.get('configs').MODULE_NAME;
+const MODULE_NAME = context.get('config').MODULE.NAME;
 
 class Logger {
     constructor(moduleName) {
@@ -19,9 +19,8 @@ class Logger {
         console.warn(`${this.moduleName} | ${message}`);
     }
 
-    debug(message
-        ) {
-        if (context.get('config').debugMode) {
+    debug(message) {
+        if (context.get('config').DEBUG_MODE) {
             console.debug(`${this.moduleName} | ${message}`);
         }
     }

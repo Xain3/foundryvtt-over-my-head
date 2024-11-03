@@ -1,16 +1,8 @@
 {
-    "foundryvtt-over-my-head" : {
-        "tile-config" : {
-            "also-fade" : {
-                "name" : "Also Fade?",
-                "description" : "Hide entire tile when a token is underneath."
-            } 
-        },
-        "settings": {
-            "enable-button": {
-              "Name": "Enable OverMyHead",
-              "Hint": "Controls whether or not the tile can fade when occlusion mode is 'Vision'"
-            }
-        }
-    }
+    "foundryvtt-over-my-head.tile-config.also-fade.name" : "Also Fade?",
+    "foundryvtt-over-my-head.tile-config.also-fade.description" : "Fade the tile when a token is underneath.",
+    "foundryvtt-over-my-head.settings.enableModule.name" : "Enable {moduleName}",
+    "foundryvtt-over-my-head.settings.enableModule.hint" : "Controls whether or not the tile can fade when occlusion mode is 'Vision'",
+    "foundryvtt-over-my-head.settings.debugMode.name" : "Debug Mode",
+    "foundryvtt-over-my-head.settings.debugMode.hint" : "Enable debug mode to see debug messages in the console."
 }

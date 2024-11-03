@@ -1,6 +1,10 @@
 /**
  * Class representing the settings for a module.
  */
+
+import localize from "../src/utils/localize";
+
+const SETTINGS_LOCALIZATION_PATH = "settings";
 class Settings {
     /**
      * Create a Settings instance.
@@ -32,8 +36,8 @@ class Settings {
              * @property {function} onChange - The function to call when the setting changes.
              */
             enableModule: {
-                name: `Enable ${this.moduleName}`, // TODO - Implement localization
-                hint: "Enable or disable the module", // TODO - Implement localization
+                name: localize(`${SETTINGS_LOCALIZATION_PATH}.enableModule.name`, this.moduleName),
+                hint: localize(`${SETTINGS_LOCALIZATION_PATH}.enableModule.hint`),
                 scope: "world",
                 config: true,
                 type: Boolean,
@@ -54,8 +58,8 @@ class Settings {
              * @property {function} onChange - The function to call when the setting changes.
              */
             debugMode: {
-                name: "Debug Mode", // TODO - Implement localization
-                hint: "Enable or disable debug mode",   // TODO - Implement localization
+                name: localize(`${SETTINGS_LOCALIZATION_PATH}.debugMode.name`),
+                hint: localize(`${SETTINGS_LOCALIZATION_PATH}.debugMode.hint`),
                 scope: "world",
                 config: true,
                 type: Boolean,

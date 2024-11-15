@@ -2,3 +2,5 @@
 
 class OcclusionHandler {
 }
+
+export default OcclusionHandler;

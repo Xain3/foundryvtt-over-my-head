@@ -1,18 +1,8 @@
 // Fix in hooksHandler.js
 
-import context from '../contexts/context.js';
-import { HookFormatter } from '../utils/hooksFormatter.js';
+import HookFormatter from '../utils/hookFormatter.js';
 
-
-/**
- * An object that provides the mapping of hook names to their respective functions.
-*/
-const HOOK_MAPPINGS = context.get('config').HOOKS;
-const PREFIX = context.get('config').MODULE_SHORT_NAME;
-const NO_PREFIX_GROUPS = context.get('config').NO_PREFIX_GROUPS || [];
-const ALLOWED_GROUPS = context.get('config').ALLOWED_GROUPS || Object.keys(HOOK_MAPPINGS);
-
-const runChecks = (hookGroup, allowedGroups = ALLOWED_GROUPS) => {
+const runChecks = (hookGroup, allowedGroups) => {
     if (!Array.isArray(hookGroup)) {
         throw new Error(`Hook group must be an array`);
     }
@@ -33,16 +23,17 @@ const runChecks = (hookGroup, allowedGroups = ALLOWED_GROUPS) => {
  * @class HookWrapper
  * @param {string} unformattedHook - The unformatted name of the hook.
  * @param {string} [hookGroup="builtIn"] - The group of the hook, defaults to "builtIn".
+ * @param {object} formatterSettings - The settings for the HookFormatter class.
  * 
  * @property {string} hookName - The unformatted name of the hook.
  * @property {string} hookGroup - The group of the hook.
  * @property {string} hook - The formatted name of the hook.
  */
 class HookWrapper {
-    constructor(unformattedHook, hookGroup = "builtIn") {
+    constructor(unformattedHook, hookGroup = "builtIn", formatterSettings) {
         this.hookName = unformattedHook;
         this.hookGroup = hookGroup;
-        this.hook = new HookFormatter(HOOK_MAPPINGS, PREFIX, NO_PREFIX_GROUPS, ALLOWED_GROUPS)
+        this.hook = new HookFormatter(...formatterSettings)
             .formatHook(this.hookName, this.hookGroup);
     }
 }
@@ -52,24 +43,33 @@ class HookWrapper {
  * 
  * Methods:
  */
-class HookHandler {
-    static on(hookName, fn, hookGroup = ["builtIn"]) {
-        runChecks(hookGroup);
-        const wrapper = new HookWrapper(hookName, hookGroup[0]);
+class HooksHandler {
+    constructor(config) {
+        this.HOOKS_MAPPINGS = config.HOOKS.getMappings();
+        this.HOOKS_SETTINGS = config.HOOKS.getSettings();
+        this.PREFIX = config.CONST.MODULE.SHORT_NAME;
+        this.NO_PREFIX_GROUPS = this.HOOKS_SETTINGS.NO_PREFIX_GROUPS || [];
+        this.ALLOWED_GROUPS = this.HOOKS_SETTINGS.ALLOWED_GROUPS || Object.keys(HOOK_MAPPINGS);
+        this.formatterSettings = [this.HOOKS_MAPPINGS, this.PREFIX, this.NO_PREFIX_GROUPS, this.ALLOWED_GROUPS];
+    }
+    
+    on(hookName, fn, hookGroup = ["builtIn"]) {
+        runChecks(hookGroup, this.ALLOWED_GROUPS);
+        const wrapper = new HookWrapper(hookName, hookGroup[0], this.formatterSettings);
         Hooks.on(wrapper.hook, fn, hookGroup);
     }
 
-    static once(hookName, fn, hookGroup = ["builtIn"]) {
-        runChecks(hookGroup);
-        const wrapper = new HookWrapper(hookName, hookGroup[0]);
+    once(hookName, fn, hookGroup = ["builtIn"]) {
+        runChecks(hookGroup, this.ALLOWED_GROUPS);
+        const wrapper = new HookWrapper(hookName, hookGroup[0], this.formatterSettings);
         Hooks.once(wrapper.hook, fn, hookGroup);
     }
 
-    static callAll(hookName, hookGroup = ["builtIn"], ...args) {
-        runChecks(hookGroup);
-        const wrapper = new HookWrapper(hookName, hookGroup[0]);
+    callAll(hookName, hookGroup = ["builtIn"], ...args) {
+        runChecks(hookGroup, this.ALLOWED_GROUPS);
+        const wrapper = new HookWrapper(hookName, hookGroup[0], this.formatterSettings);
         Hooks.callAll(wrapper.hook, hookGroup, ...args);
     }
 }
 
-export default HookHandler;
+export default HooksHandler;

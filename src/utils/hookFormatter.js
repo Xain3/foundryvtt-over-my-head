@@ -1,27 +1,39 @@
+// ./src/utils/hookFormatter.js
+
 /**
  * HookFormatter class to format hook names based on group and mappings.
+ * Requires CONFIG to be passed in the constructor.
+ * 
+ * @class HookFormatter
+ * @module HookFormatter
+ * @export HookFormatter
+ * @property {Object} hookMappings - The module hooks.
+ * @property {Object} SETTINGS - The hook settings.
+ * @property {string} prefix - The module prefix.
+ * @property {Array} noPrefixGroups - The groups that do not require a prefix.
+ * @property {Array} allowedGroups - The allowed groups.
+ *
+ * @method formatHook
  */
-export class HookFormatter {
+class HookFormatter {
     /**
      * Creates an instance of HookFormatter.
      *
-     * @param {Object} hookMappings - An object containing mappings of hook groups to their respective hooks.
-     * @param {string} [prefix=""] - An optional prefix to prepend to the formatted hook name.
-     * @throws {Error} If hookMappings are not provided.
+     * @param {Object} CONFIG - The configuration object.
      */
-    constructor(hookMappings, prefix = "", noPrefixGroups, allowedGroups) {
-        if (!hookMappings) {
-            throw new Error("Hook mappings are required.");
-        }
-        this.hookMappings = hookMappings;
-        this.prefix = prefix;
-        this.noPrefixGroups = noPrefixGroups;
-        this.allowedGroups = allowedGroups;
+    constructor(CONFIG) {
+        // Remove the SETTINGS group from hookMappings if it exists
+        this.mappings = CONFIG.HOOKS.getMappings();
+        this.SETTINGS = CONFIG.HOOKS.getSettings();
+        this.prefix = CONFIG.CONST.MODULE.SHORT_NAME;
+        this.noPrefixGroups = CONFIG.HOOKS.SETTINGS.NO_PREFIX_GROUPS;
+        this.allowedGroups = CONFIG.HOOKS.SETTINGS.ALLOWED_GROUPS;
     }
 
     /**
      * Formats a hook name based on the provided hook group.
      *
+     * @method formatHook
      * @param {string} hookName - The name of the hook to format.
      * @param {string} hookGroup - The group to which the hook belongs.
      * @returns {string} The formatted hook name.
@@ -40,7 +52,7 @@ export class HookFormatter {
         }
 
         // Get the hook location
-        const currentHookGroup = this.hookMappings[hookGroup];
+        const currentHookGroup = this.mappings[hookGroup];
         if (!currentHookGroup) {
             throw new Error(`Hook location for group ${hookGroup} not found.`);
         }
@@ -66,4 +78,15 @@ export class HookFormatter {
         const formattedHook = `${this.prefix}${hook}`;
         return formattedHook;
     }
+
+    updateConfig(config) {
+    this.mappings = config.HOOKS.getMappings();
+    this.SETTINGS = config.HOOKS.getSettings();
+    this.prefix = config.CONST.MODULE.SHORT_NAME;
+    this.noPrefixGroups = config.HOOKS.SETTINGS.NO_PREFIX_GROUPS;
+    this.allowedGroups = config.HOOKS.SETTINGS.ALLOWED_GROUPS;
+    }
+
 }
+
+export default HookFormatter;

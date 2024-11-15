@@ -3,3 +3,5 @@
 class TokenHandler {
 
 }
+
+export default TokenHandler;

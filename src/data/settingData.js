@@ -1,18 +1,14 @@
 // ./src/data/settingData.js
 
-import context from "../contexts/context.js";
-import logger from "../utils/logger.js";
-
-const configs = context.get("config");
-const SETTINGS = configs.SETTINGS;  // Settings to be registered on Foundry VTT
-const MODULE_ID = configs.MODULE.ID; // The ID of the module
-
 /** 
  * A class to hold the setting data
  * @class
  * 
  * @property {string} id - The unique identifier for the instance.
  * @property {object} data - The data to be stored in the instance.
+ * @property {object} context - The context object.
+ * @property {object} logger - The logger object.
+ * @property {string} MODULE_ID - The module ID.
  */
 export class SettingData {
     /**
@@ -21,10 +17,18 @@ export class SettingData {
      * @constructor
      * @param {string} id - The unique identifier for the instance.
      * @param {any} data - The data to be stored in the instance.
+     * @param {Object} config - The configuration object.
+     * @param {Object} context - The context object.
+     * @param {Object} logger - The logger object.
      */
-    constructor(id, data) {
+    constructor(id, data, config, context, utils) {
         this.id = id;
         this.data = data;
+        this.context = context;
+        this.utils = utils;
+        this.logger = utils.logger;
+        this.MODULE_ID = config.CONST.MODULE.ID;
+
     }
 
     /**
@@ -34,44 +38,35 @@ export class SettingData {
      * @name registerSetting
      */
     registerSetting() {
-        logger.debug(`Registering setting: ${this.id}`);
+        this.logger.debug(`Registering setting: ${this.id}`);
         try {
             if (typeof game !== 'undefined' && game.settings) {
-                game.settings.register(MODULE_ID, this.id, this.data);
-                logger.debug(`Setting registered: ${this.id}`);
+                game.settings.register(this.MODULE_ID, this.id, this.data);
+                this.logger.debug(`Setting registered: ${this.id}`);
                 
                 // Check if 'settings' object exists in context state, if not initialize it
-                let settings = getOrCreateSettings();
+                let settings = this.getOrCreateSettings();
                 
                 // Set the key this.id to this.data within the 'settings' object
                 settings[this.id] = this.data;
-                context.set('settings', settings);
+                this.context.set('settings', settings);
             } else {
-                logger.error(`'game.settings' is undefined. Cannot register setting: ${this.id}`);
+                this.logger.error(`'game.settings' is undefined. Cannot register setting: ${this.id}`);
             }
         } catch (error) {
-            logger.error(`Error registering setting: ${this.id}`);
-            logger.error(error);
+            this.logger.error(`Error registering setting: ${this.id}`);
+            this.logger.error(error);
         }
+    }
 
-        function getOrCreateSettings() {
-            let settings = context.get('settings');
+    getOrCreateSettings() {
+            let settings = this.context.get('settings');
             if (!settings) {
                 settings = {};
-                context.set('settings', settings);
+                this.context.set('settings', settings);
             }
             return settings;
-        }
     }
 }
 
-const settings = SETTINGS ? Object.keys(SETTINGS).reduce((acc, key) => {
-    if (typeof SETTINGS[key] === 'object') {
-        acc[key] = new SettingData(key, SETTINGS[key]);
-    } else {
-        logger.error(`Invalid data type for setting: ${key}. Expected object, but received $${typeof SETTINGS[key]}`);
-    }
-    return acc;
-}, {}) : {};
-
-export default settings;
+export default SettingData;

@@ -3,3 +3,5 @@
 class TileHandler{
     
 }
+
+export default TileHandler;

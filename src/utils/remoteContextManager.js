@@ -4,9 +4,8 @@
  * A centralized manager for handling remote context operations.
  */
 class RemoteContextManager {
-    constructor(remoteLocation = null) {
-        this.remoteLocation = remoteLocation;
-        this.remoteContext = {}; // Initialize as needed
+    constructor() {
+                this.remoteContext = {}; // Initialize as needed
     }
 
     pushToRemoteContext(data) {

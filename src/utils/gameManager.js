@@ -38,43 +38,32 @@ class GameManager {
      *
      * @param {Object} CONFIG - The configuration object.
      */
-    constructor(CONFIG) {
-        this.const = CONFIG.CONST;
-        this.game = globalThis.game;
-        this.contextInit = this.const.CONTEXT_INIT;
-        this.moduleConfig = this.const.MODULE;
-        this.contextPath = this.const.MODULE.CONTEXT_REMOTE;
-        this.moduleObject = GameManager.getModuleObject(this.moduleConfig);
-        this.remoteContext = GameManager.getRemoteContextPath(this.moduleObject, this.contextPath, this.contextInit);
+    constructor(CONFIG, remoteContextManager) {
+        this.remoteContextManager = remoteContextManager;
+        this.game = this.getGameObject();
+        this.updateConfig(CONFIG);
     }
     
     /**
      * Retrieves the global game object.
      *
-     * @static
      * @method getGameObject
      * @returns {Object} The global game object.
      */
-    static getGameObject() {
+    getGameObject() {
         return globalThis.game;
     }
 
     /**
      * Retrieves the path of a module by its ID.
      *
-     * @static
      * @method getModulePath
      * @param {string} moduleId - The ID of the module to retrieve the path for.
      * @returns {Object} The module object.
      */
-    static getModuleObject(moduleConfig) {
-        if (game && game.modules && typeof game.modules.get === 'function') {
-            const moduleObject = game.modules.get(moduleConfig.ID);
-            console.debug(`${moduleConfig.SHORT_NAME} | Module object`, moduleObject);
-            if (moduleConfig.DEFAULTS.DEBUG_MODE) {
-                globalThis[moduleConfig.SHORT_NAME] = game.modules.get(moduleConfig.ID);
-            }
-            return moduleObject;
+     getModuleObject(moduleConfig) {
+        if (this.game && this.game.modules && typeof this.game.modules.get === 'function') {
+            return this.game.modules.get(moduleConfig.ID);
         } else if (!game) {
             console.error('game is undefined.');
             return null;
@@ -88,59 +77,46 @@ class GameManager {
         }
     }
 
-    /**
-     * Retrieves the remote context path from the module path.
-     *
-     * @static
-     * @method getRemoteContextPath
-     * @param {string} contextPath - The context path to retrieve.
-     * @returns {string} The remote context path.
-     */
-    static getRemoteContextPath(moduleObject, contextPath, init_data = {}) {
-        if (moduleObject[`${contextPath}`]) {
-            return moduleObject[`${contextPath}`];
-        } else {
-            init_data.dateModified = Date.now();
-            moduleObject[`${contextPath}`] = init_data;
-            return moduleObject[`${contextPath}`];
-        }
-    }
-
     updateConfig = (config) => {
         this.const = config.CONST;
         this.contextInit = this.const.CONTEXT_INIT;
         this.moduleConfig = this.const.MODULE;
         this.contextPath = this.const.MODULE.CONTEXT_REMOTE;
-        this.moduleObject = this.constructor.getModuleObject(this.moduleConfig);
-        this.remoteContext = this.constructor.getRemoteContextPath(this.moduleObject, this.contextPath, this.contextInit);
+        this.moduleObject = this.getModuleObject(this.moduleConfig);
+        this.remoteContext = this.remoteContextManager.getRemoteContextPath(
+            this.moduleObject,
+            this.contextPath,
+            this.contextInit
+        );
     }
 
-    pushToRemoteContext = (data) => {
-        Object.assign(this.remoteContext, data);
-    }
-
-    pullFromRemoteContext = () => {
-        return this.remoteContext;
-    }
-    
-    writeToRemoteContext = (key, value) => {
-        this.remoteContext[key] = value;
-    }
-
-    readFromRemoteContext = (key) => {
-        return this.remoteContext[key];
-    }
-
-    clearRemoteContext = () => {
-        Object.keys(this.remoteContext).forEach(key => delete this.remoteContext[key]);
-    }
-
-    writeToModuleObject = (key, value) => {
+    writeToModuleObject(key, value) {
         this.moduleObject[key] = value;
     }
 
-    readFromModuleObject = (key) => {
+    readFromModuleObject(key) {
         return this.moduleObject[key];
+    }
+
+    // Delegated Remote Context Methods
+    pushToRemoteContext(data) {
+        this.remoteContextManager.pushToRemoteContext(data);
+    }
+
+    pullFromRemoteContext() {
+        return this.remoteContextManager.pullFromRemoteContext();
+    }
+
+    writeToRemoteContext(key, value) {
+        this.remoteContextManager.writeToRemoteContext(key, value);
+    }
+
+    readFromRemoteContext(key) {
+        return this.remoteContextManager.readFromRemoteContext(key);
+    }
+
+    clearRemoteContext() {
+        this.remoteContextManager.clearRemoteContext();
     }
 }
 

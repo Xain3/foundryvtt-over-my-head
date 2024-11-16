@@ -15,19 +15,15 @@ class Context {
      * @param {Object} CONFIG - The configuration object.
      * @param {string|null} [remoteLocation=null] - The optional remote location to sync with. If not provided, the default remote location is used.
      */
-    constructor(CONFIG, gameManager, remoteLocation = null) {
-        ({ CONFIG: this.config, contextInit: this.contextInit } = this.extractContextInit(CONFIG));
-        this.initialState = {
-            config: { ...this.config },
-            data: { ...this.contextInit.data },
-            flags: { ...this.contextInit.flags },
-        };
-        this.state = {
-            ...this.initialState,
-            dateModified: Date.now(),
-          };
-        this.manager = gameManager;
-        this.remoteLocation = remoteLocation || this.manager.remoteContext;
+    constructor(CONFIG, utils) {
+        this.manager = utils.gameManager;
+        this.remoteContextManager = utils.remoteContextManager;
+        const { CONFIG: modifiedConfig, contextInit } = this.extractContextInit(CONFIG);        
+        this.config = modifiedConfig;
+        this.contextInit = contextInit;
+        this.initialState = this.contextInit;
+        this.state = {};
+        this.initializeContext();
     }
 
     /**
@@ -46,6 +42,12 @@ class Context {
         const contextInit = CONFIG.CONST.CONTEXT_INIT;
         delete CONFIG.CONST.CONTEXT_INIT;
         return { CONFIG, contextInit };
+    }
+
+    initializeContext(state = this.initialState) {
+        this.state = state;
+        this.initialiseData(state);
+        this.initialiseFlags({});
     }
 
     /**
@@ -69,31 +71,13 @@ class Context {
     }
 
     /**
-     * Initializes the context with the provided state or the initial state.
-     * Sets the current date and time as the dateModified property.
-     *
-     * @param {Object} [state=this.initialState] - The state to initialize the context with.
-     */
-    initializeContext(state = this.initialState) {
-        this.state = { ...state };
-        this.state.dateModified = Date.now();
-    }
-
-    /**
      * Updates the remote location state with the current state and sets the date modified.
      * If no remote location is provided, it uses the existing remote location.
      *
      * @param {Object|null} [remoteLocation=null] - The remote location object to update. If null, the existing remote location will be used.
      */
-    pushState(remoteLocation = null) {
-      if (!remoteLocation && !this.remoteLocation) {
-          return;
-      }
-      if (!remoteLocation) {
-        remoteLocation = this.remoteLocation;
-      }
-      this.manager.pushToRemoteContext(this.state);
-      this.manager.writeToRemoteContext('dateModified', Date.now());
+    pushState() {
+        this.remoteContextManager.pushToRemoteContext(this.state);
     }
     
     /**
@@ -103,15 +87,23 @@ class Context {
      *
      * @param {Object|null} [remoteLocation=null] - The remote location object to update the state with. If not provided, the existing remote location is used.
      */
-    pullState(remoteLocation = null) {
-      if (!remoteLocation && !this.remoteLocation) {
-        return;
+    pullState() {
+        const remoteState = this.remoteContextManager.pullFromRemoteContext();
+        if (remoteState) {
+            this.state = { ...remoteState };
+        }
     }
-    if (!remoteLocation) {
-      remoteLocation = this.remoteLocation;
+
+    writeToRemoteContext(key, value) {
+        this.remoteContextManager.writeToRemoteContext(key, value);
     }
-        this.state = { ...remoteLocation };
-        this.state.dateModified = Date.now();
+
+    readFromRemoteContext(key) {
+        return this.remoteContextManager.readFromRemoteContext(key);
+    }
+
+    clearRemoteContext() {
+        this.remoteContextManager.clearRemoteContext();
     }
 
     /**
@@ -144,8 +136,8 @@ class Context {
         if (!remoteLocation) {
             remoteLocation = this.remoteLocation;
         }
-        this.manager.writeToRemoteContext(key, value);
-        this.manager.writeToRemoteContext('dateModified', Date.now());
+        this.writeToRemoteContext(key, value);
+        this.writeToRemoteContext('dateModified', Date.now());
     }
 
     /**
@@ -157,9 +149,9 @@ class Context {
      * @param {string|null} [remoteLocation=null] - The remote location to pull the state from, if pullAndGet is true.
      * @returns {*} The value associated with the specified key from the state.
      */
-    get(key, pullAndGet = false, remoteLocation = null) {
+    get(key, pullAndGet = false) {
       if (pullAndGet) {
-          this.pullState(remoteLocation);
+          this.pullState();
       }  
       return this.state[key];
     }
@@ -168,16 +160,16 @@ class Context {
         return this.remoteLocation;
     }
 
-    getState(pullAndGet = false, remoteLocation = null) {
+    getState(pullAndGet = false) {
         if (pullAndGet) {
-            this.pullState(remoteLocation);
+            this.pullState();
         }
         return this.state;
     }
    
-    getConfig(key = null, pullAndGet = false, remoteLocation = null) {
+    getConfig(key = null, pullAndGet = false) {
         if (pullAndGet) {
-            this.pullState(remoteLocation);
+            this.pullState();
         }
         if (key) {
             return this.config[key];
@@ -185,9 +177,9 @@ class Context {
         return this.config;
     }
 
-    getFlags(key = null, pullAndGet = false, remoteLocation = null) {
+    getFlags(key = null, pullAndGet = false) {
         if (pullAndGet) {
-            this.pullState(remoteLocation);
+            this.pullState();
         }
         if (key) {
             return this.state.flags[key];
@@ -195,9 +187,9 @@ class Context {
         return this.state.flags;
     }
 
-    getData(key = null, pullAndGet = false, remoteLocation = null) {
+    getData(key = null, pullAndGet = false) {
         if (pullAndGet) {
-            this.pullState(remoteLocation);
+            this.pullState();
         }
         if (key) {
             return this.state.data[key];
@@ -205,13 +197,13 @@ class Context {
         return this.state.data;
     }
 
-    set(key, value, alsoPush = false, remoteLocation = null, onlyRemote = false) {
+    set(key, value, alsoPush = false, onlyRemote = false) {
         if (!onlyRemote) {
             this.state[key] = value;
             this.state.dateModified = Date.now();
         }
         if (alsoPush || onlyRemote) {
-            this.pushKey(key, value, remoteLocation);
+            this.pushKey(key, value);
         }
     }
 
@@ -231,13 +223,13 @@ class Context {
      * @param {boolean} [alsoPush=false] - Whether to also push the state to a remote location.
      * @param {string|null} [remoteLocation=null] - The remote location to push the state to, if alsoPush is true.
      */
-    setData(key, value, alsoPush = false, remoteLocation = null, onlyRemote = false) {
+    setData(key, value, alsoPush = false, onlyRemote = false) {
         if (!onlyRemote) {
             this.state.data[key] = value;
             this.state.dateModified = Date.now();
         }
         if (alsoPush || onlyRemote) {
-            this.pushKey('data', this.state.data, remoteLocation);
+            this.pushKey('data', this.state.data);
         }
     }
 
@@ -249,13 +241,13 @@ class Context {
      * @param {boolean} [alsoPush=false] - Whether to push the state after setting the flag.
      * @param {Object} [remoteLocation=null] - The remote location to push the state to. If null, the class instance remote location is used.
      */
-    setFlags(key, value, alsoPush = false, remoteLocation = null, onlyRemote = false) {
+    setFlags(key, value, alsoPush = false, onlyRemote = false) {
         if (!onlyRemote) {
             this.state.flags[key] = value;
             this.state.dateModified = Date.now();
         }
         if (alsoPush || onlyRemote) {
-            this.pushKey('flags', this.state.flags, remoteLocation);
+            this.pushKey('flags', this.state.flags);
         }
     }
     

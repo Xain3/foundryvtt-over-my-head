@@ -36,12 +36,13 @@ class Initializer {
      * @param {Object} logger - The logger.
      * @param {Object} hookFormatter - The hook formatter.
      */
-    constructor(config, Context, gameManager, logger, hookFormatter) {
+    constructor(config, utils, Context) {
+        this.utils = utils;
         this.config = config;
-        this.logger = logger;
+        this.logger = this.utils.logger;
+        this.gameManager = this.utils.gameManager;
+        this.hookFormatter = this.utils.hookFormatter;
         this.Context = Context;
-        this.gameManager = gameManager;
-        this.hookFormatter = hookFormatter;
     }
     
     /**
@@ -71,7 +72,7 @@ class Initializer {
     initializeContextObject(config = null) {
         config = this.checkConfig(config);
         this.logger.log('Initializing context');
-        const context = new this.Context(config, this.gameManager);
+        const context = new this.Context(config, this.utils);
         this.logger.log('Context initialized');
         return context;
     }

@@ -15,8 +15,13 @@ class Utilities {
         this.gameManager = new GameManager(CONFIG, this.remoteContextManager);
         this.logger = new Logger(CONFIG, this.gameManager);
         this.hookFormatter = new HookFormatter(CONFIG);
-        this.localizer = new Localizer(CONFIG, GameManager.getGameObject());
-        this.initializer = new Initializer(CONFIG, Context, this.gameManager, this.logger, this.hookFormatter);
+        this.localizer = new Localizer(CONFIG, this.gameManager.game);
+        const utils = this;
+        this.initializer = new Initializer(
+            CONFIG,
+            utils,
+            Context
+        );
         
     }
 

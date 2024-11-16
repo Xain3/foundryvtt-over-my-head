@@ -79,6 +79,20 @@ class HookFormatter {
         return formattedHook;
     }
 
+    /**
+     * Updates the configuration for the hook formatter.
+     *
+     * @param {Object} config - The configuration object.
+     * @param {Object} config.HOOKS - The hooks configuration.
+     * @param {Function} config.HOOKS.getMappings - Function to get hook mappings.
+     * @param {Function} config.HOOKS.getSettings - Function to get hook settings.
+     * @param {Object} config.CONST - The constants configuration.
+     * @param {Object} config.CONST.MODULE - The module constants.
+     * @param {string} config.CONST.MODULE.SHORT_NAME - The short name of the module.
+     * @param {Object} config.HOOKS.SETTINGS - The settings for hooks.
+     * @param {Array} config.HOOKS.SETTINGS.NO_PREFIX_GROUPS - Groups that do not require a prefix.
+     * @param {Array} config.HOOKS.SETTINGS.ALLOWED_GROUPS - Groups that are allowed.
+     */
     updateConfig(config) {
     this.mappings = config.HOOKS.getMappings();
     this.SETTINGS = config.HOOKS.getSettings();

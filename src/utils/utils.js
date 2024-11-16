@@ -8,7 +8,24 @@ import Localizer from "./localizer.js";
 import Context from "../contexts/context.js";
 import RemoteContextManager from "./remoteContextManager.js";
 
+/**
+ * A utility class that provides various functionalities such as managing remote contexts,
+ * game state, logging, hook formatting, localization, and application initialization.
+ * @property {Object} CONFIG - The configuration object.
+ * @property {RemoteContextManager} remoteContextManager - Manages remote contexts.
+ * @property {GameManager} gameManager - Manages game state and operations.
+ * @property {Logger} logger - Handles logging operations.
+ * @property {HookFormatter} hookFormatter - Formats hooks.
+ * @property {Localizer} localizer - Handles localization.
+ * @property {Initializer} initializer - Initializes the application.
+ */
 class Utilities {
+    /**
+     * Creates an instance of the class with the provided configuration.
+     * 
+     * @constructor
+     * @param {Object} CONFIG - The configuration object.
+     */
     constructor(CONFIG) {
         this.CONFIG = CONFIG;
         this.remoteContextManager = new RemoteContextManager();
@@ -25,6 +42,11 @@ class Utilities {
         
     }
 
+    /**
+     * Updates the configuration for various components.
+     *
+     * @param {Object} CONFIG - The configuration object the components will use.
+     */
     updateConfig(CONFIG) {
         this.CONFIG = CONFIG;
         this.gameManager.updateConfig(CONFIG);

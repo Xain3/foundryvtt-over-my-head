@@ -13,12 +13,13 @@
  * @class
  * @module Initializer
  * @export Initializer
+ * 
  * @property {Object} config - The configuration object.
+ * @property {Object} utils - The utilities object.
+ * @property {Object} logger - The logger object.
+ * @property {Object} gameManager - The game manager object.
+ * @property {Object} hookFormatter - The hook formatter object.
  * @property {Object} Context - The context class.
- * @property {Object} gameManager - The game manager.
- * @property {Object} settingsHandler - The settings handler.
- * @property {Object} logger - The logger.
- * @property {Object} hookFormatter - The hook formatter.
  * 
  * @method initializeContext
  * @method initializeRemoteContext
@@ -30,11 +31,8 @@ class Initializer {
      * Create an Initializer.
      *
      * @param {Object} config - The configuration object.
+     * @param {Object} utils - The utilities object.
      * @param {Object} Context - The context class.
-     * @param {Object} gameManager - The game manager.
-     * @param {Object} settingsHandler - The settings handler.
-     * @param {Object} logger - The logger.
-     * @param {Object} hookFormatter - The hook formatter.
      */
     constructor(config, utils, Context) {
         this.utils = utils;
@@ -93,6 +91,9 @@ class Initializer {
     /**
      * Register the settings for the module.
      * This method registers the settings using the SettingsHandler.
+     * 
+     * @param {Object} handlers - The settings handlers.
+     * @param {Object} context - The context object.
      */
     registerSettings(handlers, context) {
         this.logger.log('Registering settings');
@@ -100,6 +101,12 @@ class Initializer {
         this.logger.log('Settings registered');
     }
 
+    /**
+     * Initializes the context with the provided configuration.
+     * 
+     * @param {Object|null} config - The configuration object to initialize the context with. If null, a default configuration will be used.
+     * @returns {Promise<Object>} A promise that resolves to the initialized context object.
+     */
     initializeContext(config = null) {
         config = this.ensureConfig(config);
         return new Promise((resolve) => {
@@ -128,6 +135,11 @@ class Initializer {
         });
     }
 
+    /**
+     * Updates the configuration object.
+     *
+     * @param {Object} config - The new configuration object.
+     */
     updateConfig(config) {
         this.config = config;
     }

@@ -42,6 +42,14 @@ class Localizer {
         }    
     }
 
+    /**
+     * Updates the configuration with the provided CONFIG object.
+     *
+     * @param {Object} CONFIG - The configuration object.
+     * @param {Object} CONFIG.CONST - The constants object within the configuration.
+     * @param {Object} CONFIG.CONST.MODULE - The module object within the constants.
+     * @param {string} CONFIG.CONST.MODULE.ID - The ID of the module.
+     */
     updateConfig(CONFIG) {
         this.MODULE_ID = CONFIG.CONST.MODULE.ID
     }

@@ -19,46 +19,59 @@ class Logger {
      * 
      * @constructor
      * @param {Object} config - The configuration object.
-     * @param {string} config.MODULE - The name of the module.
-     * @param {Object} gameManager - An instance of the GameManager class.
+     * @param {Object} config.CONST - The constants object within the configuration.
+     * @param {string} config.CONST.MODULE - The module name to be set for the logger.
      */
     constructor(config) {
         this.module = config.CONST.MODULE;
     }
 
     /**
-     * Retrieves the debug mode value from the remote context.
-     * If an error occurs, it returns the default debug mode value.
+     * Logs a message to the console with the module's short name as a prefix.
      *
-     * @returns {boolean} The debug mode value.
+     * @param {string} message - The message to log.
      */
-    getDebugModeValue(context) {
-        try {
-            return flags.debugMode
-        } catch (error) {
-            return this.module.DEFAULTS.DEBUG_MODE;
-        }
-    }
-
     log(message) {
         console.log(`${this.module.SHORT_NAME} | ${message}`);
     }
 
+    /**
+     * Logs an error message to the console with the module's short name as a prefix.
+     *
+     * @param {string} message - The error message to log.
+     */
     error(message) {
         console.error(`${this.module.SHORT_NAME} | ${message}`);
     }
 
+    /**
+     * Logs a warning message to the console with the module's short name as a prefix.
+     *
+     * @param {string} message - The warning message to log.
+     */
     warn(message) {
         console.warn(`${this.module.SHORT_NAME} | ${message}`);
     }
 
 
+    /**
+     * Logs a debug message to the console if debug mode is enabled.
+     *
+     * @param {string} message - The message to be logged.
+     */
     debug(message) {
         if (this.getDebugModeValue()) {
             console.debug(`${this.module.SHORT_NAME} | ${message}`);
         }
     }
 
+    /**
+     * Updates the logger configuration.
+     *
+     * @param {Object} config - The configuration object.
+     * @param {Object} config.CONST - The constants object within the configuration.
+     * @param {string} config.CONST.MODULE - The module name to be set for the logger.
+     */
     updateConfig(config) {
         this.module = config.CONST.MODULE;
     }

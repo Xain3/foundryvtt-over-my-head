@@ -54,7 +54,7 @@ class Initializer {
      * @returns {Object} The validated configuration object.
      * @throws {Error} If no configuration is provided.
      */
-    checkConfig(config) {
+    ensureConfig(config) {
         if (config === null && this.config) {
             config = this.config;
         } else if (config === null) {
@@ -70,7 +70,7 @@ class Initializer {
      * @param {Object} config - An optional configuration object to override the default configuration.
      */
     initializeContextObject(config = null) {
-        config = this.checkConfig(config);
+        config = this.ensureConfig(config);
         this.logger.log('Initializing context');
         const context = new this.Context(config, this.utils);
         this.logger.log('Context initialized');
@@ -101,7 +101,7 @@ class Initializer {
     }
 
     initializeContext(config = null) {
-        config = this.checkConfig(config);
+        config = this.ensureConfig(config);
         return new Promise((resolve) => {
             Hooks.once('i18nInit', async () => {
                 this.context = this.initializeContextObject(config);
@@ -114,12 +114,11 @@ class Initializer {
      * Initialize the module.
      * This method sets up the necessary hooks and initializes the context and settings once the i18n initialization is complete.
      * 
-     * @param {Object} settingsHandler - The settings handler.
      * @param {Object} config - An optional configuration object to override the default configuration.
      * @fires settingsReady
      */
     initializeSettings(config = null) {
-        config = this.checkConfig(config);
+        config = this.ensureConfig(config);
         this.logger.log('Initializing module');
         Hooks.once('i18nInit', () => {
             settingsReady = this.registerSettings();
@@ -131,10 +130,6 @@ class Initializer {
 
     updateConfig(config) {
         this.config = config;
-    }
-
-    getContext() {
-        return this.context;
     }
 }
 

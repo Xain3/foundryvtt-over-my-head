@@ -44,6 +44,8 @@ class Main {
     async run() {
         // Initialise the module
         await this.initializeModule();
+        // Start the UI listeners
+        this.handlers.ui.startUIListener();
     }
 }
 

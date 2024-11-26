@@ -6,6 +6,7 @@ import OcclusionHandler from "./occlusionHandler.js";
 import settingsHandler from "./settingsHandler.js";
 import TileHandler from "./tileHandler.js";
 import TokenHandler from "./tokenHandler.js";
+import UserIntrefaceHandler from "./UserInterfaceHandler.js";
 
 class Handlers {
     constructor(config, context, utils) {
@@ -18,6 +19,7 @@ class Handlers {
         this.settings = new settingsHandler(this.config, this.context, this.utils);
         this.tile = new TileHandler();
         this.token = new TokenHandler();    
+        this.ui = new UserIntrefaceHandler(this.config, this.context, this.utils);
     }
 }
 

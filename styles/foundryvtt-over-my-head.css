@@ -1,8 +1,8 @@
 
-.over-my-head-also-fade {
+.foundryvtt-over-my-head-also-fade {
     display: none !important;
 }
 
-.over-my-head-also-fade.active {
+.foundryvtt-over-my-head-also-fade.active {
     display: flex !important;
 }

@@ -277,6 +277,21 @@ class Context {
     }
 
     /**
+     * Sets the remote location and updates the date modified state.
+     * Optionally pushes the state if alsoPush is true.
+     *
+     * @param {string} remoteLocation - The new remote location to set.
+     * @param {boolean} [alsoPush=false] - Whether to push the state after setting the remote location.
+     */
+    setRemoteLocation(remoteLocation, alsoPush = false) {
+        this.remoteLocation = remoteLocation;
+        this.state.dateModified = Date.now();
+        if (alsoPush) {
+            this.pushState(remoteLocation);
+        }
+    }
+
+    /**
      * Sets a flag in the state and updates the date modified.
      *
      * @param {string} key - The key of the flag to set.

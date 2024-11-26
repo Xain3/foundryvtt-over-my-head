@@ -26,6 +26,14 @@ class Logger {
         this.module = config.CONST.MODULE;
     }
 
+    getDebugModeValue(context) {
+        try {
+            return flags.debugMode
+        } catch (error) {
+            return this.module.DEFAULTS.DEBUG_MODE;
+        }
+    }
+    
     /**
      * Logs a message to the console with the module's short name as a prefix.
      *

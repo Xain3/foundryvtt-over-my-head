@@ -22,13 +22,13 @@ class ModuleSettings {
      * Create a Settings instance.
      * 
      * @param {Object} CONFIG - The module configuration.
-     * @param {Object} localizer - The localization utility.
+     * @param {Object} utils - The utility classes.     
      */
     constructor(CONFIG, utils) { 
         this.const = CONFIG.CONST;
         this.moduleId = this.const.MODULE.ID;
         this.debugMode = this.const.MODULE.DEFAULTS.DEBUG_MODE;
-        this.formatter = utils.formatter;
+        this.formatter = utils.hookFormatter;
         this.localizer = utils.localizer;
         this.settings = {};
     }
@@ -66,7 +66,7 @@ class ModuleSettings {
                 type: Boolean,
                 default: true,
                 onChange: value => {
-                    Hooks.callAll(this.formatter.formatHook("updateEnabled", "out"), value);
+                    Hooks.callAll(this.formatter.formatHook("updateEnabled", "OUT"), value);
                     if (this.context) {
                         this.context.setFlags('enabled', value, true);
                     }
@@ -91,7 +91,7 @@ class ModuleSettings {
                 type: Boolean,
                 default: this.debugMode,
                 onChange: value => {
-                    Hooks.callAll(this.formatter.formatHook("updateDebugMode", "out"), value);
+                    Hooks.callAll(this.formatter.formatHook("updateDebugMode", "OUT"), value);
                     if (this.context) {
                         this.context.setFlags('debugMode', value, true);
                     }

@@ -37,10 +37,10 @@ const LOCALIZATION = {
  * @property {any} MODULE - Module-related constants.
  * @property {any} LOCALIZATION - Localization-related constants.
  */
-const CONST = {
+const CONSTANTS = {
     CONTEXT_INIT,
     MODULE,
     LOCALIZATION
 }
 
-export default CONST;
+export default CONSTANTS;

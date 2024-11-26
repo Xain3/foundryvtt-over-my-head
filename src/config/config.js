@@ -1,4 +1,4 @@
-import CONST from './constants.js';
+import CONSTANTS from './constants.js';
 import HOOKS from './hooks.js';
 import ModuleSettings from './moduleSettings.js';
 
@@ -25,7 +25,7 @@ import ModuleSettings from './moduleSettings.js';
  */
 class Config {
     static CONFIG = {
-        CONST: CONST,
+        CONST: CONSTANTS,
         HOOKS: HOOKS,
         formatHook: null
     };

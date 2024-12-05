@@ -27,6 +27,16 @@ const LOCALIZATION = {
     SETTINGS: "settings" // Localization path for settings
 }
 
+const HANDLERS = {
+    TILE: {
+        PLACEABLE_TYPE: "tiles",
+        ALLOWED_CORNERS: ['topLeft', 'bottomLeft', 'topRight', 'bottomRight'],
+    },
+    TOKEN: {
+        PLACEABLE_TYPE: "tokens",
+        ALLOWED_CORNERS: ['topLeft', 'bottomLeft', 'topRight', 'bottomRight'],
+    }
+}
 
 /**
  * An object containing various constants used throughout the application.
@@ -40,7 +50,8 @@ const LOCALIZATION = {
 const CONSTANTS = {
     CONTEXT_INIT,
     MODULE,
-    LOCALIZATION
+    LOCALIZATION,
+    HANDLERS,
 }
 
 export default CONSTANTS;

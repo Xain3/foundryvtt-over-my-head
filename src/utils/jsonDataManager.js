@@ -1,6 +1,6 @@
 // ./src/handlers/JSONHandler.js
 
-class JSONHandler {
+class JsonDataManager {
     constructor(url) {
         this.url = url;
     }
@@ -36,4 +36,4 @@ class JSONHandler {
     }
 }
 
-export default JSONHandler;
+export default JsonDataManager;

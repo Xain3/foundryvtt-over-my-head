@@ -7,11 +7,13 @@ import Logger from "./logger.js";
 import Localizer from "./localizer.js";
 import Context from "../contexts/context.js";
 import RemoteContextManager from "./remoteContextManager.js";
+import JsonDataManager from "./jsonDataManager.js";
 
 /**
  * A utility class that provides various functionalities such as managing remote contexts,
  * game state, logging, hook formatting, localization, and application initialization.
  * @property {Object} CONFIG - The configuration object.
+ * @property {JsonDataManager} json - Manages JSON
  * @property {RemoteContextManager} remoteContextManager - Manages remote contexts.
  * @property {GameManager} gameManager - Manages game state and operations.
  * @property {Logger} logger - Handles logging operations.
@@ -25,9 +27,13 @@ class Utilities {
      * 
      * @constructor
      * @param {Object} CONFIG - The configuration object.
+     * @param {RemoteContextManager} [RemoteContextManager=RemoteContextManager] - The class that manages remote contexts.
      */
-    constructor(CONFIG) {
+    constructor(
+        CONFIG,
+    ) {
         this.CONFIG = CONFIG;
+        this.json = new JsonDataManager();
         this.remoteContextManager = new RemoteContextManager();
         this.gameManager = new GameManager(CONFIG, this.remoteContextManager);
         this.logger = new Logger(CONFIG, this.gameManager);

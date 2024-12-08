@@ -41,15 +41,27 @@ class Main {
         this.listeners.run();
     }
     
-    async run() {
+    checkUserPermission(onlyGM) {
+        if (onlyGM && !this.game.user.isGM) {
+            console.debug(`${this.config.CONST.MODULE.SHORT_NAME} | ${this.config.CONST.MODULE.NAME} not loaded. User is not a GM`);
+            return false;
+        }
+        return true;
+    }
+
+    async run(onlyGM = this.config.CONST.MODULE.DEFAULTS.ONLY_GM) {
         // Initialise the module
         await this.initializeModule();
-        // Start the UI listeners
-        this.handlers.ui.startUIListener();
+        // Ensure that the user is the GM
+        Hooks.on('setup', () => {if (!this.checkUserPermission(onlyGM)) {return;}});
+        // Start the UI listeners to render the UI when certain events are triggered
+        this.handlers.ui.startUIListener();  
+        this.handlers.token.startTokenListener();
     }
 }
 
 Hooks.on('init', () => {
+    // return  // Uncomment this line to disable the module
     const main = new Main();
     main.run()
 });

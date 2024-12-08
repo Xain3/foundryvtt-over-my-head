@@ -18,6 +18,7 @@ const MODULE = {
     CONTEXT_REMOTE: "moduleContext", // Context remote path within the module object
     DEFAULTS: {
         DEBUG_MODE: true, // Debug mode default value
+        ONLY_GM: true, // Load only for GM default value
     },
     SETTINGS: {}
 }

@@ -1,12 +1,10 @@
 // ./src/handlers/UserInterfaceHandler.js
 
+import Handler from "../classes/handler";
 
-
-class UserInterfaceHandler {
+class UserInterfaceHandler extends Handler {
     constructor(config, context, utils) {
-        this.config = config;
-        this.context = context;
-        this.utils = utils;
+        super(config, context, utils);
         this.moduleName = this.config.CONST.MODULE.ID;
         this.flags = {
             alsoFade: 'alsoFade',

@@ -1,5 +1,5 @@
-// Fix in hooksHandler.js
-
+// Dependencies
+import Handler from '../classes/handler.js';
 import HookFormatter from '../utils/hookFormatter.js';
 
 const runChecks = (hookGroup, allowedGroups) => {
@@ -43,8 +43,9 @@ class HookWrapper {
  * 
  * Methods:
  */
-class HooksHandler {
-    constructor(config) {
+class HooksHandler extends Handler {
+    constructor(config, context, utils) {
+        super(config, context, utils);
         this.HOOKS_MAPPINGS = config.HOOKS.getMappings();
         this.HOOKS_SETTINGS = config.HOOKS.getSettings();
         this.PREFIX = config.CONST.MODULE.SHORT_NAME;

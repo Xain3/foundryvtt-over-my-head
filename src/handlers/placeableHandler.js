@@ -1,5 +1,7 @@
 // ./src/handlers/placeableHandler.js
 
+import Handler from "../classes/handler";
+
 class IsUnderChecker {    
     static checkMethods = {
         'center-rectangle': this.isCenterUnderRect,
@@ -8,9 +10,9 @@ class IsUnderChecker {
         'center-center': this.isCenterUnderCenter
     };
 
-    checkIfIsUnder(targetPosition, targetElevation, referencePosition, referenceElevation, targetUse, referenceUse){
+    static checkIfIsUnder(targetPosition, targetElevation, referencePosition, referenceElevation, targetUse, referenceUse){
         const methodKey = `${targetUse}-${referenceUse}`;
-        const checkMethod = this.checkMethods[methodKey];
+        const checkMethod = IsUnderChecker.checkMethods[methodKey];
         
         // check if the target is under the reference
         if (checkMethod) {
@@ -21,7 +23,7 @@ class IsUnderChecker {
         }
     }
 
-    isCenterUnderRect(targetCenter, targetElevation, referencePosition, referenceElevation){  
+    static isCenterUnderRect(targetCenter, targetElevation, referencePosition, referenceElevation){  
         if (
             targetCenter.x > referencePosition.BottomLeft.x 
             && targetCenter.x < referencePosition.TopRight.x 
@@ -35,7 +37,7 @@ class IsUnderChecker {
         }
     }
 
-    isRectUnderCenter(targetPosition, targetElevation, referenceCenter, referenceElevation){
+    static isRectUnderCenter(targetPosition, targetElevation, referenceCenter, referenceElevation){
         if (
             targetPosition.BottomLeft.x < referenceCenter.x 
             && targetPosition.TopRight.x > referenceCenter.x 
@@ -49,7 +51,7 @@ class IsUnderChecker {
         }
     }
 
-    isRectUnderRect(targetPosition, targetElevation, referencePosition, referenceElevation){
+    static isRectUnderRect(targetPosition, targetElevation, referencePosition, referenceElevation){
         if (
             targetPosition.BottomLeft.x < referencePosition.TopRight.x 
             && targetPosition.TopRight.x > referencePosition.BottomLeft.x 
@@ -63,7 +65,7 @@ class IsUnderChecker {
         }
     }
 
-    isCenterUnderCenter(targetCenter, targetElevation, referenceCenter, referenceElevation){
+    static isCenterUnderCenter(targetCenter, targetElevation, referenceCenter, referenceElevation){
         if (
             targetCenter.x === referenceCenter.x 
             && targetCenter.y === referenceCenter.y 
@@ -76,33 +78,26 @@ class IsUnderChecker {
     }
 }
 
-
-class PlaceableHandler {
-    constructor(config, context, utils, isUnderChecker=new IsUnderChecker(config, context, utils)){
-        this.config = config;
-        this.context = context;
-        this.utils = utils;
+class PlaceableHandler extends Handler {
+    constructor(config, context, utils) {
+        super(config, context, utils);
+        this.placeableType = null;
         this.placeables = [];
         this.currentPlaceable = null;
-        this.isUnderChecker = isUnderChecker;
+        this.isUnderChecker = new IsUnderChecker(config, context, utils);
     }
 
-    getDebugMode(){
-        return this.context.getFlag('debugMode');
-    }
-
-    getPlaceables(placeableType, updateProperty = true, returnValue = true) {
-        const placeables = canvas[placeableType].placeables;
-        if (updateProperty) {        
-        this.placeables = placeables;
+    getPlaceables(placeableType = this.placeableType, updateProperty = true, returnValue = true) {
+        const placeables = canvas[placeableType]?.placeables || [];
+        if (updateProperty) {
+            this.placeables = placeables;
         }
         if (returnValue) {
             return placeables;
         }
-        return;
     }
 
-    setCurrentPlaceable(placeable){
+    setCurrentPlaceable(placeable) {
         this.currentPlaceable = placeable;
     }
 
@@ -159,6 +154,15 @@ class PlaceableHandler {
             return placeableManager.getRectBounds(placeable);
         }
     }
+
+    getSelectedPlaceables(placeables = this.placeables) {
+        return placeables.filter(placeable => placeable._controlled);
+    }
+
+    isSelected(placeable) {
+        return placeable._controlled;
+    }
+
     
     isUnder(target, reference, targetManager, referenceManager, targetUse = 'center', referenceUse = 'rectangle'){
         if (this.getDebugMode) {console.log(`Checking if target ${target} is under reference ${reference}`)}; // DEBUG - log the target and reference
@@ -169,13 +173,19 @@ class PlaceableHandler {
         let referencePosition = getPosition(reference, referenceManager, referenceUse);
         let referenceElevation = getElevation(reference, referenceManager);
         // check if the target is under the reference
-        return this.checkIfIsUnder(targetPosition, targetElevation, referencePosition, referenceElevation, targetUse, referenceUse);
+        return IsUnderChecker.checkIfIsUnder(
+            targetPosition,
+            targetElevation,
+            referencePosition,
+            referenceElevation,
+            targetUse,
+            referenceUse
+        );
     }
 
-    isOver(target, reference, targetManager, referenceManager, targetUse = 'center', referenceUse = 'rectangle'){
+    isOver(target, reference, targetManager, referenceManager, targetUse = 'center', referenceUse = 'rectangle') {
         return !this.isUnder(target, reference, targetManager, referenceManager, targetUse, referenceUse);
     }
-
 }
 
 export default PlaceableHandler;

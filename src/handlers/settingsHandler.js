@@ -1,6 +1,7 @@
 // ./src/handlers/settingsHandler.js
 
 import SettingData from '../data/settingData.js';
+import Handler from '../classes/handler.js';
 
 /**
  * Class representing a handler for managing settings.
@@ -19,7 +20,7 @@ import SettingData from '../data/settingData.js';
  * @method setSettingValue - Sets a setting value by key.
  * @method registerSettings - Registers all settings.
  */
-export class SettingsHandler {
+export class SettingsHandler extends Handler {
     /**
      * Creates an instance of SettingsHandler.
      * 
@@ -27,10 +28,9 @@ export class SettingsHandler {
      * @param {object} logger - The logger object.
      */
     constructor(config, context, utils) {
+        super(config, context, utils);
         this.utils = utils;
         this.logger = utils.logger;
-        this.config = config;
-        this.context = context;
         this.settingsReady = false;
         this.configSettings = this.config.CONST.MODULE.SETTINGS.initializeSettings(this.context);
         this.settings = this.checkSettingsType(this.createSettings(this.config));

@@ -1,4 +1,4 @@
-// ./src/handlers/UserInterfaceHandler.js
+// ./src/handlers/userInterfaceHandler.js
 
 import Handler from "../classes/handler";
 

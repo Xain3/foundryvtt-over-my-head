@@ -7,7 +7,7 @@ import PlaceableHandler from "./placeableHandler.js";
 import settingsHandler from "./settingsHandler.js";
 import TileHandler from "./tileHandler.js";
 import TokenHandler from "./tokenHandler.js";
-import UserIntrefaceHandler from "./UserInterfaceHandler.js";
+import UserIntrefaceHandler from "./userInterfaceHandler.js";
 
 class Handlers extends Handler {
     constructor(config, context, utils) {

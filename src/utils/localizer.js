@@ -1,6 +1,6 @@
 // ./src/utils/localizer.js
 
-import Utility from "../baseClasses/utility";
+import Utility from "../baseClasses/utility.js";
 
 /**
  * A utility class for localization within a specific module.

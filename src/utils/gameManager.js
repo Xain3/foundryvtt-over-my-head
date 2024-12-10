@@ -1,6 +1,6 @@
 // ./src/utils/gameManager.js
 
-import Utility from "../baseClasses/utility";
+import Utility from "../baseClasses/utility.js";
 
 /**
  * The GameManager class is responsible for managing the game state and interacting with the remote context manager.

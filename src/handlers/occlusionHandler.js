@@ -1,6 +1,6 @@
 // ./src/handlers/occlusionHandler.js
 
-import Handler from "../baseClasses/handler";
+import Handler from "../baseClasses/handler.js";
 
 /**
  * Class for handling occlusion settings.
@@ -73,7 +73,7 @@ class OcclusionHandler extends Handler {
         });
     }
 
-    updateOcclusion(tiles, token){
+    updateOcclusionForTiles(tiles, token){
         tiles.forEach(tile => {
             if(this.tileHandler.getAlsoFadeFlag(tile)){
                 this.setAlsoFadeTileOcclusion(tile, token);

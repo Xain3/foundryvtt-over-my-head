@@ -1,25 +1,37 @@
 // ./src/handlers/occlusionHandler.js
 
 import Handler from "../baseClasses/handler.js";
+import Config from "../config/config.js";
+import Context from "../contexts/context.js";
+import Utilities from "../utils/utils.js";
+import TokenHandler from "./tokenHandler.js";
+import TileHandler from "./tileHandler.js";
+
 
 /**
- * Class for handling occlusion settings.
+ * Handles occlusion settings and updates for tokens and tiles.
  * 
  * @class OcclusionHandler
- * @module handlers
- * @constructor
+ * @extends Handler
+ * 
  * @param {Config} config - The configuration object.
  * @param {Context} context - The context object.
- * @param {Utilities} utils - The utility object.
+ * @param {Utilities} utils - Utility functions.
  * @param {TokenHandler} tokenHandler - The token handler object.
  * @param {TileHandler} tileHandler - The tile handler object.
- * @property {Config} config - The configuration object.
- * @property {Context} context - The context object.
- * @property {Utilities} utils - The utility object.
+ * 
+ * @property {null} currentOcclusion - The current occlusion setting.
  * @property {TokenHandler} tokenHandler - The token handler object.
  * @property {TileHandler} tileHandler - The tile handler object.
- * @property {null} currentOcclusion - The current occlusion setting.
- * @method setOcclusionMode - Sets the occlusion mode.
+ * 
+ * @method updateOcclusionForTiles
+ * @param {Array} tiles - The array of tiles to update occlusion for.
+ * @param {Object} token - The token object.
+ * @description Updates the occlusion for the specified tiles based on the given token.
+ * 
+ * @method updateAlsoFadeTilesOcclusion
+ * @param {Object} token - The token object.
+ * @description Updates the occlusion for tiles that should also fade based on the given token.
  */
 class OcclusionHandler extends Handler {
     /**
@@ -52,78 +64,30 @@ class OcclusionHandler extends Handler {
         this.tileHandler = tileHandler;
     }
 
-    setOcclusionMode(document, occlusionMode){
-        document.update({ occlusion: occlusionMode });
+    /**
+     * Updates the occlusion for a set of tiles based on the given token.
+     * 
+     * @method updateOcclusionForTiles
+     * @memberof OcclusionHandler
+     *
+     * @param {Array} tiles - An array of tile objects to update occlusion for.
+     * @param {Object} token - The token object that affects the occlusion of the tiles.
+     */
+    updateOcclusionForTiles(tiles, token) {
+        this.tileHandler.updateOcclusionForTiles(tiles, token);
     }
 
-    setAlsoFadeTileOcclusion(tile, token){
-        if(token.isUnderTile(tile, token)) {
-                let occlusion = { occlusion : { mode : CONST.TILE_OCCLUSION_MODES.FADE } };
-                this.tileHandler.updateOcclusion(tile, occlusion);
-        } else {
-                let occlusion = { occlusion : { mode : CONST.TILE_OCCLUSION_MODES.VISION } };
-                this.tileHandler.updateOcclusion(tile, occlusion);
-        }
+    /**
+     * Updates the occlusion state of tiles that should also fade when the token moves.
+     * 
+     * @method updateAlsoFadeTilesOcclusion
+     * @memberof OcclusionHandler
+     *
+     * @param {Token} token - The token whose movement triggers the occlusion update.
+     */
+    updateAlsoFadeTilesOcclusion(token) {
+        this.tileHandler.updateAlsoFadeTilesOcclusion(token);
     }
-
-    updateAlsoFadeTilesOcclusion(token){
-        const alsoFadeTiles = this.tileHandler.filterAlsoFadeTiles();
-        alsoFadeTiles.forEach(tile => {
-            this.setAlsoFadeTileOcclusion(tile, token);
-        });
-    }
-
-    updateOcclusionForTiles(tiles, token){
-        tiles.forEach(tile => {
-            if(this.tileHandler.getAlsoFadeFlag(tile)){
-                this.setAlsoFadeTileOcclusion(tile, token);
-            }
-        })
-    }
-    // // Update tile occlusion modes based on token ownership and position
-    // Hooks.on('refreshToken', (token) => {
-    //     // if the ENABLE_BUTTON_SETTING setting is false, return early
-    //     if (!game.settings.get(MODULENAME, Settings.ENABLE_BUTTON_SETTING)) {
-    //         return;
-    //     }
-        
-    //     if (debugMode) {console.log(`Refreshing token ${token.id}`)};  // DEBUG - log the token id
-        
-    //     // if the token is owned by the current user and is selected
-    //     if (token.document.isOwner && this.isSelected(token, canvas.tokens.controlled)) {
-    //         // get all tiles on the canvas
-    //         let tiles = canvas.tiles.placeables;
-    //         tiles.forEach(tile => {
-    //             // get 'also fade' setting for tile
-    //             let alsoFade = tile.document.getFlag(MODULENAME, FLAGS.ALSOFADE);
-
-    //             // update the tile occlusion mode based on token position if 'also fade' is enabled
-    //             if (alsoFade) {
-    //                 if(this.isUnderTile(tile, token)) {
-    //                     let occlusion = { occlusion : { mode : CONST.TILE_OCCLUSION_MODES.FADE } };
-    //                     tile.document.update(occlusion);
-    //                 }
-    //                 else {
-    //                     let occlusion = { occlusion : { mode : CONST.TILE_OCCLUSION_MODES.VISION } };
-    //                     tile.document.update(occlusion);
-    //                 }
-    //             }});
-        
-    //     // if the token is not owned by the current user or is not selected
-    //     } else {
-    //         let tiles = canvas.tiles.placeables;
-    //         tiles.forEach(tile => {
-    //             // get 'also fade' setting for tile
-    //             let alsoFade = tile.document.getFlag(MODULENAME, FLAGS.ALSOFADE);
-
-    //             // ensure that the tile occlusion mode is set to 'Vision' if the token is not owned by the current user or is not selected
-    //             if (alsoFade) {
-    //                 let occlusion = { occlusion : { mode : CONST.TILE_OCCLUSION_MODES.VISION } };
-    //                 tile.document.update(occlusion);
-    //             }
-    //         });
-    //     }
-    // });
 }
 
 export default OcclusionHandler;

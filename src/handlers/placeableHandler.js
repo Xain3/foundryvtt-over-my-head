@@ -1,6 +1,6 @@
 // ./src/handlers/placeableHandler.js
 
-import Handler from "../classes/handler";
+import Handler from "../baseClasses/handler";
 
 class IsUnderChecker {    
     static checkMethods = {

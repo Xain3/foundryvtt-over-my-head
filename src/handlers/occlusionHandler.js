@@ -1,6 +1,6 @@
 // ./src/handlers/occlusionHandler.js
 
-import Handler from "../classes/handler";
+import Handler from "../baseClasses/handler";
 
 /**
  * Class for handling occlusion settings.
@@ -52,17 +52,17 @@ class OcclusionHandler extends Handler {
         this.tileHandler = tileHandler;
     }
 
-    setOcclusionMode(occlusion, mode){
-        occlusion.document.update({ occlusion: mode });
+    setOcclusionMode(document, occlusionMode){
+        document.update({ occlusion: occlusionMode });
     }
 
     setAlsoFadeTileOcclusion(tile, token){
         if(token.isUnderTile(tile, token)) {
                 let occlusion = { occlusion : { mode : CONST.TILE_OCCLUSION_MODES.FADE } };
-                tile.document.update(occlusion);
+                this.tileHandler.updateOcclusion(tile, occlusion);
         } else {
                 let occlusion = { occlusion : { mode : CONST.TILE_OCCLUSION_MODES.VISION } };
-                tile.document.update(occlusion);
+                this.tileHandler.updateOcclusion(tile, occlusion);
         }
     }
 
@@ -73,6 +73,13 @@ class OcclusionHandler extends Handler {
         });
     }
 
+    updateOcclusion(tiles, token){
+        tiles.forEach(tile => {
+            if(this.tileHandler.getAlsoFadeFlag(tile)){
+                this.setAlsoFadeTileOcclusion(tile, token);
+            }
+        })
+    }
     // // Update tile occlusion modes based on token ownership and position
     // Hooks.on('refreshToken', (token) => {
     //     // if the ENABLE_BUTTON_SETTING setting is false, return early

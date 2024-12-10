@@ -1,7 +1,7 @@
 // ./src/handlers/settingsHandler.js
 
 import SettingData from '../data/settingData.js';
-import Handler from '../classes/handler.js';
+import Handler from '../baseClasses/handler.js';
 
 /**
  * Class representing a handler for managing settings.

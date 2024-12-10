@@ -1,5 +1,5 @@
 // Dependencies
-import Handler from '../classes/handler.js';
+import Handler from '../baseClasses/handler.js';
 import HookFormatter from '../utils/hookFormatter.js';
 
 const runChecks = (hookGroup, allowedGroups) => {

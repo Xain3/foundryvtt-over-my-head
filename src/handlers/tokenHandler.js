@@ -36,6 +36,15 @@ class TokenHandler extends PlaceableHandler {
     isSelected(token) { //WIP
         return token.isSelected;
     }
+    
+    startTokenListener(occlusionHandler){
+        Hooks.on('refreshToken', (token) => {
+            if (this.isControlled(token) && this.isSelected(token)) { //WIP - token.isSelected is not yet implemented
+                this.setCurrentToken(token);
+                occlusionHandler.updateOcclusion(token);
+            }
+        });
+    }
 }
 
 export default TokenHandler;

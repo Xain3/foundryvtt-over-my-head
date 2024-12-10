@@ -23,6 +23,11 @@ class TileHandler extends PlaceableHandler {
     filterAlsoFadeTiles(tiles = this.placeables) {
         this.alsoFadeTiles = tiles.filter(tile => this.getAlsoFadeFlag(tile));
         return this.alsoFadeTiles;
+
+    }
+    
+    updateOcclusion(tile, occlusionMode){
+        tile.document.update(occlusionMode);
     }
 }
 

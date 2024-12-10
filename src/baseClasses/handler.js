@@ -1,15 +1,11 @@
 // ./src/baseClasses/handler.js
 
-import Base from './base.js';
+import Component from './component.js';
 
-class Handler extends Base{
+class Handler extends Component {
     constructor(config, context, utils) {
-        super(config);
-        this.context = context;
-        this.utils = utils;
-        this.logger = utils.logger;
+        super(config, context, utils);
     }
-
 }
 
 export default Handler;

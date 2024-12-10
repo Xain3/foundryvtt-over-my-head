@@ -1,14 +1,11 @@
 // ./src/baseClasses/listener.js
 
-import Base from './base.js';
+import Component from './component.js';
 
-class Listener extends Base {
+class Listener extends Component {
     constructor(config, context, utils, handlers) {
-        super(config);
-        this.context = context;
-        this.utils = utils;
+        super(config, context, utils);
         this.handlers = handlers;
-        this.logger = utils.logger;
     }
 }
 

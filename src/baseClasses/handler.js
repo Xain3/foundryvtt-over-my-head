@@ -1,4 +1,4 @@
-// ./src/classes/handler.js
+// ./src/baseClasses/handler.js
 
 class Handler {
     constructor(config, context, utils) {

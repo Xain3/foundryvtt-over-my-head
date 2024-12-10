@@ -1,12 +1,14 @@
-// ./src/listeners/listeners.js
+// ./src/baseClasses/listener.js
 
-class Listener {
-    constructor(config, context, utils) {
-        this.config = config;
+import Base from './base.js';
+
+class Listener extends Base {
+    constructor(config, context, utils, handlers) {
+        super(config);
         this.context = context;
         this.utils = utils;
+        this.handlers = handlers;
         this.logger = utils.logger;
-        this.gameObject = utils.gameManager.game;
     }
 }
 

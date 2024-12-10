@@ -1,13 +1,14 @@
 // ./src/baseClasses/utility.js
 
-class Utility {
+import Base from './base.js';
+
+class Utility extends Base {
     /**
      * Creates an instance of BaseModuleUtil.
      * @param {Object} config - The configuration object containing constants.
      */
     constructor(config) {
-        this.config = config;
-        this.moduleConstants = config.CONST.MODULE;
+        super(config);
     }
 
     /**
@@ -16,6 +17,7 @@ class Utility {
      */
     updateConfig(config) {
         this.config = config;
+        this.const = config.CONST;
         this.moduleConstants = config.CONST.MODULE;
     }
 }

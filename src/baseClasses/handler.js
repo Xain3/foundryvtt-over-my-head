@@ -1,15 +1,15 @@
 // ./src/baseClasses/handler.js
 
-class Handler {
+import Base from './base.js';
+
+class Handler extends Base{
     constructor(config, context, utils) {
-        this.config = config;
+        super(config);
         this.context = context;
         this.utils = utils;
+        this.logger = utils.logger;
     }
 
-    getDebugMode() {
-        return this.context.getFlag('debugMode');
-    }
 }
 
 export default Handler;

@@ -1,19 +1,23 @@
 // ./src/utils/logger.js
+
+import Utility from '../baseClasses/utility.js';
+
 /**
  * A utility class for logging within a specific module.
  * config and the GameManager class are passed in the constructor.
  * 
  * @class
+ * @extends Utility
  * @module Logger
- * @since 0.0.1
  * @export Logger
+ * @since 0.0.1
  * 
  * @property {Object} module - The module configuration object.
  * @property {Object} module.DEFAULTS - The module default values.
  * @property {string} module.SHORT_NAME - The module short name.
  * @property {Object} GameManager - An instance of the GameManager class.
  */
-class Logger {
+class Logger extends Utility {
     /**
      * Creates an instance of the logger.
      * 
@@ -23,14 +27,14 @@ class Logger {
      * @param {string} config.CONST.MODULE - The module name to be set for the logger.
      */
     constructor(config) {
-        this.module = config.CONST.MODULE;
+        super(config);
     }
 
     getDebugModeValue(context) {
         try {
             return flags.debugMode
         } catch (error) {
-            return this.module.DEFAULTS.DEBUG_MODE;
+            return this.moduleConstants.DEFAULTS.DEBUG_MODE;
         }
     }
     
@@ -40,7 +44,7 @@ class Logger {
      * @param {string} message - The message to log.
      */
     log(message) {
-        console.log(`${this.module.SHORT_NAME} | ${message}`);
+        console.log(`${this.moduleConstants.SHORT_NAME} | ${message}`);
     }
 
     /**
@@ -49,7 +53,7 @@ class Logger {
      * @param {string} message - The error message to log.
      */
     error(message) {
-        console.error(`${this.module.SHORT_NAME} | ${message}`);
+        console.error(`${this.moduleConstants.SHORT_NAME} | ${message}`);
     }
 
     /**
@@ -58,7 +62,7 @@ class Logger {
      * @param {string} message - The warning message to log.
      */
     warn(message) {
-        console.warn(`${this.module.SHORT_NAME} | ${message}`);
+        console.warn(`${this.moduleConstants.SHORT_NAME} | ${message}`);
     }
 
 
@@ -69,19 +73,8 @@ class Logger {
      */
     debug(message) {
         if (this.getDebugModeValue()) {
-            console.debug(`${this.module.SHORT_NAME} | ${message}`);
+            console.debug(`${this.moduleConstants.SHORT_NAME} | ${message}`);
         }
-    }
-
-    /**
-     * Updates the logger configuration.
-     *
-     * @param {Object} config - The configuration object.
-     * @param {Object} config.CONST - The constants object within the configuration.
-     * @param {string} config.CONST.MODULE - The module name to be set for the logger.
-     */
-    updateConfig(config) {
-        this.module = config.CONST.MODULE;
     }
 }
 

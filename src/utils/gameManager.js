@@ -1,13 +1,19 @@
 // ./src/utils/gameManager.js
 
+import Utility from "../baseClasses/utility";
+
 /**
  * The GameManager class is responsible for managing the game state and interacting with the remote context manager.
  *
  * @class GameManager
+ * @extends Utility
+ * @module GameManager
+ * @export GameManager
  * @param {Object} CONFIG - The configuration object.
  * @param {Object} remoteContextManager - The remote context manager object.
  */
-class GameManager {
+class GameManager extends Utility {
+    
     /**
      * Creates a new GameManager instance.
      *
@@ -15,6 +21,7 @@ class GameManager {
      * @param {Object} remoteContextManager - The remote context manager object.
      */
     constructor(CONFIG, remoteContextManager) {
+        super(CONFIG);
         this.remoteContextManager = remoteContextManager;
         this.game = this.getGameObject();
         this.updateConfig(CONFIG);

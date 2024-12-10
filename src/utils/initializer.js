@@ -1,5 +1,7 @@
 // ./src/utils/initializer.js
 
+import Utility from '../baseClasses/utility.js';
+
 /**
  * Class representing an Initializer.
  * This class is responsible for initializing the context and registering settings for a module.
@@ -11,6 +13,7 @@
  * - HookFormatter
  * 
  * @class
+ * @extends Utility
  * @module Initializer
  * @export Initializer
  * 
@@ -26,7 +29,7 @@
  * @method registerSettings
  * @method initializeModule
  */
-class Initializer {
+class Initializer extends Utility {
     /**
      * Create an Initializer.
      *
@@ -35,8 +38,8 @@ class Initializer {
      * @param {Object} Context - The context class.
      */
     constructor(config, utils, Context) {
+        super(config);
         this.utils = utils;
-        this.config = config;
         this.logger = this.utils.logger;
         this.gameManager = this.utils.gameManager;
         this.hookFormatter = this.utils.hookFormatter;
@@ -133,15 +136,6 @@ class Initializer {
             context.setFlags('settingsReady', true);
             Hooks.callAll(hookFormatter.formatHooks("settingsReady", "out"));
         });
-    }
-
-    /**
-     * Updates the configuration object.
-     *
-     * @param {Object} config - The new configuration object.
-     */
-    updateConfig(config) {
-        this.config = config;
     }
 }
 

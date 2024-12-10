@@ -1,27 +1,30 @@
 // ./src/utils/localizer.js
 
+import Utility from "../baseClasses/utility";
+
 /**
  * A utility class for localization within a specific module.
  * CONFIG and the game object are passed in the constructor.
  * 
  * @class
+ * @extends Utility
  * @module Localizer
- * @since 0.0.1
  * @export Localizer
+ * @since 0.0.1
  * @requires globalThis.game
  *
  * @property {string} MODULE_ID - The ID of the module.
  * @property {Object} gameObject - The game object.
  * @property {Object} i18nService - The i18n service.
  */
-class Localizer {
+class Localizer extends Utility {
     /**
      * Creates an instance of Localizer.
      * @param {Object} CONFIG - The configuration object containing constants.
      * @param {Object} gameObject - The game object containing the i18n service.
      */
     constructor(CONFIG, gameObject) {
-        this.MODULE_ID = CONFIG.CONST.MODULE.ID
+        super(CONFIG);
         this.gameObject = gameObject
         this.i18nService = this.gameObject.i18n
     }
@@ -36,22 +39,10 @@ class Localizer {
      */
     localize(stringKey, ...args) {
         if (args.length > 0) {
-            return this.i18nService.format(`${this.MODULE_ID}.${stringKey}`, args);
+            return this.i18nService.format(`${this.moduleConstants.ID}.${stringKey}`, args);
         } else {
-            return this.i18nService.localize(`${this.MODULE_ID}.${stringKey}`);
+            return this.i18nService.localize(`${this.moduleConstants.ID}.${stringKey}`);
         }    
-    }
-
-    /**
-     * Updates the configuration with the provided CONFIG object.
-     *
-     * @param {Object} CONFIG - The configuration object.
-     * @param {Object} CONFIG.CONST - The constants object within the configuration.
-     * @param {Object} CONFIG.CONST.MODULE - The module object within the constants.
-     * @param {string} CONFIG.CONST.MODULE.ID - The ID of the module.
-     */
-    updateConfig(CONFIG) {
-        this.MODULE_ID = CONFIG.CONST.MODULE.ID
     }
 }
 

@@ -1,10 +1,13 @@
 // ./src/utils/hookFormatter.js
 
+import Utility from '../baseClasses/utility.js';
+
 /**
  * HookFormatter class to format hook names based on group and mappings.
  * Requires CONFIG to be passed in the constructor.
  * 
  * @class HookFormatter
+ * @extends Utility
  * @module HookFormatter
  * @export HookFormatter
  * @property {Object} hookMappings - The module hooks.
@@ -15,13 +18,14 @@
  *
  * @method formatHook
  */
-class HookFormatter {
+class HookFormatter extends Utility {
     /**
      * Creates an instance of HookFormatter.
      *
      * @param {Object} CONFIG - The configuration object.
      */
     constructor(CONFIG) {
+        super(CONFIG);
         // Remove the SETTINGS group from hookMappings if it exists
         this.mappings = CONFIG.HOOKS.getMappings();
         this.SETTINGS = CONFIG.HOOKS.getSettings();

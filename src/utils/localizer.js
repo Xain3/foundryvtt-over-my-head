@@ -23,10 +23,9 @@ class Localizer extends Utility {
      * @param {Object} CONFIG - The configuration object containing constants.
      * @param {Object} gameObject - The game object containing the i18n service.
      */
-    constructor(CONFIG, gameObject) {
+    constructor(CONFIG) {
         super(CONFIG);
-        this.gameObject = gameObject
-        this.i18nService = this.gameObject.i18n
+        this.i18nService = this.game.i18n
     }
 
     /**

@@ -23,18 +23,7 @@ class GameManager extends Utility {
     constructor(CONFIG, remoteContextManager) {
         super(CONFIG);
         this.remoteContextManager = remoteContextManager;
-        this.game = this.getGameObject();
         this.updateConfig(CONFIG);
-    }
-    
-    /**
-     * Retrieves the global game object.
-     *
-     * @method getGameObject
-     * @returns {Object} The global game object.
-     */
-    getGameObject() {
-        return globalThis.game;
     }
 
     /**

@@ -4,8 +4,8 @@ import PlaceableHandler from './placeableHandler.js';
 class TileHandler extends PlaceableHandler {
     constructor(config, context, utils) {
         super(config, context, utils);
-        this.placeableType = this.config.CONSTANTS.HANDLERS.TILE.PLACEABLE_TYPE;
-        this.alsoFadeTiles = [];
+        this.placeableType = this.const.HANDLERS.TILE.PLACEABLE_TYPE;
+        this.tiles = this.getTiles();
     }
 
     getTiles(updateProperty = true, returnValue = true) {

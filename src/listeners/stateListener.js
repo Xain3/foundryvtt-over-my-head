@@ -3,8 +3,8 @@
 import Listener from "../baseClasses/listener.js";
 
 class StateListener extends Listener {
-    constructor(config, context, utils) {
-        super(config, context, utils);
+    constructor(config, context, utils, handlers) {
+        super(config, context, utils, handlers);
     }
 
     setupLogState() {

@@ -30,9 +30,8 @@ export class SettingsHandler extends Handler {
     constructor(config, context, utils) {
         super(config, context, utils);
         this.utils = utils;
-        this.logger = utils.logger;
         this.settingsReady = false;
-        this.configSettings = this.config.CONST.MODULE.SETTINGS.initializeSettings(this.context);
+        this.configSettings = this.const.MODULE.SETTINGS.initializeSettings(this.context);
         this.settings = this.checkSettingsType(this.createSettings(this.config));
     }
 

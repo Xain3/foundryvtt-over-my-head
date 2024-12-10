@@ -6,7 +6,7 @@ import PlaceableHandler from './placeableHandler.js';
 class TokenHandler extends PlaceableHandler {
     constructor(config, context, utils) {
         super(config, context, utils);
-        this.placeableType = this.config.CONSTANTS.HANDLERS.TOKEN.PLACEABLE_TYPE;
+        this.placeableType = this.const.HANDLERS.TOKEN.PLACEABLE_TYPE;
     }
 
     getTokens(updateProperty = true, returnValue = true) {

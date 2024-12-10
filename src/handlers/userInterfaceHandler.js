@@ -5,7 +5,7 @@ import Handler from "../baseClasses/handler.js";
 class UserInterfaceHandler extends Handler {
     constructor(config, context, utils) {
         super(config, context, utils);
-        this.moduleName = this.config.CONST.MODULE.ID;
+        this.moduleID = this.moduleConstants.ID;
         this.flags = {
             alsoFade: 'alsoFade',
             showFadeToggle: 'showFadeToggle'
@@ -23,7 +23,7 @@ class UserInterfaceHandler extends Handler {
      */
     async addRoofVisionFadeUI(app, html, data) {
         // get also fade setting for tile
-        let alsoFade = await app.object.getFlag(`${this.moduleName}`, this.flags.alsoFade);
+        let alsoFade = await app.object.getFlag(`${this.moduleID}`, this.flags.alsoFade);
         // get the occlusion mode select dropdown
         let select = html.find('[name="occlusion.mode"]');
 
@@ -36,12 +36,12 @@ class UserInterfaceHandler extends Handler {
        
         // add also fade section to the tile congif UI
         select.closest(".form-group").after(
-            `<div class="form-group ${this.moduleName}-also-fade ${showAlsoFadeUI ? 'active' : ''}">
-                <label>${game.i18n.localize(`${this.moduleName}.tile-config.also-fade.name`)}</label>
+            `<div class="form-group ${this.moduleID}-also-fade ${showAlsoFadeUI ? 'active' : ''}">
+                <label>${game.i18n.localize(`${this.moduleID}.tile-config.also-fade.name`)}</label>
                 <div class="form-fields">
-                    <input type="checkbox" name="flags.${this.moduleName}.${this.flags.alsoFade}" ${alsoFade ? "checked" : ""} >
+                    <input type="checkbox" name="flags.${this.moduleID}.${this.flags.alsoFade}" ${alsoFade ? "checked" : ""} >
                 </div>
-                <p class="notes">${game.i18n.localize(`${this.moduleName}.tile-config.also-fade.description`)}</p>
+                <p class="notes">${game.i18n.localize(`${this.moduleID}.tile-config.also-fade.description`)}</p>
             </div>`
         );
         app.setPosition({height: "auto"});
@@ -65,7 +65,7 @@ class UserInterfaceHandler extends Handler {
     async changeOcclusionMode(event, app, html)
     {
         // get also fade UI section on tile config
-        let section = html.find(`.${this.moduleName}-also-fade`);
+        let section = html.find(`.${this.moduleID}-also-fade`);
 
         if(event.target.value === `${CONST.TILE_OCCLUSION_MODES.VISION}`) {
             // show also face UI if occlusion mode is "Vision"
@@ -75,7 +75,7 @@ class UserInterfaceHandler extends Handler {
             // hide also face UI if occlusion mode is not "Vision"
             section.removeClass("active");
             // clear out the value if occlusion mode is not "Vision"
-            let checkbox = html.find(`input[name="flags.${this.moduleName}.${this.flags.alsoFade}"]`);
+            let checkbox = html.find(`input[name="flags.${this.moduleID}.${this.flags.alsoFade}"]`);
             checkbox[0].checked = false;
         }
 

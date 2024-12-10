@@ -48,7 +48,7 @@ class HooksHandler extends Handler {
         super(config, context, utils);
         this.HOOKS_MAPPINGS = config.HOOKS.getMappings();
         this.HOOKS_SETTINGS = config.HOOKS.getSettings();
-        this.PREFIX = config.CONST.MODULE.SHORT_NAME;
+        this.PREFIX = this.moduleConstants.SHORT_NAME;
         this.NO_PREFIX_GROUPS = this.HOOKS_SETTINGS.NO_PREFIX_GROUPS || [];
         this.ALLOWED_GROUPS = this.HOOKS_SETTINGS.ALLOWED_GROUPS || Object.keys(HOOK_MAPPINGS);
         this.formatterSettings = [this.HOOKS_MAPPINGS, this.PREFIX, this.NO_PREFIX_GROUPS, this.ALLOWED_GROUPS];

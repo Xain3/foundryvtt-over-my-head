@@ -23,8 +23,6 @@ class Logger extends Utility {
      * 
      * @constructor
      * @param {Object} config - The configuration object.
-     * @param {Object} config.CONST - The constants object within the configuration.
-     * @param {string} config.CONST.MODULE - The module name to be set for the logger.
      */
     constructor(config) {
         super(config);

@@ -43,13 +43,13 @@ class Main {
     
     checkUserPermission(onlyGM) {
         if (onlyGM && !this.game.user.isGM) {
-            console.debug(`${this.config.CONST.MODULE.SHORT_NAME} | ${this.config.CONST.MODULE.NAME} not loaded. User is not a GM`);
+            console.debug(`${this.config.CONSTANTS.MODULE.SHORT_NAME} | ${this.config.CONSTANTS.MODULE.NAME} not loaded. User is not a GM`);
             return false;
         }
         return true;
     }
 
-    async run(onlyGM = this.config.CONST.MODULE.DEFAULTS.ONLY_GM) {
+    async run(onlyGM = this.config.CONSTANTS.MODULE.DEFAULTS.ONLY_GM) {
         // Initialise the module
         await this.initializeModule();
         // Ensure that the user is the GM

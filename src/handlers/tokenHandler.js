@@ -1,49 +1,61 @@
 // ./src/handlers/tokenHandler.js
 
+import TokenGetter from './tokenFunctions/tokenGetter.js';
+import TokenSetter from './tokenFunctions/tokenSetter.js';
+import TokenChecker from './tokenFunctions/tokenChecker.js';
 
-import PlaceableHandler from './placeableHandler.js';
-
-class TokenHandler extends PlaceableHandler {
+/**
+ * @class TokenHandler
+ * @description High-level handler coordinating token operations.
+ */
+class TokenHandler {
     constructor(config, context, utils) {
-        super(config, context, utils);
-        this.placeableType = this.const.HANDLERS.TOKEN.PLACEABLE_TYPE;
+        this.getter = new TokenGetter(config, context, utils);
+        this.setter = new TokenSetter(config, context, utils);
+        this.checker = new TokenChecker(config, context, utils);
+        this.all = this.getter.all;
+        this.selected = this.getter.selected;
+        this.current = this.setter.current;
     }
 
+    // Delegate getter methods
     getTokens(updateProperty = true, returnValue = true) {
-        return this.getPlaceables(this.placeableType, updateProperty, returnValue);
+        let tokens = this.getter.getTokens(updateProperty, returnValue);
+        updateProperty ? this.all = tokens : this.all;
+        return returnValue ? tokens : [];
     }
 
-    getSelectedTokens() {
-        return this.getSelectedPlaceables();
-    }
-    
-    setCurrentToken(token) {
-        this.setCurrentPlaceable(token);
-    }
-    
-    isUnderReference(token, reference, referenceManager, targetUse = 'center', referenceUse = 'rectangle') {
-        return this.isUnder(token, reference, this, referenceManager, targetUse, referenceUse);
-    }
-    
-    isUnderTile(token, tile, tileManager) {
-        return this.isUnder(token, tile, this, tileManager);
+    getSelectedTokens(tokens = null, updateProperty = true, returnValue = true) {
+        let selectedTokens = this.getSelectedTokens(tokens, updateProperty, returnValue);
+        updateProperty ? this.selected = selectedTokens : this.selected;
+        return returnValue ? selectedTokens : [];
     }
 
+    // Delegate setter methods
+    setCurrentToken(token, returnValue = true) {
+        this.current = this.setter.setCurrentToken(token, returnValue);
+        return this.current;
+    }
+
+    // Delegate checker methods
     isControlled(token) {
-        return token.document.isOwner;
+        return this.checker.isControlled(token);
     }
 
-    isSelected(token) { //WIP
-        return token.isSelected;
+    isSelected(token) {
+        return this.checker.isSelected(token);
     }
-    
-    startTokenListener(occlusionHandler){
-        Hooks.on('refreshToken', (token) => {
-            if (this.isControlled(token) && this.isSelected(token)) { //WIP - token.isSelected is not yet implemented
-                this.setCurrentToken(token);
-                occlusionHandler.updateOcclusion(token);
-            }
-        });
+
+    isControlledAndSelected(token) {
+        return this.checker.isControlledAndSelected(token);
+    }
+
+    isUnderReference(token, reference, referenceManager, targetUse, referenceUse) {
+        return this.checker.isUnderReference(token, reference, referenceManager, targetUse, referenceUse);
+    }
+
+    isUnderTile(token, tile, tileManager) {
+        return this.checker.isUnderTile(token, tile, tileManager);
     }
 }
 

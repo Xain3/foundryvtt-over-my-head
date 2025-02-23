@@ -27,7 +27,7 @@ export class SettingData {
         this.context = context;
         this.utils = utils;
         this.logger = utils.logger;
-        this.MODULE_ID = config.CONST.MODULE.ID;
+        this.MODULE_ID = config.CONSTANTS.MODULE.ID;
 
     }
 

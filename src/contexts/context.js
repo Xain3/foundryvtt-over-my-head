@@ -1,4 +1,8 @@
-// ./src/contexts/context.js
+import ContextExtractor from './contextHelpers/contextExtractor.js';
+import ContextInitializer from './contextHelpers/ContextInitializer.js';
+import RemoteContextManager from './contextHelpers/remoteContextManager.js';
+
+const validKeyTypes = ['string', 'symbol', 'number'];
 
 /**
  * A class representing a context.
@@ -16,15 +20,41 @@ class Context {
      * @param {Object} utils - The utility object containing the game manager and remote context manager.
      */
     constructor(CONFIG, utils) {
+        validateArgs = (config, utils) => {
+            let validate = utils.validator;
+            if (!config) {
+                throw new Error('CONFIG is not defined. Cannot initialize context');
+            }
+            if (!utils) {
+                throw new Error('Utils is not defined. Cannot initialize context');
+            }
+            if (!validate.isObject(config)) {
+                throw new Error('CONFIG is not an object. Cannot initialize context');
+            }
+            if (!validate.isObject(utils)) {
+                throw new Error('Utils is not an object. Cannot initialize context');
+            }
+            if (!utils.validator) {
+                throw new Error('Validator is not defined. Cannot initialize context');
+            }
+            if (!utils.gameManager) {
+                throw new Error('Game manager is not defined. Cannot initialize context');
+            }
+        }
+
+        validateArgs(CONFIG, utils);
+        this.validate = utils.validator;
         this.manager = utils.gameManager;
-        this.remoteContextManager = utils.remoteContextManager;
-        const { CONFIG: modifiedConfig, contextInit } = this.extractContextInit(CONFIG);        
-        this.config = modifiedConfig;
-        this.contextInit = contextInit;
-        this.initialState = this.contextInit;
+        this.remoteContext = {}; // local remote context storage
+        this.originalConfig = CONFIG;
+        const { CONFIG: newConfig, contextInit } = ContextExtractor.extractContextInit(CONFIG);
+        this.config = newConfig;
+        this.initialState = contextInit;
         this.state = {};
-        this.initializeContext();
+        ContextInitializer.initializeContext(this);
+
     }
+    
 
     /**
      * Extracts the context initialization configuration from the provided CONFIG object.
@@ -38,10 +68,36 @@ class Context {
      * @returns {Object} return.CONFIG - The modified configuration object with the `CONTEXT_INIT` property removed.
      * @returns {any} return.contextInit - The extracted context initialization configuration.
      */
-    extractContextInit(CONFIG) {
-        const contextInit = CONFIG.CONST.CONTEXT_INIT;
-        delete CONFIG.CONST.CONTEXT_INIT;
-        return { CONFIG, contextInit };
+    extractContextInit(CONFIG, returnMode = 'both') {
+        try {
+            validateArgs();
+            const contextInit = CONFIG.CONSTANTS.CONTEXT_INIT;
+            delete CONFIG.CONSTANTS.CONTEXT_INIT;
+            if (returnMode === 'config') {
+                return CONFIG;
+            }
+            if (returnMode === 'contextInit') {
+                return contextInit;
+            }
+            return { CONFIG, contextInit };
+        } catch (error) {
+            return handleError();
+        }
+
+        function validateArgs() {
+            if (!CONFIG.CONSTANTS.CONTEXT_INIT) {
+                throw new Error('CONTEXT_INIT is not defined in the configuration object');
+            }
+        }
+
+        function handleError() {
+            if (returnMode === 'config') {
+                console.warn(error.message + '. Defaulting to CONFIG');
+                    return CONFIG;
+                }
+                error.message += '. Could not initialize context';
+                throw error;
+        }
     }
 
     /**
@@ -50,9 +106,22 @@ class Context {
      * @param {Object} [state=this.initialState] - The initial state to set for the context.
      */
     initializeContext(state = this.initialState) {
+        const validateArgs = (validate = this.validate) => {
+            if (!state) {
+                console.warn('State is not defined, defaulting to an empty object');
+                state = {};
+            }
+            if (!validate.isObject(state)) {
+                console.warn('State is not an object, defaulting to an empty object');
+                state = {};
+            }
+        }
+
+        validateArgs();
         this.state = state;
         this.initialiseData(state);
         this.initialiseFlags({});
+
     }
 
     /**
@@ -61,7 +130,7 @@ class Context {
      * @param {Object} data - The data to initialize the state with.
      */
     initialiseData(data) {
-        this.state.data = data;
+        this.state.data = data || {};
         this.state.dateModified = Date.now();
     }
 
@@ -71,7 +140,7 @@ class Context {
      * @param {Object} flags - The flags to be initialized.
      */
     initialiseFlags(flags) {
-        this.state.flags = flags;
+        this.state.flags = flags || {};
         this.state.dateModified = Date.now();
     }
 
@@ -82,21 +151,20 @@ class Context {
      * @param {Object|null} [remoteLocation=null] - The remote location object to update. If null, the existing remote location will be used.
      */
     pushState() {
-        this.remoteContextManager.pushToRemoteContext(this.state);
+        RemoteContextManager.pushState(this);
     }
     
+    
     /**
-     * Updates the current state with the provided remote location or the existing remote location.
-     * If no remote location is provided and there is no existing remote location, the function returns without making any changes.
-     * The state is updated with the properties of the remote location and the current date and time as the dateModified property.
-     *
-     * @param {Object|null} [remoteLocation=null] - The remote location object to update the state with. If not provided, the existing remote location is used.
+     * Pulls the state from the remote context and updates the local state.
+     * 
+     * @param {boolean} [overwriteLocal=false] - If true, the local state will be completely overwritten by the remote state. 
+     *                                           If false, the remote state will be merged into the local state.
+     * @param {Object} [remoteState=this.remoteContext] - The remote state to pull from.
+     * @throws {Error} Throws an error if the remote state is not defined or is not an object.
      */
-    pullState() {
-        const remoteState = this.remoteContextManager.pullFromRemoteContext();
-        if (remoteState) {
-            this.state = { ...remoteState };
-        }
+    pullState(remoteState = this.remoteContext, overwriteLocal = false) {
+        RemoteContextManager.pullState(this, remoteState, overwriteLocal);
     }
 
     /**
@@ -107,7 +175,27 @@ class Context {
      * @param {*} value - The value to associate with the key in the remote context.
      */
     writeToRemoteContext(key, value) {
+        if (!validateArgs(key, value)) {
+            return;
+        }
         this.remoteContextManager.writeToRemoteContext(key, value);
+
+        function validateArgs(key, value) {
+            if (!key && !value) {
+                console.warn('Key and value are not defined, remote context not updated');
+                return false;
+            }
+            if (!key || !value) {
+                let missing = !key ? 'Key' : 'Value'
+                console.warn(`${missing} is not defined, remote context not updated`);
+                return false;
+            }
+            if (typeof key !== 'string' && typeof key !== 'symbol' && typeof key !== 'number') {
+                console.warn('Key is not a string, a symbol, or a number. Remote context not updated');
+                return false;
+            }
+            return true;
+        }
     }
 
     /**
@@ -118,7 +206,22 @@ class Context {
      * @returns {*} The value associated with the provided key from the remote context.
      */
     readFromRemoteContext(key) {
+        if (!validateArgs(key)) {
+            return;
+        }
         return this.remoteContextManager.readFromRemoteContext(key);
+
+        function validateArgs(key) {
+            if (!key) {
+                console.warn('Key is not defined, remote context not read');
+                return false;
+            }
+            if (typeof key !== 'string' && typeof key !== 'symbol' && typeof key !== 'number') {
+                console.warn('Key is not a string, a symbol, or a number. Remote context not read');
+                return false;
+            }
+            return true;
+        }
     }
 
     /**
@@ -126,7 +229,41 @@ class Context {
      * on the remoteContextManager instance.
      */
     clearRemoteContext() {
-        this.remoteContextManager.clearRemoteContext();
+        RemoteContextManager.clearRemoteContext(this);
+    }
+
+    clearLocalContext(localContext = this.state) {
+        try {
+            validateArgs();
+            this.state = {};
+        } catch (error) {
+            console.error(error.message + '. Local context not cleared');
+        }
+
+        function validateArgs() {
+            if (!localContext) {
+                throw new Error('Local context is not defined');
+            }
+            if (typeof localContext !== 'object') {
+                throw new Error('Local context is not an object');
+            }
+        }
+    }
+
+    clearContext(clearRemote, clearLocal) {
+        try {
+            if (!clearRemote && !clearLocal) {
+                throw new Error('Both clearRemote and clearLocal are false, no context cleared');
+            }
+            if (clearRemote) {
+                this.clearRemoteContext();
+            }
+            if (clearLocal) {
+                this.clearLocalContext();
+            }
+        } catch (error) {
+            console.error(error.message);            
+        }
     }
 
     /**
@@ -138,18 +275,8 @@ class Context {
      * @param {Object|null} remoteLocation - The remote location to sync with. If null, uses the stored remote location.
      * @param {Date} remoteLocation.dateModified - The date the remote location was last modified.
      */
-    syncState(remoteLocation = null) {
-      if (!remoteLocation && !this.remoteLocation) {
-        return;
-      }
-      if (!remoteLocation) {
-        remoteLocation = this.remoteLocation;
-      }
-      if (remoteLocation.dateModified > this.state.dateModified) {
-        this.pullState(remoteLocation);
-      } else {
-        this.pushState(remoteLocation);
-      }
+    syncState(remoteLocation = this.remoteLocation) {
+        RemoteContextManager.syncState(this, remoteLocation);
     }
 
     /**
@@ -159,15 +286,8 @@ class Context {
      * @param {*} value - The value to be associated with the key.
      * @param {string|null} [remoteLocation=null] - The remote location to push the key-value pair to. If not provided, defaults to the instance's remoteLocation.
      */
-    pushKey(key, value, remoteLocation = null) {
-        if (!remoteLocation && !this.remoteLocation) {
-            return;
-        }
-        if (!remoteLocation) {
-            remoteLocation = this.remoteLocation;
-        }
-        this.writeToRemoteContext(key, value);
-        this.writeToRemoteContext('dateModified', Date.now());
+    pushKey(key, value, remoteLocation = this.remoteLocation) {
+        RemoteContextManager.pushKey(this, key, value, remoteLocation);
     }
 
     /**

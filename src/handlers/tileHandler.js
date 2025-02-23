@@ -175,10 +175,10 @@ class TileHandler extends PlaceableHandler {
      */
     setAlsoFadeTileOcclusion(tile, token) {
         if (this.isTokenUnderTile(tile, token)) {
-            let occlusionMode = { mode: CONST.TILE_OCCLUSION_MODES.FADE };
+            let occlusionMode = { mode: CONSTANTS.TILE_OCCLUSION_MODES.FADE };
             this.updateOcclusion(tile, occlusionMode);
         } else {
-            let occlusionMode = { mode: CONST.TILE_OCCLUSION_MODES.VISION };
+            let occlusionMode = { mode: CONSTANTS.TILE_OCCLUSION_MODES.VISION };
             this.updateOcclusion(tile, occlusionMode);
         }
     }

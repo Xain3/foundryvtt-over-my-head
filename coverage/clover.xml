@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1738882234588" clover="3.2.0">
+  <project timestamp="1738882234589" name="All files">
+    <metrics statements="18" coveredstatements="18" conditionals="22" coveredconditionals="22" methods="3" coveredmethods="3" elements="43" coveredelements="43" complexity="0" loc="18" ncloc="18" packages="1" files="1" classes="1"/>
+    <file name="contextInitializer.js" path="/mnt/shared/drive-personal/Documents/Programming/foundryvtt-over-my-head/src/contexts/contextHelpers/contextInitializer.js">
+      <metrics statements="18" coveredstatements="18" conditionals="22" coveredconditionals="22" methods="3" coveredmethods="3"/>
+      <line num="3" count="7" type="cond" truecount="4" falsecount="0"/>
+      <line num="4" count="6" type="cond" truecount="4" falsecount="0"/>
+      <line num="5" count="5" type="cond" truecount="2" falsecount="0"/>
+      <line num="7" count="1" type="stmt"/>
+      <line num="8" count="1" type="stmt"/>
+      <line num="11" count="7" type="stmt"/>
+      <line num="19" count="6" type="cond" truecount="4" falsecount="0"/>
+      <line num="20" count="5" type="stmt"/>
+      <line num="22" count="6" type="cond" truecount="2" falsecount="0"/>
+      <line num="23" count="1" type="stmt"/>
+      <line num="25" count="6" type="stmt"/>
+      <line num="26" count="6" type="stmt"/>
+      <line num="30" count="6" type="cond" truecount="4" falsecount="0"/>
+      <line num="31" count="5" type="stmt"/>
+      <line num="33" count="6" type="cond" truecount="2" falsecount="0"/>
+      <line num="34" count="1" type="stmt"/>
+      <line num="36" count="6" type="stmt"/>
+      <line num="37" count="6" type="stmt"/>
+    </file>
+  </project>
+</coverage>

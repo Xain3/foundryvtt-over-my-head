@@ -53,13 +53,13 @@ class GameManager extends Utility {
      * Updates the configuration for the game manager.
      *
      * @param {Object} config - The configuration object.
-     * @param {Object} config.CONST - The constant values for the configuration.
-     * @param {Object} config.CONST.CONTEXT_INIT - The initial context configuration.
-     * @param {Object} config.CONST.MODULE - The module configuration.
-     * @param {string} config.CONST.MODULE.CONTEXT_REMOTE - The remote context path for the module.
+     * @param {Object} config.CONSTANTS - The constant values for the configuration.
+     * @param {Object} config.CONSTANTS.CONTEXT_INIT - The initial context configuration.
+     * @param {Object} config.CONSTANTS.MODULE - The module configuration.
+     * @param {string} config.CONSTANTS.MODULE.CONTEXT_REMOTE - The remote context path for the module.
      */
     updateConfig = (config) => {
-        this.const = config.CONST;
+        this.const = config.CONSTANTS;
         this.contextInit = this.const.CONTEXT_INIT;
         this.moduleConfig = this.const.MODULE;
         this.contextPath = this.const.MODULE.CONTEXT_REMOTE;

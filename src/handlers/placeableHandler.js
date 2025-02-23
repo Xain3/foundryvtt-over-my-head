@@ -1,190 +1,153 @@
 // ./src/handlers/placeableHandler.js
 
 import Handler from "../baseClasses/handler.js";
+import PlaceableGetter from "./placeableHelpers/placeableGetter.js";
+import PlaceableChecker from "./placeableHelpers/placeableChecker.js";
+import PlaceableSetter from "./placeableHelpers/placeableSetter.js";
 
-class IsUnderChecker {    
-    static checkMethods = {
-        'center-rectangle': this.isCenterUnderRect,
-        'rectangle-center': this.isRectUnderCenter,
-        'rectangle-rectangle': this.isRectUnderRect,
-        'center-center': this.isCenterUnderCenter
-    };
-
-    static checkIfIsUnder(targetPosition, targetElevation, referencePosition, referenceElevation, targetUse, referenceUse){
-        const methodKey = `${targetUse}-${referenceUse}`;
-        const checkMethod = IsUnderChecker.checkMethods[methodKey];
-        
-        // check if the target is under the reference
-        if (checkMethod) {
-            return checkMethod.call(this, targetPosition, targetElevation, referencePosition, referenceElevation);
-        } else {
-            this.utils.logger.warn(`Invalid combination of targetUse ${targetUse} and referenceUse ${referenceUse}`);
-            return false;
-        }
-    }
-
-    static isCenterUnderRect(targetCenter, targetElevation, referencePosition, referenceElevation){  
-        if (
-            targetCenter.x > referencePosition.BottomLeft.x 
-            && targetCenter.x < referencePosition.TopRight.x 
-            && targetCenter.y > referencePosition.BottomLeft.y 
-            && targetCenter.y < referencePosition.TopRight.y 
-            && targetElevation < referenceElevation
-        ) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    static isRectUnderCenter(targetPosition, targetElevation, referenceCenter, referenceElevation){
-        if (
-            targetPosition.BottomLeft.x < referenceCenter.x 
-            && targetPosition.TopRight.x > referenceCenter.x 
-            && targetPosition.BottomLeft.y < referenceCenter.y 
-            && targetPosition.TopRight.y > referenceCenter.y 
-            && targetElevation < referenceElevation
-        ) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    static isRectUnderRect(targetPosition, targetElevation, referencePosition, referenceElevation){
-        if (
-            targetPosition.BottomLeft.x < referencePosition.TopRight.x 
-            && targetPosition.TopRight.x > referencePosition.BottomLeft.x 
-            && targetPosition.BottomLeft.y < referencePosition.TopRight.y 
-            && targetPosition.TopRight.y > referencePosition.BottomLeft.y 
-            && targetElevation < referenceElevation
-        ) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    static isCenterUnderCenter(targetCenter, targetElevation, referenceCenter, referenceElevation){
-        if (
-            targetCenter.x === referenceCenter.x 
-            && targetCenter.y === referenceCenter.y 
-            && targetElevation < referenceElevation
-        ) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-}
-
+ /**
+  * Handles operations related to placeable entities.
+  */
 class PlaceableHandler extends Handler {
+    /**
+     * @param {Object} config - Configuration settings.
+     * @param {Object} context - Execution context.
+     * @param {Object} utils - Utility functions.
+     */
     constructor(config, context, utils) {
         super(config, context, utils);
         this.placeableType = null;
-        this.placeables = [];
-        this.currentPlaceable = null;
-        this.isUnderChecker = new IsUnderChecker(config, context, utils);
+        this.getter = new PlaceableGetter(config, context, utils);
+        this.setter = new PlaceableSetter(config, context, utils);
+        this.checker = new PlaceableChecker(config, context, utils, this.getter);
+        this.all = [];
+        this.current = null;
     }
 
-    getPlaceables(placeableType = this.placeableType, updateProperty = true, returnValue = true) {
-        const placeables = canvas[placeableType]?.placeables || [];
+    // WRAPPER FUNCTIONS
+
+    // Setters
+    /**
+     * Sets the current placeable entity.
+     * @param {Object} placeable - The placeable to set as current.
+     * @returns {Object} The current placeable.
+     */
+    setCurrent(placeable) {
+        return this.setter.setCurrentPlaceable(placeable);
+    }
+
+    // Getters
+    /**
+     * Retrieves the current placeable entity.
+     * @returns {Object|null} The current placeable.
+     */
+    getCurrent() {
+        return this.current;
+    }
+
+    /**
+     * Retrieves all placeable entities.
+     * @param {string} [placeableType=this.placeableType] - Type of placeables to retrieve.
+     * @param {boolean} [updateProperty=true] - Whether to update the internal list.
+     * @param {boolean} [returnValue=true] - Whether to return the list.
+     * @returns {Array|undefined} List of placeables if returnValue is true.
+     */
+    getAll(placeableType = this.placeableType, updateProperty = true, returnValue = true) {
+        let all = this.getter.getAllPlaceables(placeableType, false, true);
         if (updateProperty) {
-            this.placeables = placeables;
+            this.all = all;
         }
         if (returnValue) {
-            return placeables;
+            return all;
         }
     }
 
-    setCurrentPlaceable(placeable) {
-        this.currentPlaceable = placeable;
+    /**
+     * Retrieves the corner of a placeable entity.
+     * @param {string} corner - The corner to retrieve.
+     * @param {Object} placeable - The placeable entity.
+     * @returns {Object} The corner of the placeable.
+     */
+    getCorner(corner, placeable) {
+        return this.getter.getCorner(corner, placeable);
     }
 
-    getCorner(corner, placeable = this.currentPlaceable) {
-        const allowedCorners = this.config.HANDLERS.PLACEABLE.ALLOWED_CORNERS;
-        if (!allowedCorners.includes(corner)) {
-            let anchor = { x: placeable.x, y: placeable.y };
-            
-            switch (corner) {
-                case 'topLeft':
-                    // Default anchor
-                    break;
-                case 'topRight':
-                    anchor.x += placeable.width;
-                    break;
-                case 'bottomLeft':
-                    anchor.y += placeable.height;
-                    break;
-                case 'bottomRight':
-                    anchor.x += placeable.width;
-                    anchor.y += placeable.height;
-                    break;
-                default:
-                    this.utils.logger.warn(`Unknown corner ${corner}.`);
-                    return null;
-            }
-            
-            return anchor;
-        } else {
-            this.utils.logger.warn(`Invalid corner ${corner} provided. Allowed corners are: ${allowedCorners}`);
-            return null;
-        }
+    /**
+     * Retrieves the center of a placeable entity.
+     * @param {Object} placeable - The placeable entity.
+     * @returns {Object} The center of the placeable.
+     */
+    getCenter(placeable){
+        return this.getter.getCenter(placeable);
     }
     
-    getCenter(placeable = this.currentPlaceable){
-        return placeable.center;
-    }
-    
-    getElevation(placeable = this.currentPlaceable){
-        return placeable.elevation;
+    /**
+     * Retrieves the elevation of a placeable entity.
+     * @param {Object} placeable - The placeable entity.
+     * @returns {number} The elevation of the placeable.
+     */
+    getElevation(placeable){
+        return this.getter.getElevation(placeable);
     }
 
-    getRectBounds(placeable = this.currentPlaceable){
-        let TopRight = this.getCorner('topRight', placeable);
-        let BottomLeft = this.getCorner('bottomLeft', placeable);
-        return {TopRight, BottomLeft};
+    /**
+     * Retrieves the rectangular bounds of a placeable entity.
+     * @param {Object} placeable - The placeable entity.
+     * @returns {Object} The rectangular bounds of the placeable.
+     */
+    getRectBounds(placeable){
+        return this.getter.getRectBounds(placeable);
     }
     
+    /**
+     * Retrieves the position of a placeable entity.
+     * @param {Object} placeable - The placeable entity.
+     * @param {Object} placeableManager - The manager of the placeable.
+     * @param {string} [use='center'] - The use case for the position.
+     * @returns {Object} The position of the placeable.
+     */
     getPosition(placeable, placeableManager, use = 'center'){
-        if (use === 'center') {
-            return placeableManager.getCenter(placeable);
-        }
-        if (use === 'rectangle') {
-            return placeableManager.getRectBounds(placeable);
-        }
+        return this.getter.getPosition(placeable, placeableManager, use);
     }
-
-    getSelectedPlaceables(placeables = this.placeables) {
-        return placeables.filter(placeable => placeable._controlled);
-    }
-
-    isSelected(placeable) {
-        return placeable._controlled;
-    }
-
     
-    isUnder(target, reference, targetManager, referenceManager, targetUse = 'center', referenceUse = 'rectangle'){
-        if (this.getDebugMode) {console.log(`Checking if target ${target} is under reference ${reference}`)}; // DEBUG - log the target and reference
-        // position of the target
-        let targetPosition = getPosition(target, targetManager, targetUse);
-        let targetElevation = getElevation(target, targetManager);
-        // position of the reference
-        let referencePosition = getPosition(reference, referenceManager, referenceUse);
-        let referenceElevation = getElevation(reference, referenceManager);
-        // check if the target is under the reference
-        return IsUnderChecker.checkIfIsUnder(
-            targetPosition,
-            targetElevation,
-            referencePosition,
-            referenceElevation,
-            targetUse,
-            referenceUse
-        );
+    // Checkers
+    /**
+     * Checks if a placeable entity is selected.
+     * @param {Object} placeable - The placeable entity.
+     * @returns {boolean} True if the placeable is selected, false otherwise.
+     */
+    isSelected(placeable) {
+        return this.checker.isSelected(placeable);
     }
 
-    isOver(target, reference, targetManager, referenceManager, targetUse = 'center', referenceUse = 'rectangle') {
-        return !this.isUnder(target, reference, targetManager, referenceManager, targetUse, referenceUse);
+    /**
+     * Checks if a target placeable is under a reference placeable.
+     * @param {Object} target - The target placeable.
+     * @param {Object} reference - The reference placeable.
+     * @param {Object} targetManager - The manager of the target placeable.
+     * @param {Object} referenceManager - The manager of the reference placeable.
+     * @param {string} [targetUse='center'] - The use case for the target position.
+     * @param {string} [referenceUse='rectangle'] - The use case for the reference position.
+     * @param {string} [checkType='under'] - The type of check to perform.
+     * @returns {boolean} True if the target is under the reference, false otherwise.
+     */
+    isUnder(target, reference, targetManager, referenceManager, targetUse = 'center', referenceUse = 'rectangle', checkType = 'under') {
+        return this.checker.isUnder(target, reference, targetManager, referenceManager, targetUse, referenceUse, checkType);
+    }
+
+    /**
+     * Checks if a target placeable is over a reference placeable.
+     * @param {Object} target - The target placeable.
+     * @param {Object} reference - The reference placeable.
+     * @param {Object} targetManager - The manager of the target placeable.
+     * @param {Object} referenceManager - The manager of the reference placeable.
+     * @param {string} [targetUse='center'] - The use case for the target position.
+     * @param {string} [referenceUse='rectangle'] - The use case for the reference position.
+     * @param {string} [checkType='above'] - The type of check to perform.
+     * @returns {boolean} True if the target is over the reference, false otherwise.
+     */
+    isOver(target, reference, targetManager, referenceManager, targetUse = 'center', referenceUse = 'rectangle', checkType = 'above') {
+        return this.checker.isOver(target, reference, targetManager, referenceManager, targetUse, referenceUse, checkType);
     }
 }
 

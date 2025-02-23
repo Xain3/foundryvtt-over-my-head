@@ -2,6 +2,17 @@
 
 import Base from './base.js';
 
+/**
+ * The BaseModuleUtil class is the base class for all utility classes.
+ * It extends the Base class.
+ * 
+ * @class Utility
+ * @module Utility
+ * @extends Base
+ * 
+ * @constructor
+ * @param {Object} config - The configuration object containing constants.
+ */
 class Utility extends Base {
     /**
      * Creates an instance of BaseModuleUtil.
@@ -17,8 +28,8 @@ class Utility extends Base {
      */
     updateConfig(config) {
         this.config = config;
-        this.const = config.CONST;
-        this.moduleConstants = config.CONST.MODULE;
+        this.const = config.CONSTANTS;
+        this.moduleConstants = config.CONSTANTS.MODULE;
     }
 }
 

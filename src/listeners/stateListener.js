@@ -52,7 +52,7 @@ class StateListener extends Listener {
      * @memberof StateListener
      */
     setupLogRemoteState() {
-        Hooks.on(this.config.formatHook(this.config.HOOKS.IN['logRemoteState'], 'IN'), () =>{ 
+        Hooks.on(this.config.HOOKS.formatHook('logRemoteState', 'IN'), () => {
             this.logger.log('Logging remote state');
             this.context.getRemoteLocation()
         });
@@ -66,10 +66,10 @@ class StateListener extends Listener {
      * @memberof StateListener
      */
     setupGetRemoteState() {
-        Hooks.on(this.config.formatHook(this.config.HOOKS.IN['getRemoteState'], 'IN'), () =>{ 
+        Hooks.on(this.config.HOOKS.formatHook('getRemoteState', 'IN'), () => { 
             this.logger.log('Getting remote state');
             let state = this.context.getState()
-            
+            this.logger.log(state);
         });
     }
 

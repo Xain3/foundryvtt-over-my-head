@@ -59,7 +59,7 @@ class Initializer extends Utility {
         if (config === null && this.config) {
             config = this.config;
         } else if (config === null) {
-            throw new Error('No configuration provided');
+            throw new Error(`No configuration provided.\nConfig: ${config}\nThis.config: ${this.config}`);
         }
         return config;
     }
@@ -132,9 +132,9 @@ class Initializer extends Utility {
         this.logger.log('Initializing module');
         Hooks.once('i18nInit', () => {
             settingsReady = this.registerSettings();
-            logger.log('Module initialized');
-            context.setFlags('settingsReady', true);
-            Hooks.callAll(hookFormatter.formatHooks("settingsReady", "out"));
+            this.logger.log('Module initialized');
+            this.context.setFlags('settingsReady', true);
+            Hooks.callAll(this.hookFormatter.formatHooks("settingsReady", "out"));
         });
     }
 }

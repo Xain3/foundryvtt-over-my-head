@@ -27,11 +27,11 @@ class HookFormatter extends Utility {
     constructor(CONFIG) {
         super(CONFIG);
         // Remove the SETTINGS group from hookMappings if it exists
-        this.mappings = CONFIG.HOOKS.getMappings();
-        this.SETTINGS = CONFIG.HOOKS.getSettings();
-        this.prefix = CONFIG.CONST.MODULE.SHORT_NAME;
-        this.noPrefixGroups = CONFIG.HOOKS.SETTINGS.NO_PREFIX_GROUPS;
-        this.allowedGroups = CONFIG.HOOKS.SETTINGS.ALLOWED_GROUPS;
+        this.mappings = this.config.HOOKS.getMappings();
+        this.SETTINGS = this.config.HOOKS.getSettings();
+        this.prefix = this.moduleConstants.SHORT_NAME;
+        this.noPrefixGroups = this.SETTINGS.NO_PREFIX_GROUPS;
+        this.allowedGroups = this.SETTINGS.ALLOWED_GROUPS;
     }
 
     /**
@@ -61,7 +61,7 @@ class HookFormatter extends Utility {
             throw new Error(`Hook location for group ${hookGroup} not found.`);
         }
         if (typeof currentHookGroup !== "object") {
-            throw new Error(`Hook location for group ${hookGroup} is not an object.`);  
+            throw new Error(`Hook location for group ${hookGroup} is not an object but a ${typeof currentHookGroup}.`);  
         }
 
         // Check if the hook group does not require a prefix
@@ -90,9 +90,9 @@ class HookFormatter extends Utility {
      * @param {Object} config.HOOKS - The hooks configuration.
      * @param {Function} config.HOOKS.getMappings - Function to get hook mappings.
      * @param {Function} config.HOOKS.getSettings - Function to get hook settings.
-     * @param {Object} config.CONST - The constants configuration.
-     * @param {Object} config.CONST.MODULE - The module constants.
-     * @param {string} config.CONST.MODULE.SHORT_NAME - The short name of the module.
+     * @param {Object} config.CONSTANTS - The constants configuration.
+     * @param {Object} config.CONSTANTS.MODULE - The module constants.
+     * @param {string} config.CONSTANTS.MODULE.SHORT_NAME - The short name of the module.
      * @param {Object} config.HOOKS.SETTINGS - The settings for hooks.
      * @param {Array} config.HOOKS.SETTINGS.NO_PREFIX_GROUPS - Groups that do not require a prefix.
      * @param {Array} config.HOOKS.SETTINGS.ALLOWED_GROUPS - Groups that are allowed.
@@ -100,7 +100,7 @@ class HookFormatter extends Utility {
     updateConfig(config) {
     this.mappings = config.HOOKS.getMappings();
     this.SETTINGS = config.HOOKS.getSettings();
-    this.prefix = config.CONST.MODULE.SHORT_NAME;
+    this.prefix = config.CONSTANTS.MODULE.SHORT_NAME;
     this.noPrefixGroups = config.HOOKS.SETTINGS.NO_PREFIX_GROUPS;
     this.allowedGroups = config.HOOKS.SETTINGS.ALLOWED_GROUPS;
     }

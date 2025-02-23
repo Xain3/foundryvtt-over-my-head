@@ -1,5 +1,8 @@
-// ./config/hooks.js
+// POSSIBLY DEPRECATED - Check for redundancy with the base HookRegistry class
 
+// ./config/hooks.jss
+
+import HooksRegistry from "../baseClasses/hooksRegistry.js";
 import HOOKS_SETTINGS from "./hooksSettings.js";
 
 /**
@@ -39,7 +42,6 @@ const IN = {
     getRemoteState: "getRemoteState",
 }
 
-
 /**
  * A collection of built-in hooks that are used by the module.
  * Built-in hooks always be called, regardless of if they are defined here or not.
@@ -58,34 +60,29 @@ const BUILT_IN = {
     }
 
 
+
+const hookCollection = {
+    OUT: OUT,
+    IN: IN,
+    BUILT_IN: BUILT_IN,
+}
+
+
+export function setUpHooks(collection = hookCollection, settings = HOOKS_SETTINGS) {
+    return new HooksRegistry(collection, settings);
+}
+
 /**
- * A collection of hooks that can be used to trigger and listen to events.
+ * An object containing the module's hooks.
  * 
- * @module config/hooks
- * @constant
- * @type {Object}
- * @property {Object} OUT - A collection of hooks that are called by the module to trigger events inside or outside the module.
- * @property {Object} IN - A collection of hooks that are called outside of the module that trigger module events.
- * @property {Object} BUILT_IN - A collection of built-in hooks that are used by the module.
- * @property {Object} SETTINGS - A collection of settings for the module.
+ * @type {HooksRegistry}
+ * 
+ * @property {Object} out - A collection of hooks that are called by the module to trigger events inside or outside the module.
+ * @property {Object} in - A collection of hooks that are called outside of the module that trigger module events.
+ * @property {Object} builtIn - A collection of built-in hooks that are used by the module.
+ * @property {Object} settings - A collection of settings for the module.
+ * @property {string} prefix - The prefix for the module's hooks.
  */
-class HOOKS {
-    static OUT = OUT;
-    static IN = IN;
-    static BUILT_IN = BUILT_IN;
-    static SETTINGS = HOOKS_SETTINGS;
-
-    static getMappings = () => {
-        return {
-            OUT: HOOKS.OUT,
-            IN: HOOKS.IN,
-            BUILT_IN: HOOKS.BUILT_IN,
-        }
-    }
-
-    static getSettings = () => {
-        return HOOKS.SETTINGS;
-    }
-};
+const HOOKS = setUpHooks();
 
 export default HOOKS;

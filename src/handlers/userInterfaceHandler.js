@@ -28,7 +28,7 @@ class UserInterfaceHandler extends Handler {
         let select = html.find('[name="occlusion.mode"]');
 
         let showAlsoFadeUI = false;
-        if(select[0].value === `${CONST.TILE_OCCLUSION_MODES.VISION}`)  // CONST is defined in the FoundryVTT API
+        if(select[0].value === `${CONSTANTS.TILE_OCCLUSION_MODES.VISION}`)  // CONSTANTS is defined in the FoundryVTT API
         {
             // show the also fade checkbox on the tile config UI
             showAlsoFadeUI = true;
@@ -67,7 +67,7 @@ class UserInterfaceHandler extends Handler {
         // get also fade UI section on tile config
         let section = html.find(`.${this.moduleID}-also-fade`);
 
-        if(event.target.value === `${CONST.TILE_OCCLUSION_MODES.VISION}`) {
+        if(event.target.value === `${CONSTANTS.TILE_OCCLUSION_MODES.VISION}`) {
             // show also face UI if occlusion mode is "Vision"
             section.addClass("active");
         }

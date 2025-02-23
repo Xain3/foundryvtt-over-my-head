@@ -10,3 +10,6 @@ release/COPYING
 release/COPYING.md
 release/CHANGELOG.md
 release/module.json
+node_modules/
+coverage/
+.dependencygraph/

@@ -39,8 +39,8 @@ class Listeners extends Listener {
     constructor(config, context, utils, handlers){
         super(config, context, utils, handlers);
         this.state = new StateListener(this.config, this.context, this.utils, this.handlers);
-        this.token = new TokenListener(this.config, this.context, this.utils, this.handlers);
         this.tile = new TileListener(this.config, this.context, this.utils, this.handlers);
+        this.token = new TokenListener(this.config, this.context, this.utils, this.handlers);
     }
 
     /**
@@ -51,8 +51,8 @@ class Listeners extends Listener {
      */
     run(){
         this.state.run();
-        this.token.run();
         this.tile.run();
+        this.token.run();
     }
 }
 

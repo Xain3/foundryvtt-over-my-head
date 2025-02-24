@@ -1,5 +1,5 @@
 import ContextExtractor from './contextHelpers/contextExtractor.js';
-import ContextInitializer from './contextHelpers/ContextInitializer.js';
+import ContextInitializer from './contextHelpers/contextInitializer.js';
 import RemoteContextManager from './contextHelpers/remoteContextManager.js';
 
 const validKeyTypes = ['string', 'symbol', 'number'];

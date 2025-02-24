@@ -68,7 +68,7 @@ class RemoteContextManager {
             if (!remoteLocation && !ctx.remoteContext) {
                 throw new Error('Remote location is not defined');
             }
-            if (typeof remoteLocation !== 'object') {
+            if (remoteLocation && typeof remoteLocation !== 'object') {
                 throw new Error('Remote location is not an object');
             }
             if (key == null || value == null) {

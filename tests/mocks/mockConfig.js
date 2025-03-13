@@ -15,6 +15,21 @@ class MockConfig {
             readFromRemoteContext: jest.fn().mockReturnValue('mockValue'),
             clearRemoteContext: jest.fn(),
         };
+        this.CONTEXT_INIT = {
+            getContext: jest.fn().mockReturnValue({
+                get: jest.fn(),
+                set: jest.fn(),
+                delete: jest.fn(),
+                clear: jest.fn(),
+                has: jest.fn(),
+                getAll: jest.fn(),
+                getAllKeys: jest.fn(),
+                getAllValues: jest.fn(),
+                getAllEntries: jest.fn(),
+                getAllKeysAndValues: jest.fn(),
+                getAllEntriesAndValues: jest.fn(),
+            })
+        };
     };
 
     getRemoteContextManager() {

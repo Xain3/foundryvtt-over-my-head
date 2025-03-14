@@ -26,9 +26,12 @@ describe('SettingData', () => {
         };
 
         // Reset global game object in every test
-        global.game = { settings: {
-            register: jest.fn()
-        }};
+        global.game = { 
+            // Mock the function to register settings
+            settings: {
+                register: jest.fn()
+            }
+        };
 
         // Create instance of SettingData
         instance = new SettingData('testSetting', { some: 'data' }, config, context, utils);

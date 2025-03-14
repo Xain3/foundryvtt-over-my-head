@@ -50,7 +50,7 @@ describe('Component', () => {
     });
 
 
-    test('should call super with config', () => {    
-        expect(Base).toHaveBeenCalledWith(config);
+    test('should call super with config and context', () => {    
+        expect(Base).toHaveBeenCalledWith(config, context);
     });
 });

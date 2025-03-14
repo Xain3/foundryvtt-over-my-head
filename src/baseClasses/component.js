@@ -20,7 +20,7 @@ import Base from './base.js';
  */
 class Component extends Base {
     constructor(config, context, utils) {
-        super(config);
+        super(config, context);
         this.context = context;
         this.utils = utils;
         this.logger = utils.logger;

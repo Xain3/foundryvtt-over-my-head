@@ -1,10 +1,7 @@
 import Listener from './listener';
-import Component from './component';
+import Manager from './manager';
 
-// ./tests/unit/baseClasses/listener.test.js
-
-
-jest.mock('@baseClasses/component.js');
+jest.mock('@baseClasses/managers/manager.js');
 
 describe('Listener', () => {
     let config;
@@ -34,7 +31,7 @@ describe('Listener', () => {
     });
 
     test('should call super constructor with config, context, and utils', () => {
-        expect(Component).toHaveBeenCalledWith(config, context, utils);
+        expect(Manager).toHaveBeenCalledWith(config, context, utils);
     });
 
     test('should handle events using handlers', () => {

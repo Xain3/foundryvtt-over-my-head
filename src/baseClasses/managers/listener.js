@@ -1,16 +1,16 @@
 // ./src/baseClasses/listener.js
 
-import Component from './component.js';
+import Manager from './manager.js';
 
 /**
  * The Listener class is the base class for all listener classes.
  * Listeners are responsible for listening for events and responding to them.
  * 
- * It extends the Component class.
+ * It extends the Manager class.
  * 
  * @class Listener
  * @module Listener
- * @extends Component
+ * @extends Manager
  * 
  * @constructor
  * @param {Object} config - The configuration object containing constants.
@@ -18,7 +18,7 @@ import Component from './component.js';
  * @param {Object} utils - The utility object.
  * @param {Object} handlers - The handler object.
  */
-class Listener extends Component {
+class Listener extends Manager {
     constructor(config, context, utils, handlers) {
         super(config, context, utils);
         this.handlers = handlers;

@@ -1,10 +1,9 @@
 import Handler from './handler';
-import Component from './component';
+import Manager from './manager';
 
 // ./src/baseClasses/handler.test.js
 
-
-jest.mock('@baseClasses/component.js');
+jest.mock('@baseClasses/managers/manager.js');
 
 describe('Handler', () => {
     let config;
@@ -16,7 +15,7 @@ describe('Handler', () => {
         config = { /* mock config */ };
         context = { /* mock context */ };
         utils = { /* mock utils */ };
-        Component.mockClear();
+        Manager.mockClear();
         handlerInstance = new Handler(config, context, utils);
     });
 
@@ -25,10 +24,10 @@ describe('Handler', () => {
     });
 
     test('should call Component constructor with correct parameters', () => {
-        expect(Component).toHaveBeenCalledWith(config, context, utils);
+        expect(Manager).toHaveBeenCalledWith(config, context, utils);
     });
 
-    test('should inherit from Component', () => {
-        expect(handlerInstance).toBeInstanceOf(Component);
+    test('should inherit from Manager', () => {
+        expect(handlerInstance).toBeInstanceOf(Manager);
     });
 });

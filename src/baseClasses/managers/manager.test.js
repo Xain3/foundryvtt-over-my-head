@@ -1,11 +1,10 @@
-import Component from './component';
-import Base from './base';
+import Manager from './manager';
+import Base from '../base';
 
-// ./tests/unit/baseClasses/component.test.js
 
 jest.mock('@baseClasses/base.js');
 
-describe('Component', () => {
+describe('Manager', () => {
     let context, config, utils, component;
 
     beforeEach(() => {
@@ -30,15 +29,15 @@ describe('Component', () => {
             HOOKS: {},
           };
         context = { someContext: 'contextValue' };
-        component = new Component(config, context, utils);
+        component = new Manager(config, context, utils);
     });
 
     test('should be an instance of Base', () => {
         expect(component).toBeInstanceOf(Base);
     });
 
-    test('should be an instance of Component', () => {
-        expect(component).toBeInstanceOf(Component);
+    test('should be an instance of Manager', () => {
+        expect(component).toBeInstanceOf(Manager);
     }
     );
 
@@ -56,7 +55,8 @@ describe('Component', () => {
             config,
             context,
             shouldLoadConfig: true,
-            shouldLoadContext: true
+            shouldLoadContext: true,
+            shouldLoadGame: true,
         });
     });
 });

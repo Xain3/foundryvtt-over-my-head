@@ -1,11 +1,11 @@
 // ./src/baseClasses/component.js
 
-import Base from './base.js';
+import Base from '../base.js';
 
 /**
  * Base class for all component classes such as handlers and listeners.
  * 
- * @class Component
+ * @class Manager
  * @extends Base
  * 
  * @param {Object} config - The configuration object containing constants.
@@ -20,17 +20,18 @@ import Base from './base.js';
  * @property {Object} game - The global game object (inherited from Base).
  * @property {Object} context - The execution context (inherited from Base).
  */
-class Component extends Base {
+class Manager extends Base {
     constructor(config, context, utils) {
         super({
             config,
             context,
             shouldLoadConfig: true,
-            shouldLoadContext: true
+            shouldLoadContext: true,
+            shouldLoadGame: true,
         });
         this.utils = utils;
         this.logger = utils.logger;
     }
 }
 
-export default Component;
+export default Manager;

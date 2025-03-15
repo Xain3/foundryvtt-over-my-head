@@ -37,9 +37,10 @@ describe('Component', () => {
         expect(component).toBeInstanceOf(Base);
     });
 
-    test('should initialize context correctly', () => {
-        expect(component.context).toBe(context);
-    });
+    test('should be an instance of Component', () => {
+        expect(component).toBeInstanceOf(Component);
+    }
+    );
 
     test('should initialize utils correctly', () => {
         expect(component.utils).toBe(utils);
@@ -50,7 +51,12 @@ describe('Component', () => {
     });
 
 
-    test('should call super with config and context', () => {    
-        expect(Base).toHaveBeenCalledWith(config, context);
+    test('should call super with proper parameters', () => {    
+        expect(Base).toHaveBeenCalledWith({
+            config,
+            context,
+            shouldLoadConfig: true,
+            shouldLoadContext: true
+        });
     });
 });

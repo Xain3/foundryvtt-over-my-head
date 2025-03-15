@@ -1,4 +1,3 @@
-
 // .src/baseClasses/base.js
 
 /**
@@ -26,21 +25,48 @@ class Base {
      * @param {boolean} shouldLoadGame - Whether to load the game object. Default is true.
      * @param {boolean} shouldLoadDebugMode - Whether to load the debug mode. Default is true.
      */
-    constructor(config=null, context = null, globalContext = null, shouldLoadConfig = true, shouldLoadContext = true, shouldLoadGame = true, shouldLoadDebugMode = true) {
+    constructor({
+        config = null,
+        context = null, 
+        globalContext = null,
+        shouldLoadConfig = false,
+        shouldLoadContext = false,
+        shouldLoadGame = false,
+        shouldLoadDebugMode = false
+    } = {}) {
+        
+        this.validateLoadParameters(shouldLoadConfig, config, shouldLoadContext, context);
         this.global = globalContext ?? globalThis;
+        this.config = shouldLoadConfig ? config : null;
+        this.context = shouldLoadContext ? context : null;
+        this.const = this.getConstants();
+        this.moduleConstants = this.getModuleConstants();
+        this.game = shouldLoadGame ? this.getGameObject() : null;
+        this.debugMode = shouldLoadDebugMode ? this.getDebugMode() : null;
+    }
+
+    /**
+     * Validates the load parameters.
+     * 
+     * @method validateLoadParameters
+     * @param {boolean} shouldLoadConfig - Whether to load the configuration object.
+     * @param {Object} config - The configuration object.
+     * @param {boolean} shouldLoadContext - Whether to load the context object.
+     * @param {Object} context - The context object.
+     */
+    validateLoadParameters(shouldLoadConfig, config, shouldLoadContext, context) {
         if (shouldLoadConfig && !config) {
             throw new Error('Config is set up to be loaded, but no config was provided.');
+        }
+        if (shouldLoadConfig && config && typeof config !== 'object') {
+            throw new Error('Config is set up to be loaded, but config is not an object.');
         }
         if (shouldLoadContext && !context) {
             throw new Error('Context is set up to be loaded, but no context was provided.');
         }
-
-        this.config =  shouldLoadConfig ? config : null
-        this.context = shouldLoadContext ? context : null;
-        this.const = this.getConstants();
-        this.moduleConstants = this.getModuleConstants();
-        this.loadGame = shouldLoadGame ? this.getGameObject : null;
-        this.loadDebugMode = shouldLoadDebugMode ? this.getDebugMode : null;
+        if (shouldLoadContext && context && typeof context !== 'object') {
+            throw new Error('Context is set up to be loaded, but context is not an object.');
+        }
     }
 
     /**

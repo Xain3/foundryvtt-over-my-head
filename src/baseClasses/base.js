@@ -1,18 +1,42 @@
 // .src/baseClasses/base.js
 
+export const DEFAULT_ARGS = {
+    config: null,
+    context: null,
+    globalContext: null,
+    shouldLoadConfig: true,
+    shouldLoadContext: false,
+    shouldLoadGame: false,
+    shouldLoadDebugMode: false
+};
+
+export const REQUIRED_KEYS = Object.keys(DEFAULT_ARGS);
+
+export const ORDERED_KEYS = [
+    'config',
+    'context',
+    'globalContext',
+    'shouldLoadConfig',
+    'shouldLoadContext',
+    'shouldLoadGame',
+    'shouldLoadDebugMode'
+];
+
 /**
- * Base class for all functionality classes.
+ * Base class providing core functionality for module components.
+ * 
+ * This class handles initialization with configuration parameters, context setting,
+ * constants management, and debug mode. It supports both named parameter and positional
+ * argument initialization patterns.
  * 
  * @class Base
- * @module Base
- * @constructor
- * @param {Object} config - The configuration object containing constants.
- * 
- * @property {Object} config - The configuration object.
- * @property {Object} const - The constant object.
- * @property {Object} moduleConstants - The module constants object.
- * @property {Object} game - The global game object.
- * @property {Object} context - The execution context.
+ * @property {Object|null} config - Configuration settings for the component
+ * @property {Object|null} context - Execution context for the component
+ * @property {Object} global - Reference to the global scope (defaults to globalThis)
+ * @property {Object|null} const - General constants from configuration
+ * @property {Object|null} moduleConstants - Module-specific constants
+ * @property {Object|null} game - Reference to the FoundryVTT game object
+ * @property {boolean|null} debugMode - Whether debug mode is enabled
  */
 class Base {
     /**
@@ -25,24 +49,66 @@ class Base {
      * @param {boolean} shouldLoadGame - Whether to load the game object. Default is true.
      * @param {boolean} shouldLoadDebugMode - Whether to load the debug mode. Default is true.
      */
-    constructor({
-        config = null,
-        context = null, 
-        globalContext = null,
-        shouldLoadConfig = false,
-        shouldLoadContext = false,
-        shouldLoadGame = false,
-        shouldLoadDebugMode = false
-    } = {}) {
+    constructor(...args) {
+        const parseArgs = (args) => {
+            if (args.length === 0) {
+                throw new Error('No arguments provided.');
+            }
+            
+            const firstArg = args[0];
+            
+            // If the first argument is not an object, throw an error
+            if (typeof firstArg !== 'object') {
+                throw new Error('First argument should be an object');
+            }
+            // If the first argument is an empty object, throw an error
+            if (Object.keys(firstArg).length === 0) {
+                throw new Error('First argument should not be an empty object');
+            }
+            // If the first argument is an object containing at least one of the required keys
+            if (REQUIRED_KEYS.some(key => key in firstArg)) {
+            // Extract named parameters from the object
+                return { ...firstArg };
+            }
+            // If the first argument is an object but doesn't contain any of the required keys
+            // treat it as a config object
+            if (args.length === 1 && typeof firstArg === 'object') {
+                return { 
+                    config: firstArg, 
+                    context: DEFAULT_ARGS.context,
+                    globalContext: DEFAULT_ARGS.globalContext,
+                    shouldLoadConfig: DEFAULT_ARGS.shouldLoadConfig,
+                    shouldLoadContext: DEFAULT_ARGS.shouldLoadContext,
+                    shouldLoadGame: DEFAULT_ARGS.shouldLoadGame,
+                    shouldLoadDebugMode: DEFAULT_ARGS.shouldLoadDebugMode
+                };
+            }
+            // If multiple arguments are provided, treat them as positional arguments
+            // and map them to the expected parameters
+            if (args.length > 1) {
+                const result = { ...DEFAULT_ARGS };
+                ORDERED_KEYS.forEach((key, index) => {
+                if (args[index] !== undefined) {
+                    result[key] = args[index];
+                    }
+                });
+                return result;
+            }
+        };
         
-        this.validateLoadParameters(shouldLoadConfig, config, shouldLoadContext, context);
-        this.global = globalContext ?? globalThis;
-        this.config = shouldLoadConfig ? config : null;
-        this.context = shouldLoadContext ? context : null;
-        this.const = this.getConstants();
-        this.moduleConstants = this.getModuleConstants();
-        this.game = shouldLoadGame ? this.getGameObject() : null;
-        this.debugMode = shouldLoadDebugMode ? this.getDebugMode() : null;
+    this.parsedArgs = parseArgs(args);
+    
+    this.validateLoadParameters(
+        this.parsedArgs
+    );
+    
+    this.global = this.parsedArgs.globalContext ?? globalThis;
+    this.config = this.parsedArgs.shouldLoadConfig ? this.parsedArgs.config : null;
+    this.context = this.parsedArgs.shouldLoadContext ? this.parsedArgs.context : null;
+    this.const = this.getConstants();
+    this.moduleConstants = this.getModuleConstants();
+    this.game = this.parsedArgs.shouldLoadGame ? this.getGameObject() : null;
+    this.debugMode = this.parsedArgs.shouldLoadDebugMode ? this.getDebugMode() : null;
     }
 
     /**
@@ -54,18 +120,30 @@ class Base {
      * @param {boolean} shouldLoadContext - Whether to load the context object.
      * @param {Object} context - The context object.
      */
-    validateLoadParameters(shouldLoadConfig, config, shouldLoadContext, context) {
-        if (shouldLoadConfig && !config) {
+    validateLoadParameters(args) {
+        if (args.shouldLoadConfig && !args.config) {
             throw new Error('Config is set up to be loaded, but no config was provided.');
         }
-        if (shouldLoadConfig && config && typeof config !== 'object') {
+        if (args.shouldLoadConfig && args.config && typeof args.config !== 'object') {
             throw new Error('Config is set up to be loaded, but config is not an object.');
         }
-        if (shouldLoadContext && !context) {
+        if (args.shouldLoadContext && !args.context) {
             throw new Error('Context is set up to be loaded, but no context was provided.');
         }
-        if (shouldLoadContext && context && typeof context !== 'object') {
+        if (args.shouldLoadContext && args.context && typeof args.context !== 'object') {
             throw new Error('Context is set up to be loaded, but context is not an object.');
+        }
+        if (args.shouldLoadConfig && typeof args.shouldLoadConfig !== 'boolean') {
+            throw new Error('shouldLoadConfig should be a boolean.');
+        }
+        if (args.shouldLoadContext && typeof args.shouldLoadContext !== 'boolean') {
+            throw new Error('shouldLoadContext should be a boolean.');
+        }
+        if (args.shouldLoadGame && typeof args.shouldLoadGame !== 'boolean') {
+            throw new Error('shouldLoadGame should be a boolean.');
+        }
+        if (args.shouldLoadDebugMode && typeof args.shouldLoadDebugMode !== 'boolean') {
+            throw new Error('shouldLoadDebugMode should be a boolean.');
         }
     }
 

@@ -1,4 +1,4 @@
-import Base from './base';
+import Base, {DEFAULT_ARGS, REQUIRED_KEYS, ORDERED_KEYS} from './base';
 
 describe('Base class tests', () => {
   let mockConfig;
@@ -17,18 +17,116 @@ describe('Base class tests', () => {
     mockGlobal = { game: mockGameObject };
   });
 
+  describe('parseArgs function', () => {
+    test('should throw an error if no arguments are provided', () => {
+      expect(() => new Base()).toThrow('No arguments provided');
+    });
 
-  test('should throw error if config is required but missing', () => {
-    expect(() => new Base({ shouldLoadConfig: true })).toThrow('Config is set up to be loaded');
+    test('should throw an error if the first argument is not an object', () => {
+      expect(() => new Base('string')).toThrow('First argument should be an object');
+    });
+
+    test('should throw an error if the first argument is an empty object', () => {
+      expect(() => new Base({})).toThrow('First argument should not be an empty object');
+    }
+    );
+
+    test('should deconstruct and map properties if first argument is an object containing required keys', () => {
+      const instance = new Base({ config: mockConfig, context: mockContext});
+      expect(instance.parsedArgs).toEqual({
+        config: mockConfig,
+        context: mockContext,
+      });
+    });
+
+    test('should treat the first argument as a config object if it is an object but does not contain any required keys', () => {
+      const instance = new Base({ someOtherKey: 'value' });
+      expect(instance.parsedArgs.config).toEqual({ someOtherKey: 'value' });
+    });
+
+    test('should map the other arguments to the default parameters if only a valid first positional argument', () => {
+      const instance = new Base({someOtherKey: 'value'});
+      expect(instance.parsedArgs.config).toEqual({ someOtherKey: 'value' });
+      expect(instance.parsedArgs.context).toEqual(DEFAULT_ARGS.context);
+      expect(instance.parsedArgs.globalContext).toEqual(DEFAULT_ARGS.globalContext);
+      expect(instance.parsedArgs.shouldLoadConfig).toEqual(DEFAULT_ARGS.shouldLoadConfig);
+      expect(instance.parsedArgs.shouldLoadContext).toEqual(DEFAULT_ARGS.shouldLoadContext);
+      expect(instance.parsedArgs.shouldLoadGame).toEqual(DEFAULT_ARGS.shouldLoadGame);
+      expect(instance.parsedArgs.shouldLoadDebugMode).toEqual(DEFAULT_ARGS.shouldLoadDebugMode);
+    });
+    
+    test('should map positional arguments correctly when they are all provided', () => {
+      const instance = new Base(mockConfig, mockContext, 'I am global!', false, true, true, true);
+      expect(instance.parsedArgs.config).toEqual(mockConfig);
+      expect(instance.parsedArgs.context).toEqual(mockContext);
+      expect(instance.parsedArgs.globalContext).toEqual('I am global!');
+      expect(instance.parsedArgs.shouldLoadConfig).toBe(false);
+      expect(instance.parsedArgs.shouldLoadContext).toBe(true);
+      expect(instance.parsedArgs.shouldLoadGame).toBe(true);
+      expect(instance.parsedArgs.shouldLoadDebugMode).toBe(true);
+    });
+
+    test('should map provided positional arguments correctly and fallback to default values for missing ones', () => {
+      const instance = new Base(mockConfig, mockContext, 'I am global!', false);
+      expect(instance.parsedArgs.config).toEqual(mockConfig);
+      expect(instance.parsedArgs.context).toEqual(mockContext);
+      expect(instance.parsedArgs.globalContext).toEqual('I am global!');
+      expect(instance.parsedArgs.shouldLoadConfig).toBe(false);
+      expect(instance.parsedArgs.shouldLoadContext).toBe(DEFAULT_ARGS.shouldLoadContext);
+      expect(instance.parsedArgs.shouldLoadGame).toBe(DEFAULT_ARGS.shouldLoadGame);
+      expect(instance.parsedArgs.shouldLoadDebugMode).toBe(DEFAULT_ARGS.shouldLoadDebugMode);
+    });
   });
 
-  test('should throw error if context is required but missing', () => {
-    expect(() => new Base({ shouldLoadContext: true })).toThrow('Context is set up to be loaded');
+  describe('validateLoadParameters function', () => {
+    test('should throw error if config is required but missing', () => {
+      expect(() => new Base({ shouldLoadConfig: true })).toThrow('Config is set up to be loaded');
+      expect(() => new Base(null, null, null, true )).toThrow();
+    });
+
+    test('should throw error if config is required but is not an object', () => {
+      expect(() => new Base({config: 'string', shouldLoadConfig: true})).toThrow('Config is set up to be loaded');
+    });
+
+    test('should throw error if context is required but missing', () => {
+      expect(() => new Base({ shouldLoadContext: true })).toThrow('Context is set up to be loaded');
+      expect(() => new Base(mockConfig, null, null, false, true)).toThrow('Context is set up to be loaded');
+    });
+
+    test('should throw error if context is required but is not an object', () => {
+      expect(() => new Base({ context: 'string', shouldLoadContext: true })).toThrow('Context is set up to be loaded');
+    });
+
+    test('should throw an error if shouldLoadConfig is not a boolean', () => {
+      expect(() => new Base({ config: mockConfig, shouldLoadConfig: 'string' })).toThrow('shouldLoadConfig should be a boolean');
+      expect(() => new Base(mockConfig, mockContext, null, 'string')).toThrow('shouldLoadConfig should be a boolean');
+    }
+    );
+
+    test('should throw an error if shouldLoadContext is not a boolean', () => {
+      expect(() => new Base({ config: mockConfig, context: mockContext, shouldLoadContext: 'string' })).toThrow('shouldLoadContext should be a boolean');
+      expect(() => new Base(mockConfig, mockContext, null, false, 'string')).toThrow('shouldLoadContext should be a boolean');
+    }
+    );
+
+    test('should throw an error if shouldLoadGame is not a boolean', () => {
+      expect(() => new Base({ config: mockConfig, context: mockContext, shouldLoadGame: 'string' })).toThrow('shouldLoadGame should be a boolean');
+      expect(() => new Base(mockConfig, mockContext, null, false, false, 'string')).toThrow('shouldLoadGame should be a boolean');
+    }
+    );
+
+    test('should throw an error if shouldLoadDebugMode is not a boolean', () => {
+      expect(() => new Base({ config: mockConfig, context: mockContext, shouldLoadDebugMode: 'string' })).toThrow('shouldLoadDebugMode should be a boolean');
+      expect(() => new Base(mockConfig, mockContext, null, false, false, false, 'string')).toThrow('shouldLoadDebugMode should be a boolean');
+    }
+    );
   });
 
   test('should fallback to globalThis if no global context is provided', () => {
     const instance = new Base({ config: mockConfig, globalContext: null });
     expect(instance.global).toEqual(globalThis);
+    const instancePositional = new Base(mockConfig, mockContext, null);
+    expect(instancePositional.global).toEqual(globalThis);
   });
 
   test('should create an instance if config and context are provided', () => {
@@ -39,6 +137,8 @@ describe('Base class tests', () => {
   test('getDebugMode should return default fallback if no context or module constants are provided', () => {
     const instance = new Base({ mockConfig, shouldLoadDebugMode: true });
     expect(instance.getDebugMode()).toBe(true);
+    const instancePositional = new Base(mockConfig, mockContext, null, false, false, false, true);
+    expect(instancePositional.getDebugMode()).toBe(true);
   });
 
   test('getDebugMode should return context flag if available', () => {
@@ -76,7 +176,7 @@ describe('Base class tests', () => {
 
   test('getConstants should warn if no constants provided', () => {
     console.warn = jest.fn();
-    const instance = new Base({});
+    const instance = new Base({config: {}, shouldLoadConfig: true });
     const result = instance.getConstants();
     expect(result).toBeNull();
     expect(console.warn).toHaveBeenCalledWith('No constants object found.');
@@ -94,36 +194,5 @@ describe('Base class tests', () => {
     const mockConfig = { CONSTANTS: { MODULE: { prop: true } } };
     const instance = new Base({ config: mockConfig, shouldLoadConfig: true });
     expect(instance.getModuleConstants()).toEqual({ prop: true });
-  });
-  test('validateLoadParameters should throw error if config is required but missing', () => {
-      const base = new Base();
-      expect(() => base.validateLoadParameters(true, null, false, null))
-          .toThrow('Config is set up to be loaded, but no config was provided.');
-  });
-  
-  test('validateLoadParameters should throw error if config is not an object', () => {
-      const base = new Base();
-      expect(() => base.validateLoadParameters(true, 'string', false, null))
-          .toThrow('Config is set up to be loaded, but config is not an object.');
-  });
-  
-  test('validateLoadParameters should throw error if context is required but missing', () => {
-      const base = new Base();
-      expect(() => base.validateLoadParameters(false, null, true, null))
-          .toThrow('Context is set up to be loaded, but no context was provided.');
-  });
-  
-  test('validateLoadParameters should throw error if context is not an object', () => {
-      const base = new Base();
-      expect(() => base.validateLoadParameters(false, null, true, 'string'))
-          .toThrow('Context is set up to be loaded, but context is not an object.');
-  });
-  
-  test('validateLoadParameters should not throw error when parameters are valid', () => {
-      const base = new Base();
-      expect(() => base.validateLoadParameters(true, {}, true, {})).not.toThrow();
-      expect(() => base.validateLoadParameters(false, null, false, null)).not.toThrow();
-      expect(() => base.validateLoadParameters(true, {}, false, null)).not.toThrow();
-      expect(() => base.validateLoadParameters(false, null, true, {})).not.toThrow();
   });
 });

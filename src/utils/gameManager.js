@@ -21,7 +21,10 @@ class GameManager extends Utility {
      * @param {Object} remoteContextManager - The remote context manager object.
      */
     constructor(CONFIG, remoteContextManager) {
-        super(CONFIG);
+        super(CONFIG, {
+            shouldLoadConfig: true,
+            shouldLoadGame: true,
+        });
         this.remoteContextManager = remoteContextManager;
         this.updateConfig(CONFIG);
     }
@@ -33,20 +36,27 @@ class GameManager extends Utility {
      * @param {Object} moduleConfig - The module configuration object.
      * @returns {Object} The module object.
      */
-     getModuleObject(moduleConfig) {
+    getModuleObject(moduleConfig) {
+        // First try with the instance property
         if (this.game && this.game.modules && typeof this.game.modules.get === 'function') {
             return this.game.modules.get(moduleConfig.ID);
-        } else if (!game) {
-            console.error('game is undefined.');
-            return null;
-        } else if (!game.modules) {
-            console.error('game.modules is undefined.');
-            return null;
         }
-        else { 
-            console.error('game.modules.get is not a function.');
-            return null;
+        
+        // If the instance property doesn't work, try with the global game object
+        if (globalThis.game && globalThis.game.modules && typeof globalThis.game.modules.get === 'function') {
+            return globalThis.game.modules.get(moduleConfig.ID);
         }
+        
+        // Error handling
+        if (!this.game && !globalThis.game) {
+            console.error('Game object is not available in instance or global scope.');
+        } else if ((this.game && !this.game.modules) || (globalThis.game && !globalThis.game.modules)) {
+            console.error('Game modules collection is not available.');
+        } else {
+            console.error('Game modules collection does not have a get function.');
+        }
+        
+        return null;
     }
 
     /**
@@ -58,12 +68,12 @@ class GameManager extends Utility {
      * @param {Object} config.CONSTANTS.MODULE - The module configuration.
      * @param {string} config.CONSTANTS.MODULE.CONTEXT_REMOTE - The remote context path for the module.
      */
-    updateConfig = (config) => {
+    updateConfig(config) {
         this.const = config.CONSTANTS;
         this.contextInit = this.const.CONTEXT_INIT;
-        this.moduleConfig = this.const.MODULE;
+        this.moduleConstants = this.const.MODULE;
         this.contextPath = this.const.MODULE.CONTEXT_REMOTE;
-        this.moduleObject = this.getModuleObject(this.moduleConfig);
+        this.moduleObject = this.getModuleObject(this.moduleConstants);
         this.remoteContext = this.remoteContextManager.getRemoteContextPath(
             this.moduleObject,
             this.contextPath,

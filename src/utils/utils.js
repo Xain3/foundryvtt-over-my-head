@@ -6,7 +6,6 @@ import Initializer from "./initializer.js";
 import Logger from "./logger.js";
 import Localizer from "./localizer.js";
 import Context from "../contexts/context.js";
-import RemoteContextManager from "./remoteContextManager.js";
 import JsonDataManager from "./jsonDataManager.js";
 import Validator from "./validator.js";
 
@@ -36,7 +35,6 @@ class Utilities {
         this.CONFIG = CONFIG;
         this.validator = new Validator();
         this.json = new JsonDataManager();
-        this.remoteContextManager = new RemoteContextManager();
         this.gameManager = new GameManager(CONFIG, this.remoteContextManager);
         this.logger = new Logger(CONFIG, this.gameManager);
         this.hookFormatter = new HookFormatter(CONFIG);

@@ -1,6 +1,6 @@
 // ./src/handlers/occlusionHandler.js
 
-import Handler from "../baseClasses/handler.js";
+import Handler from "../baseClasses/managers/handler.js";
 import Config from "../config/config.js";
 import Context from "../contexts/context.js";
 import Utilities from "../utils/utils.js";

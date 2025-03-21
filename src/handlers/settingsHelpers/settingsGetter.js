@@ -1,6 +1,6 @@
 // ./src/handlers/settingsFunctions/settingsGetter.js
 
-import Handler from "../../baseClasses/handler";
+import Handler from "../../baseClasses/managers/handler";
 
 /**
  * Class responsible for retrieving settings values.

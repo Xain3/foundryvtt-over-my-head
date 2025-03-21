@@ -1,7 +1,6 @@
 // ./src/handlers/userInterfaceHandler.js
 
-import Handler from "../baseClasses/handler.js";
-
+import Handler from '../baseClasses/managers/handler.js'
 class UserInterfaceHandler extends Handler {
     constructor(config, context, utils) {
         super(config, context, utils);

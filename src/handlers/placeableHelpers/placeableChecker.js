@@ -1,6 +1,6 @@
 // ./src/handlers/placeableFunctions/placeableChecker.js
 
-import Handler from '../../baseClasses/Handler.js';
+import Handler from '../../baseClasses/managers/handler.js';
 import PositionChecker from './positionChecker.js';
 
 /**

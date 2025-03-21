@@ -1,6 +1,6 @@
 // ./src/config/SettingsBuilder.js
 
-import Handler from "../../baseClasses/handler";
+import Handler from "../../baseClasses/managers/handler";
 import SettingData from "../../data/settingData";
 
 /**

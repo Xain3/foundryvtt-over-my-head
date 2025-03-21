@@ -1,6 +1,6 @@
 // ./src/handlers/settingsHandler.js
 
-import Handler from '../baseClasses/handler.js';
+import Handler from "../baseClasses/managers/handler.js";
 import SettingsGetter from './settingsFunctions/settingsGetter.js';
 import SettingsSetter from './settingsFunctions/settingsSetter.js';
 import SettingsChecker from './settingsFunctions/settingsChecker.js';

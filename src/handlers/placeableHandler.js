@@ -1,6 +1,6 @@
 // ./src/handlers/placeableHandler.js
 
-import Handler from "../baseClasses/handler.js";
+import Handler from "../baseClasses/managers/handler.js";
 import PlaceableGetter from "./placeableHelpers/placeableGetter.js";
 import PlaceableChecker from "./placeableHelpers/placeableChecker.js";
 import PlaceableSetter from "./placeableHelpers/placeableSetter.js";

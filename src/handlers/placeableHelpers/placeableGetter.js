@@ -1,6 +1,6 @@
 // ./src/handlers/placeableFunctions/placeableGetter.js
 
-import Handler from "../../baseClasses/handler.js";
+import Handler from "../../baseClasses/managers/handler.js";
 
 /**
  * Retrieves information about placeable entities.

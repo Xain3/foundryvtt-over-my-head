@@ -1,6 +1,6 @@
 // ./src/handlers/handlers.js
 
-import Handler from "../baseClasses/handler.js";
+import Handler from "../baseClasses/managers/handler.js";
 import HooksHandler from "./hooksHandler.js";
 import OcclusionHandler from "./occlusionHandler.js";
 import PlaceableHandler from "./placeableHandler.js";

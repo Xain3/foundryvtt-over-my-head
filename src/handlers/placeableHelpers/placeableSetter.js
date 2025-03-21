@@ -1,6 +1,6 @@
 // ./src/handlers/placeableFunctions/placeableSetter.js
 
-import Handler from "../../baseClasses/handler.js";
+import Handler from "../../baseClasses/managers/handler.js";
 
 /**
  * Manages setting the current placeable entity.

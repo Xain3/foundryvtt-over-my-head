@@ -1,6 +1,6 @@
 // ./src/handlers/settingsFunctions/settingsGetter.js
 
-import Handler from "../../baseClasses/handler";
+import Handler from "../../baseClasses/managers/handler";
 
 class SettingsSetter extends Handler {
     constructor(config, context, utils) {

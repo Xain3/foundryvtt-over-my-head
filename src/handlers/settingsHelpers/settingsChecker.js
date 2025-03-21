@@ -1,6 +1,6 @@
 // ./src/handlers/settingsFunctions/settingsSetter.js
 
-import Handler from "../../baseClasses/handler";
+import Handler from "../../baseClasses/managers/handler";
 
 /**
  * Class representing a settings checker.

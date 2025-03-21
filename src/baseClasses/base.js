@@ -45,9 +45,9 @@ class Base {
      * @param {Object} context - The execution context. Default is null.
      * @param {Object} globalContext - The global object. Default is globalThis.
      * @param {boolean} shouldLoadConfig - Whether to load the configuration object. Default is true.
-     * @param {boolean} shouldLoadContext - Whether to load the context object. Default is true.
-     * @param {boolean} shouldLoadGame - Whether to load the game object. Default is true.
-     * @param {boolean} shouldLoadDebugMode - Whether to load the debug mode. Default is true.
+     * @param {boolean} shouldLoadContext - Whether to load the context object. Default is false.
+     * @param {boolean} shouldLoadGame - Whether to load the game object. Default is false.
+     * @param {boolean} shouldLoadDebugMode - Whether to load the debug mode. Default is false.
      */
     constructor(...args) {
         const parseArgs = (args) => {

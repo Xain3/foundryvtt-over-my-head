@@ -30,7 +30,10 @@ class Logger extends Utility {
 
     getDebugModeValue(context) {
         try {
-            return flags.debugMode
+            if (flags.debugMode === undefined || flags.debugMode === null) {
+                throw new Error('Debug mode not defined in flags.');
+            }
+            return flags.debugMode // Assuming flags is a global object
         } catch (error) {
             return this.moduleConstants.DEFAULTS.DEBUG_MODE;
         }

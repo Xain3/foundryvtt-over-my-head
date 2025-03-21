@@ -17,9 +17,20 @@ class Utility extends Base {
     /**
      * Creates an instance of BaseModuleUtil.
      * @param {Object} config - The configuration object containing constants.
+     * @param {Object} args - Additional arguments.
+     * @param {Object} args.context - The execution context. Defaults to null.
+     * @param {Object} args.globalContext - The global object. Default to globalThis.
+     * @param {boolean} args.shouldLoadConfig - Whether to load the configuration object. Default is true.
+     * @param {boolean} args.shouldLoadContext - Whether to load the context object. Default is false.
+     * @param {boolean} args.shouldLoadGame - Whether to load the game object. Default is false.
+     * @param {boolean} args.shouldLoadDebugMode - Whether to load the debug mode. Default is false.
      */
-    constructor(config) {
-        super(config);
+    constructor(config, args = {}) {
+        super({
+            config,
+            shouldLoadConfig: true,
+            ...args
+        });
     }
 
     /**

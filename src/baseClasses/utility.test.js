@@ -23,9 +23,17 @@ describe('Utility', () => {
         expect(utility).toBeInstanceOf(Base);
     });
 
-    test('should initialize with provided config', () => {
-        expect(Base).toHaveBeenCalledWith(config);
-    });
+    test('should initialize with provided config when other args are not defined', () => {
+        expect(Base).toHaveBeenCalledWith({ config, shouldLoadConfig: true });
+    }
+    );
+
+    test('should initialise with config plus args when these are defined', () => {
+        const args = { shouldLoadConfig: true, shouldLoadGame: true };
+        utility = new Utility(config, args);
+        expect(Base).toHaveBeenCalledWith({ config, shouldLoadConfig: true, shouldLoadGame: true });
+    }
+    );
 
     test('should update config correctly', () => {
         const newConfig = {

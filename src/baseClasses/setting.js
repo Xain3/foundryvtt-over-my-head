@@ -17,57 +17,19 @@ import Base from "./base.js";
  * @property {Array} allowedProps - The allowed properties for the settings.
  * @property {Array} essentialProps - The essential properties for the settings.
  * @property {Array} contextFlags - The context flags for the settings.
- * @property {Object} setting - The current setting object.
+ * @property {Object} selectedSetting - The currently selected setting.
  * @property {Object} settingProps - The properties of the current setting.
+ * @property {Object} config - The configuration object (inherited from Base).
+ * @property {Object} const - The constant object (inherited from Base).
+ * @property {Object} moduleConstants - The module constants object (inherited from Base).
  * 
- * @method selectSetting - Selects a setting and validates it.
- * @param {string} setting - The name of the setting to select.
- * 
- * @method checkSetting - Validates the settings by ensuring that all properties are valid,
- * have the correct types, and that all essential properties are present.
- * @param {Object} [setting=this.setting] - The setting object to validate. Defaults to the current setting.
- * @throws {Error} If any property is invalid, has an incorrect type, or if any essential property is missing.
- * 
- * @method ensureIsObject - Ensures that the setting is an object.
- * @param {Object} [setting=this.setting] - The setting object to check. Defaults to the current setting.
- * @returns {boolean} True if the setting is an object, otherwise false.
- * 
- * @method ensureEssentialProperties - Ensures that all essential properties are present in the setting.
- * @param {Object} [settingProps=this.settingProps] - The properties of the setting to check. Defaults to the current setting properties.
- * @returns {boolean} True if all essential properties are present, otherwise false.
- * 
- * @method ensureValidProperties - Ensures that all properties of the setting object are valid.
- * @param {Object} [settingProps=this.settingProps] - The properties of the setting to check. Defaults to the current setting properties.
- * @returns {boolean} True if all properties are valid, otherwise false.
- * 
- * @method ensureValidPropertyTypes - Ensures that the properties of the setting object have valid types.
- * @param {Object} [settingProps=this.settingProps] - The properties of the setting to check. Defaults to the current setting properties.
- * @returns {boolean} True if all property types are valid, otherwise false.
- * 
- * @method updateContextFlags - Updates the context flags with the specified value.
- * @param {Object} context - The context object to update.
- * @param {*} value - The value to set for each flag.
- * @param {Array} [flags=this.contextFlags] - The array of flags to update. Defaults to this.contextFlags.
- * 
- * @method onChangeFunction - The function to call when a setting changes.
- * Depending on the setting, this function will call hooks and/or update context flags.
- * @param {*} value - The new value of the setting.
- * @param {Object} context - The context object for updating the flags.
- * @param {Object} formatter - The formatter object for formatting hook names.
- * 
- * @method onChangeCallHook - Calls a hook when a setting changes and logs the change.
- * @param {string} hook - The name of the hook to call.
- * @param {*} value - The new value of the setting.
- * @param {Object} formatter - An object with a method to format the hook name.
- * @param {Function} formatter.formatHook - A method to format the hook name.
- * 
- * @method onChangeUpdateFlags - Handles the change event and updates the context flags.
- * @param {Object} context - The context in which the flags are being updated.
- * @param {*} value - The new value to set for the context flags.
  */
 class Setting extends Base {
     constructor(config, setting = null) {
-        super(config, null, globalThis, true, false, false, false);
+        super({
+            config,
+            shouldLoadConfig: true,
+        });
         this.moduleSettings = this.moduleConstants.SETTINGS;
         this.moduleShortName = this.moduleConstants.SHORT_NAME;
         this.settingsConfig = this.moduleSettings.CONFIG;

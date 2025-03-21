@@ -73,6 +73,7 @@ class Base {
             // If the first argument is an object but doesn't contain any of the required keys
             // treat it as a config object
             if (args.length === 1 && typeof firstArg === 'object') {
+                console.warn('Positional arguments are been dicontinued and used for backwards compatibility. Please use named parameters.');
                 return { 
                     config: firstArg, 
                     context: DEFAULT_ARGS.context,
@@ -86,6 +87,7 @@ class Base {
             // If multiple arguments are provided, treat them as positional arguments
             // and map them to the expected parameters
             if (args.length > 1) {
+                console.warn('Positional arguments are been dicontinued and used for backwards compatibility. Please use named parameters.');
                 const result = { ...DEFAULT_ARGS };
                 ORDERED_KEYS.forEach((key, index) => {
                 if (args[index] !== undefined) {

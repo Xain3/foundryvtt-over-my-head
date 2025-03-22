@@ -1,6 +1,6 @@
 // ./src/listeners/listeners.js
 
-import Listener from "../baseClasses/listener.js";
+import Listener from "../baseClasses/managers/listener.js";
 import Config from "../config/config.js";
 import Context from "../contexts/context.js";
 import Handlers from "../handlers/handlers.js";

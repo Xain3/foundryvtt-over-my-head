@@ -1,6 +1,6 @@
 // ./src/listeners/listeners.js
 
-import Listener from "../baseClasses/listener.js";
+import Listener from "../baseClasses/managers/listener.js";
 import StateListener from "./stateListener.js";
 import TokenListener from "./tokenListener.js";
 import TileListener from "./tileListener.js";

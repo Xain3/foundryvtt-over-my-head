@@ -32,6 +32,28 @@ class PositionChecker {
     }
 
     /**
+     * Retrieves a check method based on the provided key.
+     * 
+     * @param {string} methodKey - The key of the check method to retrieve
+     * @returns {Function|null} The requested check method if found, null otherwise
+     * @example
+     * // Get a specific check method
+     * const checkMethod = this.returnCheckMethod('someMethodKey');
+     * if (checkMethod) {
+     *   checkMethod(someParameters);
+     * }
+     */
+    returnCheckMethod(methodKey) {
+        // Check if the methodKey is valid.
+        if (this.checkMethods[methodKey]) {
+            return this.checkMethods[methodKey];
+        } else {
+            this.logger.warn(`Invalid methodKey ${methodKey}`);
+            return null;
+        }
+    }
+
+    /**
      * Checks the position relationship between target and reference.
      * 
      * @param {Object} targetPosition - Position of the target entity.
@@ -47,7 +69,7 @@ class PositionChecker {
         // Create a key to access the correct check method.
         const methodKey = `${targetUse}-${referenceUse}`;
         // Retrieve the correct check method.
-        const checkMethod = this.checkMethods[methodKey];
+        const checkMethod = this.returnCheckMethod(methodKey);
 
         // If the check method is valid, call it.
         if (checkMethod) {

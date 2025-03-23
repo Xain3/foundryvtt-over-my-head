@@ -1,0 +1,301 @@
+import PositionChecker from './positionChecker';
+
+describe('PositionChecker', () => {
+    let positionChecker;
+    let mockUtils;
+    let mockLogger;
+
+    beforeEach(() => {
+        mockLogger = { warn: jest.fn() };
+        mockUtils = { logger: mockLogger };
+        positionChecker = new PositionChecker(mockUtils);
+        // Add logger for testing warning messages
+        positionChecker.logger = mockLogger;
+    });
+
+    describe('constructor', () => {
+        it('should initialize with utils and check methods', () => {
+            expect(positionChecker.utils).toBe(mockUtils);
+            expect(positionChecker.checkMethods).toBeDefined();
+            expect(Object.keys(positionChecker.checkMethods).length).toBe(4);
+        });
+    });
+
+    describe('returnCheckMethod', () => {
+        it('should return the correct check method for valid key', () => {
+            const method = positionChecker.returnCheckMethod('center-rectangle');
+            expect(typeof method).toBe('function');
+            expect(method.name).toContain('isCenterRelativeToRect');
+        });
+        it('should return null and log warning for invalid key', () => {
+            const method = positionChecker.returnCheckMethod('invalid-key');
+            expect(method).toBe(null);
+            expect(mockLogger.warn).toHaveBeenCalledWith('Invalid methodKey invalid-key');
+        });
+        it('should return null for undefined key', () => {
+            const method = positionChecker.returnCheckMethod(undefined);
+            expect(method).toBe(null);
+            expect(mockLogger.warn).toHaveBeenCalledWith('Invalid methodKey undefined');
+        });
+        it('should return null for empty string key', () => {
+            const method = positionChecker.returnCheckMethod('');
+            expect(method).toBe(null);
+            expect(mockLogger.warn).toHaveBeenCalledWith('Invalid methodKey ');
+        });
+        it('should return null for null key', () => {
+            const method = positionChecker.returnCheckMethod(null);
+            expect(method).toBe(null);
+            expect(mockLogger.warn).toHaveBeenCalledWith('Invalid methodKey null');
+        });
+        it('should return null for non-string key', () => {
+            const method = positionChecker.returnCheckMethod(123);
+            expect(method).toBe(null);
+            expect(mockLogger.warn).toHaveBeenCalledWith('Invalid methodKey 123');
+        });
+        it('should return null for boolean key', () => {
+            const method = positionChecker.returnCheckMethod(true);
+            expect(method).toBe(null);
+            expect(mockLogger.warn).toHaveBeenCalledWith('Invalid methodKey true');
+        });
+        it('should return null for object key', () => {
+            const method = positionChecker.returnCheckMethod({ key: 'value' });
+            expect(method).toBe(null);
+            expect(mockLogger.warn).toHaveBeenCalledWith('Invalid methodKey [object Object]');
+        });
+        it('should return null for array key', () => {
+            const method = positionChecker.returnCheckMethod(['key1', 'key2']);
+            expect(method).toBe(null);
+            expect(mockLogger.warn).toHaveBeenCalledWith('Invalid methodKey key1,key2');
+        });
+        it('should return null for function key', () => {
+            const method = positionChecker.returnCheckMethod(() => {});
+            expect(method).toBe(null);
+            expect(mockLogger.warn).toHaveBeenCalledWith('Invalid methodKey () => {}');
+        });
+    });
+
+    describe('check', () => {
+        it('should call a function named checkMethod with correct parameters', () => {
+            const mockCheckMethod = jest.fn();
+            positionChecker.checkMethods['rectangle-rectangle'] = mockCheckMethod;
+
+            // Call check with valid parameters
+            positionChecker.check({}, 1, {}, 2, 'rectangle', 'rectangle', 'under');
+
+            // Verify that the correct method was called with the right parameters
+            expect(mockCheckMethod).toHaveBeenCalledWith(
+                {}, 1, {}, 2, 'under'
+            );
+            expect(mockLogger.warn).not.toHaveBeenCalled();
+        });
+
+        it('should return false and log warning for invalid combination', () => {
+            // Call check with invalid combination
+            const result = positionChecker.check({}, 1, {}, 2, 'invalid', 'use', 'under');
+            
+            // Verify warning was logged and false returned
+            expect(mockLogger.warn).toHaveBeenCalledWith(
+                'Invalid combination of targetUse invalid and referenceUse use'
+            );
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('elevationCheck', () => {
+        it('should return true when target is under reference for "under" check', () => {
+            const result = positionChecker.elevationCheck(1, 2, 'under');
+            expect(result).toBe(true);
+        });
+
+        it('should return false when target is over reference for "under" check', () => {
+            const result = positionChecker.elevationCheck(3, 2, 'under');
+            expect(result).toBe(false);
+        });
+
+        it('should return true when target is over reference for non-"under" check', () => {
+            const result = positionChecker.elevationCheck(3, 2, 'over');
+            expect(result).toBe(true);
+        });
+
+        it('should return false when target is under reference for non-"under" check', () => {
+            const result = positionChecker.elevationCheck(1, 2, 'over');
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('isCenterRelativeToRect', () => {
+        it('should return true when center is within rectangle and elevation check passes', () => {
+            const targetCenter = { x: 5, y: 5 };
+            const referencePosition = {
+                BottomLeft: { x: 0, y: 0 },
+                TopRight: { x: 10, y: 10 }
+            };
+            
+            const result = positionChecker.isCenterRelativeToRect(
+                targetCenter, 1, referencePosition, 2, 'under'
+            );
+            
+            expect(result).toBe(true);
+        });
+
+        it('should return false when center is outside rectangle', () => {
+            const targetCenter = { x: 15, y: 15 };
+            const referencePosition = {
+                BottomLeft: { x: 0, y: 0 },
+                TopRight: { x: 10, y: 10 }
+            };
+            
+            const result = positionChecker.isCenterRelativeToRect(
+                targetCenter, 1, referencePosition, 2, 'under'
+            );
+            
+            expect(result).toBe(false);
+        });
+
+        it('should return false when elevation check fails', () => {
+            const targetCenter = { x: 5, y: 5 };
+            const referencePosition = {
+                BottomLeft: { x: 0, y: 0 },
+                TopRight: { x: 10, y: 10 }
+            };
+            
+            const result = positionChecker.isCenterRelativeToRect(
+                targetCenter, 3, referencePosition, 2, 'under'
+            );
+            
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('isRectRelativeToCenter', () => {
+        it('should return true when rectangle contains center and elevation check passes', () => {
+            const targetPosition = {
+                BottomLeft: { x: 0, y: 0 },
+                TopRight: { x: 10, y: 10 }
+            };
+            const referenceCenter = { x: 5, y: 5 };
+            
+            const result = positionChecker.isRectRelativeToCenter(
+                targetPosition, 1, referenceCenter, 2, 'under'
+            );
+            
+            expect(result).toBe(true);
+        });
+
+        it('should return false when rectangle does not contain center', () => {
+            const targetPosition = {
+                BottomLeft: { x: 0, y: 0 },
+                TopRight: { x: 10, y: 10 }
+            };
+            const referenceCenter = { x: 15, y: 15 };
+            
+            const result = positionChecker.isRectRelativeToCenter(
+                targetPosition, 1, referenceCenter, 2, 'under'
+            );
+            
+            expect(result).toBe(false);
+        });
+
+        it('should return false when elevation check fails', () => {
+            const targetPosition = {
+                BottomLeft: { x: 0, y: 0 },
+                TopRight: { x: 10, y: 10 }
+            };
+            const referenceCenter = { x: 5, y: 5 };
+            
+            const result = positionChecker.isRectRelativeToCenter(
+                targetPosition, 3, referenceCenter, 2, 'under'
+            );
+            
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('isRectRelativeToRect', () => {
+        it('should return true when rectangles overlap and elevation check passes', () => {
+            const targetPosition = {
+                BottomLeft: { x: 5, y: 5 },
+                TopRight: { x: 15, y: 15 }
+            };
+            const referencePosition = {
+                BottomLeft: { x: 0, y: 0 },
+                TopRight: { x: 10, y: 10 }
+            };
+            
+            const result = positionChecker.isRectRelativeToRect(
+                targetPosition, 1, referencePosition, 2, 'under'
+            );
+            
+            expect(result).toBe(true);
+        });
+
+        it('should return false when rectangles do not overlap', () => {
+            const targetPosition = {
+                BottomLeft: { x: 20, y: 20 },
+                TopRight: { x: 30, y: 30 }
+            };
+            const referencePosition = {
+                BottomLeft: { x: 0, y: 0 },
+                TopRight: { x: 10, y: 10 }
+            };
+            
+            const result = positionChecker.isRectRelativeToRect(
+                targetPosition, 1, referencePosition, 2, 'under'
+            );
+            
+            expect(result).toBe(false);
+        });
+
+        it('should return false when elevation check fails', () => {
+            const targetPosition = {
+                BottomLeft: { x: 5, y: 5 },
+                TopRight: { x: 15, y: 15 }
+            };
+            const referencePosition = {
+                BottomLeft: { x: 0, y: 0 },
+                TopRight: { x: 10, y: 10 }
+            };
+            
+            const result = positionChecker.isRectRelativeToRect(
+                targetPosition, 3, referencePosition, 2, 'under'
+            );
+            
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('isCenterRelativeToCenter', () => {
+        it('should return true when centers are at the same position and elevation check passes', () => {
+            const targetCenter = { x: 5, y: 5 };
+            const referenceCenter = { x: 5, y: 5 };
+            
+            const result = positionChecker.isCenterRelativeToCenter(
+                targetCenter, 1, referenceCenter, 2, 'under'
+            );
+            
+            expect(result).toBe(true);
+        });
+
+        it('should return false when centers are at different positions', () => {
+            const targetCenter = { x: 5, y: 5 };
+            const referenceCenter = { x: 10, y: 10 };
+            
+            const result = positionChecker.isCenterRelativeToCenter(
+                targetCenter, 1, referenceCenter, 2, 'under'
+            );
+            
+            expect(result).toBe(false);
+        });
+
+        it('should return false when elevation check fails', () => {
+            const targetCenter = { x: 5, y: 5 };
+            const referenceCenter = { x: 5, y: 5 };
+            
+            const result = positionChecker.isCenterRelativeToCenter(
+                targetCenter, 3, referenceCenter, 2, 'under'
+            );
+            
+            expect(result).toBe(false);
+        });
+    });
+});

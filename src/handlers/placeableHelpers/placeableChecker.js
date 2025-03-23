@@ -71,7 +71,7 @@ class PlaceableChecker extends Handler {
      * @returns {boolean} True if the target is under the reference, else false.
      */
     isUnder(target, reference, targetManager, referenceManager, targetUse, referenceUse, checkType = 'under') {
-        if (this.getDebugMode()) {console.log(`Checking if target ${target} is under reference ${reference}`)} // DEBUG - log the target and reference
+        if (this.getDebugMode()) {this.logger.log(`Checking if target ${target} is under reference ${reference}`)} // DEBUG - log the target and reference
         // position of the target
         let targetPosition = this.getter.getPosition(target, targetManager, targetUse);
         let targetElevation = this.getter.getElevation(target, targetManager);

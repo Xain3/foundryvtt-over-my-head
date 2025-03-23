@@ -40,7 +40,7 @@ class PlaceableGetter extends Handler {
      */
     getCorner(corner, placeable) {
         const allowedCorners = this.config.HANDLERS.PLACEABLE.ALLOWED_CORNERS;
-        if (!allowedCorners.includes(corner)) {
+        if (allowedCorners.includes(corner)) {
             let anchor = { x: placeable.x, y: placeable.y };
             
             switch (corner) {
@@ -63,7 +63,18 @@ class PlaceableGetter extends Handler {
             }
             
             return anchor;
+        } else if (corner === 'center') {
+            // If 'center' is provided, return the center coordinates
+            // This is a fallback to ensure that the function can return the center
+            // even if 'corner' is not in the allowed list
+            this.logger.warn('getCorner is used to get corners only. Use getCenter for center.');
+            return this.getCenter(placeable);
+        } else if (!corner) {
+            // No corner provided
+            this.logger.warn('No corner provided. Returning null.');
+            return null;
         } else {
+            // Invalid corner provided
             this.logger.warn(`Invalid corner ${corner} provided. Allowed corners are: ${allowedCorners}`);
             return null;
         }

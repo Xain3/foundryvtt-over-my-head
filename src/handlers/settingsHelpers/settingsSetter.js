@@ -2,6 +2,18 @@
 
 import Handler from "../../baseClasses/managers/handler";
 
+/**
+ * @class SettingsSetter
+ * @extends Handler
+ * @description Handles setting values for configuration settings
+ * 
+ * @param {Object} config - Configuration object
+ * @param {Object} context - Context for the handler
+ * @param {Object} utils - Utility functions
+ * 
+ * @property {Object} settings - Settings collection accessed by the handler
+ * @property {Object} logger - Logger utility for error reporting
+ */
 class SettingsSetter extends Handler {
     constructor(config, context, utils) {
         super(config, context, utils);

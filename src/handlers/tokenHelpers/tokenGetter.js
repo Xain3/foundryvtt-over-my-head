@@ -1,4 +1,4 @@
-// ./src/handlers/tokenFunctions/tokenGetter.js
+// ./src/handlers/tokenHelpers/tokenGetter.js
 
 import PlaceableHandler from '../placeableHandler.js';
 
@@ -11,25 +11,26 @@ import PlaceableHandler from '../placeableHandler.js';
  * @property {Array} all - All tokens.
  * @property {Array} selected - Selected tokens.
  * 
- * @method getTokens - Retrieves all tokens.
- * @param {boolean} updateProperty - Whether to update the tokens property (default is true).
- * @param {boolean} returnValue - Whether to return the tokens (default is true).
- * @returns {Array} - Array of tokens.
- * 
- * @method getSelectedTokens - Retrieves selected tokens.
- * @param {Array} tokens - Optional tokens array.
- * @param {boolean} updateProperty - Whether to update the selectedTokens property (default is true).
- * @param {boolean} returnValue - Whether to return the selected tokens (default is true).
- * @returns {Array} - Array of selected tokens.
+ * @property {Object} utils - The utility object. (inherited from Handler)
+ * @property {Object} logger - The logger object. (inherited from Handler)
+ * @property {Object} config - The configuration object (inherited from Base).
+ * @property {Object} const - The constant object (inherited from Base).
+ * @property {Object} moduleConstants - The module constants object (inherited from Base).
+ * @property {Object} game - The global game object (inherited from Base).
+ * @property {Object} context - The execution context (inherited from Base).
  */
 class TokenGetter extends PlaceableHandler {
     constructor(config, context, utils) {
         super(config, context, utils);
-        this.placeableType = this.const.HANDLERS.TOKEN.PLACEABLE_TYPE;
+        this.placeableType = this.getPlaceableType();
         this.all = this.getTokens();
         this.selected = this.getSelectedTokens();
     }
 
+    getPlaceableType(constants = null) {
+        const cnst = constants || this.const;
+        return cnst.PLACEABLE_TYPES.TOKEN;
+    }
     /**
      * Retrieves all tokens.
      * 

@@ -38,13 +38,14 @@ class SettingsBuilder extends Handler {
     /**
      * Initializes and builds settings for the module.
      * 
-     * @param {Object} [context=null] - The context for the settings.
+     * @param {Object} [context=null] - The context for the settings. Defaults to the current context.
      * @returns {Object} The initialized settings.
      */
+    
     initializeSettings(context = null) {
         this.context = context || this.context;
         this.settings = {};
-        const SETTINGS = this.moduleConstants.SETTINGS.initializeSettings(this.context);
+        const SETTINGS = this.moduleConstants.SETTINGS
         if (SETTINGS) {
             for (const key in SETTINGS) {
                 if (typeof SETTINGS[key] === 'object') {

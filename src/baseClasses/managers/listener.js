@@ -17,6 +17,20 @@ import Manager from './manager.js';
  * @param {Object} context - The execution context.
  * @param {Object} utils - The utility object.
  * @param {Object} handlers - The handler object.
+ * 
+ * @property {Object} handlers - The object containing event handlers.
+ * 
+ * Inherits properties from Manager:
+ * @property {Object} utils - The utility object.
+ * @property {Object} logger - The logger object.
+ * 
+ * Inherits properties from Base:
+ * @property {Object} config - The configuration object.
+ * @property {Object} const - The constant object.
+ * @property {Object} moduleConstants - The module constants object.
+ * @property {Object} game - The global game object.
+ * @property {Object} context - The execution context.
+ * @property {Object} globalContext - The global object.
  */
 class Listener extends Manager {
     constructor(config, context, utils, handlers) {

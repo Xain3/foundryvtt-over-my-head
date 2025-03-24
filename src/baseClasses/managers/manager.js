@@ -14,11 +14,14 @@ import Base from '../base.js';
  * 
  * @property {Object} utils - The utility object.
  * @property {Object} logger - The logger object.
- * @property {Object} config - The configuration object (inherited from Base).
- * @property {Object} const - The constant object (inherited from Base).
- * @property {Object} moduleConstants - The module constants object (inherited from Base).
- * @property {Object} game - The global game object (inherited from Base).
- * @property {Object} context - The execution context (inherited from Base).
+ * 
+ * Inherits properties from Base:
+ * @property {Object} config - The configuration object.
+ * @property {Object} const - The constant object.
+ * @property {Object} moduleConstants - The module constants object.
+ * @property {Object} game - The global game object.
+ * @property {Object} context - The execution context.
+ * @property {Object} globalContext - The global object.
  */
 class Manager extends Base {
     constructor(config, context, utils) {

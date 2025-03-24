@@ -24,6 +24,11 @@ class Utility extends Base {
      * @param {boolean} args.shouldLoadContext - Whether to load the context object. Default is false.
      * @param {boolean} args.shouldLoadGame - Whether to load the game object. Default is false.
      * @param {boolean} args.shouldLoadDebugMode - Whether to load the debug mode. Default is false.
+     * 
+     * Inherits properties from Base:
+     * @property {Object} config - The configuration object.
+     * @property {Object} const - The constant object.
+     * @property {Object} moduleConstants - The module constants object.
      */
     constructor(config, args = {}) {
         super({

@@ -19,9 +19,11 @@ import Base from "./base.js";
  * @property {Array} contextFlags - The context flags for the settings.
  * @property {Object} selectedSetting - The currently selected setting.
  * @property {Object} settingProps - The properties of the current setting.
- * @property {Object} config - The configuration object (inherited from Base).
- * @property {Object} const - The constant object (inherited from Base).
- * @property {Object} moduleConstants - The module constants object (inherited from Base).
+ * 
+ * Inherits properties from Base:
+ * @property {Object} config - The configuration object.
+ * @property {Object} const - The constant object.
+ * @property {Object} moduleConstants - The module constants object.
  * 
  */
 class Setting extends Base {

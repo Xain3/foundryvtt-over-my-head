@@ -32,7 +32,7 @@ export const ORDERED_KEYS = [
  * @class Base
  * @property {Object|null} config - Configuration settings for the component
  * @property {Object|null} context - Execution context for the component
- * @property {Object} global - Reference to the global scope (defaults to globalThis)
+ * @property {Object} globalContext - Reference to the global scope (defaults to globalThis)
  * @property {Object|null} const - General constants from configuration
  * @property {Object|null} moduleConstants - Module-specific constants
  * @property {Object|null} game - Reference to the FoundryVTT game object
@@ -104,13 +104,13 @@ class Base {
         this.parsedArgs
     );
     
-    this.global = this.parsedArgs.globalContext ?? globalThis;
+    this.globalContext = this.parsedArgs.globalContext ?? globalThis;
     this.config = this.parsedArgs.shouldLoadConfig ? this.parsedArgs.config : null;
     this.context = this.parsedArgs.shouldLoadContext ? this.parsedArgs.context : null;
     this.const = this.getConstants();
     this.moduleConstants = this.getModuleConstants();
     this.game = this.parsedArgs.shouldLoadGame ? this.getGameObject() : null;
-    this.debugMode = this.parsedArgs.shouldLoadDebugMode ? this.getDebugMode() : null;
+    this.debugMode = this.parsedArgs.shouldLoadDebugMode ? this.getDebugMode() : false;
     }
 
     /**
@@ -153,12 +153,12 @@ class Base {
      * Retrieves the debug mode flag.
      * 
      * @method getDebugMode
-     * @param {boolean} fallback - The fallback value if the flag is not found. Default is true.
+     * @param {boolean} fallback - The fallback value if the flag is not found. Default is false.
      * @returns {boolean} The debug mode flag.
      */
-    getDebugMode(fallback = true) {
+    getDebugMode(fallback = false) {
         try {
-            return this.context?.getFlag('debugMode') ?? this.moduleConstants.DEFAULTS.DEBUG_MODE;
+            return this.context?.getFlag('debugMode') ?? this.moduleConstants?.DEFAULTS?.DEBUG_MODE ?? fallback;
         } catch (error) {
             console.error('Error retrieving debug mode:', error);
             return fallback;
@@ -173,10 +173,10 @@ class Base {
      */
     getGameObject() {
         try {
-            if (!this.global.game) {
+            if (!this.globalContext?.game) {
                throw new Error('No game object found.');
             }
-            return this.global.game;
+            return this.globalContext.game;
         } catch (error) {
             console.error('Error retrieving game object:', error);
             return null;

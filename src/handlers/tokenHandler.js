@@ -1,8 +1,8 @@
 // ./src/handlers/tokenHandler.js
 
-import TokenGetter from './tokenFunctions/tokenGetter.js';
-import TokenSetter from './tokenFunctions/tokenSetter.js';
-import TokenChecker from './tokenFunctions/tokenChecker.js';
+import TokenGetter from './tokenHelpers/tokenGetter.js';
+import TokenSetter from './tokenHelpers/tokenSetter.js';
+import TokenChecker from './tokenHelpers/tokenChecker.js';
 
 /**
  * @class TokenHandler
@@ -26,7 +26,7 @@ class TokenHandler {
     }
 
     getSelectedTokens(tokens = null, updateProperty = true, returnValue = true) {
-        let selectedTokens = this.getSelectedTokens(tokens, updateProperty, returnValue);
+        let selectedTokens = this.getter.getSelectedTokens(tokens, updateProperty, returnValue);
         updateProperty ? this.selected = selectedTokens : this.selected;
         return returnValue ? selectedTokens : [];
     }

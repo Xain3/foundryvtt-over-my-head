@@ -5,6 +5,7 @@ import MockContext from './context.js';
 import MockConstants from './constants.js';
 import MockUtilities from './utils.js';
 import MockHooks from './hooks.js';
+import MockObjects from './objects.js';
 // import MockTokens from './mockTokens.js';
 // import MockTiles from './mockTiles.js';
 
@@ -13,6 +14,7 @@ export const context = new MockContext();
 export const constants = new MockConstants();
 export const utils = new MockUtilities();
 export const hooks = new MockHooks();
+export const mockObjects = new MockObjects();
 
 /**
  * @class Mocks
@@ -24,6 +26,7 @@ export const hooks = new MockHooks();
  * @property {MockConstants} constants - Constants mocks container.
  * @property {MockUtilities} utils - Utility mocks container.
  * @property {MockHooks} hooks - Hooks mocks container.
+ * @property {MockObjects} mockObjects - Mock objects container.
  * 
  * @example
  * // Get all mock objects
@@ -47,6 +50,9 @@ class Mocks {
     
     /** @type {MockHooks} Hooks mock object */
     static hooks = hooks;
+
+    /** @type {MockObjects} Mock objects container */
+    static mockObjects = mockObjects;
 
     /**
      * Returns all mock objects in a consolidated object
@@ -106,6 +112,14 @@ class Mocks {
     static getMockHooks() {
         return this.hooks;
     }
-};
+
+    /**
+     * Returns the mock objects
+     * @returns {MockObjects} The mock objects
+     */
+    static getMockObjects() {
+        return this.mockObjects;
+    }
+}
 
 export default Mocks;

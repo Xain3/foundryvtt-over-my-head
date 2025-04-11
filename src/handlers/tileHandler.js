@@ -3,6 +3,10 @@ import Config from '../config/config.js';
 import Context from '../contexts/context.js';
 import Utilities from '../utils/utils.js';
 import PlaceableHandler from './placeableHandler.js';
+import TileGetter from './tileHelpers/tileGetter.js';
+import TileSetter from './tileHelpers/tileSetter.js';
+import TileChecker from './tileHelpers/tileChecker.js';
+import TileOcclusionManager from './tileHelpers/tileOcclusionManager.js';
 
 /**
  * TileHandler class extends PlaceableHandler to manage tile-specific operations.
@@ -14,53 +18,12 @@ import PlaceableHandler from './placeableHandler.js';
  * @param {Context} context - The context in which the handler operates.
  * @param {Utilities} utils - Utility functions or objects.
  * 
- * @property {string} placeableType - The type of placeable this handler manages.
  * @property {Array} tiles - The array of tiles managed by this handler.
  * @property {Array} alsoFadeTiles - The array of tiles that have the "alsoFade" flag set.
- * 
- * @method getTiles
- * @memberof TileHandler
- * @param {boolean} [updateProperty=true] - Determines whether to update the internal tiles property.
- * @param {boolean} [returnValue=true] - Determines whether to return the retrieved tiles.
- * @returns {Array} The retrieved tiles if returnValue is true, otherwise an empty array.
- * @throws {Error} If there is an issue retrieving the tiles.
- * 
- * @method getAlsoFadeFlag
- * @memberof TileHandler
- * @param {Object} tile - The tile object from which to retrieve the flag.
- * @returns {any} The value of the "also fade" flag.
- * 
- * @method filterAlsoFadeTiles
- * @memberof TileHandler
- * @param {Array} [tiles=null] - The array of tiles to filter. If null, the method will retrieve the tiles using `this.getTiles()`.
- * @param {boolean} [updateProperty=true] - Whether to update the `alsoFadeTiles` property with the filtered tiles.
- * @param {boolean} [returnValue=true] - Whether to return the filtered tiles. If false, an empty array is returned.
- * @returns {Array} The filtered array of tiles with the "alsoFade" flag set, or an empty array if `returnValue` is false or an error occurs.
- * 
- * @method updateOcclusion
- * @memberof TileHandler
- * @param {Object} tile - The tile object to update.
- * @param {string} occlusionMode - The new occlusion mode to set for the tile.
- * 
- * @method setAlsoFadeTileOcclusion
- * @memberof TileHandler
- * @param {Tile} tile - The tile object to update.
- * @param {Token} token - The token object to check against the tile.
- * 
- * @method updateOcclusionForTiles
- * @memberof TileHandler
- * @param {Array} tiles - An array of tile objects to update occlusion for.
- * @param {Object} token - The token object used to determine occlusion updates.
- * 
- * @method updateAlsoFadeTilesOcclusion
- * @memberof TileHandler
- * @param {Object} token - The token used to update the occlusion of the tiles.
- * 
- * @method isTokenUnderTile
- * @memberof TileHandler
- * @param {Object} tile - The tile object to check against.
- * @param {Object} token - The token object to check.
- * @returns {boolean} - Returns true if the token is under the tile, otherwise false.
+ * @property {TileGetter} getter - Helper for retrieving tile data.
+ * @property {TileSetter} setter - Helper for setting tile data.
+ * @property {TileChecker} checker - Helper for checking tile conditions.
+ * @property {TileOcclusionManager} occlusionManager - Helper for managing tile occlusion.
  */
 class TileHandler extends PlaceableHandler {
     /**
@@ -72,171 +35,88 @@ class TileHandler extends PlaceableHandler {
      */
     constructor(config, context, utils) {
         super(config, context, utils);
-        this.placeableType = this.const.HANDLERS.TILE.PLACEABLE_TYPE;
-        this.tiles = this.getTiles();
-        this.alsoFadeTiles = this.filterAlsoFadeTiles();
+        
+        // Initialize helper classes
+        this.getter = new TileGetter(config, context, utils);
+        this.setter = new TileSetter(config, context, utils);
+        this.checker = new TileChecker(config, context, utils);
+        this.occlusionManager = new TileOcclusionManager(config, context, utils);
+        
+        // Initialize properties
+        this.tiles = this.getter.getTiles();
+        this.alsoFadeTiles = this.getter.getAlsoFadeTiles();
     }
 
     /**
      * Retrieves the tiles based on the specified parameters.
-     * 
-     * @method getTiles
-     * @memberof TileHandler
-     *
-     * @param {boolean} [updateProperty=true] - Determines whether to update the internal tiles property.
-     * @param {boolean} [returnValue=true] - Determines whether to return the retrieved tiles.
-     * @returns {Array} The retrieved tiles if returnValue is true, otherwise an empty array.
-     * @throws {Error} If there is an issue retrieving the tiles.
+     * Delegates to getter.getTiles() for implementation.
      */
     getTiles(updateProperty = true, returnValue = true) {
-        try {
-            let tiles = this.getPlaceables(this.placeableType, updateProperty, returnValue);
-            if (updateProperty) {
-                this.tiles = tiles;
-            }
-            if (returnValue) {
-                return tiles;
-            } else {
-                return [];
-            }
-        } catch (e) {
-            this.logger.warn(`It was not possible to get tiles: ${e}`);
-            return [];
+        const tiles = this.getter.getTiles(updateProperty, returnValue);
+        if (updateProperty) {
+            this.tiles = tiles;
         }
+        return returnValue ? tiles : [];
     }
 
     /**
      * Retrieves the "also fade" flag from the specified tile's document.
-     * 
-     * @method getAlsoFadeFlag
-     * @memberof TileHandler
-     *
-     * @param {Object} tile - The tile object from which to retrieve the flag.
-     * @returns {any} The value of the "also fade" flag.
+     * Delegates to getter.getAlsoFadeFlag() for implementation.
      */
     getAlsoFadeFlag(tile) {
-        return tile.document.getFlag(this.config.MODULE.ID, this.config.FLAGS.ALSOFADE);
+        return this.getter.getAlsoFadeFlag(tile);
     }
 
     /**
      * Filters tiles that have the "alsoFade" flag set.
-     * 
-     * @param {Array} [tiles=null] - The array of tiles to filter. If null, the method will retrieve the tiles using `this.getTiles()`.
-     * @param {boolean} [updateProperty=true] - Whether to update the `alsoFadeTiles` property with the filtered tiles.
-     *
-     * @param {Array} [tiles=null] - The array of tiles to filter. If null, the method will retrieve the tiles using `this.getTiles()`.
-     * @param {boolean} [updateProperty=true] - Whether to update the `alsoFadeTiles` property with the filtered tiles.
-     * @param {boolean} [returnValue=true] - Whether to return the filtered tiles. If false, an empty array is returned.
-     * @returns {Array} The filtered array of tiles with the "alsoFade" flag set, or an empty array if `returnValue` is false or an error occurs.
+     * Delegates to getter.getAlsoFadeTiles() for implementation.
      */
     filterAlsoFadeTiles(tiles = null, updateProperty = true, returnValue = true) {
-        try {
-            if (tiles === null) {
-                tiles = this.getTiles();
-            }
-            let alsoFadeTiles = tiles.filter(tile => this.getAlsoFadeFlag(tile));
-            if (updateProperty) {
-                this.alsoFadeTiles = alsoFadeTiles;
-            }
-            if (returnValue) {
-                return alsoFadeTiles;
-            } else {
-                return [];
-            }
-        } catch (e) {
-            this.logger.warn(`It was not possible to filter alsoFade tiles: ${e}`);
-            return [];
+        const alsoFadeTiles = this.getter.getAlsoFadeTiles(tiles, updateProperty, returnValue);
+        if (updateProperty) {
+            this.alsoFadeTiles = alsoFadeTiles;
         }
+        return returnValue ? alsoFadeTiles : [];
     }
 
     /**
      * Updates the occlusion mode of a given tile.
-     * 
-     * @method updateOcclusion
-     * @memberof TileHandler
-     *
-     * @param {Object} tile - The tile object to update.
-     * @param {string} occlusionMode - The new occlusion mode to set for the tile.
+     * Delegates to occlusionManager.updateOcclusion() for implementation.
      */
     updateOcclusion(tile, occlusionMode) {
-        tile.document.update({ occlusion: occlusionMode });
+        this.occlusionManager.updateOcclusion(tile, occlusionMode);
     }
 
     /**
      * Sets the occlusion mode of a tile based on whether a token is under the tile.
-     * If the token is under the tile, the occlusion mode is set to FADE.
-     * Otherwise, the occlusion mode is set to VISION.
-     * 
-     * @method setAlsoFadeTileOcclusion
-     * @memberof TileHandler
-     *
-     * @param {Tile} tile - The tile object to update.
-     * @param {Token} token - The token object to check against the tile.
+     * Delegates to occlusionManager.setAlsoFadeTileOcclusion() for implementation.
      */
     setAlsoFadeTileOcclusion(tile, token) {
-        if (this.isTokenUnderTile(tile, token)) {
-            let occlusionMode = { mode: CONSTANTS.TILE_OCCLUSION_MODES.FADE };
-            this.updateOcclusion(tile, occlusionMode);
-        } else {
-            let occlusionMode = { mode: CONSTANTS.TILE_OCCLUSION_MODES.VISION };
-            this.updateOcclusion(tile, occlusionMode);
-        }
+        this.occlusionManager.setAlsoFadeTileOcclusion(tile, token, this.checker);
     }
 
     /**
      * Updates the occlusion for a list of tiles based on the provided token.
-     *
-     * @method updateOcclusionForTiles
-     * @memberof TileHandler
-     * 
-     * @param {Array} tiles - An array of tile objects to update occlusion for.
-     * @param {Object} token - The token object used to determine occlusion updates.
+     * Delegates to occlusionManager.updateOcclusionForTiles() for implementation.
      */
     updateOcclusionForTiles(tiles, token) {
-        tiles.forEach(tile => {
-            if (this.getAlsoFadeFlag(tile)) {
-                this.setAlsoFadeTileOcclusion(tile, token);
-            }
-        });
+        this.occlusionManager.updateOcclusionForTiles(tiles, token, this.getter, this.checker);
     }
 
     /**
      * Updates the occlusion of tiles that should also fade based on the given token.
-     *
-     * This method filters the tiles that should also fade and updates their occlusion
-     * using the provided token.
-     * 
-     * @method updateAlsoFadeTilesOcclusion
-     * @memberof TileHandler
-     *
-     * @param {Object} token - The token used to update the occlusion of the tiles.
+     * Delegates to occlusionManager.updateAlsoFadeTilesOcclusion() for implementation.
      */
     updateAlsoFadeTilesOcclusion(token) {
-        const alsoFadeTiles = this.filterAlsoFadeTiles();
-        alsoFadeTiles.forEach(tile => {
-            this.setAlsoFadeTileOcclusion(tile, token);
-        });
+        this.occlusionManager.updateAlsoFadeTilesOcclusion(token, this.getter, this.checker);
     }
 
     /**
      * Checks if a token is under a tile.
-     * 
-     * @method isTokenUnderTile
-     * @memberof TileHandler
-     *
-     * @param {Object} tile - The tile object to check against.
-     * @param {Object} token - The token object to check.
-     * @returns {boolean} - Returns true if the token is under the tile, otherwise false.
+     * Delegates to checker.isTokenUnderTile() for implementation.
      */
     isTokenUnderTile(tile, token) {
-        return this.isUnder(
-            token,              // target
-            tile,               // reference
-            this.handlers.token, // targetManager (TokenHandler)
-            this,               // referenceManager (TileHandler)
-            'center',           // targetUse
-            'rectangle'         // referenceUse
-        );
+        return this.checker.isTokenUnderTile(tile, token);
     }
 }
 

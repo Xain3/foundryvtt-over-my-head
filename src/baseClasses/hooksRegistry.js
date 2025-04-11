@@ -446,6 +446,32 @@ class HookRegistry {
         return this.build.hook(hookName, hookGroup, prefix, tryDefaultFirst, tryAllGroups);
     }
 
+    /**
+     * Gets the mappings for the hooks.
+     * 
+     * @param {boolean} [allowNonStandard=false] - Whether to allow nonstandard hook groups.
+     * @returns {Object} The mappings for the hooks.
+     */
+    getMappings(allowNonStandard = false) {
+        return this.get.mappings(allowNonStandard);
+    }
+    /**
+     * Gets the settings for the hooks.
+     * 
+     * @returns {Object} The settings for the hooks.
+     */
+    getSettings() {
+        return this.settings;
+    }
+    
+    /**
+     * Updates the settings for the hooks.
+     * 
+     * @param {Object} newSettings - The new settings to apply.
+     */
+    updateSettings(newSettings) {
+        this.settings = { ...this.settings, ...newSettings };
+    }
 }
 
 export default HookRegistry;

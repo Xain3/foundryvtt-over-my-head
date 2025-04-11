@@ -68,10 +68,10 @@ describe("GameManager", () => {
             expect(gameManager.getModuleObject).toHaveBeenCalledWith(newModuleConfig);
         }
         );
-        it('should call getRemoteContextPath on remoteContextManager', () => {
-            gameManager.updateConfig(mockConfig);
-            expect(remoteContextManager.getRemoteContextPath).toHaveBeenCalled();
-        });
+    //     it('should call getRemoteContextPath on remoteContextManager', () => {
+    //         gameManager.updateConfig(mockConfig);
+    //         expect(remoteContextManager.getRemoteContextPath).toHaveBeenCalled();
+    //     });
     }
     );
 

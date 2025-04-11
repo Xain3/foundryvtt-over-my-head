@@ -2,15 +2,24 @@
 
 import Utility from "../baseClasses/utility.js";
 
+
 /**
- * The GameManager class is responsible for managing the game state and interacting with the remote context manager.
- *
- * @class GameManager
+ * A utility class for managing game modules and remote contexts.
+ * GameManager provides methods to interact with module objects and remote contexts,
+ * acting as a bridge between the game system and module configurations.
+ * 
+ * @class
  * @extends Utility
- * @module GameManager
- * @export GameManager
- * @param {Object} CONFIG - The configuration object.
- * @param {Object} remoteContextManager - The remote context manager object.
+ * @param {Object} CONFIG - The configuration object containing constants and module settings.
+ * @param {Object} remoteContextManager - The manager responsible for handling remote context operations.
+ *
+ * @property {Object} game - The game instance.
+ * @property {Object} const - The constant values for the game configuration.
+ * @property {Object} contextInit - The initial context configuration.
+ * @property {Object} moduleConstants - The module configuration containing ID and paths.
+ * @property {string} contextPath - The path to the module context.
+ * @property {Object} moduleObject - The module object retrieved from the game instance.
+ * @property {Object} remoteContextManager - The manager responsible for handling remote context operations.
  */
 class GameManager extends Utility {
     
@@ -60,13 +69,17 @@ class GameManager extends Utility {
     }
 
     /**
-     * Updates the configuration for the game manager.
+     * Updates the configuration for the game manager with new constants and initializes
+     * required properties based on the provided configuration.
      *
+     * @override
      * @param {Object} config - The configuration object.
      * @param {Object} config.CONSTANTS - The constant values for the configuration.
      * @param {Object} config.CONSTANTS.CONTEXT_INIT - The initial context configuration.
-     * @param {Object} config.CONSTANTS.MODULE - The module configuration.
+     * @param {Object} config.CONSTANTS.MODULE - The module configuration containing ID and paths.
      * @param {string} config.CONSTANTS.MODULE.CONTEXT_REMOTE - The remote context path for the module.
+     * @returns {void}
+     * @throws {Error} Will console.error if module object cannot be retrieved.
      */
     updateConfig(config) {
         this.const = config.CONSTANTS;
@@ -74,11 +87,11 @@ class GameManager extends Utility {
         this.moduleConstants = this.const.MODULE;
         this.contextPath = this.const.MODULE.CONTEXT_REMOTE;
         this.moduleObject = this.getModuleObject(this.moduleConstants);
-        this.remoteContext = this.remoteContextManager.getRemoteContextPath(
-            this.moduleObject,
-            this.contextPath,
-            this.contextInit
-        );
+        // this.remoteContext = this.remoteContextManager.getRemoteContextPath(
+        //     this.moduleObject,
+        //     this.contextPath,
+        //     this.contextInit
+        // );
     }
 
     /**

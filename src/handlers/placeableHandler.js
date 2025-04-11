@@ -13,7 +13,27 @@ class PlaceableHandler extends Handler {
      * @param {Object} config - Configuration settings.
      * @param {Object} context - Execution context.
      * @param {Object} utils - Utility functions.
-     */
+     * 
+     * @constructor
+     * @extends Handler
+     * @property {string} placeableType - Type of placeable entity.
+     * @property {PlaceableGetter} getter - Instance of PlaceableGetter for retrieving placeables.
+     * @property {PlaceableSetter} setter - Instance of PlaceableSetter for setting placeables.
+     * @property {PlaceableChecker} checker - Instance of PlaceableChecker for checking placeables.
+     * @property {Array} all - List of all placeable entities.
+     * @property {Object} current - The currently selected placeable entity.
+     *
+     * Inherits properties from Handler:
+     * @property {Object} utils - The utility object.
+     * @property {Object} logger - The logger object.
+     * 
+     * Inherits properties from Base:
+     * @property {Object} config - The configuration object.
+     * @property {Object} const - The constant object.
+     * @property {Object} moduleConstants - The module constants object.
+     * @property {Object} game - The global game object.
+     * @property {Object} context - The execution context.
+    */
     constructor(config, context, utils) {
         super(config, context, utils);
         this.placeableType = null;

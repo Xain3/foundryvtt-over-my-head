@@ -86,6 +86,7 @@ class HookFormatter extends Utility {
     /**
      * Updates the configuration for the hook formatter.
      *
+     * @override
      * @param {Object} config - The configuration object.
      * @param {Object} config.HOOKS - The hooks configuration.
      * @param {Function} config.HOOKS.getMappings - Function to get hook mappings.

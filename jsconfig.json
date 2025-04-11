@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@baseClasses/*": ["src/baseClasses/*"],
+      "@config/*": ["src/config/*"],
+      "@contexts/*": ["src/contexts/*"],
+      "@data/*": ["src/data/*"],
+      "@handlers/*": ["src/handlers/*"],
+      "@utils/*": ["src/utils/*"],
+      "@listeners/*": ["src/listeners/*"],
+      "@unitTests/*": ["tests/unit/*"],
+      "@integrationTests/*": ["tests/integration/*"],
+      "@mocks/*": ["tests/mocks/*"]
+    }
+  },
+  "include": ["src/**/*", "tests/**/*"]
+}

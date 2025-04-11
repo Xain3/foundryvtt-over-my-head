@@ -9,5 +9,8 @@
   },
   "scripts": {
     "test": "jest"
+  },
+  "dependencies": {
+    "csslint": "^1.0.5"
   }
 }

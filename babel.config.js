@@ -16,7 +16,7 @@ module.exports = {
       {
         root: ['./'],
         alias: {
-          '@src': './src',
+          '@': './src',
           '@baseClasses': './src/baseClasses',
           '@config': './src/config',
           '@contexts': './src/contexts',

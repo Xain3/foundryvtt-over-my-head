@@ -1,5 +1,5 @@
 import Logger from './logger';
-import MockConfig from '../../tests/mocks/mockConfig';
+import MockConfig from '../../tests/mocks/config';
 
 // ./src/utils/logger.test.js
 

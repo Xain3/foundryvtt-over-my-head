@@ -1,8 +1,8 @@
 // ./src/utils/initializer.test.js
 
 import Initializer from './initializer.js';
-import MockConfig from '../../tests/mocks/mockConfig.js';
-import MockContext from '../../tests/mocks/mockContext.js';
+import MockConfig from '../../tests/mocks/config.js';
+import MockContext from '../../tests/mocks/context.js';
 import Utility from '../baseClasses/utility.js';
 
 jest.mock('@baseClasses/utility.js');

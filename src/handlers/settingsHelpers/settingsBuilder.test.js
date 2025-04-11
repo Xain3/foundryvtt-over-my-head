@@ -1,8 +1,8 @@
 // ./tests/unit/handlers/settingsFunctions/settingsBuilder.test.js
 
 import SettingsBuilder from "./settingsBuilder";
-import MockConfig from "../../../tests/mocks/mockConfig";
-import MockContext from "../../../tests/mocks/mockContext";
+import MockConfig from "../../../tests/mocks/config";
+import MockContext from "../../../tests/mocks/context";
 
 describe('SettingsBuilder', () => {
     let settingsBuilder;

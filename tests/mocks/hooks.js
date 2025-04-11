@@ -1,4 +1,4 @@
-// ./tests/mocks/mockHooks.js
+// @mocks/hooks.js
 
 class MockHooks {
     constructor() {

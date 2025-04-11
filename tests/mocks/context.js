@@ -1,4 +1,4 @@
-// ./src/mocks/mockContext.js
+// @mocks/context.js
 
 class MockContext {
   constructor(config, utils) {

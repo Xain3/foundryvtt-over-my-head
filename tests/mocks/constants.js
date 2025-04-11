@@ -1,3 +1,5 @@
+// @mocks/constants.js
+
 class MockConstants {
     constructor() {
         this.MODULE = {

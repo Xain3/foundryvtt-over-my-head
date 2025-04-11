@@ -1,7 +1,7 @@
 import TokenChecker from './tokenChecker';
-import MockConfig from "../../../tests/mocks/mockConfig";
-import MockContext from "../../../tests/mocks/mockContext";
-import mockUtilities from '../../../tests/mocks/mockUtils';
+import MockConfig from "../../../tests/mocks/config";
+import MockContext from "../../../tests/mocks/context";
+import mockUtilities from '../../../tests/mocks/utils';
 
 describe('TokenChecker', () => {
     let tokenChecker;

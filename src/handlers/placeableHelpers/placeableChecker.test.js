@@ -1,6 +1,6 @@
 import PlaceableChecker from './placeableChecker';
 import PositionChecker from './positionChecker';
-import MockConfig from '../../../tests/mocks/mockConfig';
+import MockConfig from '../../../tests/mocks/config';
 
 // Mock dependencies
 jest.mock('./positionChecker');

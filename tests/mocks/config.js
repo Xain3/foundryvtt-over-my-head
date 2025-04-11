@@ -1,7 +1,7 @@
-// ./config/mockConfig.js
+// @mocks/config.js
 
-import MockHooks from './mockHooks.js';
-import MockConstants from './mockConstants.js';
+import MockHooks from './hooks.js';
+import MockConstants from './constants.js';
 
 class MockConfig {
     constructor() {
@@ -43,6 +43,8 @@ class MockConfig {
             REMOTE_CONTEXT_MANAGER: this.REMOTE_CONTEXT_MANAGER,
         };
     }
+
+    initializeSettings = jest.fn(() => { });
 }
 
 export default MockConfig;

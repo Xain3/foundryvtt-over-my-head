@@ -1,5 +1,5 @@
 import Context from './context';
-import MockConfig from '../../tests/mocks/mockConfig';
+import MockConfig from '../../tests/mocks/config';
 import Validator from '../utils/validator';
 
 describe('Context', () => {

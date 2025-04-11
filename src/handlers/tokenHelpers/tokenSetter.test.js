@@ -1,5 +1,5 @@
 import TokenSetter from './tokenSetter';
-import MockConfig from '../../../tests/mocks/mockConfig';
+import MockConfig from '../../../tests/mocks/config';
 
 describe('TokenSetter', () => {
     let tokenSetter;

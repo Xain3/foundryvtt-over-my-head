@@ -1,5 +1,5 @@
 import Setting from './setting.js';
-import MockConfig from '../../tests/mocks/mockConfig.js';
+import MockConfig from '../../tests/mocks/config.js';
 
 describe('Setting', () => {
     let config;

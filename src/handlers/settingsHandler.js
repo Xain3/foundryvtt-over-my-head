@@ -1,10 +1,8 @@
-// ./src/handlers/settingsHandler.js
-
 import Handler from "../baseClasses/managers/handler.js";
-import SettingsGetter from './settingsFunctions/settingsGetter.js';
-import SettingsSetter from './settingsFunctions/settingsSetter.js';
-import SettingsChecker from './settingsFunctions/settingsChecker.js';
-import SettingsBuilder from './settingsFunctions/settingsBuilder.js';
+import SettingsGetter from './settingsHelpers/settingsGetter.js';
+import SettingsSetter from './settingsHelpers/settingsSetter.js';
+import SettingsChecker from './settingsHelpers/settingsChecker.js';
+import SettingsBuilder from './settingsHelpers/settingsBuilder.js';
 
 /**
  * Class representing a handler for managing settings.
@@ -15,6 +13,17 @@ import SettingsBuilder from './settingsFunctions/settingsBuilder.js';
  * @property {boolean} settingsReady - Flag to indicate if the settings are ready.
  * @property {object} configSettings - The settings object from the configuration.
  * @property {object} settings - The settings for the module.
+ * 
+ * Inherits properties from Handler:
+ * @property {Object} utils - The utility object.
+ * @property {Object} logger - The logger object.
+ * 
+ * Inherits properties from Base:
+ * @property {Object} config - The configuration object.
+ * @property {Object} const - The constant object.
+ * @property {Object} moduleConstants - The module constants object.
+ * @property {Object} game - The global game object.
+ * @property {Object} context - The execution context.
  * 
  * @method getReady - Checks if the settings are ready.
  * @method checkSettingsType - Checks if all settings in the provided object are instances of SettingData.

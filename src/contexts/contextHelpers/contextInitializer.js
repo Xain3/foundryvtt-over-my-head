@@ -1,61 +1,76 @@
 class ContextInitializer {
     /**
-     * Initializes the context with the provided state or a default state.
+     * Initializes the context's state object.
      *
-     * @param {Object} ctx - The context object to initialize.
-     * @param {Object|null} [state=null] - The initial state to set. 
-     * 
-     * If the state is not an object or null, defaults to the default state
-     * defined in the context, or to an empty object if no default state is 
-     * defined.
+     * @param {Object} ctx - The context instance to initialize. It must have an `initialState` property.
+     * @param {Object|null} [initialData=null] - Optional initial data to merge into the state. If not provided, `ctx.initialState` is used.
      */
-    static initializeContext(ctx, state=null) {
-        if (typeof state !== 'object' || state === null) {
-            if (state === null || state === undefined) {
-                state = ctx.initialState || {};
-            } else {
-                console.warn('State is not an object, defaulting to an empty object');
-                state = {};
-            }
+    static initializeContext(ctx, initialData = null) {
+        // Use provided initialData or fall back to ctx.initialState
+        const stateToUse = (typeof initialData === 'object' && initialData !== null) ? initialData : ctx.initialState;
+
+        // Validate the state to use
+        const validatedState = this.validateInitialState(stateToUse);
+
+        // Ensure ctx.state is an object before assigning properties
+        ctx.state = typeof ctx.state === 'object' && ctx.state !== null ? ctx.state : {}; 
+
+        // Merge the validated initial state into the context's state
+        Object.assign(ctx.state, validatedState); 
+
+        // Initialize data and flags using helper methods, ensuring they exist
+        this.initialiseData(ctx, ctx.state.data); 
+        this.initialiseFlags(ctx, ctx.state.flags); 
+
+        // Ensure dateModified is set
+        if (!ctx.state.dateModified) {
+            ctx.state.dateModified = Date.now();
         }
-        ctx.state = {
-            data: state,
-            flags: {},
-            dateModified: Date.now()
-        };
+    }
+
+    /**
+     * Validates the initial state object.
+     * @param {any} state - The state to validate.
+     * @returns {Object} A valid state object (potentially empty).
+     * @private
+     */
+    static validateInitialState(state) {
+        if (!state) {
+            console.warn('Initial state is not defined, defaulting to an empty object');
+            return {};
+        }
+        if (typeof state !== 'object' || state === null) { 
+            console.warn('Initial state is not an object, defaulting to an empty object');
+            return {};
+        }   
+        return state;
     }
   
     /**
-     * Initializes the context state with the provided data.
+     * Initializes the `data` property within the context's state.
      * 
-     * @param {Object} ctx - The context object that will have its state initialized.
-     * @param {Object} data - The data to initialize the context state with. If not an object or null, an empty object will be used.
+     * @param {Object} ctx - The context instance.
+     * @param {Object|undefined} data - The data to initialize with. Defaults to an empty object if invalid.
      */
     static initialiseData(ctx, data) {
-        if (typeof data !== 'object' || data === null) {
-            data = {};
-        }
-        if (!ctx.state) {
-            ctx.state = {};
-        }
-        ctx.state.data = data;
+        // Ensure ctx.state exists
+        ctx.state = typeof ctx.state === 'object' && ctx.state !== null ? ctx.state : {};
+        // Set data, defaulting to {} if data is not a valid object
+        ctx.state.data = (typeof data === 'object' && data !== null) ? data : {};
         ctx.state.dateModified = Date.now();
     }
   
     /**
-     * Initializes the flags in the given context.
+     * Initializes the `flags` property within the context's state.
      *
-     * @param {Object} ctx - The context object that will be modified.
-     * @param {Object} flags - The flags to initialize in the context. If not an object or null, it will be set to an empty object.
+     * @param {Object} ctx - The context instance.
+     * @param {Object|undefined} flags - The flags to initialize with. Defaults to an empty object if invalid.
      */
     static initialiseFlags(ctx, flags) {
-        if (typeof flags !== 'object' || flags === null) {
-            flags = {};
-        }
-        if (!ctx.state) {
-            ctx.state = {};
-        }
-        ctx.state.flags = flags;
+        // Ensure ctx.state exists
+        ctx.state = typeof ctx.state === 'object' && ctx.state !== null ? ctx.state : {};
+        // Set flags, defaulting to {} if flags is not a valid object
+        ctx.state.flags = (typeof flags === 'object' && flags !== null) ? flags : {};
         ctx.state.dateModified = Date.now();
     }
 }

@@ -36,6 +36,11 @@ describe('Base class tests', () => {
       expect(instance.parsedArgs).toEqual({
         config: mockConfig,
         context: mockContext,
+        globalContext: DEFAULT_ARGS.globalContext,
+        shouldLoadConfig: DEFAULT_ARGS.shouldLoadConfig,
+        shouldLoadContext: DEFAULT_ARGS.shouldLoadContext,
+        shouldLoadGame: DEFAULT_ARGS.shouldLoadGame,
+        shouldLoadDebugMode: DEFAULT_ARGS.shouldLoadDebugMode,
       });
     });
 
@@ -89,12 +94,12 @@ describe('Base class tests', () => {
     });
 
     test('should throw error if context is required but missing', () => {
-      expect(() => new Base({ shouldLoadContext: true })).toThrow('Context is set up to be loaded');
+      expect(() => new Base({ shouldLoadContext: true, shouldLoadConfig:false })).toThrow('Context is set up to be loaded');
       expect(() => new Base(mockConfig, null, null, false, true)).toThrow('Context is set up to be loaded');
     });
 
     test('should throw error if context is required but is not an object', () => {
-      expect(() => new Base({ context: 'string', shouldLoadContext: true })).toThrow('Context is set up to be loaded');
+      expect(() => new Base({ context: 'string', shouldLoadContext: true, shouldLoadConfig:false })).toThrow('Context is set up to be loaded');
     });
 
     test('should throw an error if shouldLoadConfig is not a boolean', () => {
@@ -135,13 +140,13 @@ describe('Base class tests', () => {
   });
 
   test('getDebugMode should return default fallback if no context or module constants are provided', () => {
-    const instance = new Base({ mockConfig, shouldLoadDebugMode: true });
+    const instance = new Base({ mockConfig, shouldLoadDebugMode: true, shouldLoadConfig:false });
     expect(instance.getDebugMode()).toBe(false);
     const instancePositional = new Base(mockConfig, mockContext, null, false, false, false, true);
     expect(instancePositional.getDebugMode()).toBe(false);
   });
 
-  test('getDebugMode should return context flag itruef available', () => {
+  test('getDebugMode should return context flag if available', () => {
     const mockContext = { getFlag: jest.fn().mockReturnValue(false) };
     const mockConfig = { CONSTANTS: { DEFAULTS: { DEBUG_MODE: true } } };
     const instance = new Base({ 
@@ -156,20 +161,20 @@ describe('Base class tests', () => {
   });
 
   test('getGameObject should return global game if available', () => {
-    const instance = new Base({ globalContext: mockGlobal, shouldLoadGame: true });
+    const instance = new Base({ globalContext: mockGlobal, shouldLoadGame: true, shouldLoadConfig: false });
     const result = instance.getGameObject();
     expect(result).toEqual(mockGlobal.game);
   });
 
   test('getGameObject should return null if game is not available', () => {
-    const instance = new Base({ shouldLoadGame: true });
+    const instance = new Base({ shouldLoadGame: true, shouldLoadConfig: false });
     const result = instance.getGameObject();
     expect(result).toBeNull();
   });
 
   test('getGameObject should log an error if game is not available', () => {
     console.error = jest.fn();
-    const instance = new Base({ shouldLoadGame: true });
+    const instance = new Base({ shouldLoadGame: true, shouldLoadConfig: false });
     const result = instance.getGameObject();
     expect(console.error).toHaveBeenCalled();
   });

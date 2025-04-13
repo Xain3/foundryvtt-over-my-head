@@ -56,6 +56,7 @@ class Base {
             }
             
             const firstArg = args[0];
+            const output = { ...DEFAULT_ARGS };
             
             // If the first argument is not an object, throw an error
             if (typeof firstArg !== 'object') {
@@ -67,13 +68,16 @@ class Base {
             }
             // If the first argument is an object containing at least one of the required keys
             if (REQUIRED_KEYS.some(key => key in firstArg)) {
-            // Extract named parameters from the object
-                return { ...firstArg };
+            // Extract parameters from the object
+                Object.keys(firstArg).forEach(key => {
+                        output[key] = firstArg[key];
+                    });
+                return { ...output };
             }
             // If the first argument is an object but doesn't contain any of the required keys
             // treat it as a config object
             if (args.length === 1 && typeof firstArg === 'object') {
-                console.warn('Positional arguments are been dicontinued and used for backwards compatibility. Please use named parameters.');
+                console.warn('Positional arguments are being discontinued and used for backwards compatibility. Please use named parameters.');
                 return { 
                     config: firstArg, 
                     context: DEFAULT_ARGS.context,
@@ -87,14 +91,13 @@ class Base {
             // If multiple arguments are provided, treat them as positional arguments
             // and map them to the expected parameters
             if (args.length > 1) {
-                console.warn('Positional arguments are been dicontinued and used for backwards compatibility. Please use named parameters.');
-                const result = { ...DEFAULT_ARGS };
+                console.warn('Positional arguments are being discontinued and used for backwards compatibility. Please use named parameters.');
                 ORDERED_KEYS.forEach((key, index) => {
                 if (args[index] !== undefined) {
-                    result[key] = args[index];
+                    output[key] = args[index];
                     }
                 });
-                return result;
+                return output;
             }
         };
         
@@ -110,8 +113,39 @@ class Base {
     this.const = this.getConstants();
     this.moduleConstants = this.getModuleConstants();
     this.game = this.parsedArgs.shouldLoadGame ? this.getGameObject() : null;
+    this.module = this.parsedArgs.shouldLoadGame ? this.getModule({ setProperty: false }) : null;
     this.debugMode = this.parsedArgs.shouldLoadDebugMode ? this.getDebugMode() : false;
     }
+
+    getModule({ setProperty = true, returnValue = true } = {}) {
+    try {
+            if (!this.game) {
+                throw Error('Game object is not available.')
+            }
+            if (!this.moduleConstants) {
+                throw Error('Module constants are not available.')
+            }
+            if (!this.game.modules.get(this.moduleConstants.ID)) {
+                throw Error('Module is not available.')
+            }
+            if (setProperty) {
+                this.module = this.game.modules.get(this.moduleConstants.ID);
+            }
+            if (returnValue) {
+                return this.module;
+            }
+        } catch (error) {
+            console.error('Error retrieving module:', error);
+            if (setProperty) {
+                this.module = {};
+            }
+            if (returnValue) {
+                return {};
+            }
+        }
+    
+    }
+            
 
     /**
      * Validates the load parameters.

@@ -18,7 +18,7 @@ class Config extends Base {
      * @param {Object} [hooks=HOOKS] - The hooks object.
      */
     constructor(constants = CONSTANTS, hooks = HOOKS) {
-    super({ shouldLoadGame: true });
+    super({ shouldLoadGame: true, shouldLoadConfig: false });
         this.validateConstantsAndHooks(constants, hooks);
         this.CONSTANTS = constants;
         this.HOOKS = hooks;

@@ -52,7 +52,7 @@ class Mocks {
     static hooks = hooks;
 
     /** @type {MockObjects} Mock objects container */
-    static mockObjects = mockObjects;
+    static objects = mockObjects;
 
     /**
      * Returns all mock objects in a consolidated object
@@ -62,6 +62,7 @@ class Mocks {
      * @property {MockConstants} constants - Constants mocks
      * @property {MockUtilities} utils - Utility mocks
      * @property {MockHooks} hooks - Hooks mocks
+     * @property {MockObjects} objects - Mock objects
      */
     static getAllMocks() {
         return {
@@ -70,6 +71,7 @@ class Mocks {
             constants: this.constants,
             utils: this.utils,
             hooks: this.hooks,
+            objects: this.objects,
         };
     }
 
@@ -118,7 +120,17 @@ class Mocks {
      * @returns {MockObjects} The mock objects
      */
     static getMockObjects() {
-        return this.mockObjects;
+        return this.objects;
+    }
+
+    
+    /**
+     * Sets global objects required for the testing environment.
+     * Delegates the setup to `this.objects.setMockGlobals()`.
+     * @returns {*} The result returned by `this.objects.setMockGlobals()`.
+     */
+    static setGlobals() {
+        return this.objects.setMockGlobals();
     }
 }
 

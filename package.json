@@ -11,6 +11,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "csslint": "^1.0.5"
+    "csslint": "^1.0.5",
+    "loadash": "^1.0.0"
   }
 }

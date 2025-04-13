@@ -12,7 +12,8 @@
       "@listeners/*": ["src/listeners/*"],
       "@unitTests/*": ["tests/unit/*"],
       "@integrationTests/*": ["tests/integration/*"],
-      "@mocks/*": ["tests/mocks/*"]
+      "@mocks/*": ["tests/mocks/*"],
+      "@scripts/*": ["scripts/*"],
     }
   },
   "include": ["src/**/*", "tests/**/*"]

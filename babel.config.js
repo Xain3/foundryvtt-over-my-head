@@ -27,6 +27,7 @@ module.exports = {
           '@unitTests': './tests/unit',
           '@integrationTests': './tests/integration',
           '@mocks': './tests/mocks',
+          '@scripts': './scripts',
         },
       },
     ],

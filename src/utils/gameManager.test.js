@@ -4,7 +4,7 @@ import Utility from '../baseClasses/utility';
 jest.mock('../baseClasses/utility');
 
 describe("GameManager", () => {
-    let mockConfig, remoteContextManager, gameManager, fakeModule, spyUpdateConfig;
+    let mockConfig, gameManager, fakeModule, spyUpdateConfig;
 
     beforeEach(() => {
         // Mocking the Utility class
@@ -16,18 +16,11 @@ describe("GameManager", () => {
                 MODULE: { ID: 'module1', CONTEXT_REMOTE: '/remote' }
             }
         };
-        remoteContextManager = {
-            getRemoteContextPath: jest.fn(() => 'fakeRemoteContext'),
-            pushToRemoteContext: jest.fn(),
-            pullFromRemoteContext: jest.fn(() => Promise.resolve('remoteData')),
-            writeToRemoteContext: jest.fn(),
-            readFromRemoteContext: jest.fn(() => 'remoteVal'),
-            clearRemoteContext: jest.fn()
-        };
+        
         // Creating a spy for the updateConfig method
         spyUpdateConfig = jest.spyOn(GameManager.prototype, 'updateConfig');
         // Creating an instance of GameManager
-        gameManager = new GameManager(mockConfig, remoteContextManager);
+        gameManager = new GameManager(mockConfig);
         // Set up a valid game object so that getModuleObject works correctly.
         gameManager.game = { modules: { get: jest.fn(() => fakeModule) } };
     });
@@ -39,9 +32,6 @@ describe("GameManager", () => {
         );
         it('should call super constructor with correct arguments', () => {
             expect(Utility).toHaveBeenCalledWith(mockConfig, { shouldLoadConfig: true, shouldLoadGame: true });
-        });
-        it('should initialize remoteContextManager', () => {
-            expect(gameManager.remoteContextManager).toBe(remoteContextManager);
         });
         it('should call updateConfig with config when initialised', () => { 
             expect(spyUpdateConfig).toHaveBeenCalledWith(mockConfig);
@@ -66,14 +56,8 @@ describe("GameManager", () => {
             gameManager.getModuleObject = jest.fn();
             gameManager.updateConfig({ CONSTANTS: { MODULE: newModuleConfig } });
             expect(gameManager.getModuleObject).toHaveBeenCalledWith(newModuleConfig);
-        }
-        );
-    //     it('should call getRemoteContextPath on remoteContextManager', () => {
-    //         gameManager.updateConfig(mockConfig);
-    //         expect(remoteContextManager.getRemoteContextPath).toHaveBeenCalled();
-    //     });
-    }
-    );
+        });
+    });
 
     it('should retrieve the correct module object using getModuleObject', () => {
         const moduleConfig = { ID: 'module1' };
@@ -102,34 +86,6 @@ describe("GameManager", () => {
         gameManager.moduleObject = { key1: 'value1' };
         const result = gameManager.readFromModuleObject('key1');
         expect(result).toBe('value1');
-    });
-    
-    it('should delegate pushToRemoteContext to remoteContextManager', () => {
-        const data = { key: 'value' };
-        gameManager.pushToRemoteContext(data);
-        expect(remoteContextManager.pushToRemoteContext).toHaveBeenCalledWith(data);
-    });
-    
-    it('should delegate pullFromRemoteContext to remoteContextManager', async () => {
-        const result = await gameManager.pullFromRemoteContext();
-        expect(remoteContextManager.pullFromRemoteContext).toHaveBeenCalled();
-        expect(result).toBe('remoteData');
-    });
-    
-    it('should delegate writeToRemoteContext to remoteContextManager', () => {
-        gameManager.writeToRemoteContext('key1', 'value1');
-        expect(remoteContextManager.writeToRemoteContext).toHaveBeenCalledWith('key1', 'value1');
-    });
-    
-    it('should delegate readFromRemoteContext to remoteContextManager', () => {
-        const result = gameManager.readFromRemoteContext('key1');
-        expect(remoteContextManager.readFromRemoteContext).toHaveBeenCalledWith('key1');
-        expect(result).toBe('remoteVal');
-    });
-    
-    it('should delegate clearRemoteContext to remoteContextManager', () => {
-        gameManager.clearRemoteContext();
-        expect(remoteContextManager.clearRemoteContext).toHaveBeenCalled();
     });
     
     describe('getModuleObject', () => {
@@ -211,5 +167,5 @@ describe("GameManager", () => {
             consoleSpy.mockRestore();
             globalThis.game = originalGlobalGame;
         });
-});
+    });
 });

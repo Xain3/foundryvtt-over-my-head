@@ -5,13 +5,12 @@ import Utility from "../baseClasses/utility.js";
 
 /**
  * A utility class for managing game modules and remote contexts.
- * GameManager provides methods to interact with module objects and remote contexts,
+ * GameManager provides methods to interact with module objects,
  * acting as a bridge between the game system and module configurations.
  * 
  * @class
  * @extends Utility
  * @param {Object} CONFIG - The configuration object containing constants and module settings.
- * @param {Object} remoteContextManager - The manager responsible for handling remote context operations.
  *
  * @property {Object} game - The game instance.
  * @property {Object} const - The constant values for the game configuration.
@@ -19,7 +18,6 @@ import Utility from "../baseClasses/utility.js";
  * @property {Object} moduleConstants - The module configuration containing ID and paths.
  * @property {string} contextPath - The path to the module context.
  * @property {Object} moduleObject - The module object retrieved from the game instance.
- * @property {Object} remoteContextManager - The manager responsible for handling remote context operations.
  */
 class GameManager extends Utility {
     
@@ -27,21 +25,19 @@ class GameManager extends Utility {
      * Creates a new GameManager instance.
      *
      * @param {Object} CONFIG - The configuration object.
-     * @param {Object} remoteContextManager - The remote context manager object.
      */
-    constructor(CONFIG, remoteContextManager) {
+    constructor(CONFIG) {
         super(CONFIG, {
             shouldLoadConfig: true,
             shouldLoadGame: true,
         });
-        this.remoteContextManager = remoteContextManager;
         this.updateConfig(CONFIG);
     }
 
     /**
      * Retrieves the path of a module by its ID.
      *
-     * @method getModulePath
+     * @method getModuleObject
      * @param {Object} moduleConfig - The module configuration object.
      * @returns {Object} The module object.
      */
@@ -87,11 +83,6 @@ class GameManager extends Utility {
         this.moduleConstants = this.const.MODULE;
         this.contextPath = this.const.MODULE.CONTEXT_REMOTE;
         this.moduleObject = this.getModuleObject(this.moduleConstants);
-        // this.remoteContext = this.remoteContextManager.getRemoteContextPath(
-        //     this.moduleObject,
-        //     this.contextPath,
-        //     this.contextInit
-        // );
     }
 
     /**
@@ -112,57 +103,6 @@ class GameManager extends Utility {
      */
     readFromModuleObject(key) {
         return this.moduleObject[key];
-    }
-
-    // Delegated Remote Context Methods
-    /**
-     * Pushes the provided data to the remote context.
-     * Acts as a wrapper for the remote context manager's pushToRemoteContext method.
-     *
-     * @param {Object} data - The data to be pushed to the remote context.
-     */
-    pushToRemoteContext(data) {
-        this.remoteContextManager.pushToRemoteContext(data);
-    }
-
-    /**
-     * Pulls data from the remote context using the remote context manager.
-     * Acts as a wrapper for the remote context manager's pullFromRemoteContext method.
-     *
-     * @returns {Promise<any>} A promise that resolves with the data pulled from the remote context.
-     */
-    pullFromRemoteContext() {
-        return this.remoteContextManager.pullFromRemoteContext();
-    }
-
-    /**
-     * Writes a key-value pair to the remote context.
-     * Acts as a wrapper for the remote context manager's writeToRemoteContext method.
-     *
-     * @param {string} key - The key to write to the remote context.
-     * @param {*} value - The value to associate with the key in the remote context.
-     */
-    writeToRemoteContext(key, value) {
-        this.remoteContextManager.writeToRemoteContext(key, value);
-    }
-
-    /**
-     * Reads a value from the remote context using the provided key.
-     * Acts as a wrapper for the remote context manager's readFromRemoteContext method.
-     *
-     * @param {string} key - The key to read the value for.
-     * @returns {*} The value associated with the provided key from the remote context.
-     */
-    readFromRemoteContext(key) {
-        return this.remoteContextManager.readFromRemoteContext(key);
-    }
-
-    /**
-     * Clears the remote context using the remoteContextManager.
-     * Acts as a wrapper for the remote context manager's clearRemoteContext method.
-     */
-    clearRemoteContext() {
-        this.remoteContextManager.clearRemoteContext();
     }
 }
 

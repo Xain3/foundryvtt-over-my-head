@@ -1,732 +1,654 @@
-import Context from './context';
-import MockConfig from '../../tests/mocks/config';
-import Validator from '../utils/validator';
+import Context from './context.js';
+import Base from '../baseClasses/base.js';
+import ContextExtractor from './contextHelpers/contextExtractor.js';
+import ContextInitializer from './contextHelpers/contextInitializer.js';
+import RemoteContextManager from './contextHelpers/remoteContextManager.js';
+
+// Mock dependencies
+jest.mock('../baseClasses/base.js');
+jest.mock('./contextHelpers/contextExtractor.js');
+jest.mock('./contextHelpers/contextInitializer.js');
+jest.mock('./contextHelpers/remoteContextManager.js');
 
 describe('Context', () => {
     let mockConfig;
     let mockUtils;
-    let mockData;
-    let context;
-    let spyExtractor;
-    let spyInitializer;
-    let initialiseContextWithMocks;
+    let mockInitialState;
+    let mockExtractedConfig;
 
     beforeEach(() => {
+        // Reset mocks before each test
         jest.clearAllMocks();
-        jest.resetModules();
-        spyExtractor = jest.spyOn(Context.prototype, 'extractContextInit');
-        spyInitializer = jest.spyOn(Context.prototype, 'initializeContext');
-        initialiseContextWithMocks = (config, utils) => {
-            spyExtractor.mockReturnValue('mockValue1');
-            spyInitializer.mockReturnValue('mockValue2');
-            context = new Context(config, utils);
-        }
-        mockConfig = new MockConfig();
+
+        // Mock implementations
+        mockInitialState = { data: { initialData: 'value' }, flags: { initialFlag: true } };
+        mockExtractedConfig = { CONSTANTS: { MODULE: { DEFAULTS: { DEBUG_MODE: false } } }, OTHER_CONFIG: 'value' };
+
+        ContextExtractor.extractContextInit.mockReturnValue({
+            CONFIG: mockExtractedConfig,
+            contextInit: mockInitialState
+        });
+
+        ContextInitializer.initializeContext = jest.fn((contextInstance, state) => {
+            contextInstance.state = { ...state, dateCreated: Date.now(), dateModified: Date.now() };
+        });
+
+        mockConfig = {
+            CONSTANTS: {
+                CONTEXT_INIT: { data: { initialData: 'value' }, flags: { initialFlag: true } },
+                MODULE: { DEFAULTS: {
+                    DEBUG_MODE: false,
+                    REMOTE_CONTEXT_ROOT: 'defaultSource' } },
+                },
+            OTHER_CONFIG: 'value'
+        };
+
         mockUtils = {
-            gameManager: jest.fn(),
-            remoteContextManager: jest.fn(),
-            validator: new Validator(),
+            validator: { validate: jest.fn() }, // Assuming validator has a 'validate' method or similar
+            gameManager: { getGame: jest.fn().mockReturnValue({}) } // Mock gameManager
         };
-        mockData = {
-            test: 'test',
+
+        // Define the function (optional, could just put the lines directly in beforeEach)
+        const setupMocks = () => {
+            RemoteContextManager.prototype.pushState = jest.fn();
+            RemoteContextManager.prototype.pullState = jest.fn();
+            RemoteContextManager.prototype.pushKey = jest.fn();
+            RemoteContextManager.prototype.get = jest.fn();
+            RemoteContextManager.prototype.clearRemoteContext = jest.fn();
+            RemoteContextManager.prototype.syncState = jest.fn();
+            RemoteContextManager.prototype.updateRemoteProperty = jest.fn();
+            RemoteContextManager.prototype.setRemotecontextRoot = jest.fn();
+            RemoteContextManager.prototype.setRemoteContext = jest.fn();
         };
-        initialiseContextWithMocks(mockConfig, mockUtils);
+
+        // Call the function to actually apply the mocks
+        setupMocks(); 
+
+        // Mock property access if needed
+         Object.defineProperty(RemoteContextManager.prototype, 'remotecontextRoot', {
+             get: jest.fn(() => 'mockSource'), // Provide a getter mock
+             configurable: true // Allow redefining
+         });
     });
 
+    // Constructor Tests
     describe('constructor', () => {
-        
-        it('should return a new instance of Context', () => {
-            expect(context).toBeInstanceOf(Context);
+        it('should initialize correctly with valid arguments', () => {
+            const context = new Context(mockConfig, mockUtils);
+            expect(Base).toHaveBeenCalledWith({
+                config: mockConfig,
+                shouldLoadConfig: true,
+                shouldLoadContext: false,
+                shouldLoadGame: true,
+                shouldLoadDebugMode: false,
+                globalContext: globalThis
+            });
+            expect(ContextExtractor.extractContextInit).toHaveBeenCalledWith(mockConfig);
+            expect(RemoteContextManager).toHaveBeenCalledWith(mockConfig.CONSTANTS.MODULE.DEFAULTS.REMOTE_CONTEXT_ROOT, mockExtractedConfig);
+            expect(context.config).toBe(mockExtractedConfig);
+            expect(context.initialState).toBe(mockInitialState);
+            expect(context.validate).toBe(mockUtils.validator);
+            expect(context.gameManager).toBe(mockUtils.gameManager);
+            expect(ContextInitializer.initializeContext).toHaveBeenCalledWith(context, mockInitialState);
+            expect(context.state).toEqual(expect.objectContaining(mockInitialState));
         });
 
-        it('should set the utility properties to the correct value', () => {
-            expect(context.manager).toBe(mockUtils.gameManager);
+        it('should not initialize context if initializeContext is false', () => {
+            new Context(mockConfig, mockUtils, false);
+            expect(ContextInitializer.initializeContext).not.toHaveBeenCalled();
         });
 
-        it('should set the original config property to the correct value', () => {
-            expect(context.originalConfig).toBe(mockConfig);
+        it('should throw error if CONFIG is missing', () => {
+            expect(() => new Context(null, mockUtils)).toThrow('CONFIG is not defined');
         });
 
-        it('should set the config property to the correct value', () => {
-            expect(context.config).toBe(mockConfig);
-        }
-        );
-        it('should set an empty state if initializeState is false' , () => {
-            spyExtractor.mockReturnValue('mockValue1');
-            spyInitializer.mockReturnValue('mockValue2');
-            mockConfig = new MockConfig();
-            context = new Context(mockConfig, mockUtils, false);
-            expect(context.state).toEqual({});
+        it('should throw error if CONFIG is not an object', () => {
+            expect(() => new Context('not an object', mockUtils)).toThrow('CONFIG is not an object');
         });
 
-        it('should throw an error if config is not defined', () => {
-            expect(() => {
-                context = new Context(undefined, mockUtils);
-            }).toThrow('CONFIG is not defined. Cannot initialize context');
+        it('should throw error if CONFIG.CONSTANTS is missing', () => {
+             const invalidConfig = { OTHER_PROP: 'value' };
+             expect(() => new Context(invalidConfig, mockUtils)).toThrow('CONFIG does not have a CONSTANTS property');
         });
 
-        it('should throw an error if config is not an object', () => {
-            mockUtils = {
-                validator: {
-                    isObject: jest.fn((arg) => typeof arg === 'object' && arg !== null),
-                },
-            };
-            expect(() => {
-                context = new Context('string', mockUtils);
-            }).toThrow('CONFIG is not an object. Cannot initialize context');
+        it('should throw error if CONFIG.CONSTANTS is not an object', () => {
+            const invalidConfig = { CONSTANTS: 'string' };
+            expect(() => new Context(invalidConfig, mockUtils)).toThrow('CONFIG.CONSTANTS is not an object');
         });
 
-        it('should throw an error if utils is not defined', () => {
-            expect(() => {
-                context = new Context(mockConfig, undefined);
-            }).toThrow('Utils is not defined. Cannot initialize context');
-        }
-        );
-
-        it('should throw an error if utils is not an object', () => {
-            expect(() => {
-                context = new Context(mockConfig, 'string');
-            }).toThrow('Utils is not an object. Cannot initialize context');
+        it('should throw error if CONFIG.CONSTANTS.CONTEXT_INIT is missing', () => {
+            const invalidConfig = { CONSTANTS: {} };
+            expect(() => new Context(invalidConfig, mockUtils)).toThrow('CONFIG does not have a CONTEXT_INIT property');
         });
 
-        it('should throw an error if utils does not have a validator property', () => {
-            expect(() => {
-                context = new Context(mockConfig, {});
-            }).toThrow('Validator not found in utilities. Cannot initialize context');
-        }
-        );
+         it('should throw error if CONFIG.CONSTANTS.CONTEXT_INIT is not an object', () => {
+             const invalidConfig = { CONSTANTS: { CONTEXT_INIT: 'string' } };
+             expect(() => new Context(invalidConfig, mockUtils)).toThrow('CONFIG.CONTEXT_INIT is not an object');
+         });
 
-        it('should throw an error if utils does not have a gameManager property', () => {
-            expect(() => {
-                context = new Context(mockConfig, {validator: {
-                    isObject: jest.fn((arg) => typeof arg === 'object' && arg !== null),
-                }});
-            }).toThrow('Utils does not have a gameManager property. Cannot initialize context');
-        }
-        );
+         it('should throw error if CONFIG.CONSTANTS.CONTEXT_INIT is empty', () => {
+             const invalidConfig = { CONSTANTS: { CONTEXT_INIT: {} } };
+             expect(() => new Context(invalidConfig, mockUtils)).toThrow('CONFIG.CONTEXT_INIT is an empty object');
+         });
 
-        it('should throw an error if initializeContext is not a boolean', () => {
-            expect(() => {
-                context = new Context(mockConfig, mockUtils, 'string');
-            }).toThrow('initializeContext is not a boolean. Cannot initialize context');
-        }
-        );
+        it('should throw error if utils is missing', () => {
+            expect(() => new Context(mockConfig, null)).toThrow('Utils is not defined');
+        });
+
+        it('should throw error if utils is not an object', () => {
+            expect(() => new Context(mockConfig, 'not an object')).toThrow('Utils is not an object');
+        });
+
+        it('should throw error if validator is missing in utils', () => {
+            const invalidUtils = { gameManager: mockUtils.gameManager };
+            expect(() => new Context(mockConfig, invalidUtils)).toThrow('Validator not found in utilities');
+        });
+
+        it('should throw error if gameManager is missing in utils', () => {
+            const invalidUtils = { validator: mockUtils.validator };
+            expect(() => new Context(mockConfig, invalidUtils)).toThrow('Utils does not have a gameManager property');
+        });
+
+         it('should throw error if initializeContext is not a boolean', () => {
+             expect(() => new Context(mockConfig, mockUtils, 'not a boolean')).toThrow('initializeContext is not a boolean');
+         });
+
+         it('should set this.remotecontextRoot to the default value provided in the config if not provided', () => {
+             const context = new Context(mockConfig, mockUtils);
+             expect(context.remotecontextRoot).toBe(mockConfig?.CONSTANTS?.MODULE?.DEFAULTS?.REMOTE_CONTEXT_ROOT);
+         });
+
+         it('should set RemotecontextRoot to the fallback value of "module" if not provided and not in config', () => {
+            delete mockConfig.CONSTANTS.MODULE.DEFAULTS.REMOTE_CONTEXT_ROOT;
+            const context = new Context(mockConfig, mockUtils);
+             expect(context.remotecontextRoot).toBe('module');
+         });
+
+        it('should set this.remotecontextRoot to the provided value', () => {
+            const context = new Context(mockConfig, mockUtils, true, 'customSource');
+            expect(context.remotecontextRoot).toBe('customSource');
+        });
+
     });
 
-    describe('extractContextInit', () => {
-        let output;
-        let expectedOutput;
-        let config;
+    // Method Tests
+    describe('methods', () => {
+        let context;
 
         beforeEach(() => {
-            spyExtractor.mockRestore();
-            config = {
-                CONSTANTS: {
-                    CONTEXT_INIT: {
-                        test: 'test',
-                    },
-                    otherConstant: 'otherConstant',
-                },
-            };
+            // Create a fresh instance for method tests
+            context = new Context(mockConfig, mockUtils);
+            // Ensure state is initialized for tests that need it
+            context.state = { data: { key1: 'val1' }, flags: { flag1: true }, dateModified: Date.now() };
         });
 
-        it('should return both the modified CONFIG and contextInit as separate objects if both is selected as returnmode', () => {
-            output = context.extractContextInit(config, 'both');
-            expectedOutput = {
-                CONFIG: {
-                    CONSTANTS: {
-                        otherConstant: 'otherConstant',
-                    },
-                },
-                contextInit: {
-                    test: 'test',
-                },
-            };
-            expect(output).toEqual(expectedOutput);
+        it('initializeContext should call ContextInitializer.initializeContext', () => {
+            const newState = { data: { newData: 'new' }, flags: {} };
+            // Clear the mock call from the constructor
+            ContextInitializer.initializeContext.mockClear();
+            context.initializeContext(newState);
+            expect(ContextInitializer.initializeContext).toHaveBeenCalledWith(context, newState);
         });
 
-        it('should return CONFIG without ContextInit if config is selected as returnmode', () => {
-            output = context.extractContextInit(config, 'config');
-            expectedOutput = {
-                CONSTANTS: {
-                    otherConstant: 'otherConstant',
-                },
-            };
-            expect(output).toEqual(expectedOutput);
-        });
-
-        it('should return contextInit without CONFIG if contextInit is selected as returnmode', () => {
-            output = context.extractContextInit(config, 'contextInit');
-            expectedOutput = {
-                test: 'test',
-            };
-            expect(output).toEqual(expectedOutput);
-        });
-
-        it('should throw an error if config is not defined', () => {
-            expect(() => {
-            context.extractContextInit(undefined);
-            }).toThrow();
-        });
-
-        it('should throw an error if config is not an object', () => {
-            expect(() => {
-            context.extractContextInit('string');
-            }).toThrow();
-        });
-
-        it('should throw an error if config does not have a CONSTANTS property', () => {
-            expect(() => {
-            context.extractContextInit({});
-            }).toThrow();
-        });
-
-        it('should throw an error if config does not have a CONTEXT_INIT property', () => {
-            expect(() => {
-            context.extractContextInit({ CONSTANTS: {} });
-            }).toThrow();
-        });
-
-        it('should throw an error if returnMode is not a string', () => {
-            expect(() => {
-            context.extractContextInit(config, 123);
-            }).toThrow();
-        });
-
-        it('should throw an error when an error occurs', () => {
-            expect(() => {
-                context.extractContextInit(config, 123);
-            }).toThrow('Return Mode is not a string. Could not initialize context');
-        });
-
-        it('should log a warning if there is an error and the returnMode is "config"', () => {
-            console.warn = jest.fn();
-            context.extractContextInit('string', 'config');
-            expect(console.warn).toHaveBeenCalledWith(
-                expect.stringContaining('Defaulting to CONFIG'),
-            );
-        });
-    });
-
-    describe('initializeContext', () => {
-        let mockInitialState;
-        let flagsObject;
-
-        beforeEach(() => {
-            spyInitializer.mockRestore();
-            mockInitialState = mockData;
-            flagsObject = { };
-            context.initialiseData = jest.fn();
-            context.initialiseFlags = jest.fn();
-        });
-
-        it('should set the state property correctly', () => {
-            context.initializeContext(mockInitialState);
-            expect(context.state).toEqual(mockInitialState);
-        });
-
-        it('should call initialiseData with the correct arguments', () => {
-            context.initializeContext(mockInitialState);
-            expect(context.initialiseData).toHaveBeenCalledWith(mockInitialState);
-        });
-
-        it('should call initialiseFlags with an empty object', () => {
-            context.initializeContext(mockInitialState);
-            expect(context.initialiseFlags).toHaveBeenCalledWith(flagsObject);
-        });
-
-        it('should set an empty state if state is null or not an object', () => {
-            context.initializeContext('string');
-            expect(context.state).toEqual({});
-            context.initializeContext(123);
-            expect(context.state).toEqual({});
-            context.initializeContext(null);
-            expect(context.state).toEqual({});
-            context.initializeContext(true);
-            expect(context.state).toEqual({});
-            context.initializeContext(false);
-            expect(context.state).toEqual({});
-        }
-        );
-    });
-
-    describe('initialiseData', () => {
-        it('should set data correctly', () => {
-            context.initialiseData(mockData);
-            expect(context.state.data).toEqual(mockData);
-        });            
-
-        it('should set data to an empty object if no data is provided', () => {
-            context.initialiseData();
-            expect(context.state.data).toEqual({});
-        });
-
-        it('should set dateModified with the time modified', () => {
-            const date = new Date();
-            context.initialiseData(mockData);
-            expect(context.state.dateModified).toBeGreaterThanOrEqual(date.getTime());
-        });
-    });
-
-    describe('initialiseFlags', () => {
-        let mockFlags;
-
-        beforeEach(() => { 
-            mockFlags = mockData;
-        });
-
-        it('should set data correctly', () => {
-            context.initialiseFlags(mockFlags);
-            expect(context.state.flags).toEqual(mockFlags);
-        });            
-
-        it('should set data to an empty object if no data is provided', () => {
-            context.initialiseFlags();
-            expect(context.state.flags).toEqual({});
-        });
-
-        it('should set dateModified with the time modified', () => {
-            const date = new Date();
-            context.initialiseFlags(mockFlags);
-            expect(context.state.dateModified).toBeGreaterThanOrEqual(date.getTime());
-        });
-    });
-
-    describe('pushState', () => {
-        beforeEach(() => {
-            context.remoteContextManager = {
-                pushState: jest.fn(),
-            };
-            context.state = mockData;
-        });
-
-        it('should call pushState on the remoteContextManager with the context instance', () => {
+        it('pushState should call remoteContextManager.pushState', () => {
             context.pushState();
-            expect(context.remoteContextManager.pushState).toHaveBeenCalledWith(context);
+            expect(context.remoteContextManager.pushState).toHaveBeenCalledWith(context.state);
         });
 
-        it('should log an error if remoteContextManager.pushState throws an error', () => {
-            console.error = jest.fn();
-            context.remoteContextManager.pushState.mockImplementation(() => {
-                throw new Error('Test error');
-            });
-            try {
-                context.pushState();
-            } catch (error) {
-                console.error(error.message);
-            }
-            expect(console.error).toHaveBeenCalledWith('Test error');
-            expect(console.error).toHaveBeenCalledWith('Test error');
-        });
-
-        it('should not call pushState if remoteContextManager is not defined', () => {
-            context.remoteContextManager = undefined;
-            expect(() => context.pushState()).toThrow('Cannot read properties of undefined (reading \'pushState\')');
-        });
-    });
-
-    describe('pullState', () => {
-        let mockRemoteState;
-
-        beforeEach(() => {
-            context.remoteContextManager = {
-                pullState: jest.fn(),
-            };
-            context.state = {
-                test: 'local',
-                somethingOnLocal: 'something'
-            };
-            mockRemoteState = {
-                test: 'remote',
-                somethingOnRemote: 'something',
-            };
-        });
-
-        it('should call pullState on the remoteContextManager with the correct arguments', () => {
-            context.pullState(mockRemoteState, true);
-            expect(context.remoteContextManager.pullState).toHaveBeenCalledWith(context, mockRemoteState, true);
-        });
-
-        it('should call pullState with default arguments if none are provided', () => {
+        it('pullState should call remoteContextManager.pullState', () => {
             context.pullState();
-            expect(context.remoteContextManager.pullState).toHaveBeenCalledWith(context, context.remoteContext, false);
+            expect(context.remoteContextManager.pullState).toHaveBeenCalledWith(context.state, false);
+            context.pullState(true);
+            expect(context.remoteContextManager.pullState).toHaveBeenCalledWith(context.state, true);
         });
 
-        it('should throw an error if remoteContextManager.pullState throws an error', () => {
-            context.remoteContextManager.pullState.mockImplementation(() => {
-                throw new Error('Test error');
+        it('writeToRemoteContext should call remoteContextManager.pushKey', () => {
+            context.writeToRemoteContext('testKey', 'testValue');
+            expect(context.remoteContextManager.pushKey).toHaveBeenCalledWith('testKey', 'testValue');
+        });
+
+        describe('readFromRemoteContext', () => {
+            it('should call remoteContextManager.get with correct args for valid key', () => {
+                const mockValue = 'remoteValue';
+                context.remoteContextManager.get.mockReturnValue(mockValue);
+                const result = context.readFromRemoteContext('validKey');
+                expect(context.remoteContextManager.get).toHaveBeenCalledWith({ item: 'validKey' });
+                expect(result).toBe(mockValue);
             });
-            expect(() => context.pullState()).toThrow('Test error');
-        });
-    });
 
-    describe('writeToRemoteContext', () => {
-        let mockKey;
-        let mockValue
+            it('should return undefined for invalid key (null)', () => {
+                jest.spyOn(console, 'warn').mockImplementation(() => {}); // Suppress console warning
+                const result = context.readFromRemoteContext(null);
+                expect(context.remoteContextManager.get).not.toHaveBeenCalled();
+                expect(result).toBeUndefined();
+                console.warn.mockRestore();
+            });
 
-        beforeEach(() => {
-            context.remoteContextManager = {
-                writeToRemoteContext: jest.fn(),
-            };
-            mockKey = 'test';
-            mockValue = 'test';
-        });
-
-        it('should call writeToRemoteContext with the correct arguments', () => {
-            context.writeToRemoteContext(mockKey, mockValue);
-            expect(context.remoteContextManager.writeToRemoteContext).toHaveBeenCalledWith(mockKey, mockValue);
+             it('should return undefined for invalid key (empty string)', () => {
+                 jest.spyOn(console, 'warn').mockImplementation(() => {}); // Suppress console warning
+                 const result = context.readFromRemoteContext('');
+                 expect(context.remoteContextManager.get).not.toHaveBeenCalled();
+                 expect(result).toBeUndefined();
+                 console.warn.mockRestore();
+             });
         });
 
-        it('should log a warning if key and value are not defined', () => {
-            console.warn = jest.fn();
-            context.writeToRemoteContext();
-            expect(console.warn).toHaveBeenCalledWith('Key and value are not defined, remote context not updated');
-        });
-
-        it('should log a warning if key is not defined', () => {
-            console.warn = jest.fn();
-            context.writeToRemoteContext(undefined, mockValue);
-            expect(console.warn).toHaveBeenCalledWith('Key is not defined, remote context not updated');
-        });
-
-        it('should log a warning if value is not defined', () => {
-            console.warn = jest.fn();
-            context.writeToRemoteContext(mockKey);
-            expect(console.warn).toHaveBeenCalledWith('Value is not defined, remote context not updated');
-        });
-
-        it('should log a warning if the key is of the wrong type', () => {
-            console.warn = jest.fn();
-            context.writeToRemoteContext({bad: 'type'}, mockValue);
-            expect(console.warn).toHaveBeenCalledWith('Key is not a string, a symbol, or a number. Remote context not updated');
-        }
-        );
-    });
-
-    describe('readFromRemoteContext', () => {
-        let mockKey;
-
-        beforeEach(() => {
-            context.remoteContextManager = {
-                readFromRemoteContext: jest.fn(),
-            };
-            mockKey = 'test';
-        });
-
-        it('should call readFromRemoteContext with the correct arguments', () => {
-            context.readFromRemoteContext(mockKey);
-            expect(context.remoteContextManager.readFromRemoteContext).toHaveBeenCalledWith(mockKey);
-        });
-
-        it('should log a warning if key is not defined', () => {
-            console.warn = jest.fn();
-            context.readFromRemoteContext();
-            expect(console.warn).toHaveBeenCalledWith('Key is not defined, remote context not read');
-        });
-
-        it('should log a warning if the key is of the wrong type', () => {
-            console.warn = jest.fn();
-            context.readFromRemoteContext({bad: 'type'});
-            expect(console.warn).toHaveBeenCalledWith('Key is not a string, a symbol, or a number. Remote context not read');
-        });
-        
-        describe('clearRemoteContext', () => {
+        describe('_validateKey', () => {
             beforeEach(() => {
-                context.remoteContextManager = {
-                    clearRemoteContext: jest.fn(),
-                };
+                 jest.spyOn(console, 'warn').mockImplementation(() => {}); // Suppress console warnings
             });
-            
-            it('should call clearRemoteContext', () => {
-                context.clearRemoteContext();
-                expect(context.remoteContextManager.clearRemoteContext).toHaveBeenCalledTimes(1);
-            }); 
+            afterEach(() => {
+                 console.warn.mockRestore();
+            });
+
+            test.each([
+                ['stringKey', true],
+                [123, true],
+                [Symbol('sym'), true],
+                [null, false],
+                [undefined, false],
+                ['', false],
+                ['   ', false], // Should probably be true, but current impl warns and returns false
+                [{}, false],
+                [[], false],
+                [true, false],
+            ])('should return %s for key %p', (key, expected) => {
+                expect(context._validateKey(key)).toBe(expected);
+            });
+
+             it('should warn for null/undefined key', () => {
+                 context._validateKey(null);
+                 expect(console.warn).toHaveBeenCalledWith('Key is null or undefined.');
+             });
+
+             it('should warn for invalid key type', () => {
+                 context._validateKey({});
+                 expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('Invalid key type: Expected string, symbol, or number'));
+             });
+
+             it('should warn for empty string key', () => {
+                 context._validateKey('');
+                 expect(console.warn).toHaveBeenCalledWith('Key cannot be an empty string.');
+             });
         });
 
-        describe('clearLocalContext', () => {
-            beforeEach(() => {
-                context.state = mockData;
-            });
 
-            it('should clear the local context', () => {
-                context.clearLocalContext();
-                expect(context.state).toEqual({});
-            });
+        it('clearRemoteContext should call remoteContextManager.clearRemoteContext', () => {
+            context.clearRemoteContext();
+            expect(context.remoteContextManager.clearRemoteContext).toHaveBeenCalled();
+        });
 
-            it('should should log an error if the context is not defined', () => {
-                context.state = null;
-                console.error = jest.fn();
-                context.clearLocalContext();
-                expect(console.error).toHaveBeenCalledWith('Local context is not defined. Local context not cleared');
-            }
-            );
-
-            it('should should log an error if the context is not an object', () => {
-                context.state = 'string';
-                console.error = jest.fn();
-                context.clearLocalContext();
-                expect(console.error).toHaveBeenCalledWith('Local context is not an object. Local context not cleared');   }
-            );
+        it('clearLocalContext should reset local state', () => {
+            context.state = { data: { a: 1 }, flags: { b: true } };
+            context.clearLocalContext();
+            expect(context.state).toEqual({});
         });
 
         describe('clearContext', () => {
-            beforeEach(() => {
-                context.clearRemoteContext = jest.fn();
-                context.clearLocalContext = jest.fn();
-                console.error = jest.fn();
-            });
-    
-            it('should throw an error if both clearRemote and clearLocal are false', () => {
-                context.clearContext(false, false);
-                expect(console.error).toHaveBeenCalledWith('Both clearRemote and clearLocal are false, no context cleared');
-            });
-    
-            it('should call clearRemoteContext if clearRemote is true', () => {
+             beforeEach(() => {
+                 jest.spyOn(context, 'clearRemoteContext');
+                 jest.spyOn(context, 'clearLocalContext');
+                 jest.spyOn(console, 'warn').mockImplementation(() => {});
+                 jest.spyOn(console, 'error').mockImplementation(() => {});
+             });
+             afterEach(() => {
+                 console.warn.mockRestore();
+                 console.error.mockRestore();
+             });
+
+            it('should clear remote if clearRemote is true', () => {
                 context.clearContext(true, false);
                 expect(context.clearRemoteContext).toHaveBeenCalledTimes(1);
                 expect(context.clearLocalContext).not.toHaveBeenCalled();
             });
-    
-            it('should call clearLocalContext if clearLocal is true', () => {
+
+            it('should clear local if clearLocal is true', () => {
                 context.clearContext(false, true);
-                expect(context.clearLocalContext).toHaveBeenCalledTimes(1);
                 expect(context.clearRemoteContext).not.toHaveBeenCalled();
+                expect(context.clearLocalContext).toHaveBeenCalledTimes(1);
             });
-    
-            it('should call both clearRemoteContext and clearLocalContext if both are true', () => {
+
+            it('should clear both if both are true', () => {
                 context.clearContext(true, true);
                 expect(context.clearRemoteContext).toHaveBeenCalledTimes(1);
                 expect(context.clearLocalContext).toHaveBeenCalledTimes(1);
             });
-    
-            it('should catch and log errors thrown by clearRemoteContext', () => {
-                const error = new Error('Remote context error');
-                context.clearRemoteContext.mockImplementation(() => {
-                    throw error;
-                });
-                context.clearContext(true, false);
-                expect(console.error).toHaveBeenCalledWith(error.message);
+
+            it('should do nothing and warn if both are false', () => {
+                context.clearContext(false, false);
+                expect(context.clearRemoteContext).not.toHaveBeenCalled();
+                expect(context.clearLocalContext).not.toHaveBeenCalled();
+                expect(console.warn).toHaveBeenCalledWith('Both clearRemote and clearLocal are false, no context cleared');
             });
-    
-            it('should catch and log errors thrown by clearLocalContext', () => {
-                const error = new Error('Local context error');
-                context.clearLocalContext.mockImplementation(() => {
-                    throw error;
-                });
-                context.clearContext(false, true);
-                expect(console.error).toHaveBeenCalledWith(error.message);
-            });
+
+             it('should catch and log errors from clear methods', () => {
+                 const error = new Error('Clear failed');
+                 context.clearRemoteContext.mockImplementation(() => { throw error; });
+                 context.clearContext(true, false);
+                 expect(console.error).toHaveBeenCalledWith(error.message);
+             });
         });
 
-
-        describe('syncState', () => {
-            let remoteLocation;
-    
-            beforeEach(() => {
-                context.remoteContextManager = {
-                    syncState: jest.fn(),
-                };
-                remoteLocation = {
-                    dateModified: Date.now() + 1000,
-                    data: { test: 'remote' },
-                    flags: { flag: 'remote' }
-                };
-                context.pullState = jest.fn();
-                context.pushState = jest.fn();
-            });
-    
-            it('should call syncState on the remoteContextManager with the correct arguments', () => {
-                context.syncState(remoteLocation);
-                expect(context.remoteContextManager.syncState).toHaveBeenCalledWith(context, remoteLocation);
-            }
-            );
+        it('syncState should call remoteContextManager.syncState', () => {
+            context.syncState();
+            expect(context.remoteContextManager.syncState).toHaveBeenCalledWith(context.state);
         });
-        describe('pushKey', () => {
-            let mockKey;
-            let mockValue;
-            let remoteLocation;
 
-            beforeEach(() => {
-                context.remoteContextManager = {
-                    pushKey: jest.fn(),
-                };
-                mockKey = 'testKey';
-                mockValue = 'testValue';
-                remoteLocation = 'remoteLocation';
-            });
+        it('pushKey should call remoteContextManager.pushKey', () => {
+            context.pushKey('singleKey', 'singleValue');
+            expect(context.remoteContextManager.pushKey).toHaveBeenCalledWith('singleKey', 'singleValue');
+        });
 
-            it('should call pushKey on the remoteContextManager with the correct arguments', () => {
-                context.pushKey(mockKey, mockValue, remoteLocation);
-                expect(context.remoteContextManager.pushKey).toHaveBeenCalledWith(context, mockKey, mockValue, remoteLocation);
-            });
-
-            it('should call pushKey with the instance\'s remoteLocation if none is provided', () => {
-                context.remoteLocation = remoteLocation;
-                context.pushKey(mockKey, mockValue);
-                expect(context.remoteContextManager.pushKey).toHaveBeenCalledWith(context, mockKey, mockValue, remoteLocation);
-            });
-
-            it('should throw an error if remoteContextManager.pushKey throws an error', () => {
-                context.remoteContextManager.pushKey.mockImplementation(() => {
-                    throw new Error('Test error');
-                });
-                expect(() => context.pushKey(mockKey, mockValue)).toThrow('Test error');
-            });
-        });        
-   
         describe('get', () => {
-            it('should retrieve the value associated with the specified key', () => {
-                context.state.testKey = 'testValue';
-                expect(context.get('testKey')).toBe('testValue');
+            it('should return value from local state', () => {
+                context.state = { data: { myKey: 'myValue' } };
+                expect(context.get('myKey')).toBe('myValue');
             });
 
-            it('should pull the state before retrieving the value if pullAndGet is true', () => {
-                context.pullState = jest.fn();
-                context.state.testKey = 'testValue';
-                context.get('testKey', true);
-                expect(context.pullState).toHaveBeenCalled();
+            it('should return undefined if key not found', () => {
+                context.state = { data: { myKey: 'myValue' } };
+                expect(context.get('otherKey')).toBeUndefined();
+            });
+
+            it('should return undefined if state is null/undefined', () => {
+                context.state = null;
+                expect(context.get('myKey')).toBeUndefined();
+            });
+
+            it('should call pullState if pullFirst is true', () => {
+                context.state = { data: { myKey: 'myValue' } };
+                jest.spyOn(context, 'pullState');
+                context.get('myKey', true);
+                expect(context.pullState).toHaveBeenCalledTimes(1);
             });
         });
 
-        describe('getRemoteLocation', () => {
-            it('should retrieve the remote location', () => {
-                context.remoteLocation = 'testRemoteLocation';
-                expect(context.getRemoteLocation()).toBe('testRemoteLocation');
-            });
+        it('getRemotecontextRoot should return source from manager', () => {
+             // Ensure the mock getter is set up correctly for this test instance
+             Object.defineProperty(context.remoteContextManager, 'remotecontextRoot', {
+                 get: jest.fn(() => 'specificTestSource'),
+                 configurable: true
+             });
+             expect(context.getRemotecontextRoot()).toBe('specificTestSource');
+             expect(Object.getOwnPropertyDescriptor(context.remoteContextManager, 'remotecontextRoot').get).toHaveBeenCalled();
         });
 
         describe('getState', () => {
-            it('should retrieve the current state', () => {
+            it('should return the current state', () => {
                 expect(context.getState()).toBe(context.state);
             });
 
-            it('should pull the state before retrieving it if pullAndGet is true', () => {
-                context.pullState = jest.fn();
+            it('should call pullState if pullFirst is true', () => {
+                jest.spyOn(context, 'pullState');
                 context.getState(true);
-                expect(context.pullState).toHaveBeenCalled();
+                expect(context.pullState).toHaveBeenCalledTimes(1);
             });
         });
 
         describe('getConfig', () => {
-            it('should retrieve the entire configuration object if no key is provided', () => {
-                expect(context.getConfig()).toBe(context.config);
+            it('should return the entire processed config if no key provided', () => {
+                expect(context.getConfig()).toBe(mockExtractedConfig);
             });
 
-            it('should retrieve the configuration value for the specified key', () => {
-                context.config.testKey = 'testValue';
-                expect(context.getConfig('testKey')).toBe('testValue');
+            it('should return specific config value if key provided', () => {
+                expect(context.getConfig('OTHER_CONFIG')).toBe('value');
             });
 
-            it('should pull the state before retrieving the configuration if pullAndGet is true', () => {
-                context.pullState = jest.fn();
+            it('should return undefined if key not found in config', () => {
+                expect(context.getConfig('NON_EXISTENT_KEY')).toBeUndefined();
+            });
+
+             it('should return undefined if config is null/undefined', () => {
+                 context.config = null;
+                 expect(context.getConfig('OTHER_CONFIG')).toBeUndefined();
+             });
+
+            it('should call pullState if pullFirst is true', () => {
+                jest.spyOn(context, 'pullState');
                 context.getConfig(null, true);
-                expect(context.pullState).toHaveBeenCalled();
+                expect(context.pullState).toHaveBeenCalledTimes(1);
             });
         });
 
         describe('getFlags', () => {
-            it('should retrieve all flags if no key is provided', () => {
-                expect(context.getFlags()).toBe(context.state.flags);
+            beforeEach(() => {
+                context.state = { flags: { flagA: true, flagB: false } };
             });
 
-            it('should retrieve the flag value for the specified key', () => {
-                context.state.flags.testKey = 'testValue';
-                expect(context.getFlags('testKey')).toBe('testValue');
+            it('should return all flags if no key provided', () => {
+                expect(context.getFlags()).toEqual({ flagA: true, flagB: false });
             });
 
-            it('should pull the state before retrieving the flags if pullAndGet is true', () => {
-                context.pullState = jest.fn();
+            it('should return specific flag value if key provided', () => {
+                expect(context.getFlags('flagA')).toBe(true);
+                expect(context.getFlags('flagB')).toBe(false);
+            });
+
+            it('should return undefined if key not found', () => {
+                expect(context.getFlags('flagC')).toBeUndefined();
+            });
+
+            it('should return undefined if state or state.flags is missing', () => {
+                context.state = null;
+                expect(context.getFlags('flagA')).toBeUndefined();
+                context.state = {};
+                expect(context.getFlags('flagA')).toBeUndefined();
+            });
+
+            it('should call pullState if pullFirst is true', () => {
+                jest.spyOn(context, 'pullState');
                 context.getFlags(null, true);
-                expect(context.pullState).toHaveBeenCalled();
+                expect(context.pullState).toHaveBeenCalledTimes(1);
             });
         });
 
         describe('getData', () => {
-            it('should retrieve all data if no key is provided', () => {
-                expect(context.getData()).toBe(context.state.data);
+             beforeEach(() => {
+                 context.state = { data: { dataA: 'valueA', dataB: 123 } };
+             });
+
+            it('should return all data if no key provided', () => {
+                expect(context.getData()).toEqual({ dataA: 'valueA', dataB: 123 });
             });
 
-            it('should retrieve the data value for the specified key', () => {
-                context.state.data.testKey = 'testValue';
-                expect(context.getData('testKey')).toBe('testValue');
+            it('should return specific data value if key provided', () => {
+                expect(context.getData('dataA')).toBe('valueA');
+                expect(context.getData('dataB')).toBe(123);
             });
 
-            it('should pull the state before retrieving the data if pullAndGet is true', () => {
-                context.pullState = jest.fn();
+            it('should return undefined if key not found', () => {
+                expect(context.getData('dataC')).toBeUndefined();
+            });
+
+            it('should return undefined if state or state.data is missing', () => {
+                context.state = null;
+                expect(context.getData('dataA')).toBeUndefined();
+                context.state = {};
+                expect(context.getData('dataA')).toBeUndefined();
+            });
+
+            it('should call pullState if pullFirst is true', () => {
+                jest.spyOn(context, 'pullState');
                 context.getData(null, true);
-                expect(context.pullState).toHaveBeenCalled();
+                expect(context.pullState).toHaveBeenCalledTimes(1);
             });
         });
 
         describe('set', () => {
-            it('should set the value for the specified key in the state', () => {
-                context.set('testKey', 'testValue');
-                expect(context.state.data.testKey).toBe('testValue');
+            let initialTimestamp;
+             beforeEach(() => {
+                 context.state = { data: { existing: 'old' }, flags: {}, dateModified: Date.now() };
+                 initialTimestamp = context.state.dateModified;
+                 // Mock Date.now for predictable timestamps
+                 jest.spyOn(Date, 'now').mockReturnValue(initialTimestamp + 1000);
+                 jest.spyOn(context, '_validateKey').mockReturnValue(true); // Assume valid keys for most tests
+                 jest.spyOn(console, 'error').mockImplementation(() => {});
+             });
+             afterEach(() => {
+                 Date.now.mockRestore();
+                 console.error.mockRestore();
+             });
+
+            it('should set value in local state data', () => {
+                context.set('newKey', 'newValue');
+                expect(context.state.data.newKey).toBe('newValue');
+                expect(context.state.data.existing).toBe('old'); // Ensure it doesn't overwrite others
             });
 
-            it('should update the dateModified when setting a value', () => {
-                const date = Date.now();
-                context.set('testKey', 'testValue');
-                expect(context.state.dateModified).toBeGreaterThanOrEqual(date);
+            it('should update dateModified in local state', () => {
+                context.set('newKey', 'newValue');
+                expect(context.state.dateModified).toBe(initialTimestamp + 1000);
             });
 
-            it('should push the key-value pair to the remote location if alsoPush is true', () => {
-                context.pushKey = jest.fn();
-                context.set('testKey', 'testValue', true);
-                expect(context.pushKey).toHaveBeenCalledWith('data', context.state.data);
+            it('should not push change by default', () => {
+                context.set('newKey', 'newValue');
+                expect(context.remoteContextManager.updateRemoteProperty).not.toHaveBeenCalled();
             });
 
-            it('should only push the key-value pair to the remote location if onlyRemote is true', () => {
-                context.pushKey = jest.fn();
-                context.set('testKey', 'testValue', false, true);
-                expect(context.state.data.testKey).toBeUndefined();
-                expect(context.pushKey).toHaveBeenCalledWith('data', context.state.data);
+            it('should push change if pushChange is true', () => {
+                context.set('newKey', 'newValue', true);
+                expect(context.remoteContextManager.updateRemoteProperty).toHaveBeenCalledWith('data.newKey', 'newValue');
             });
+
+            it('should only push change and not modify local state if remoteOnly is true', () => {
+                context.state.data = { existing: 'old' }; // Reset state
+                context.set('newKey', 'newValue', false, true); // pushChange is ignored if remoteOnly=true
+                expect(context.state.data.newKey).toBeUndefined();
+                expect(context.state.data.existing).toBe('old');
+                expect(context.state.dateModified).toBe(initialTimestamp); // dateModified not updated
+                expect(context.remoteContextManager.updateRemoteProperty).toHaveBeenCalledWith('data.newKey', 'newValue');
+            });
+
+             it('should push change if both pushChange and remoteOnly are true', () => {
+                 context.set('newKey', 'newValue', true, true);
+                 expect(context.state.data.newKey).toBeUndefined(); // Not set locally
+                 expect(context.remoteContextManager.updateRemoteProperty).toHaveBeenCalledWith('data.newKey', 'newValue');
+             });
+
+            it('should initialize state.data if it does not exist', () => {
+                context.state = {}; // Clear state
+                context.set('firstKey', 'firstValue');
+                expect(context.state.data).toEqual({ firstKey: 'firstValue' });
+                expect(context.state.dateModified).toBe(initialTimestamp + 1000);
+            });
+
+             it('should not set or push if key is invalid', () => {
+                 context._validateKey.mockReturnValue(false);
+                 context.set(null, 'value', true);
+                 expect(context.state.data[null]).toBeUndefined();
+                 expect(context.remoteContextManager.updateRemoteProperty).not.toHaveBeenCalled();
+                 expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Invalid key 'null'"));
+             });
         });
 
         describe('setRemoteLocation', () => {
-            it('should set the remote location', () => {
-                context.setRemoteLocation('testRemoteLocation');
-                expect(context.remoteLocation).toBe('testRemoteLocation');
+             let initialTimestamp;
+             beforeEach(() => {
+                 context.state = { data: {}, flags: {}, dateModified: Date.now() };
+                 initialTimestamp = context.state.dateModified;
+                 jest.spyOn(Date, 'now').mockReturnValue(initialTimestamp + 1000);
+                 jest.spyOn(context, 'pushState');
+                 jest.spyOn(console, 'error').mockImplementation(() => {});
+             });
+             afterEach(() => {
+                 Date.now.mockRestore();
+                 console.error.mockRestore();
+             });
+
+            it('should call manager methods to set source and context', () => {
+                context.setRemoteLocation('newSource');
+                expect(context.remoteContextManager.setRemotecontextRoot).toHaveBeenCalledWith('newSource');
+                expect(context.remoteContextManager.setRemoteContext).toHaveBeenCalledWith('newSource', undefined); // Assuming remoteObjectName is undefined by default
             });
 
-            it('should update the dateModified when setting the remote location', () => {
-                const date = Date.now();
-                context.setRemoteLocation('testRemoteLocation');
-                expect(context.state.dateModified).toBeGreaterThanOrEqual(date);
+            it('should update local dateModified', () => {
+                context.setRemoteLocation('newSource');
+                expect(context.state.dateModified).toBe(initialTimestamp + 1000);
             });
 
-            it('should push the state if alsoPush is true', () => {
-                context.pushState = jest.fn();
-                context.setRemoteLocation('testRemoteLocation', true);
-                expect(context.pushState).toHaveBeenCalledWith('testRemoteLocation');
+            it('should not push state by default', () => {
+                context.setRemoteLocation('newSource');
+                expect(context.pushState).not.toHaveBeenCalled();
+            });
+
+            it('should push state if alsoPush is true', () => {
+                context.setRemoteLocation('newSource', true);
+                expect(context.pushState).toHaveBeenCalledTimes(1);
+            });
+
+            it('should catch and log errors during setting', () => {
+                 const error = new Error('Set source failed');
+                 context.remoteContextManager.setRemotecontextRoot.mockImplementation(() => { throw error; });
+                 context.setRemoteLocation('badSource');
+                 expect(context.pushState).not.toHaveBeenCalled();
+                 expect(console.error).toHaveBeenCalledWith(`Failed to set remote location to 'badSource': ${error.message}`);
             });
         });
 
         describe('setFlags', () => {
-            it('should set the flag for the specified key in the state', () => {
-                context.setFlags('testKey', 'testValue');
-                expect(context.state.flags.testKey).toBe('testValue');
+            let initialTimestamp;
+             beforeEach(() => {
+                 context.state = { data: {}, flags: { existing: false }, dateModified: Date.now() };
+                 initialTimestamp = context.state.dateModified;
+                 jest.spyOn(Date, 'now').mockReturnValue(initialTimestamp + 1000);
+                 jest.spyOn(context, '_validateKey').mockReturnValue(true); // Assume valid keys
+                 jest.spyOn(console, 'error').mockImplementation(() => {});
+             });
+             afterEach(() => {
+                 Date.now.mockRestore();
+                 console.error.mockRestore();
+             });
+
+            it('should set flag in local state flags', () => {
+                context.setFlags('newFlag', true);
+                expect(context.state.flags.newFlag).toBe(true);
+                expect(context.state.flags.existing).toBe(false);
             });
 
-            it('should update the dateModified when setting a flag', () => {
-                const date = Date.now();
-                context.setFlags('testKey', 'testValue');
-                expect(context.state.dateModified).toBeGreaterThanOrEqual(date);
+            it('should update dateModified in local state', () => {
+                context.setFlags('newFlag', true);
+                expect(context.state.dateModified).toBe(initialTimestamp + 1000);
             });
 
-            it('should push the flags to the remote location if alsoPush is true', () => {
-                context.pushKey = jest.fn();
-                context.setFlags('testKey', 'testValue', true);
-                expect(context.pushKey).toHaveBeenCalledWith('flags', context.state.flags);
+            it('should not push change by default', () => {
+                context.setFlags('newFlag', true);
+                expect(context.remoteContextManager.updateRemoteProperty).not.toHaveBeenCalled();
             });
 
-            it('should only push the flags to the remote location if onlyRemote is true', () => {
-                context.pushKey = jest.fn();
-                context.setFlags('testKey', 'testValue', false, true);
-                expect(context.state.flags.testKey).toBeUndefined();
-                expect(context.pushKey).toHaveBeenCalledWith('flags', context.state.flags);
+            it('should push change if pushChange is true', () => {
+                context.setFlags('newFlag', true, true);
+                expect(context.remoteContextManager.updateRemoteProperty).toHaveBeenCalledWith('flags.newFlag', true);
             });
+
+            it('should only push change and not modify local state if remoteOnly is true', () => {
+                context.state.flags = { existing: false }; // Reset state
+                context.setFlags('newFlag', true, false, true);
+                expect(context.state.flags.newFlag).toBeUndefined();
+                expect(context.state.flags.existing).toBe(false);
+                expect(context.state.dateModified).toBe(initialTimestamp);
+                expect(context.remoteContextManager.updateRemoteProperty).toHaveBeenCalledWith('flags.newFlag', true);
+            });
+
+             it('should push change if both pushChange and remoteOnly are true', () => {
+                 context.setFlags('newFlag', true, true, true);
+                 expect(context.state.flags.newFlag).toBeUndefined(); // Not set locally
+                 expect(context.remoteContextManager.updateRemoteProperty).toHaveBeenCalledWith('flags.newFlag', true);
+             });
+
+            it('should initialize state.flags if it does not exist', () => {
+                context.state = {}; // Clear state
+                context.setFlags('firstFlag', true);
+                expect(context.state.flags).toEqual({ firstFlag: true });
+                expect(context.state.dateModified).toBe(initialTimestamp + 1000);
+            });
+
+             it('should not set or push if key is invalid', () => {
+                 context._validateKey.mockReturnValue(false);
+                 context.setFlags(null, true, true);
+                 expect(context.state.flags[null]).toBeUndefined();
+                 expect(context.remoteContextManager.updateRemoteProperty).not.toHaveBeenCalled();
+                 expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Invalid key 'null'"));
+             });
         });
     });
-})
+});

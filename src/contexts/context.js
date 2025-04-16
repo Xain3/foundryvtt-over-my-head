@@ -14,6 +14,25 @@ const validKeyTypes = ['string', 'symbol', 'number'];
  * The remote location can be a server, a database, or the Foundry VTT world (e.g. the Game object).
  * 
  * @extends Base
+ * 
+ * @property {Object} extractor - The context extractor instance for extracting context information.
+ * @property {Object} originalConfig - The original configuration object passed to the constructor.
+ * @property {Object} config - The processed configuration object with CONTEXT_INIT removed.
+ * @property {Object} initialState - The initial state of the context, extracted from the configuration.
+ * @property {Object} state - The current state of the context, initialized as an empty object.
+ * @property {Object} remoteContextManager - The remote context manager instance for handling remote operations.
+ * @property {string} remotecontextRoot - The source for the remote context (e.g., 'module', 'game.settings', 'user'). Set to 'module' by default.
+ * @property {Object} initializer - The context initializer instance for setting up the context.
+ * @property {Object} validate - The validator instance for validating keys and values.
+ * @property {Object} gameManager - The game manager instance for managing game-related operations.
+ * 
+ * Inherited from Base class:
+ * @property {Object|null} context - Execution context for the component
+ * @property {Object} globalContext - Reference to the global scope (defaults to globalThis)
+ * @property {Object|null} const - General constants from configuration
+ * @property {Object|null} moduleConstants - Module-specific constants
+ * @property {Object|null} game - Reference to the FoundryVTT game object
+ * @property {boolean|null} debugMode - Whether debug mode is enabled
  */
 class Context extends Base {
     /**
@@ -22,14 +41,15 @@ class Context extends Base {
      * @param {Object} CONFIG - The configuration object.
      * @param {Object} utils - The utility object containing the game manager and remote context manager.
      * @param {boolean} [initializeContext=true] - Whether to initialize the context immediately.
-     * @param {string} [remoteContextSource='module'] - The source for the remote context (e.g., 'module', 'game.settings', 'user').
+     * @param {string} [remotecontextRoot='module'] - The source for the remote context (e.g., 'module', 'game.settings', 'user').
      * @throws {Error} Throws an error if the configuration or utility object is not defined or not an object.
      * @throws {Error} Throws an error if the validator or game manager is not defined in the utility object.
      * @throws {Error} Throws an error if the CONFIG object does not contain the CONTEXT_INIT property.
      * @throws {Error} Throws an error if the CONTEXT_INIT property is not defined in the configuration object.
      * @throws {Error} Throws an error if the CONTEXT_INIT property is not an object.
+     * 
      */
-    constructor(CONFIG, utils, initializeContext=true, remoteContextSource = 'module') {
+    constructor(CONFIG, utils, initializeContext=true, remotecontextRoot = '') {
         // Call the Base constructor with appropriate parameters
         super({
             config: CONFIG,
@@ -80,19 +100,16 @@ class Context extends Base {
             if (typeof initializeContext !== 'boolean') {
                 throw new Error('initializeContext is not a boolean. Cannot initialize context');
             }
-
-            if (!utils.gameManager) {
-                throw new Error('Utils does not have a gameManager property. Cannot initialize context');
-            }
         };
 
         validateArgs(CONFIG, utils);
         // Instantiate the RemoteContextManager
-        this.extractor = ContextExtractor; 
+        this.extractor = ContextExtractor;
         this.originalConfig = CONFIG;
+        const { CONFIG: newConfig, contextInit } = this.extractor.extractContextInit(CONFIG);
         this.config = newConfig; // Override the config from Base with the processed one
-        const { CONFIG: newConfig, contextInit } = this.extractor.extractContextInit(CONFIG); 
-        this.remoteContextManager = new RemoteContextManager(remoteContextSource, CONFIG); 
+        this.remotecontextRoot = remotecontextRoot || this.originalConfig?.CONSTANTS?.MODULE?.DEFAULTS?.REMOTE_CONTEXT_ROOT || 'module';
+        this.remoteContextManager = new RemoteContextManager(this.remotecontextRoot, newConfig); // Also use newConfig here if intended
         this.initializer = ContextInitializer; // Assuming these are static classes or objects
         this.validate = utils.validator;
         this.gameManager = utils.gameManager;
@@ -101,7 +118,7 @@ class Context extends Base {
         this.state = {}; // Initialize state as an empty object
         if (initializeContext) {
             // Call the initializer's method, passing the context instance (this)
-            this.initializeContext(this); 
+            this.initializeContext(this.initialState); // Pass initialState directly
         }
     }
     
@@ -260,18 +277,18 @@ class Context extends Base {
           this.pullState(); // Pulls the latest state (merges by default)
       }  
       // Access the state directly
-      return this.state ? this.state[key] : undefined;
+      return this.state && this.state.data ? this.state.data[key] : undefined;
     }
     
     /**
      * Retrieves the remote context source used by the manager.
      * @returns {string | undefined} The remote context source string.
      */
-    getRemoteContextSource() {
+    getRemotecontextRoot() {
         // The manager holds the source object, not just the string name after initialization.
         // Returning the initial source string might be more useful for the user.
         // if this exact functionality is required. For now, returning the manager's source object.
-        return this.remoteContextManager.remoteContextSource;  
+        return this.remoteContextManager.remotecontextRoot;  
     }
     /**
      * Accessing the initial config or storing the source string separately might be needed
@@ -359,20 +376,19 @@ class Context extends Base {
         this.state = typeof this.state === 'object' && this.state !== null ? this.state : {};
         this.state.data = typeof this.state.data === 'object' && this.state.data !== null ? this.state.data : {};
 
-        if (!remoteOnly) {
-            // Validate key locally before setting (optional but good practice)
-            if (!this._validateKey(key)) return; // Or throw error
+        // Always validate key first, before any action
+        if (!this._validateKey(key)) {
+            // Always log error if invalid, regardless of remoteOnly/pushChange
+            console.error(`Invalid key '${String(key)}' provided to set method.`);
+            return;
+        }
 
+        if (!remoteOnly) {
             this.state.data[key] = value;
             this.state.dateModified = Date.now(); // Update local timestamp
         }
 
         if (pushChange || remoteOnly) {
-            // Validate key before pushing (important for path)
-             if (!this._validateKey(key)) {
-                 console.error(`Invalid key '${String(key)}' provided to set method with push/remoteOnly.`);
-                 return; // Or throw error
-             }
             // Construct the path and push the specific property change
             const path = `data.${String(key)}`; // Ensure key is string for path
             this.remoteContextManager.updateRemoteProperty(path, value);
@@ -388,10 +404,10 @@ class Context extends Base {
     setRemoteLocation(remoteSource, alsoPush = false) {
         try {
             // Use the manager's method to change the source
-            this.remoteContextManager.setRemoteContextSource(remoteSource); 
+            this.remoteContextManager.setRemotecontextRoot(remoteSource); 
             // Re-set the remote context based on the new source
             this.remoteContextManager.setRemoteContext(
-                this.remoteContextManager.remoteContextSource, 
+                remoteSource, 
                 this.remoteContextManager.remoteObjectName
             );
             
@@ -419,21 +435,18 @@ class Context extends Base {
         this.state = typeof this.state === 'object' && this.state !== null ? this.state : {};
         this.state.flags = typeof this.state.flags === 'object' && this.state.flags !== null ? this.state.flags : {};
 
-        if (!remoteOnly) {
-             // Validate key locally
-             if (!this._validateKey(key)) return;
+        // Always validate key first, before any action
+        if (!this._validateKey(key)) {
+            console.error(`Invalid key '${String(key)}' provided to setFlags method.`);
+            return;
+        }
 
+        if (!remoteOnly) {
             this.state.flags[key] = value;
             this.state.dateModified = Date.now(); // Update local timestamp
         }
 
         if (pushChange || remoteOnly) {
-             // Validate key before pushing
-             if (!this._validateKey(key)) {
-                 console.error(`Invalid key '${String(key)}' provided to setFlags method with push/remoteOnly.`);
-                 return;
-             }
-            // Construct the path and push the specific property change
             const path = `flags.${String(key)}`; // Ensure key is string for path
             this.remoteContextManager.updateRemoteProperty(path, value);
         }

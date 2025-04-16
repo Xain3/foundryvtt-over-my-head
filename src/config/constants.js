@@ -17,10 +17,11 @@ export const MODULE = {
     SHORT_NAME: "OMH", // Short name of the module
     ID: "foundryvtt-over-my-head",  // Module ID
     NAME: "OverMyHead", // Module name
-    CONTEXT_REMOTE: "moduleContext", // Context remote path within the module object
+    CONTEXT_REMOTE: "moduleContext", // Context remote path within the context root object
     DEFAULTS: {
         DEBUG_MODE: true, // Debug mode default value
         ONLY_GM: true, // Load only for GM default value
+        REMOTE_CONTEXT_ROOT: "module", // Root of the remote context
     },
     
     SETTINGS: {

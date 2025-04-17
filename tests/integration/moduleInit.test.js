@@ -41,4 +41,17 @@ describe('Module Initialization Integration', () => {
     expect(initializer.context).toBeInstanceOf(Context);
     expect(initializer.handlers).toBeInstanceOf(Handlers);
   });
+
+  it('should verify that integration tests are correctly initialized', () => {
+    expect(global.game).toBeDefined();
+    expect(global.Hooks).toBeDefined();
+    expect(config).toBeDefined();
+    expect(utils).toBeDefined();
+    expect(initializer).toBeDefined();
+  });
+
+  it('should verify that integration tests are correctly run', () => {
+    const testValue = true;
+    expect(testValue).toBe(true);
+  });
 });

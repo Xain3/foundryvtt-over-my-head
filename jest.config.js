@@ -4,7 +4,7 @@ module.exports = {
   rootDir: path.resolve(__dirname),
   testEnvironment: 'node',
   // Update testMatch to recognize different test types if using naming conventions
-  testMatch: ['**/*.unit.test.js', 'tests/integration/**/*.int.test.js'],
+  testMatch: ['**/*.unit.test.js', '**/*.int.test.js'],
   setupFilesAfterEnv: [],
   transform: {
     '^.+\\.js$': 'babel-jest',

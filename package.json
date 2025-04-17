@@ -8,7 +8,11 @@
     "rewire": "^7.0.0"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest --coverage",
+    "test:unit": "jest --testMatch=\"**/*.unit.test.js\" --coverage",
+    "test:integration": "jest --testMatch=\"**/*.int.test.js\"",
+    "test:functional": "echo 'Functional tests not configured' && exit 0",
+    "test:performance": "echo 'Performance tests not configured' && exit 0"
   },
   "dependencies": {
     "csslint": "^1.0.5",

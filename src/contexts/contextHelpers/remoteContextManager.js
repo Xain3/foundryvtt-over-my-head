@@ -12,13 +12,13 @@ const validKeyTypes = ['string', 'symbol', 'number'];
  * @class RemoteContextManager
  * @extends Base
  *
- * @param {string} [remoteContextSource='module'] - The source of the remote context. 
+ * @param {string} [remotecontextRoot='module'] - The source of the remote context. 
  *        Possible values include 'module', 'game', 'local', 'session', 'user', 'world', 'canvas', 'ui', or a custom string.
  * @param {Object} config - Configuration object passed to the parent class.
  *
  * @property {string} moduleId - The ID of the module.
  * @property {string} remoteObjectName - The name of the remote context object.
- * @property {Object} remoteContextSource - The source object of the remote context.
+ * @property {Object} remotecontextRoot - The source object of the remote context.
  * @property {Object} remoteContext - The actual remote context object being managed.
  * @property {Function} get - Alias for `getRemoteContext`.
  * @property {Function} update - Alias for `updateRemoteContext`.
@@ -34,7 +34,7 @@ const validKeyTypes = ['string', 'symbol', 'number'];
  * @property {Object|null} game - Reference to the FoundryVTT game object.
  * @property {boolean|null} debugMode - Whether debug mode is enabled.
  *
- * @method setRemoteContextSource
+ * @method setRemotecontextRoot
  * @description Sets the source of the remote context.
  * @param {string} source - The new source of the remote context.
  * @param {boolean} [returnValue=false] - Whether to return the determined source.
@@ -51,7 +51,7 @@ const validKeyTypes = ['string', 'symbol', 'number'];
  * @throws {Error} If the source or location is not provided or invalid.
  * @returns {Object|undefined} The determined context if `returnValue` is true.
  *
- * @method determineContextSource
+ * @method determinecontextRoot
  * @description Determines the context source based on the provided string.
  * @param {string} source - The source string.
  * @throws {Error} If the source is not a string or is invalid.
@@ -67,7 +67,7 @@ const validKeyTypes = ['string', 'symbol', 'number'];
  * @method updateRemoteContext
  * @description Updates the remote context with a new value.
  * @param {Object} value - The new value for the remote context.
- * @param {Object} [source=this.remoteContextSource] - The source object.
+ * @param {Object} [source=this.remotecontextRoot] - The source object.
  * @param {string} [location=this.remoteObjectName] - The property name of the remote context.
  * @throws {Error} If the value, source, or location is invalid.
  *
@@ -105,12 +105,12 @@ class RemoteContextManager extends Base {
     /**
      * Constructs a new instance of the RemoteContextManager.
      *
-     * @param {string} [remoteContextSource='module'] - The source of the remote context. Defaults to 'module'.
+     * @param {string} [contextRootIdentifier='module'] - The source of the remote context. Defaults to 'module'.
      * @param {Object} config - The configuration object for the context manager.
      *
      * @property {string} moduleId - The ID of the module, derived from module constants.
      * @property {string} remoteObjectName - The name of the remote object, derived from module constants.
-     * @property {string} remoteContextSource - The source of the remote context, set using the provided method.
+     * @property {string} remotecontextRoot - The source of the remote context, set using the provided method.
      * @property {Object} remoteContext - The remote context object, initialized using the provided method.
      * @property {Function} get - Alias for the method to retrieve the remote context.
      * @property {Function} update - Alias for the method to update the remote context.
@@ -126,7 +126,7 @@ class RemoteContextManager extends Base {
      * @property {Object|null} game - Reference to the FoundryVTT game object.
      * @property {boolean|null} debugMode - Whether debug mode is enabled.
      */
-    constructor(remoteContextSource = 'module', config) {
+    constructor(contextRootIdentifier = 'module', config) {
         super({
             config,
             shouldLoadGame: true
@@ -134,8 +134,8 @@ class RemoteContextManager extends Base {
         });
         this.moduleId = this.moduleConstants.ID;
         this.remoteObjectName = this.moduleConstants.CONTEXT_REMOTE;
-        this.remoteContextSource = this.setRemoteContextSource(remoteContextSource, true, false);
-        this.remoteContext = this.setRemoteContext(this.remoteContextSource, this.remoteObjectName, true, false);
+        this.remotecontextRoot = this.setRemotecontextRoot(contextRootIdentifier, true, false);
+        this.remoteContext = this.setRemoteContext(this.remotecontextRoot, this.remoteObjectName, true, false);
         this.get = this.getRemoteContext;
         this.update = this.updateRemoteContext;
         this.clear = this.clearRemoteContext;
@@ -143,19 +143,15 @@ class RemoteContextManager extends Base {
         
     }
 
-    setRemoteContextSource(source, returnValue = false, setProperty = true) {
+    setRemotecontextRoot(source, returnValue = false, setProperty = true) {
         if (!source) {
-            throw new Error('Source must be provided');
-        }
-        if (source === this.remoteContextSource) {
-            console.warn('Remote context source is the same as the current source, no changes made');
-            return;
+            throw new Error('Source must be provided and cannot be empty');
         }
         if (setProperty) {
-            this.remoteContextSource = this.determineContextSource(source);
+            this.remotecontextRoot = this.determinecontextRoot(source);
         }
         if (returnValue) {
-            return this.determineContextSource(source);
+            return this.determinecontextRoot(source);
         }
     }
 
@@ -181,14 +177,12 @@ class RemoteContextManager extends Base {
         }
     }
     
-        determineContextSource(source) {
+        determinecontextRoot(source) {
         if (typeof source !== 'string') {
             throw new Error('Remote context location must be a string');
         }
     
         switch (source) {
-            case '':
-                throw new Error('Remote context location cannot be an empty string');
             case 'game':
                 return globalThis.game;
             case 'module':
@@ -263,46 +257,50 @@ class RemoteContextManager extends Base {
         }
     }
 
-    updateRemoteContext(value, source = this.remoteContextSource, location = this.remoteObjectName) {
-        if (source === undefined || location === undefined) {
-            throw new Error('Source and location must be defined');
-        }
-        if (value === undefined) {
-            throw new Error('Value cannot be undefined');
-        }
-        if (typeof value !== 'object' || value === null) { // Ensure value is an object
-            throw new Error('Value must be an object');
-        }
-        // Check if the source requires a specific update method (like game.settings)
-        // This example assumes direct assignment works or that the source object handles its own updates (like a Proxy or game.settings object reference)
-        // A more robust solution might check the source type here.
+    updateRemoteContext(value, source = this.remotecontextRoot, location = this.remoteObjectName) {
         try {
-            // Add/update the dateModified timestamp directly on the value being set
-            const valueToSet = { ...value, dateModified: Date.now() };
-
-            // Perform the update
-            // For game.settings, this assumes 'source' is game.settings and 'location' is the module ID.
-            // If location is actually the context object name within settings, this needs adjustment.
-            // Assuming location is the top-level key (like moduleConstants.CONTEXT_REMOTE)
-            if (source && typeof source.set === 'function' && location === this.moduleId) {
-                 // Special handling potentially needed if source is game.settings and location is module ID
-                 // game.settings.set(moduleId, settingKey, value)
-                 // Here, the 'settingKey' would be this.remoteObjectName
-                 console.warn("Attempting update via source.set - ensure 'location' is the correct key for the source.");
-                 source.set(location, this.remoteObjectName, valueToSet); // Example if location=moduleId
-            } else if (source && location) {
-                 // Direct assignment (works for module objects, user flags, etc.)
-                 source[location] = valueToSet;
-            } else {
-                 throw new Error('Invalid source or location for update.');
+            if (source === undefined || location === undefined) {
+                throw new Error('Source and location must be defined');
             }
+            if (value === undefined) {
+                throw new Error('Value cannot be undefined');
+            }
+            if (typeof value !== 'object' || value === null) { // Ensure value is an object
+                throw new Error('Value must be an object');
+            }
+            // Check if the source requires a specific update method (like game.settings)
+            // This example assumes direct assignment works or that the source object handles its own updates (like a Proxy or game.settings object reference)
+            // A more robust solution might check the source type here.
+            try {
+                // Add/update the dateModified timestamp directly on the value being set
+                const valueToSet = { ...value, dateModified: Date.now() };
 
-            // Update the internal reference
-            this.remoteContext = source[location];
+                // Perform the update
+                // For game.settings, this assumes 'source' is game.settings and 'location' is the module ID.
+                // If location is actually the context object name within settings, this needs adjustment.
+                // Assuming location is the top-level key (like moduleConstants.CONTEXT_REMOTE)
+                if (source && typeof source.set === 'function' && location === this.moduleId) {
+                    // Special handling potentially needed if source is game.settings and location is module ID
+                    // game.settings.set(moduleId, settingKey, value)
+                    // Here, the 'settingKey' would be this.remoteObjectName
+                    console.warn(`Attempting update via source.set - ensure '${location}' is the correct key for the source.`);
+                    source.set(location, this.remoteObjectName, valueToSet); // Example if location=moduleId
+                } else if (source && location) {
+                    // Direct assignment (works for module objects, user flags, etc.)
+                    source[location] = valueToSet;
+                } else {
+                    throw new Error('Invalid source or location for update.');
+                }
 
+                // Update the internal reference
+                this.remoteContext = source[location];
+
+            } catch (error) {
+                console.error(`Failed to update remote context at location '${location}': ${error.message}`);
+                throw error; // Re-throw after logging
+            }
         } catch (error) {
-             console.error(`Failed to update remote context at location '${location}': ${error.message}`);
-             throw error; // Re-throw after logging
+            console.error(error.message + '. State not pushed to remote context');
         }
     }
 
@@ -316,14 +314,14 @@ class RemoteContextManager extends Base {
             }
             // Ensure localState is an object for consistency with updateRemoteContext
             if (typeof localState !== 'object' || localState === null) {
-                throw new Error('Local state must be an object.');
+                throw new Error('Local state must be an object');
             }
         }
 
         try {
             validateArgs();
             // Use 'this' for source and location
-            this.updateRemoteContext(localState, this.remoteContextSource, this.remoteObjectName);
+            this.updateRemoteContext(localState, this.remotecontextRoot, this.remoteObjectName);
             // updateRemoteContext already handles setting dateModified on this.remoteContext
         } catch (error) {
             console.error(error.message + '. State not pushed to remote context');
@@ -375,7 +373,7 @@ class RemoteContextManager extends Base {
                  throw new Error('Remote context is not defined');
             }
             // Update the remote context to an empty object
-            this.updateRemoteContext({}, this.remoteContextSource, this.remoteObjectName);
+            this.updateRemoteContext({}, this.remotecontextRoot, this.remoteObjectName);
             // updateRemoteContext handles setting dateModified
         } catch (error) {
              console.error(error.message + '. Remote context not cleared');
@@ -438,7 +436,7 @@ class RemoteContextManager extends Base {
             // Get the current state
             const currentState = this.getRemoteContext() || {};
              if (typeof currentState !== 'object' || currentState === null) {
-                 throw new Error('Cannot update property: Remote context is not a valid object.');
+                 throw new Error('Cannot update property: Remote context is not a valid object');
             }
             // Create a new object to avoid modifying the potentially cached currentState directly
             const newState = { ...currentState };
@@ -450,7 +448,7 @@ class RemoteContextManager extends Base {
             newState.dateModified = Date.now();
 
             // Use updateRemoteContext to push the entire modified state back
-            this.updateRemoteContext(newState, this.remoteContextSource, this.remoteObjectName);
+            this.updateRemoteContext(newState, this.remotecontextRoot, this.remoteObjectName);
 
         } catch (error) {
              console.error(`${error.message}. Property at path '${path}' not updated in remote context.`);

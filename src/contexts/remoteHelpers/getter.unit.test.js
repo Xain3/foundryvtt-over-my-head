@@ -1,15 +1,22 @@
 import RemoteContextGetter from './getter';
 import RemoteContextOperator from './operator';
 import GetterValidator from './validators/getterValidator';
-import { get, isEqual } from 'lodash';
+import _ from 'lodash';
 
 // Mock dependencies
 jest.mock('./operator');
 jest.mock('./validators/getterValidator');
-jest.mock('lodash', () => ({
-    get: jest.fn(),
-    isEqual: jest.fn(),
-}));
+jest.mock('lodash', () => {
+    const actual = jest.requireActual('lodash');
+    return {
+        __esModule: true,
+        default: {
+            ...actual,
+            get: jest.fn(),
+            isEqual: jest.fn(),
+        },
+    };
+});
 
 describe('RemoteContextGetter', () => {
     let getter;
@@ -38,7 +45,7 @@ describe('RemoteContextGetter', () => {
         getter = new RemoteContextGetter({ config: mockConfig });
 
         // Mock lodash.get behavior
-        get.mockImplementation((obj, path, defaultValue) => {
+        _.get.mockImplementation((obj, path, defaultValue) => {
             if (obj === mockContextRootMap.rootMap && path === 'some.nested.object') {
                 return { value: 123, timestamp: 1678886400000 };
             }
@@ -104,18 +111,18 @@ describe('RemoteContextGetter', () => {
             expect(GetterValidator.validateTimestampKey).toHaveBeenCalled();
             expect(GetterValidator.validateObject).toHaveBeenCalled();
             expect(GetterValidator.validateKeyInObject).toHaveBeenCalled();
-            expect(get).toHaveBeenCalledWith(mockContextRootMap.rootMap, 'some.nested.object');
+            expect(_.get).toHaveBeenCalledWith(mockContextRootMap.rootMap, 'some.nested.object');
         });
 
         it('should return null if object not found', () => {
-            get.mockReturnValueOnce(undefined);
+            _.get.mockReturnValueOnce(undefined);
             const timestamp = getter._getTimestampModified({});
             expect(timestamp).toBeNull();
             expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Object is required and must be a non-null object"), expect.any(String));
         });
 
          it('should return null if timestamp key not found', () => {
-            get.mockReturnValueOnce({ value: 123 }); // No timestamp key
+            _.get.mockReturnValueOnce({ value: 123 }); // No timestamp key
             const timestamp = getter._getTimestampModified({});
             expect(timestamp).toBeNull();
              expect(GetterValidator.validateKeyInObject).toHaveBeenCalled(); // It gets called, but the key isn't there
@@ -123,7 +130,7 @@ describe('RemoteContextGetter', () => {
         });
 
         it('should return the value directly if it is a primitive', () => {
-            get.mockReturnValueOnce(1678886400000); // Return primitive directly
+            _.get.mockReturnValueOnce(1678886400000); // Return primitive directly
             const timestamp = getter._getTimestampModified({});
             expect(timestamp).toBe(1678886400000);
             expect(GetterValidator.validateObject).not.toHaveBeenCalled(); // Skips object validation

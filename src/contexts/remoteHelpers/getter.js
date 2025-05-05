@@ -1,6 +1,6 @@
 import RemoteContextOperator from "./operator";
 import GetterValidator from "./validators/getterValidator";
-import { get, isEqual } from 'lodash';
+import _ from 'lodash';
 
 /**
  * RemoteContextGetter provides advanced getter utilities for retrieving, validating, and formatting
@@ -53,7 +53,7 @@ class RemoteContextGetter extends RemoteContextOperator {
             // Construct the path string
             const path = this.getContextObjectPath({ source, location });
             // Use lodash.get to retrieve the value at the path
-            const object = get(this.contextRootMap.rootMap, path);
+            const object = _.get(this.contextRootMap.rootMap, path);
             if (typeof object === 'string' || typeof object === 'number') {
                         return object; // Return the value directly if it's a string or number
                     }
@@ -141,7 +141,7 @@ class RemoteContextGetter extends RemoteContextOperator {
             validate.args();
             const keys = this.parseKeyOrPath(item); // Inherited from RemoteContextOperator
                 // Get the base value/object at the given path
-                const baseValue = get(this.contextRootMap.rootMap, path); 
+                const baseValue = _.get(this.contextRootMap.rootMap, path); 
                 if (baseValue === undefined) { // Use === undefined for clearer check
                     // It might be okay for the base path to not exist yet
                     console.warn(`Base value not found at path: ${path}. Cannot retrieve item [${keys.join('.')}].`);
@@ -190,7 +190,7 @@ class RemoteContextGetter extends RemoteContextOperator {
                 return this._getItemAtPath({ path, item });
             }
             // If no item (key/path) is specified, just get the value at the main path
-            const value = get(this.contextRootMap.rootMap, path); 
+            const value = _.get(this.contextRootMap.rootMap, path); 
             if (value === undefined) {
                  throw new Error(`Value not found at path: ${path}`);
             }
@@ -472,7 +472,7 @@ class RemoteContextGetter extends RemoteContextOperator {
             // Get the path string
             const objectPath = this.getContextObjectPath({ source, location });
             // Use lodash.get to retrieve the actual object from the rootMap using the path
-            let object = get(this.contextRootMap.rootMap, objectPath);
+            let object = _.get(this.contextRootMap.rootMap, objectPath);
             validate.object(object);
             const builtOutput = this._buildOutput({ response: object, timestampModified, timestampRetrieved, source, location });
             return builtOutput;
@@ -627,7 +627,7 @@ class RemoteContextGetter extends RemoteContextOperator {
             // Get the remote state
             const remoteState = this.getObject({ source: this.remoteContextRoot, location: this.contextObjectPath });
             validate.remoteState(remoteState);
-            if (isEqual(localState, remoteState)) {
+            if (_.isEqual(localState, remoteState)) {
                 console.warn('Local state is the same as remote state. No changes made.');
                 return localState; // Return local state if it's the same as remote
             }

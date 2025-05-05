@@ -8,9 +8,14 @@ export const CONTEXT = {
         flags: {
             settingsReady: false, // Flag to indicate if the settings are ready
         },
-        data: {     
+        data: {
+
         },
+        settings: {
+
+        }
     },
+    
     DEFAULTS: {
         REMOTE: {
             ROOT: "module", // Root of the remote context

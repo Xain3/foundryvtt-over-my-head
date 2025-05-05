@@ -1,5 +1,5 @@
 import RemoteContextOperator from "./operator";
-import { get, set } from 'lodash';
+import _ from 'lodash';
 
 const defaultMode = 'item';
 const defaultBehavior = 'set';
@@ -43,12 +43,12 @@ class RemoteContextSetter extends RemoteContextOperator {
 
     setTimestamp({ source = this.remoteContextRoot, location = this.contextObjectPath, timestampKey = this.defaultTimestampKey, value = Date.now() }) {
         const path = `${location}.${timestampKey}`;
-        set(source, path, value);
+        _.set(source, path, value);
         return value;
     }
 
     _replaceItemInArray(source, path, value) {
-        let currentValue = get(source, path, []);
+        let currentValue = _.get(source, path, []);
         if (Array.isArray(currentValue)) {
             findAndReplaceItem();
         } else {
@@ -66,10 +66,10 @@ class RemoteContextSetter extends RemoteContextOperator {
     }
 
     _pushToArray(source, path, value) {
-        let currentValue = get(source, path, []);
+        let currentValue = _.get(source, path, []);
         if (Array.isArray(currentValue)) {
             currentValue.push(value);
-            set(source, path, currentValue);
+            _.set(source, path, currentValue);
         } else {
             throw new Error(`Cannot push to non-array value at ${path}.`);
         }
@@ -78,7 +78,7 @@ class RemoteContextSetter extends RemoteContextOperator {
     _applyBehavior(behavior, source, path, value) {
         switch (behavior) {
             case 'set': // Set a specific value
-                set(source, path, value);
+                _.set(source, path, value);
                 break;
             case 'push': // Push a value to an array, including if value did not exist
                 this._pushToArray(source, path, value);
@@ -87,8 +87,8 @@ class RemoteContextSetter extends RemoteContextOperator {
                 this._replaceItemInArray(source, path, value);
                 break;
             case 'setIfAbsent': // Only set if the value does not exist
-                if (!get(source, path)) {
-                    set(source, path, value);
+                if (!_.get(source, path)) {
+                    _.set(source, path, value);
                 }
                 break;
             default:

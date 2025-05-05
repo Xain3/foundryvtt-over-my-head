@@ -1,7 +1,7 @@
 import Base from "@/baseClasses/base";
 import RemoteContextRootMap from "./rootMap";
 import BaseValidator, { VALID_CONFIG } from "./validators/baseValidator";
-import { get } from "lodash";
+import _ from "lodash";
 
 const remoteContextDefaultsPath = 'CONSTANTS.CONTEXT.DEFAULTS.REMOTE'
 
@@ -60,7 +60,7 @@ class RemoteContextBase extends Base {
     _initializeProperties(config, contextRootIdentifier, overrideGlobal, overrideModule) {
         this.configArgs = config; // Store the config object for later use
         // Note: this.config comes from the Base class after super() is called
-        this.remoteContextDefaults = get(this.config, remoteContextDefaultsPath, {}); // Get the remote context defaults
+        this.remoteContextDefaults = _.get(this.config, remoteContextDefaultsPath, {}); // Get the remote context defaults
         this.rootIdentifier = this._determineRootIdentifier(contextRootIdentifier); // Store the identifier
         this.overrideGlobal = overrideGlobal;
         this.overrideModule = overrideModule;

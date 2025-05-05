@@ -1,5 +1,5 @@
 import RemoteContextEraser from './eraser';
-import { get } from 'lodash-es';
+import _ from 'lodash-es';
 
 // Mock the parent class RemoteContextOperator or provide necessary properties/methods
 // For simplicity, we'll assume the constructor sets up paths correctly
@@ -140,7 +140,7 @@ describe('RemoteContextEraser', () => {
         it('clear() should clear the entire object at the default location', () => {
             const result = eraser.clear({});
             expect(result).toEqual({}); // Should return the cleared object (now empty)
-            expect(get(source, baseLocation)).toBeUndefined(); // The location itself is removed by unset
+            expect(_.get(source, baseLocation)).toBeUndefined(); // The location itself is removed by unset
             // To check if it was set to {}, we'd need to inspect the parent before unset
             // Let's refine the test based on implementation: unset removes the path
             expect(source.contexts.testEntity).toBeUndefined();
@@ -149,64 +149,64 @@ describe('RemoteContextEraser', () => {
          it('clear() should clear a specific key within the default location', () => {
             const result = eraser.clear({ key: 'otherProp' });
             expect(result).toEqual({});
-            expect(get(source, `${baseLocation}.otherProp`)).toEqual({});
-            expect(get(source, `${baseLocation}.id`)).toBe('test-id'); // Other props remain
+            expect(_.get(source, `${baseLocation}.otherProp`)).toEqual({});
+            expect(_.get(source, `${baseLocation}.id`)).toBe('test-id'); // Other props remain
         });
 
         it('clearItem() should clear a specific key', () => {
             const result = eraser.clearItem({ key: 'otherProp' });
             expect(result).toEqual({});
-            expect(get(source, `${baseLocation}.otherProp`)).toEqual({});
-            expect(get(source, `${baseLocation}.id`)).toBe('test-id'); // Other props remain
+            expect(_.get(source, `${baseLocation}.otherProp`)).toEqual({});
+            expect(_.get(source, `${baseLocation}.id`)).toBe('test-id'); // Other props remain
         });
 
         it('clearProperty() should clear a nested property', () => {
             const result = eraser.clearProperty({ fullPath: 'data.nested.deepKey' });
             expect(result).toEqual({});
-            expect(get(source, `${baseLocation}.data.nested.deepKey`)).toEqual({});
-            expect(get(source, `${baseLocation}.data.key1`)).toBe('value1'); // Sibling props remain
+            expect(_.get(source, `${baseLocation}.data.nested.deepKey`)).toEqual({});
+            expect(_.get(source, `${baseLocation}.data.key1`)).toBe('value1'); // Sibling props remain
         });
 
         it('clearData() should clear the entire data object', () => {
             const result = eraser.clearData({});
             expect(result).toEqual({});
-            expect(get(source, dataPath)).toEqual({});
-            expect(get(source, flagsPath)).toBeDefined(); // Other sections remain
+            expect(_.get(source, dataPath)).toEqual({});
+            expect(_.get(source, flagsPath)).toBeDefined(); // Other sections remain
         });
 
         it('clearData() should clear a specific key within data', () => {
             const result = eraser.clearData({ key: 'nested.deepKey' });
             expect(result).toEqual({});
-            expect(get(source, `${dataPath}.nested.deepKey`)).toEqual({});
-            expect(get(source, `${dataPath}.key1`)).toBe('value1'); // Sibling props remain
+            expect(_.get(source, `${dataPath}.nested.deepKey`)).toEqual({});
+            expect(_.get(source, `${dataPath}.key1`)).toBe('value1'); // Sibling props remain
         });
 
         it('clearFlags() should clear the entire flags object', () => {
             const result = eraser.clearFlags({});
             expect(result).toEqual({});
-            expect(get(source, flagsPath)).toEqual({});
-            expect(get(source, dataPath)).toBeDefined(); // Other sections remain
+            expect(_.get(source, flagsPath)).toEqual({});
+            expect(_.get(source, dataPath)).toBeDefined(); // Other sections remain
         });
 
         it('clearFlags() should clear a specific key within flags', () => {
             const result = eraser.clearFlags({ key: 'moduleX.nestedFlag' });
             expect(result).toEqual({});
-            expect(get(source, `${flagsPath}.moduleX.nestedFlag`)).toEqual({});
-            expect(get(source, `${flagsPath}.core.flag1`)).toBe(true); // Sibling props remain
+            expect(_.get(source, `${flagsPath}.moduleX.nestedFlag`)).toEqual({});
+            expect(_.get(source, `${flagsPath}.core.flag1`)).toBe(true); // Sibling props remain
         });
 
         it('clearSettings() should clear the entire settings object', () => {
             const result = eraser.clearSettings({});
             expect(result).toEqual({});
-            expect(get(source, settingsPath)).toEqual({});
-            expect(get(source, dataPath)).toBeDefined(); // Other sections remain
+            expect(_.get(source, settingsPath)).toEqual({});
+            expect(_.get(source, dataPath)).toBeDefined(); // Other sections remain
         });
 
         it('clearSettings() should clear a specific key within settings', () => {
             const result = eraser.clearSettings({ key: 'nestedSetting.config' });
             expect(result).toEqual({});
-            expect(get(source, `${settingsPath}.nestedSetting.config`)).toEqual({});
-            expect(get(source, `${settingsPath}.settingA`)).toBe('A'); // Sibling props remain
+            expect(_.get(source, `${settingsPath}.nestedSetting.config`)).toEqual({});
+            expect(_.get(source, `${settingsPath}.settingA`)).toBe('A'); // Sibling props remain
         });
     });
 
@@ -215,7 +215,7 @@ describe('RemoteContextEraser', () => {
         it('remove() should remove the entire object at the default location', () => {
             const result = eraser.remove({});
             expect(result).toBe(source); // Returns the modified source
-            expect(get(source, baseLocation)).toBeUndefined();
+            expect(_.get(source, baseLocation)).toBeUndefined();
             expect(source.contexts.testEntity).toBeUndefined();
             expect(source.otherRootData).toBeDefined(); // Other parts of source remain
         });
@@ -223,57 +223,57 @@ describe('RemoteContextEraser', () => {
         it('removeItem() should remove a specific key', () => {
             const result = eraser.removeItem({ key: 'otherProp' });
             expect(result).toBe(source);
-            expect(get(source, `${baseLocation}.otherProp`)).toBeUndefined();
-            expect(get(source, `${baseLocation}.id`)).toBe('test-id'); // Other props remain
+            expect(_.get(source, `${baseLocation}.otherProp`)).toBeUndefined();
+            expect(_.get(source, `${baseLocation}.id`)).toBe('test-id'); // Other props remain
         });
 
         it('removeProperty() should remove a nested property', () => {
             const result = eraser.removeProperty({ fullPath: 'data.nested.deepKey' });
             expect(result).toBe(source);
-            expect(get(source, `${baseLocation}.data.nested.deepKey`)).toBeUndefined();
-            expect(get(source, `${baseLocation}.data.nested.anotherLevel`)).toBeDefined(); // Sibling props remain
+            expect(_.get(source, `${baseLocation}.data.nested.deepKey`)).toBeUndefined();
+            expect(_.get(source, `${baseLocation}.data.nested.anotherLevel`)).toBeDefined(); // Sibling props remain
         });
 
         it('removeData() should remove the entire data object', () => {
             const result = eraser.removeData({});
             expect(result).toBe(source);
-            expect(get(source, dataPath)).toBeUndefined();
-            expect(get(source, flagsPath)).toBeDefined(); // Other sections remain
+            expect(_.get(source, dataPath)).toBeUndefined();
+            expect(_.get(source, flagsPath)).toBeDefined(); // Other sections remain
         });
 
         it('removeData() should remove a specific key within data', () => {
             const result = eraser.removeData({ key: 'nested.deepKey' });
             expect(result).toBe(source);
-            expect(get(source, `${dataPath}.nested.deepKey`)).toBeUndefined();
-            expect(get(source, `${dataPath}.nested.anotherLevel`)).toBeDefined(); // Sibling props remain
+            expect(_.get(source, `${dataPath}.nested.deepKey`)).toBeUndefined();
+            expect(_.get(source, `${dataPath}.nested.anotherLevel`)).toBeDefined(); // Sibling props remain
         });
 
         it('removeFlags() should remove the entire flags object', () => {
             const result = eraser.removeFlags({});
             expect(result).toBe(source);
-            expect(get(source, flagsPath)).toBeUndefined();
-            expect(get(source, dataPath)).toBeDefined(); // Other sections remain
+            expect(_.get(source, flagsPath)).toBeUndefined();
+            expect(_.get(source, dataPath)).toBeDefined(); // Other sections remain
         });
 
         it('removeFlags() should remove a specific key within flags', () => {
             const result = eraser.removeFlags({ key: 'moduleX.nestedFlag' });
             expect(result).toBe(source);
-            expect(get(source, `${flagsPath}.moduleX.nestedFlag`)).toBeUndefined();
-            expect(get(source, `${flagsPath}.moduleX.flag2`)).toBe(false); // Sibling props remain
+            expect(_.get(source, `${flagsPath}.moduleX.nestedFlag`)).toBeUndefined();
+            expect(_.get(source, `${flagsPath}.moduleX.flag2`)).toBe(false); // Sibling props remain
         });
 
         it('removeSettings() should remove the entire settings object', () => {
             const result = eraser.removeSettings({});
             expect(result).toBe(source);
-            expect(get(source, settingsPath)).toBeUndefined();
-            expect(get(source, dataPath)).toBeDefined(); // Other sections remain
+            expect(_.get(source, settingsPath)).toBeUndefined();
+            expect(_.get(source, dataPath)).toBeDefined(); // Other sections remain
         });
 
         it('removeSettings() should remove a specific key within settings', () => {
             const result = eraser.removeSettings({ key: 'nestedSetting.config' });
             expect(result).toBe(source);
-            expect(get(source, `${settingsPath}.nestedSetting.config`)).toBeUndefined();
-            expect(get(source, `${settingsPath}.nestedSetting.option`)).toBe('B'); // Sibling props remain
+            expect(_.get(source, `${settingsPath}.nestedSetting.config`)).toBeUndefined();
+            expect(_.get(source, `${settingsPath}.nestedSetting.option`)).toBe('B'); // Sibling props remain
         });
     });
 });

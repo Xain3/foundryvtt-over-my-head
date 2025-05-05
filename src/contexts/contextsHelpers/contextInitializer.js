@@ -19,8 +19,8 @@ class ContextInitializer {
         Object.assign(ctx.state, validatedState); 
 
         // Initialize data and flags using helper methods, ensuring they exist
-        this.initialiseData(ctx, ctx.state.data); 
-        this.initialiseFlags(ctx, ctx.state.flags); 
+        this.initializeData(ctx, ctx.state.data); 
+        this.initializeFlags(ctx, ctx.state.flags); 
 
         // Ensure dateModified is set
         if (!ctx.state.dateModified) {
@@ -52,7 +52,7 @@ class ContextInitializer {
      * @param {Object} ctx - The context instance.
      * @param {Object|undefined} data - The data to initialize with. Defaults to an empty object if invalid.
      */
-    static initialiseData(ctx, data) {
+    static initializeData(ctx, data) {
         // Ensure ctx.state exists
         ctx.state = typeof ctx.state === 'object' && ctx.state !== null ? ctx.state : {};
         // Set data, defaulting to {} if data is not a valid object
@@ -66,7 +66,7 @@ class ContextInitializer {
      * @param {Object} ctx - The context instance.
      * @param {Object|undefined} flags - The flags to initialize with. Defaults to an empty object if invalid.
      */
-    static initialiseFlags(ctx, flags) {
+    static initializeFlags(ctx, flags) {
         // Ensure ctx.state exists
         ctx.state = typeof ctx.state === 'object' && ctx.state !== null ? ctx.state : {};
         // Set flags, defaulting to {} if flags is not a valid object

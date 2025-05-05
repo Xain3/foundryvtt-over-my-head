@@ -1,4 +1,4 @@
-import CONSTANTS, { MODULE, Constants } from './constants.js';
+import CONSTANTS, { MODULE, Constants, CONTEXT } from './constants.js';
 
 describe('MODULE constant', () => {
     it('should be defined', () => {
@@ -25,10 +25,6 @@ describe('MODULE constant', () => {
         expect(typeof(MODULE.NAME)).toBe('string');
     });
 
-    it('should have CONTEXT_REMOTE and it should be a string', () => {
-        expect(typeof(MODULE.CONTEXT_REMOTE)).toBe('string');
-    });
-
     it('should have DEFAULTS and it should be an object', () => {
         expect(typeof(MODULE.DEFAULTS)).toBe('object');
     });
@@ -50,15 +46,97 @@ describe('MODULE constant', () => {
     });
 });
 
+describe('CONTEXT constant', () => {
+    it('should be defined', () => {
+        expect(CONTEXT).toBeDefined();
+    });
+
+    it('should be an object', () => {
+        expect(typeof CONTEXT).toBe('object');
+    });
+
+    it('should have INIT property and it should be an object', () => {
+        expect(CONTEXT.INIT).toBeDefined();
+        expect(typeof CONTEXT.INIT).toBe('object');
+    });
+
+    describe('INIT object', () => {
+        it('should have flags property and it should be an object', () => {
+            expect(CONTEXT.INIT.flags).toBeDefined();
+            expect(typeof CONTEXT.INIT.flags).toBe('object');
+        });
+
+        it('should have flags.settingsReady property and it should be a boolean', () => {
+            expect(typeof CONTEXT.INIT.flags.settingsReady).toBe('boolean');
+        });
+
+        it('should have data property and it should be an object', () => {
+            expect(CONTEXT.INIT.data).toBeDefined();
+            expect(typeof CONTEXT.INIT.data).toBe('object');
+        });
+    });
+
+    it('should have DEFAULTS property and it should be an object', () => {
+        expect(CONTEXT.DEFAULTS).toBeDefined();
+        expect(typeof CONTEXT.DEFAULTS).toBe('object');
+    });
+
+    describe('DEFAULTS object', () => {
+        it('should have REMOTE property and it should be an object', () => {
+            expect(CONTEXT.DEFAULTS.REMOTE).toBeDefined();
+            expect(typeof CONTEXT.DEFAULTS.REMOTE).toBe('object');
+        });
+
+        it('should have REMOTE.ROOT property and it should be a string', () => {
+            expect(typeof CONTEXT.DEFAULTS.REMOTE.ROOT).toBe('string');
+        });
+
+        it('should have REMOTE.PATH property and it should be a string', () => {
+            expect(typeof CONTEXT.DEFAULTS.REMOTE.PATH).toBe('string');
+        });
+
+        it('should have REMOTE.DATA_PATH property and it should be a string', () => {
+            expect(typeof CONTEXT.DEFAULTS.REMOTE.DATA_PATH).toBe('string');
+        });
+
+        it('should have REMOTE.FLAGS_PATH property and it should be a string', () => {
+            expect(typeof CONTEXT.DEFAULTS.REMOTE.FLAGS_PATH).toBe('string');
+        });
+
+        it('should have REMOTE.SETTINGS_PATH property and it should be a string', () => {
+            expect(typeof CONTEXT.DEFAULTS.REMOTE.SETTINGS_PATH).toBe('string');
+        });
+        it('should have REMOTE.ROOT_MAP property and it should be a function', () => {
+            expect(typeof CONTEXT.DEFAULTS.REMOTE.ROOT_MAP).toBe('function');
+        });
+        it('should have ROOT_MAP function that returns an object', () => {
+            const rootMap = CONTEXT.DEFAULTS.REMOTE.ROOT_MAP(global, MODULE);
+            expect(rootMap).toBeDefined();
+            expect(typeof rootMap).toBe('object');
+        });
+        it('should have ROOT_MAP function that returns an object with expected properties', () => {
+            const rootMap = CONTEXT.DEFAULTS.REMOTE.ROOT_MAP(global, MODULE);
+            expect(rootMap).toHaveProperty('window');
+            expect(rootMap).toHaveProperty('document');
+            expect(rootMap).toHaveProperty('game');
+            expect(rootMap).toHaveProperty('user');
+            expect(rootMap).toHaveProperty('world');
+            expect(rootMap).toHaveProperty('canvas');
+            expect(rootMap).toHaveProperty('ui');
+            expect(rootMap).toHaveProperty('local');
+            expect(rootMap).toHaveProperty('session');
+            expect(rootMap).toHaveProperty('module');
+            expect(rootMap).toHaveProperty('invalid');
+        });
+    });
+});
+
+
 describe('Constants class', () => {
     it('should initialize with default values', () => {
         const constants = new Constants();
-        expect(constants.CONTEXT_INIT).toEqual({
-            flags: {
-                settingsReady: false,
-            },
-            data: {},
-        });
+        // Check against the imported CONTEXT constant
+        expect(constants.CONTEXT).toEqual(CONTEXT);
         expect(constants.MODULE).toBe(MODULE);
         expect(constants.LOCALIZATION).toEqual({
             SETTINGS: "settings",
@@ -76,17 +154,28 @@ describe('Constants class', () => {
     });
 
     it('should allow overriding default values', () => {
-        const customContextInit = {
-            flags: {
-                settingsReady: true,
+        // Define a custom context object matching the new structure
+        const customContext = {
+            INIT: {
+                flags: {
+                    settingsReady: true,
+                },
+                data: { customData: true },
             },
-            data: { customData: true },
+            DEFAULTS: {
+                REMOTE: {
+                    ROOT: "customRoot",
+                    PATH: "customPath",
+                    DATA_PATH: 'customData',
+                    FLAGS_PATH: 'customFlags',
+                    SETTINGS_PATH: 'customSettings',
+                }
+            }
         };
         const customModule = {
             SHORT_NAME: "CustomOMH",
             ID: "custom-foundryvtt-over-my-head",
             NAME: "CustomOverMyHead",
-            CONTEXT_REMOTE: "customModuleContext",
             DEFAULTS: {
                 DEBUG_MODE: false,
                 ONLY_GM: false,
@@ -110,8 +199,9 @@ describe('Constants class', () => {
             }
         };
 
-        const constants = new Constants(customContextInit, customModule, customLocalization, customHandlers);
-        expect(constants.CONTEXT_INIT).toEqual(customContextInit);
+        // Pass the custom context object
+        const constants = new Constants(customContext, customModule, customLocalization, customHandlers);
+        expect(constants.CONTEXT).toEqual(customContext);
         expect(constants.MODULE).toEqual(customModule);
         expect(constants.LOCALIZATION).toEqual(customLocalization);
         expect(constants.HANDLERS).toEqual(customHandlers);
@@ -123,13 +213,9 @@ describe('CONSTANTS instance', () => {
         expect(CONSTANTS).toBeInstanceOf(Constants);
     });
 
-    it('should have the correct CONTEXT_INIT property', () => {
-        expect(CONSTANTS.CONTEXT_INIT).toEqual({
-            flags: {
-                settingsReady: false,
-            },
-            data: {},
-        });
+    it('should have the correct CONTEXT property', () => {
+        // Check against the imported CONTEXT constant
+        expect(CONSTANTS.CONTEXT).toEqual(CONTEXT);
     });
 
     it('should have the same MODULE property as MODULE constant', () => {

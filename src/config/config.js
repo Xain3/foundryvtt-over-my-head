@@ -18,25 +18,27 @@ class Config extends Base {
      * @param {Object} [hooks=HOOKS] - The hooks object.
      */
     constructor(constants = CONSTANTS, hooks = HOOKS) {
-    super({ shouldLoadGame: true, shouldLoadConfig: false });
-        this.validateConstantsAndHooks(constants, hooks);
+        const validateArgs = () => {
+            if (!constants) {
+                throw new Error('Error initializing Config. Constants must be provided.');
+            }
+            if (!hooks) {
+                throw new Error('Error initializing Config. Hooks must be provided.');
+            }
+            if (typeof constants !== 'object') {
+                throw new Error('Error initializing Config. Constants must be an object.');
+            }
+            if (typeof hooks !== 'object') {
+                throw new Error('Error initializing Config. Hooks must be an object.');
+            }
+        };
+        
+        validateArgs();
+
+        super({ shouldLoadGame: true, shouldLoadConfig: false });
+        
         this.CONSTANTS = constants;
         this.HOOKS = hooks;
-    }
-
-    validateConstantsAndHooks(constants, hooks) {
-        if (!constants) {
-            throw new Error('Constants is set up to be loaded, but no constants were provided.');
-        }
-        if (!hooks) {
-            throw new Error('Hooks is set up to be loaded, but no hooks were provided.');
-        }
-        if (typeof constants !== 'object') {
-            throw new Error('Constants must be an object.');
-        }
-        if (typeof hooks !== 'object') {
-            throw new Error('Hooks must be an object.');
-        }
     }
 }
 

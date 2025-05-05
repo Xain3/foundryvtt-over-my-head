@@ -1,118 +1,65 @@
-import Config from './config.js';
-import Base from '../baseClasses/base.js';
-import CONSTANTS from './constants.js';
-import HOOKS from './hooks.js';
+import Config from '@/config/config';
+import CONSTANTS from '@/config/constants';
+import HOOKS from '@/config/hooks';
+import Base from '@/baseClasses/base'; // Base will be the MockBase class below in this test environment
 
-// ./tests/unit/config/config.test.js
+// Tracker for Base constructor calls
+const mockBaseInstance = jest.fn();
 
-jest.mock('./constants.js', () => {
-    return {
-        CONTEXT_INIT: {
-            flags: {
-                settingsReady: false,
-            },
-            data: {
-            }
-        },
-        MODULE: {
-            SHORT_NAME: "OMH",
-            ID: "foundryvtt-over-my-head",
-            NAME: "OverMyHead",
-            CONTEXT_REMOTE: "moduleContext",
-            DEFAULTS: {
-                DEBUG_MODE: true,
-                ONLY_GM: true,
-            },
-            SETTINGS: {
-                INTERFACE: {}
-            }
-        },
-        LOCALIZATION: {
-            SETTINGS: "settings"
-        },
-        HANDLERS: {
-            TILE: {
-                PLACEABLE_TYPE: "tiles",
-                ALLOWED_CORNERS: ['topLeft', 'bottomLeft', 'topRight', 'bottomRight'],
-            },
-            TOKEN: {
-                PLACEABLE_TYPE: "tokens",
-                ALLOWED_CORNERS: ['topLeft', 'bottomLeft', 'topRight', 'bottomRight'],
-            }
+// Mock the Base class with a mock class constructor
+jest.mock('@/baseClasses/base', () => {
+    return class MockBase {
+        constructor(options) {
+            // Track calls to the constructor
+            mockBaseInstance(options);
+            // Add any methods/properties from Base needed by Config here if necessary
         }
-    }
-}
-);
-
-jest.mock('./hooks.js', () => {
-    return {
-        INIT: 'init',
-        READY: 'ready',
-        RENDER: 'render',
-        UPDATE: 'update',
-        DELETE: 'delete',
-        CLOSE: 'close',
-        CONFIG: 'config',
-        PRE_CREATE: 'preCreate',
-        CREATE: 'create',
-        PRE_UPDATE: 'preUpdate',
-        PRE_DELETE: 'preDelete',
-        PRE_RENDER: 'preRender',
-        PRE_CLOSE: 'preClose',
-        PRE_CONFIG: 'preConfig',
-        POST_CREATE: 'postCreate',
-        POST_UPDATE: 'postUpdate',
-        POST_DELETE: 'postDelete',
-        POST_RENDER: 'postRender',
-        POST_CLOSE: 'postClose',
-        POST_CONFIG: 'postConfig',
-        PRE_RENDER_HOOKS: ['preCreate', 'preUpdate', 'preDelete', 'preRender', 'preClose', 'preConfig'],
-        POST_RENDER_HOOKS: ['postCreate', 'postUpdate', 'postDelete', 'postRender', 'postClose', 'postConfig']
-    }
+    };
 });
 
-describe('Config class tests', () => {
-    it('should create an instance of Config', () => {
-        const config = new Config();
-        expect(config).toBeInstanceOf(Config);
+describe('Config', () => {
+    beforeEach(() => {
+        // Reset mocks before each test
+        jest.clearAllMocks();
+        mockBaseInstance.mockClear(); // Clear the constructor call tracker
     });
 
-    it('should extend Base', () => {
+    it('should instantiate with default constants and hooks', () => {
         const config = new Config();
-        expect(config).toBeInstanceOf(Base);
-    });
-
-    it('should have a CONSTANTS property that equals the imported CONSTANTS', () => {
-        const config = new Config();
+        expect(config).toBeInstanceOf(Config); // Should now pass
         expect(config.CONSTANTS).toBe(CONSTANTS);
-    });
-
-    it('should have a HOOKS property that equals the imported HOOKS', () => {
-        const config = new Config();
         expect(config.HOOKS).toBe(HOOKS);
+        // Check constructor calls using the tracker
+        expect(mockBaseInstance).toHaveBeenCalledTimes(1);
+        expect(mockBaseInstance).toHaveBeenCalledWith({ shouldLoadGame: true, shouldLoadConfig: false });
     });
 
-    it('should throw an error if no constants are provided', () => {
-        expect(() => {
-        new Config(null);
-        }).toThrow('Constants is set up to be loaded, but no constants were provided.');
+    it('should instantiate with provided constants and hooks', () => {
+        const mockConstants = { MODULE: { ID: 'test-module' } };
+        const mockHooks = { READY: 'testReady' };
+        const config = new Config(mockConstants, mockHooks);
+
+        expect(config).toBeInstanceOf(Config); // Should now pass
+        expect(config.CONSTANTS).toBe(mockConstants);
+        expect(config.HOOKS).toBe(mockHooks);
+        // Check constructor calls using the tracker
+        expect(mockBaseInstance).toHaveBeenCalledTimes(1);
+        expect(mockBaseInstance).toHaveBeenCalledWith({ shouldLoadGame: true, shouldLoadConfig: false });
     });
 
-    it('should throw an error if no hooks are provided', () => {
-        expect(() => {
-        new Config({}, null);
-        }).toThrow('Hooks is set up to be loaded, but no hooks were provided.');
+    it('should throw an error if constants are not provided', () => {
+        expect(() => new Config(null, HOOKS)).toThrow('Error initializing Config. Constants must be provided.');
     });
 
-    it('should throw an error if constants is not an object', () => {
-        expect(() => {
-        new Config('iAmNotAnObject');
-        }).toThrow('Constants must be an object.');
+    it('should throw an error if hooks are not provided', () => {
+        expect(() => new Config(CONSTANTS, null)).toThrow('Error initializing Config. Hooks must be provided.');
     });
 
-    it('should throw an error if hooks is not an object', () => {
-        expect(() => {
-        new Config({}, 'iAmNotAnObject');
-        }).toThrow('Hooks must be an object.');
+    it('should throw an error if constants are not an object', () => {
+        expect(() => new Config('not an object', HOOKS)).toThrow('Error initializing Config. Constants must be an object.');
+    });
+
+    it('should throw an error if hooks are not an object', () => {
+        expect(() => new Config(CONSTANTS, 'not an object')).toThrow('Error initializing Config. Hooks must be an object.');
     });
 });

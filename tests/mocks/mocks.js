@@ -6,6 +6,8 @@ import MockConstants from './constants.js';
 import MockUtilities from './utils.js';
 import MockHooks from './hooks.js';
 import MockObjects from './objects.js';
+import MockGame from './game.js';
+import MockGlobals from './globals.js';
 // import MockTokens from './mockTokens.js';
 // import MockTiles from './mockTiles.js';
 
@@ -13,8 +15,10 @@ export const config = new MockConfig();
 export const context = new MockContext();
 export const constants = new MockConstants();
 export const utils = new MockUtilities();
-export const hooks = new MockHooks();
 export const mockObjects = new MockObjects();
+export const mockGlobals = new MockGlobals();
+export const hooks = mockGlobals.hooks;
+export const mockGame = mockGlobals.game;
 
 /**
  * @class Mocks
@@ -54,6 +58,12 @@ class Mocks {
     /** @type {MockObjects} Mock objects container */
     static objects = mockObjects;
 
+    /** @type {MockGame} Game mock object */
+    static game = mockGame;
+
+    /** @type {MockGlobals} Globals mock object */
+    static globals = mockGlobals;
+
     /**
      * Returns all mock objects in a consolidated object
      * @returns {Object} Object containing all mock categories
@@ -63,14 +73,18 @@ class Mocks {
      * @property {MockUtilities} utils - Utility mocks
      * @property {MockHooks} hooks - Hooks mocks
      * @property {MockObjects} objects - Mock objects
+     * @property {MockGame} game - Game mock
+     * @property {MockGlobals} globals - Globals mock
      */
     static getAllMocks() {
         return {
             config: this.config,
             context: this.context,
             constants: this.constants,
+            game: this.game,
             utils: this.utils,
             hooks: this.hooks,
+            globals: this.globals,  
             objects: this.objects,
         };
     }
@@ -100,6 +114,14 @@ class Mocks {
     }
 
     /**
+     * Returns the game mock object
+     * @returns {MockGame} The game mock
+     */
+    static getMockGame() {
+        return this.game;
+    }
+
+    /**
      * Returns the utilities mock object
      * @returns {MockUtilities} The utilities mock
      */
@@ -125,12 +147,45 @@ class Mocks {
 
     
     /**
-     * Sets global objects required for the testing environment.
-     * Delegates the setup to `this.objects.setMockGlobals()`.
-     * @returns {*} The result returned by `this.objects.setMockGlobals()`.
+     * Sets the global mock objects for testing.
+     * @param {Object} [options] - Options for setting globals.
+     * @param {boolean} [options.includeBrowserGlobals=false] - Whether to include browser globals.
+     * @param {boolean} [options.includeFoundryGlobals=true] - Whether to include FoundryVTT globals.
+     * @param {boolean} [options.includeLibraryGlobals=true] - Whether to include library globals.
+     * @param {MockGame} [options.mockGame] - Custom mock game object.
+     * @param {MockHooks} [options.mockHooks] - Custom mock hooks object.
+     * @returns {void}
+     * 
+     * @example
+     * // Set globals with custom options
+     * Mocks.setGlobals({
+     *   includeBrowserGlobals: true,
+     *   includeFoundryGlobals: false,
+     *   includeLibraryGlobals: true,
+     *   mockGame: new MockGame(),
+     *   mockHooks: new MockHooks()
+     * });
+     * 
+     * // Set globals with default options
+     * Mocks.setGlobals();
      */
-    static setGlobals() {
-        return this.objects.setMockGlobals();
+    static setGlobals(options = {}) {
+        const {
+            includeBrowserGlobals, // Defaults handled by the underlying method
+            includeFoundryGlobals, // Defaults handled by the underlying method
+            includeLibraryGlobals, // Defaults handled by the underlying method
+            mockGame,              // Defaults handled by the underlying method
+            mockHooks              // Defaults handled by the underlying method
+        } = options;
+
+        // Call the underlying method with individual arguments
+        this.globals.setGlobals(
+            includeBrowserGlobals,
+            includeFoundryGlobals,
+            includeLibraryGlobals,
+            mockGame,
+            mockHooks
+        );
     }
 }
 

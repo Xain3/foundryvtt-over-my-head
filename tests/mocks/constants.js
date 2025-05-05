@@ -2,15 +2,36 @@
 
 class MockConstants {
     constructor() {
+        this.CONTEXT = {
+            INIT: {
+                flags: {
+                    settingsReady: false,
+                },
+                data: {},
+            },
+            DEFAULTS: {
+                REMOTE: {
+                    ROOT: "module",
+                    PATH: "moduleContext",
+                    DATA_PATH: 'data',
+                    FLAGS_PATH: 'flags',
+                    SETTINGS_PATH: 'settings',
+                }
+            }
+        }
+
         this.MODULE = {
             SHORT_NAME: 'Mod_',
             ID: 'mod-id',
             NAME: 'Mod Name',
-            CONTEXT_REMOTE: 'moduleContext',
             DEFAULTS: {
                 DEBUG_MODE: true,
                 ONLY_GM: true,
             },
+            CONTEXT_REMOTE: jest.fn().mockImplementation(() => { 
+                console.warn('CONTEXT_REMOTE called is deprecated, yet called at ', new Error().stack);
+                return this.CONTEXT.DEFAULTS.REMOTE.PATH;
+            }),
             SETTINGS: {
                 CONFIG: {
                     ALLOWED_SETTING_PROPS: { // Allowed setting properties from the SettingConfig interface
@@ -50,13 +71,8 @@ class MockConstants {
                     },
                 },
             },            
-        },
-        this.CONTEXT_INIT = {
-            flags: {
-                settingsReady: false,
-            },
-            data: {},
-        },
+        }
+
         this.LOCALIZATION = {
             SETTINGS: "settings",
         },

@@ -1,14 +1,16 @@
 // @mocks/utils.js
 
 import MockConfig from "./config.js";
+import MockGame from "./game.js";
 
 // ./src/mocks/utils.js
 
 const config = new MockConfig()
+const game = new MockGame().getGame();
 
 const gameManager = jest.fn().mockImplementation(() => ({
-  game: {},
-  const: config,
+  game: game,
+  const: config.CONSTANTS,
   contextInit: {},
   moduleConstants: {},
   contextPath: "",

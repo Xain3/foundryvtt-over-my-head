@@ -32,4 +32,5 @@ module.exports = {
     '!src/**/index.js', // Example: Exclude index files if needed
     '!**/node_modules/**',
   ],
+  testSequencer: '@jest/test-sequencer', // Explicitly set the default
 };

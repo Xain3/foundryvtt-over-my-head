@@ -71,17 +71,17 @@ class GameManager extends Utility {
      * @override
      * @param {Object} config - The configuration object.
      * @param {Object} config.CONSTANTS - The constant values for the configuration.
-     * @param {Object} config.CONSTANTS.CONTEXT_INIT - The initial context configuration.
+     * @param {Object} config.CONSTANTS.CONTEXT.INIT - The initial context configuration.
      * @param {Object} config.CONSTANTS.MODULE - The module configuration containing ID and paths.
-     * @param {string} config.CONSTANTS.MODULE.CONTEXT_REMOTE - The remote context path for the module.
+     * @param {string} config.CONSTANTS.CONTEXT.DEFAULTS.REMOTE.PATH - The remote context path for the module.
      * @returns {void}
      * @throws {Error} Will console.error if module object cannot be retrieved.
      */
     updateConfig(config) {
         this.const = config.CONSTANTS;
-        this.contextInit = this.const.CONTEXT_INIT;
+        this.contextInit = this.const.CONTEXT.INIT;
         this.moduleConstants = this.const.MODULE;
-        this.contextPath = this.const.MODULE.CONTEXT_REMOTE;
+        this.contextPath = this.const.CONTEXT.DEFAULTS.REMOTE.PATH;
         this.moduleObject = this.getModuleObject(this.moduleConstants);
     }
 

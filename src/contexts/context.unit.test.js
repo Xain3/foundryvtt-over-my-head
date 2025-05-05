@@ -1,8 +1,8 @@
 import Context from './context.js';
 import Base from '../baseClasses/base.js';
-import ContextExtractor from './contextHelpers/contextExtractor.js';
-import ContextInitializer from './contextHelpers/contextInitializer.js';
-import RemoteContextManager from './contextHelpers/remoteContextManager.js';
+import ContextExtractor from './contextsHelpers/contextExtractor.js';
+import ContextInitializer from './contextsHelpers/contextInitializer.js';
+import RemoteContextManager from './remote.js';
 
 // Mock dependencies
 jest.mock('../baseClasses/base.js');
@@ -35,10 +35,10 @@ describe('Context', () => {
 
         mockConfig = {
             CONSTANTS: {
-                CONTEXT_INIT: { data: { initialData: 'value' }, flags: { initialFlag: true } },
+                CONTEXT.INIT: { data: { initialData: 'value' }, flags: { initialFlag: true } },
                 MODULE: { DEFAULTS: {
                     DEBUG_MODE: false,
-                    REMOTE_CONTEXT_ROOT: 'defaultSource' } },
+                    CONTEXT.REMOTE.ROOT: 'defaultSource' } },
                 },
             OTHER_CONFIG: 'value'
         };
@@ -54,11 +54,11 @@ describe('Context', () => {
             RemoteContextManager.prototype.pullState = jest.fn();
             RemoteContextManager.prototype.pushKey = jest.fn();
             RemoteContextManager.prototype.get = jest.fn();
-            RemoteContextManager.prototype.clearRemoteContext = jest.fn();
-            RemoteContextManager.prototype.syncState = jest.fn();
-            RemoteContextManager.prototype.updateRemoteProperty = jest.fn();
+            RemoteContextManager.prototype.clear = jest.fn();
+            RemoteContextManager.prototype.sync = jest.fn();
+            RemoteContextManager.prototype.updateProperty = jest.fn();
             RemoteContextManager.prototype.setRemotecontextRoot = jest.fn();
-            RemoteContextManager.prototype.setRemoteContext = jest.fn();
+            RemoteContextManager.prototype.set = jest.fn();
         };
 
         // Call the function to actually apply the mocks
@@ -84,7 +84,7 @@ describe('Context', () => {
                 globalContext: globalThis
             });
             expect(ContextExtractor.extractContextInit).toHaveBeenCalledWith(mockConfig);
-            expect(RemoteContextManager).toHaveBeenCalledWith(mockConfig.CONSTANTS.MODULE.DEFAULTS.REMOTE_CONTEXT_ROOT, mockExtractedConfig);
+            expect(RemoteContextManager).toHaveBeenCalledWith(mockConfig.CONSTANTS.CONTEXT.DEFAULTS.REMOTE.ROOT, mockExtractedConfig);
             expect(context.config).toBe(mockExtractedConfig);
             expect(context.initialState).toBe(mockInitialState);
             expect(context.validate).toBe(mockUtils.validator);
@@ -116,19 +116,19 @@ describe('Context', () => {
             expect(() => new Context(invalidConfig, mockUtils)).toThrow('CONFIG.CONSTANTS is not an object');
         });
 
-        it('should throw error if CONFIG.CONSTANTS.CONTEXT_INIT is missing', () => {
+        it('should throw error if CONFIG.CONSTANTS.CONTEXT.INIT is missing', () => {
             const invalidConfig = { CONSTANTS: {} };
-            expect(() => new Context(invalidConfig, mockUtils)).toThrow('CONFIG does not have a CONTEXT_INIT property');
+            expect(() => new Context(invalidConfig, mockUtils)).toThrow('CONFIG does not have a CONTEXT.INIT property');
         });
 
-         it('should throw error if CONFIG.CONSTANTS.CONTEXT_INIT is not an object', () => {
-             const invalidConfig = { CONSTANTS: { CONTEXT_INIT: 'string' } };
-             expect(() => new Context(invalidConfig, mockUtils)).toThrow('CONFIG.CONTEXT_INIT is not an object');
+         it('should throw error if CONFIG.CONSTANTS.CONTEXT.INIT is not an object', () => {
+             const invalidConfig = { CONSTANTS: { CONTEXT.INIT: 'string' } };
+             expect(() => new Context(invalidConfig, mockUtils)).toThrow('CONFIG.CONTEXT.INIT is not an object');
          });
 
-         it('should throw error if CONFIG.CONSTANTS.CONTEXT_INIT is empty', () => {
-             const invalidConfig = { CONSTANTS: { CONTEXT_INIT: {} } };
-             expect(() => new Context(invalidConfig, mockUtils)).toThrow('CONFIG.CONTEXT_INIT is an empty object');
+         it('should throw error if CONFIG.CONSTANTS.CONTEXT.INIT is empty', () => {
+             const invalidConfig = { CONSTANTS: { CONTEXT.INIT: {} } };
+             expect(() => new Context(invalidConfig, mockUtils)).toThrow('CONFIG.CONTEXT.INIT is an empty object');
          });
 
         it('should throw error if utils is missing', () => {
@@ -155,11 +155,11 @@ describe('Context', () => {
 
          it('should set this.remotecontextRoot to the default value provided in the config if not provided', () => {
              const context = new Context(mockConfig, mockUtils);
-             expect(context.remotecontextRoot).toBe(mockConfig?.CONSTANTS?.MODULE?.DEFAULTS?.REMOTE_CONTEXT_ROOT);
+             expect(context.remotecontextRoot).toBe(mockConfig?.CONSTANTS?.MODULE?.DEFAULTS?.CONTEXT.REMOTE.ROOT);
          });
 
          it('should set RemotecontextRoot to the fallback value of "module" if not provided and not in config', () => {
-            delete mockConfig.CONSTANTS.MODULE.DEFAULTS.REMOTE_CONTEXT_ROOT;
+            delete mockConfig.CONSTANTS.CONTEXT.DEFAULTS.REMOTE.ROOT;
             const context = new Context(mockConfig, mockUtils);
              expect(context.remotecontextRoot).toBe('module');
          });

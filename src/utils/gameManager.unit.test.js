@@ -12,7 +12,7 @@ describe("GameManager", () => {
         fakeModule = {};
         mockConfig = {
             CONSTANTS: {
-                CONTEXT_INIT: { init: true },
+                CONTEXT.INIT: { init: true },
                 MODULE: { ID: 'module1', CONTEXT_REMOTE: '/remote' }
             }
         };
@@ -42,7 +42,7 @@ describe("GameManager", () => {
         it('should update config and constants', () => {
             const newConfig = {
                 CONSTANTS: {
-                    CONTEXT_INIT: { init: false },
+                    CONTEXT.INIT: { init: false },
                     MODULE: { ID: 'module2', CONTEXT_REMOTE: '/newRemote' }
                 }
             };

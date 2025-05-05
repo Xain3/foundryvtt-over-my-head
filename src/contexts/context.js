@@ -1,7 +1,7 @@
 import Base from '../baseClasses/base.js';
-import ContextExtractor from './contextHelpers/contextExtractor.js';
-import ContextInitializer from './contextHelpers/contextInitializer.js';
-import RemoteContextManager from './contextHelpers/remoteContextManager.js';
+import ContextExtractor from './contextsHelpers/contextExtractor.js';
+import ContextInitializer from './contextsHelpers/contextInitializer.js';
+import RemoteContextManager from './remote.js';
 
 const validKeyTypes = ['string', 'symbol', 'number'];
 
@@ -17,7 +17,7 @@ const validKeyTypes = ['string', 'symbol', 'number'];
  * 
  * @property {Object} extractor - The context extractor instance for extracting context information.
  * @property {Object} originalConfig - The original configuration object passed to the constructor.
- * @property {Object} config - The processed configuration object with CONTEXT_INIT removed.
+ * @property {Object} config - The processed configuration object with CONTEXT.INIT removed.
  * @property {Object} initialState - The initial state of the context, extracted from the configuration.
  * @property {Object} state - The current state of the context, initialized as an empty object.
  * @property {Object} remoteContextManager - The remote context manager instance for handling remote operations.
@@ -44,9 +44,9 @@ class Context extends Base {
      * @param {string} [remotecontextRoot='module'] - The source for the remote context (e.g., 'module', 'game.settings', 'user').
      * @throws {Error} Throws an error if the configuration or utility object is not defined or not an object.
      * @throws {Error} Throws an error if the validator or game manager is not defined in the utility object.
-     * @throws {Error} Throws an error if the CONFIG object does not contain the CONTEXT_INIT property.
-     * @throws {Error} Throws an error if the CONTEXT_INIT property is not defined in the configuration object.
-     * @throws {Error} Throws an error if the CONTEXT_INIT property is not an object.
+     * @throws {Error} Throws an error if the CONFIG object does not contain the CONTEXT.INIT property.
+     * @throws {Error} Throws an error if the CONTEXT.INIT property is not defined in the configuration object.
+     * @throws {Error} Throws an error if the CONTEXT.INIT property is not an object.
      * 
      */
     constructor(CONFIG, utils, initializeContext=true, remotecontextRoot = '') {
@@ -74,14 +74,14 @@ class Context extends Base {
             if (typeof config.CONSTANTS !== 'object') {
                 throw new Error('CONFIG.CONSTANTS is not an object. Cannot initialize context');
             }
-            if (!config.CONSTANTS.CONTEXT_INIT) {
-                throw new Error('CONFIG does not have a CONTEXT_INIT property. Cannot initialize context');
+            if (!config.CONSTANTS.CONTEXT.INIT) {
+                throw new Error('CONFIG does not have a CONTEXT.INIT property. Cannot initialize context');
             }
-            if (typeof config.CONSTANTS.CONTEXT_INIT !== 'object') {
-                throw new Error('CONFIG.CONTEXT_INIT is not an object. Cannot initialize context');
+            if (typeof config.CONSTANTS.CONTEXT.INIT !== 'object') {
+                throw new Error('CONFIG.CONTEXT.INIT is not an object. Cannot initialize context');
             }
-            if (Object.keys(config.CONSTANTS.CONTEXT_INIT).length === 0) {
-                throw new Error('CONFIG.CONTEXT_INIT is an empty object. Cannot initialize context');
+            if (Object.keys(config.CONSTANTS.CONTEXT.INIT).length === 0) {
+                throw new Error('CONFIG.CONTEXT.INIT is an empty object. Cannot initialize context');
             }
             // Check if utils is defined and has the required properties
             if (!utils) {
@@ -108,7 +108,7 @@ class Context extends Base {
         this.originalConfig = CONFIG;
         const { CONFIG: newConfig, contextInit } = this.extractor.extractContextInit(CONFIG);
         this.config = newConfig; // Override the config from Base with the processed one
-        this.remotecontextRoot = remotecontextRoot || this.originalConfig?.CONSTANTS?.MODULE?.DEFAULTS?.REMOTE_CONTEXT_ROOT || 'module';
+        this.remotecontextRoot = remotecontextRoot || this.originalConfig?.CONSTANTS?.MODULE?.DEFAULTS?.CONTEXT.REMOTE.ROOT || 'module';
         this.remoteContextManager = new RemoteContextManager(this.remotecontextRoot, newConfig); // Also use newConfig here if intended
         this.initializer = ContextInitializer; // Assuming these are static classes or objects
         this.validate = utils.validator;
@@ -206,7 +206,7 @@ class Context extends Base {
      */
     clearRemoteContext() {
         // Call the manager's clearRemoteContext with no arguments
-        this.remoteContextManager.clearRemoteContext();
+        this.remoteContextManager.clear();
     }
 
     /**
@@ -250,7 +250,7 @@ class Context extends Base {
      */
     syncState() {
         // Pass the local state object to the manager's syncState
-        this.remoteContextManager.syncState(this.state);
+        this.remoteContextManager.sync(this.state);
     }
 
     /**
@@ -288,7 +288,7 @@ class Context extends Base {
         // The manager holds the source object, not just the string name after initialization.
         // Returning the initial source string might be more useful for the user.
         // if this exact functionality is required. For now, returning the manager's source object.
-        return this.remoteContextManager.remotecontextRoot;  
+        return this.remoteContextManager.root;  
     }
     /**
      * Accessing the initial config or storing the source string separately might be needed
@@ -310,7 +310,7 @@ class Context extends Base {
    
     /**
      * Retrieves the configuration value for a given key or the entire configuration object (`this.config`).
-     * Note: This retrieves the processed config (CONTEXT_INIT removed). Use `this.originalConfig` for the initial one.
+     * Note: This retrieves the processed config (CONTEXT.INIT removed). Use `this.originalConfig` for the initial one.
      *
      * @param {string|null} [key=null] - The key of the configuration value to retrieve. If null, the entire configuration object is returned.
      * @param {boolean} [pullFirst=false] - If true, the state is pulled before retrieving the configuration.
@@ -391,7 +391,7 @@ class Context extends Base {
         if (pushChange || remoteOnly) {
             // Construct the path and push the specific property change
             const path = `data.${String(key)}`; // Ensure key is string for path
-            this.remoteContextManager.updateRemoteProperty(path, value);
+            this.remoteContextManager.updateProperty(path, value);
         }
     }
 
@@ -406,9 +406,9 @@ class Context extends Base {
             // Use the manager's method to change the source
             this.remoteContextManager.setRemotecontextRoot(remoteSource); 
             // Re-set the remote context based on the new source
-            this.remoteContextManager.setRemoteContext(
+            this.remoteContextManager.set(
                 remoteSource, 
-                this.remoteContextManager.remoteObjectName
+                this.remoteContextManager.location
             );
             
             // Update local timestamp as the context definition changed
@@ -448,7 +448,7 @@ class Context extends Base {
 
         if (pushChange || remoteOnly) {
             const path = `flags.${String(key)}`; // Ensure key is string for path
-            this.remoteContextManager.updateRemoteProperty(path, value);
+            this.remoteContextManager.updateProperty(path, value);
         }
     }
     

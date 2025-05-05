@@ -1,3 +1,5 @@
+import Timestamp from './timestamp.js';
+
 /**
  * Represents a unit within a context, managing its value, timestamp, options,
  * and optionally enforcing type constraints on its children, particularly when the value
@@ -12,38 +14,43 @@
  *
  * @property {*} value - The core data stored by this unit.
  * @property {Object} options - A free-form object for storing additional configuration or metadata associated with the unit. Defaults to `{}`.
- * @property {number} timestamp - A Unix timestamp (milliseconds since epoch) indicating when the unit was last modified or created. Defaults to `Date.now()`.
+ * @property {Timestamp} timestamp - A Timestamp instance managing created, modified, and accessed times.
  *
  * @private
  * @property {string[]} #acceptedChildrenTypes - An array of constructor names (as strings) that are considered valid types for the children, particularly when `#enforceChildrenType` is enabled. Defaults to `['ContextProperty']`.
  * @property {string|number} #timestampBehavior - Defines how the `timestamp` should be handled during updates via the `set` method. Can be 'update', 'keep', or a number. Defaults to 'update'.
  * @property {boolean} #enforceChildrenType - If true, the `set` method will validate the type of the assigned children against `#acceptedChildrenTypes` using `_ensureChildrenTypeIsAccepted`. Defaults to `false`.
  * @property {boolean} #enforceOnlyForObject - If `#enforceChildrenType` is true, this flag determines if the type check should only be performed when the children are an object type. Defaults to `true`.
+ * @property {Timestamp} #timestamp - Internal Timestamp instance.
  */
+
 export class ContextUnit {
   #acceptedChildrenTypes;
   #timestampBehavior;
   #enforceChildrenType;
   #enforceOnlyForObject;
+  #timestamp; // Use Timestamp instance
+
   constructor({
-    value, 
-    acceptedChildrenTypes = ['ContextProperty'], 
-    options = {}, 
-    timestamp = Date.now(),
+    value,
+    acceptedChildrenTypes = ['ContextProperty'],
+    options = {},
+    timestamp = Date.now(), // Initial timestamp value
     timestampBehavior = 'update',
-    enforceChildrenType = false, 
+    enforceChildrenType = false,
     enforceOnlyForObject = true,
   }) {
     this.#acceptedChildrenTypes = acceptedChildrenTypes;
     this.value = value;
     this.options = options;
-    this.timestampCreated = timestamp;
-    this.timestampModified = timestamp;
-    this.timestampAccessed = timestamp;
+    this.#timestamp = new Timestamp(); // Initialize Timestamp instance
+    // If an initial timestamp was provided, set all times to it
+    if (typeof timestamp === 'number') {
+        this.#timestamp.setTimestamp('all', timestamp);
+    }
     this.#timestampBehavior = timestampBehavior;
     this.#enforceChildrenType = enforceChildrenType;
     this.#enforceOnlyForObject = enforceOnlyForObject;
-    
   }
 
   
@@ -79,49 +86,37 @@ export class ContextUnit {
   }
 
   /**
-   * Updates the timestamp property of the instance.
+   * Updates the timestamp property of the instance using the internal Timestamp object.
    *
-   * @param {number} [timestamp=Date.now()] - The new timestamp to set. Defaults to the current time if not provided.
-   * @throws {Error} Throws an error if the provided timestamp is not a number.
+   * @param {number} [timestamp=Date.now()] - The new timestamp value.
+   * @param {'created'|'modified'|'accessed'} [target='modified'] - Which timestamp to update.
    * @returns {this} Returns the instance for method chaining.
    */
   updateTimestamp(timestamp = Date.now(), target = 'modified') {
-    if (typeof timestamp !== 'number') {
-      throw new Error(`Invalid timestamp: ${timestamp}. Expected a number.`);
-    }
-    switch (target) {
-      case 'created': this.timestampCreated = timestamp; break;
-      case 'accessed': this.timestampAccessed = timestamp; break;
-      case 'modified':
-      default: this.timestampModified = timestamp; break;
-    }
+    this.#timestamp.updateTimestamp(timestamp, target);
     return this;
   }
 
   /**
-   * Sets the timestamp behavior based on the provided value.
+   * Sets the timestamp behavior based on the provided value, interacting with the Timestamp instance.
    *
    * @private
-   * @param {'update'|'keep'| number} timestamp - Determines how the timestamp should be handled:
-   *   - 'update': Updates the timestamp to the current time.
-   *   - 'keep': Leaves the timestamp unchanged.
-   *   - number: Sets the timestamp to the specified numeric value.
-   * @throws {Error} If the provided timestamp is not 'update', 'keep', 'overwrite', or a number.
+   * @param {'update'|'keep'| number} timestampBehaviorValue - Determines how the timestamp should be handled.
    */
-  
-  #setTimestampBehavior(timestamp) {
-    switch (timestamp) {
+  #setTimestampBehavior(timestampBehaviorValue) {
+    switch (timestampBehaviorValue) {
       case 'update':
-        this.updateTimestamp();
+        this.#timestamp.updateTimestamp(Date.now(), 'modified'); // Update modified time
         break;
       case 'keep':
         // Do nothing
         break;
       default:
-        if (typeof timestamp !== 'number') {
-          throw new Error(`Invalid timestamp behavior: ${timestamp}. Expected 'update', 'keep', or a timestamp number.`);
+        if (typeof timestampBehaviorValue !== 'number') {
+          throw new Error(`Invalid timestamp behavior: ${timestampBehaviorValue}. Expected 'update', 'keep', or a timestamp number.`);
         }
-        this.updateTimestamp(timestamp);
+        // If a number is provided, treat it as setting the 'modified' timestamp
+        this.#timestamp.updateTimestamp(timestampBehaviorValue, 'modified');
         break;
     }
   }
@@ -267,23 +262,24 @@ export class ContextUnit {
   }
 
   /**
-   * Retrieves a value based on the provided key.
-   * If no key is provided, returns the default value.
+   * Retrieves a value based on the provided key. Updates accessed timestamp if recordAccess is true.
    *
    * @param {string|null} [key=null] - The key to retrieve the value for. If null, returns the whole context property's value.
+   * @param {boolean} [recordAccess=true] - Whether to update the accessed timestamp.
    * @returns {*} The value associated with the key, or the default value if no key is provided.
    */
   get(key = null, recordAccess = true) {
     if (key === null) {
-      return this.getValue();
+      return this.getValue(recordAccess); // Pass recordAccess down
     }
-    return this.getKey(key);
+    return this.getKey(key, recordAccess); // Pass recordAccess down
   }
 
   /**
-   * Retrieves the value associated with the specified key from the context property.
+   * Retrieves the value associated with the specified key from the context property. Updates accessed timestamp if recordAccess is true.
    *
    * @param {string} key - The key whose value should be retrieved.
+   * @param {boolean} [recordAccess=true] - Whether to update the accessed timestamp.
    * @returns {*} The value associated with the given key.
    * @throws {Error} If the key is not a string or does not exist in the context property.
    */
@@ -295,55 +291,53 @@ export class ContextUnit {
       throw new Error(`Key "${key}" does not exist in the context property.`);
     }
     if (recordAccess) {
-      this.updateTimestamp(Date.now(), 'accessed');
+      this.#timestamp.updateTimestamp(Date.now(), 'accessed'); // Update accessed time
     }
     return this.value[key];
   }
 
   /**
-   * Gets the current value of the whole context property.
+   * Gets the current value of the whole context property. Updates accessed timestamp if recordAccess is true.
+   * @param {boolean} [recordAccess=true] - Whether to update the accessed timestamp.
    * @returns {*} The current value.
    */
   getValue(recordAccess = true) {
     if (recordAccess) {
-      this.updateTimestamp(Date.now(), 'accessed');
+      this.#timestamp.updateTimestamp(Date.now(), 'accessed'); // Update accessed time
     }
     return this.value;
   }
 
   /**
-   * Gets the timestamp associated with this context property.
-   * @returns {number} The timestamp value.
+   * Gets the specified timestamp ('created', 'modified', 'accessed') from the internal Timestamp object.
+   * @param {'created'|'modified'|'accessed'} [target='modified'] - Which timestamp to retrieve.
+   * @returns {Date} The requested timestamp Date object.
    */
   getTimestamp(target = 'modified') {
-    switch (target) {
-      case 'created': return this.timestampCreated;
-      case 'accessed': return this.timestampAccessed;
-      case 'modified':
-      default: break;
-    }
-    return this.timestampModified;
+    return this.#timestamp.getTimestamp(target); // Delegate to Timestamp instance
   }
 
   /**
-   * Retrieves properties of the context property instance based on the provided flags.
+   * Retrieves properties of the context property instance based on the provided flags. Updates accessed timestamp if recordAccess is true.
    *
    * @param {boolean} [returnValue=true] - Whether to include the 'value' property in the returned object.
-   * @param {boolean} [returnTimestamp=true] - Whether to include the 'timestamp' property in the returned object.
+   * @param {boolean} [returnTimestamp=true] - Whether to include the 'timestamp' property (modified time) in the returned object.
    * @param {boolean} [returnOptions=false] - Whether to include the 'options' property in the returned object.
-   * @returns {object} An object containing the requested properties. It can include 'value', 'timestamp', and 'options' depending on the input flags.
+   * @param {boolean} [recordAccess=true] - Whether to update the accessed timestamp.
+   * @returns {object} An object containing the requested properties.
    */
   getProperty(
-    returnValue = true, 
-    returnTimestamp = true, 
-    returnOptions = false, 
+    returnValue = true,
+    returnTimestamp = true,
+    returnOptions = false,
     recordAccess = true) {
     if (recordAccess) {
-      this.updateTimestamp(Date.now(), 'accessed');
+      this.#timestamp.updateTimestamp(Date.now(), 'accessed'); // Update accessed time
     }
     const output = {};
     if (returnValue) output.value = this.value;
-    if (returnTimestamp) output.timestamp = this.timestampModified;
+    // Return the 'modified' timestamp Date object
+    if (returnTimestamp) output.timestamp = this.#timestamp.getTimestamp('modified');
     if (returnOptions) output.options = this.options;
     return output;
   }
@@ -418,6 +412,102 @@ export class ContextContainer extends ContextUnit {
       timestampBehavior,
       enforceChildrenType: true, 
       enforceOnlyForObject: false,
-    });
+    })
+  }
+
+  /**
+   * Retrieves content from a specified value object based on the given mode.
+   *
+   * @param {any} value - The source object or container from which to retrieve content.
+   * @param {string} [mode='properties'] - Specifies the type of content to retrieve.
+   *   Possible values:
+   *   - 'properties': Retrieves container properties (default).
+   *   - 'containers': Retrieves inner containers.
+   *   - 'units': Retrieves both properties and inner containers.
+   *   - 'values': Retrieves the values of content properties.
+   *   - 'all': Retrieves container properties and their values.
+   *   If an invalid mode is provided, it defaults to 'properties'.
+   * @returns {object} An object containing the retrieved content based on the specified mode.
+   */
+  getContent(value, mode = 'properties') {
+    const resultObj = {};
+    switch (mode) {
+      case 'properties':
+        this.#retrieveContainerProperties(value, resultObj);
+        break;
+      case 'containers':
+        this.#retrieveInnerContainers(value, resultObj);
+        break;
+      case 'units':
+        this.#retrieveContainerProperties(value, resultObj);
+        this.#retrieveInnerContainers(value, resultObj);
+        break;
+      case 'values':
+        this.#getContentPropertiesValues(value, resultObj);
+        break;
+      case 'all':
+        this.#retrieveContainerProperties(value, resultObj);
+        this.#getContentPropertiesValues(value, resultObj);
+        break;
+      default:
+        console.error(`Invalid mode "${mode}" specified. Defaulting to 'properties'.`);
+        this.#retrieveContainerProperties(value, resultObj);
+        break;
+    }
+    return resultObj;
+  }
+
+  /**
+   * Retrieves properties from the given object that are instances of `ContextProperty`
+   * and adds them to the provided result object.
+   *
+   * @private
+   * @param {Object} value - The object to retrieve properties from.
+   * @param {Object} resultObj - The object to store the retrieved properties.
+   * @returns {Object} The updated result object containing the retrieved properties.
+   */
+  #retrieveContainerProperties(value, resultObj) {
+    for (const key in value) {
+      if (value[key] instanceof ContextProperty) {
+        resultObj[key] = value[key];
+      }
+    }
+    return resultObj;
+  }
+
+  /**
+   * Retrieves all properties from the given object that are instances of `ContextContainer`
+   * and adds them to the provided result object.
+   *
+   * @private
+   * @param {Object} value - The object to search for `ContextContainer` instances.
+   * @param {Object} resultObj - The object to store the found `ContextContainer` instances.
+   * @returns {Object} The updated result object containing the found `ContextContainer` instances.
+   */
+  #retrieveInnerContainers(value, resultObj) {
+    for (const key in value) {
+      if (value[key] instanceof ContextContainer) {
+        resultObj[key] = value[key];
+      }
+    }
+    return resultObj;
+  }
+
+  /**
+   * Extracts the values of properties from the given object that are instances of `ContextProperty`
+   * and assigns them to the corresponding keys in the result object.
+   *
+   * @private
+   * @param {Object} value - The input object containing properties to be evaluated.
+   * @param {Object} resultObj - The object where the extracted property values will be stored.
+   * @returns {Object} The updated result object with extracted property values.
+   */
+  #getContentPropertiesValues(value, resultObj) {
+      for (const key in value) {
+        if (value[key] instanceof ContextProperty) {
+          resultObj[key] = value[key].get();
+      }
+    }
+    return resultObj;
   }
 }

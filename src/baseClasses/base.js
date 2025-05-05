@@ -117,6 +117,15 @@ class Base {
     this.debugMode = this.parsedArgs.shouldLoadDebugMode ? this.getDebugMode() : false;
     }
 
+    /**
+     * Retrieves the module instance from the game's module registry.
+     *
+     * @param {Object} [options={}] - Options for retrieving the module.
+     * @param {boolean} [options.setProperty=true] - Whether to set the retrieved module to `this.module`.
+     * @param {boolean} [options.returnValue=true] - Whether to return the retrieved module.
+     * @returns {Object} The retrieved module instance, or an empty object if retrieval fails.
+     * @throws {Error} If the game object, module constants, or the module itself are not available.
+     */
     getModule({ setProperty = true, returnValue = true } = {}) {
     try {
             if (!this.game) {

@@ -25,7 +25,7 @@ describe('HookFormatter', () => {
       },
       CONSTANTS: {
         MODULE: {
-          SHORT_NAME: 'Mod_',
+          SHORT_NAME: 'Mod_', // This mock value is used by hookFormatter instance
           DEFAULTS : {
             DEBUG_MODE: false,
           }

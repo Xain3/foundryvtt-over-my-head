@@ -1,3 +1,4 @@
+import moduleManifest from '@manifest';
 // .src/baseClasses/base.js
 
 export const DEFAULT_ARGS = {
@@ -24,11 +25,11 @@ export const ORDERED_KEYS = [
 
 /**
  * Base class providing core functionality for module components.
- * 
+ *
  * This class handles initialization with configuration parameters, context setting,
  * constants management, and debug mode. It supports both named parameter and positional
  * argument initialization patterns.
- * 
+ *
  * @class Base
  * @property {Object|null} config - Configuration settings for the component
  * @property {Object|null} context - Execution context for the component
@@ -39,9 +40,10 @@ export const ORDERED_KEYS = [
  * @property {boolean|null} debugMode - Whether debug mode is enabled
  */
 class Base {
+    #manifest;
     /**
-     * 
-     * @param {Object} config - The configuration object containing constants. 
+     *
+     * @param {Object} config - The configuration object containing constants.
      * @param {Object} context - The execution context. Default is null.
      * @param {Object} globalContext - The global object. Default is globalThis.
      * @param {boolean} shouldLoadConfig - Whether to load the configuration object. Default is true.
@@ -50,14 +52,15 @@ class Base {
      * @param {boolean} shouldLoadDebugMode - Whether to load the debug mode. Default is false.
      */
     constructor(...args) {
+        this.#manifest = moduleManifest;
         const parseArgs = (args) => {
             if (args.length === 0) {
                 throw new Error('No arguments provided.');
             }
-            
+
             const firstArg = args[0];
             const output = { ...DEFAULT_ARGS };
-            
+
             // If the first argument is not an object, throw an error
             if (typeof firstArg !== 'object') {
                 throw new Error('First argument should be an object');
@@ -78,8 +81,8 @@ class Base {
             // treat it as a config object
             if (args.length === 1 && typeof firstArg === 'object') {
                 console.warn('Positional arguments are being discontinued and used for backwards compatibility. Please use named parameters.');
-                return { 
-                    config: firstArg, 
+                return {
+                    config: firstArg,
                     context: DEFAULT_ARGS.context,
                     globalContext: DEFAULT_ARGS.globalContext,
                     shouldLoadConfig: DEFAULT_ARGS.shouldLoadConfig,
@@ -100,13 +103,13 @@ class Base {
                 return output;
             }
         };
-        
+
     this.parsedArgs = parseArgs(args);
-    
-    this.validateLoadParameters(
+
+    this.#validateLoadParameters(
         this.parsedArgs
     );
-    
+
     this.globalContext = this.parsedArgs.globalContext ?? globalThis;
     this.config = this.parsedArgs.shouldLoadConfig ? this.parsedArgs.config : null;
     this.context = this.parsedArgs.shouldLoadContext ? this.parsedArgs.context : null;
@@ -115,6 +118,123 @@ class Base {
     this.game = this.parsedArgs.shouldLoadGame ? this.getGameObject() : null;
     this.module = this.parsedArgs.shouldLoadGame ? this.getModule({ setProperty: false }) : null;
     this.debugMode = this.parsedArgs.shouldLoadDebugMode ? this.getDebugMode() : false;
+    }
+
+    #handleValidationError(behaviour, error) {
+        switch (behaviour) {
+            case 'throw':
+                throw error;
+            case 'warn':
+                console.warn('Config validation failed:', error.message);
+                return false;
+            case 'log':
+                console.log('Config validation failed:', error.message);
+                return false;
+            case 'return':
+                return false;
+            default:
+                console.error('Config validation failed:', error.message);
+                return false;
+        }
+    }
+
+
+    #validateConfig(config, behaviour = 'throw') {
+        try {
+            if (!config) {
+                throw new Error('Config is not defined.');
+            }
+            if (typeof config !== 'object') {
+                throw new Error(`Config should be an object. Received: ${typeof config}.`);
+            }
+            if (Object.keys(config).length === 0) {
+                throw new Error('Config is an empty object.');
+            }
+        } catch (error) {
+            return this.#handleValidationError(behaviour, error);
+        }
+        return true;
+    }
+
+    #validateLoadParameters(args) {
+        if (args.shouldLoadConfig && !args.config) {
+            throw new Error('Config is set up to be loaded, but no config was provided.');
+        }
+        if (args.shouldLoadConfig && args.config && typeof args.config !== 'object') {
+            throw new Error('Config is set up to be loaded, but config is not an object.');
+        }
+        if (args.shouldLoadContext && !args.context) {
+            throw new Error('Context is set up to be loaded, but no context was provided.');
+        }
+        if (args.shouldLoadContext && args.context && typeof args.context !== 'object') {
+            throw new Error('Context is set up to be loaded, but context is not an object.');
+        }
+        if (args.shouldLoadConfig && typeof args.shouldLoadConfig !== 'boolean') {
+            throw new Error('shouldLoadConfig should be a boolean.');
+        }
+        if (args.shouldLoadContext && typeof args.shouldLoadContext !== 'boolean') {
+            throw new Error('shouldLoadContext should be a boolean.');
+        }
+        if (args.shouldLoadGame && typeof args.shouldLoadGame !== 'boolean') {
+            throw new Error('shouldLoadGame should be a boolean.');
+        }
+        if (args.shouldLoadDebugMode && typeof args.shouldLoadDebugMode !== 'boolean') {
+            throw new Error('shouldLoadDebugMode should be a boolean.');
+        }
+    }
+
+    #getManifest() {
+        return this.#manifest;
+    }
+
+    #getNameFromManifest() {
+        return this.#manifest.name;
+    }
+
+    #getTitleFromManifest() {
+        return this.#manifest.title;
+    }
+
+    #getShortNameFromManifest() {
+        return this.#manifest.shortName;
+    }
+
+    #getIdFromManifest() {
+        return this.#manifest.id;
+    }
+
+    #getNamesFromManifest() {
+        return {
+            name: this.getNameFromManifest(),
+            title: this.getTitleFromManifest(),
+            shortName: this.getShortNameFromManifest(),
+            id: this.getIdFromManifest()
+        };
+    }
+
+    #getConstantsFromManifest() {
+        return this.#manifest.constants;
+    }
+
+    getFromManifest(target) {
+        switch (target) {
+            case 'manifest':
+                return this.#getManifest();
+            case 'name':
+                return this.#getNameFromManifest();
+            case 'title':
+                return this.#getTitleFromManifest();
+            case 'shortName':
+                return this.#getShortNameFromManifest();
+            case 'id':
+                return this.#getIdFromManifest();
+            case 'names':
+                return this.#getNamesFromManifest();
+            case 'constants':
+                return this.#getConstantsFromManifest();
+            default:
+                throw new Error(`Invalid target: ${target}`);
+        }
     }
 
     /**
@@ -152,49 +272,22 @@ class Base {
                 return {};
             }
         }
-    
+
     }
-            
 
     /**
      * Validates the load parameters.
-     * 
+     *
      * @method validateLoadParameters
      * @param {boolean} shouldLoadConfig - Whether to load the configuration object.
      * @param {Object} config - The configuration object.
      * @param {boolean} shouldLoadContext - Whether to load the context object.
      * @param {Object} context - The context object.
      */
-    validateLoadParameters(args) {
-        if (args.shouldLoadConfig && !args.config) {
-            throw new Error('Config is set up to be loaded, but no config was provided.');
-        }
-        if (args.shouldLoadConfig && args.config && typeof args.config !== 'object') {
-            throw new Error('Config is set up to be loaded, but config is not an object.');
-        }
-        if (args.shouldLoadContext && !args.context) {
-            throw new Error('Context is set up to be loaded, but no context was provided.');
-        }
-        if (args.shouldLoadContext && args.context && typeof args.context !== 'object') {
-            throw new Error('Context is set up to be loaded, but context is not an object.');
-        }
-        if (args.shouldLoadConfig && typeof args.shouldLoadConfig !== 'boolean') {
-            throw new Error('shouldLoadConfig should be a boolean.');
-        }
-        if (args.shouldLoadContext && typeof args.shouldLoadContext !== 'boolean') {
-            throw new Error('shouldLoadContext should be a boolean.');
-        }
-        if (args.shouldLoadGame && typeof args.shouldLoadGame !== 'boolean') {
-            throw new Error('shouldLoadGame should be a boolean.');
-        }
-        if (args.shouldLoadDebugMode && typeof args.shouldLoadDebugMode !== 'boolean') {
-            throw new Error('shouldLoadDebugMode should be a boolean.');
-        }
-    }
 
     /**
      * Retrieves the debug mode flag.
-     * 
+     *
      * @method getDebugMode
      * @param {boolean} fallback - The fallback value if the flag is not found. Default is false.
      * @returns {boolean} The debug mode flag.
@@ -232,7 +325,14 @@ class Base {
      * @method getConstants
      * @returns {Object|null} The constants object or null if not found.
      */
-    getConstants() {
+    getConstants(source = "config") {
+        manifestConstants = this.#manifest?.constants ?? null;
+        if (manifestConstants && source === "manifest") {
+            return manifestConstants;
+        }
+        if (source === "config") {
+            return this.config?.CONSTANTS ?? null;
+        }
         const output = this.config?.CONSTANTS ?? null;
         if (!output) {
             console.warn('No constants object found.');

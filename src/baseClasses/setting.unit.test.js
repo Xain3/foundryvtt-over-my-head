@@ -64,7 +64,7 @@ describe('Setting', () => {
             const settingToCheck = mockSetting;
             const settingProps = { ...settingToCheck.props };
             delete settingProps.name;
-            const expectedMessage = `${setting.moduleShortName} | Missing essential property: name`;
+            const expectedMessage = `${config.CONSTANTS.MODULE.SHORT_NAME} | Missing essential property: name`; // Uses SHORT_NAME from MockConfig
             console.error = jest.fn();
             setting.ensureEssentialProperties(settingProps);
             expect(console.error).toHaveBeenCalledWith(expect.stringContaining(expectedMessage));
@@ -86,7 +86,7 @@ describe('Setting', () => {
             const settingToCheck = mockSetting;
             const settingProps = { ...settingToCheck.props };
             settingProps.invalidProperty = "invalid";
-            const expectedMessage = `${setting.moduleShortName} | Invalid property: invalidProperty`;
+            const expectedMessage = `${config.CONSTANTS.MODULE.SHORT_NAME} | Invalid property: invalidProperty`; // Uses SHORT_NAME from MockConfig
             console.error = jest.fn();
             setting.ensureValidProperties(settingProps);
             expect(console.error).toHaveBeenCalledWith(expect.stringContaining(expectedMessage));
@@ -108,7 +108,7 @@ describe('Setting', () => {
             const settingToCheck = mockSetting;
             const settingProps = { ...settingToCheck.props };
             settingProps.name = 1;
-            const expectedMessage = `${setting.moduleShortName} | Invalid type for property`;
+            const expectedMessage = `${config.CONSTANTS.MODULE.SHORT_NAME} | Invalid type for property`; // Uses SHORT_NAME from MockConfig
             console.error = jest.fn();
             setting.ensureValidPropertyTypes(settingProps);
             expect(console.error).toHaveBeenCalledWith(expect.stringContaining(expectedMessage));

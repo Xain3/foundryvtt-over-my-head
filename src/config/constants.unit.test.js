@@ -1,5 +1,13 @@
 import CONSTANTS, { MODULE, Constants, CONTEXT } from './constants.js';
 
+// Mock the module.json import
+jest.mock('../../module.json', () => ({
+    id: "mock-id-from-json",
+    title: "Mock Title From JSON",
+    shortName: "MJSON",
+    // Add any other properties from module.json that constants.js might use directly or indirectly
+}), { virtual: true });
+
 describe('MODULE constant', () => {
     it('should be defined', () => {
         expect(MODULE).toBeDefined();
@@ -13,15 +21,18 @@ describe('MODULE constant', () => {
         expect(Object.keys(MODULE).length).toBeGreaterThan(0);
     });
 
-    it('should have SHORT_NAME and it should be a string', () => {
+    it('should have SHORT_NAME from module.json', () => {
+        expect(MODULE.SHORT_NAME).toBe('MJSON');
         expect(typeof(MODULE.SHORT_NAME)).toBe('string');
     });
 
-    it('should have ID and it should be a string', () => {
+    it('should have ID from module.json', () => {
+        expect(MODULE.ID).toBe('mock-id-from-json');
         expect(typeof(MODULE.ID)).toBe('string');
     });
 
-    it('should have NAME and it should be a string', () => {
+    it('should have NAME from module.json (title)', () => {
+        expect(MODULE.NAME).toBe('Mock Title From JSON');
         expect(typeof(MODULE.NAME)).toBe('string');
     });
 
@@ -56,23 +67,23 @@ describe('CONTEXT constant', () => {
     });
 
     it('should have INIT property and it should be an object', () => {
-        expect(CONTEXT.INIT).toBeDefined();
-        expect(typeof CONTEXT.INIT).toBe('object');
+        expect(CONTEXT.INITIAL_STATE).toBeDefined();
+        expect(typeof CONTEXT.INITIAL_STATE).toBe('object');
     });
 
     describe('INIT object', () => {
         it('should have flags property and it should be an object', () => {
-            expect(CONTEXT.INIT.flags).toBeDefined();
-            expect(typeof CONTEXT.INIT.flags).toBe('object');
+            expect(CONTEXT.INITIAL_STATE.flags).toBeDefined();
+            expect(typeof CONTEXT.INITIAL_STATE.flags).toBe('object');
         });
 
         it('should have flags.settingsReady property and it should be a boolean', () => {
-            expect(typeof CONTEXT.INIT.flags.settingsReady).toBe('boolean');
+            expect(typeof CONTEXT.INITIAL_STATE.flags.settingsReady).toBe('boolean');
         });
 
         it('should have data property and it should be an object', () => {
-            expect(CONTEXT.INIT.data).toBeDefined();
-            expect(typeof CONTEXT.INIT.data).toBe('object');
+            expect(CONTEXT.INITIAL_STATE.data).toBeDefined();
+            expect(typeof CONTEXT.INITIAL_STATE.data).toBe('object');
         });
     });
 
@@ -133,11 +144,14 @@ describe('CONTEXT constant', () => {
 
 
 describe('Constants class', () => {
-    it('should initialize with default values', () => {
+    it('should initialize with default values, sourcing MODULE from mocked module.json', () => {
         const constants = new Constants();
         // Check against the imported CONTEXT constant
         expect(constants.CONTEXT).toEqual(CONTEXT);
-        expect(constants.MODULE).toBe(MODULE);
+        // MODULE should now reflect values from the mocked module.json
+        expect(constants.MODULE.ID).toBe('mock-id-from-json');
+        expect(constants.MODULE.NAME).toBe('Mock Title From JSON');
+        expect(constants.MODULE.SHORT_NAME).toBe('MJSON');
         expect(constants.LOCALIZATION).toEqual({
             SETTINGS: "settings",
         });
@@ -173,9 +187,9 @@ describe('Constants class', () => {
             }
         };
         const customModule = {
-            SHORT_NAME: "CustomOMH",
-            ID: "custom-foundryvtt-over-my-head",
-            NAME: "CustomOverMyHead",
+            SHORT_NAME: "CustomOMH_Test", // This will be used if module arg is passed
+            ID: "custom-id-test",
+            NAME: "CustomNameTest",
             DEFAULTS: {
                 DEBUG_MODE: false,
                 ONLY_GM: false,
@@ -202,7 +216,7 @@ describe('Constants class', () => {
         // Pass the custom context object
         const constants = new Constants(customContext, customModule, customLocalization, customHandlers);
         expect(constants.CONTEXT).toEqual(customContext);
-        expect(constants.MODULE).toEqual(customModule);
+        expect(constants.MODULE).toEqual(customModule); // Verifies custom module object is used
         expect(constants.LOCALIZATION).toEqual(customLocalization);
         expect(constants.HANDLERS).toEqual(customHandlers);
     });
@@ -218,8 +232,10 @@ describe('CONSTANTS instance', () => {
         expect(CONSTANTS.CONTEXT).toEqual(CONTEXT);
     });
 
-    it('should have the same MODULE property as MODULE constant', () => {
-        expect(CONSTANTS.MODULE).toBe(MODULE);
+    it('should have MODULE property reflecting mocked module.json values', () => {
+        expect(CONSTANTS.MODULE.ID).toBe('mock-id-from-json');
+        expect(CONSTANTS.MODULE.NAME).toBe('Mock Title From JSON');
+        expect(CONSTANTS.MODULE.SHORT_NAME).toBe('MJSON');
     });
 
     it('should have the correct LOCALIZATION property', () => {

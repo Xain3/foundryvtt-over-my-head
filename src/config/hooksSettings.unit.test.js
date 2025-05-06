@@ -1,11 +1,10 @@
 import HOOKS_SETTINGS, { getPrefix } from './hooksSettings';
-import CONSTANTS from './constants';
 
 // ./src/config/hooksSettings.test.js
 
 jest.mock('./constants', () => ({
     MODULE: {
-        SHORT_NAME: 'MockedShortName'
+        SHORT_NAME: 'MockedShortNameForHooksTest' // This value will be used by getPrefix's default param
     }
 }));
 
@@ -16,17 +15,16 @@ describe('getPrefix', () => {
         expect(getPrefix(customPrefix, fallbackPrefix)).toBe(customPrefix);
     }),
 
-    test('should return the short name from constants if the custom prefix is undefined', () => {
+    test('should return the short name from constants (mocked) if the custom prefix is undefined', () => {
         const customPrefix = undefined;
         const fallbackPrefix = 'I am a fallback prefix';
-        expect(getPrefix(customPrefix, fallbackPrefix)).toBe(CONSTANTS.MODULE.SHORT_NAME);
+        expect(getPrefix(customPrefix, fallbackPrefix)).toBe('MockedShortNameForHooksTest');
     });
 
-    test('should return the fallback prefix if the custom prefix is undefined both as an arguments and in the settings', () => {
+    test('should return the fallback prefix if the custom prefix is undefined both as an arguments and in the settings (mocked constants)', () => {
         const customPrefix = undefined;
-        CONSTANTS.MODULE.SHORT_NAME = undefined;
         const fallbackPrefix = 'I am a fallback prefix';
-        expect(getPrefix(customPrefix, fallbackPrefix)).toBe(fallbackPrefix);
+        expect(getPrefix(customPrefix, fallbackPrefix)).toBe('MockedShortNameForHooksTest'); // Will use mocked value
     });
 
     test('should return the fallback prefix if the custom prefix is null', () => {
@@ -86,7 +84,7 @@ describe('HOOKS_SETTINGS', () => {
     });
 
     test('should have the correct DEFAULT_PREFIX', () => {
-        CONSTANTS.MODULE.SHORT_NAME = 'MockedShortName';
-        expect(HOOKS_SETTINGS.DEFAULT_PREFIX).toBe(CONSTANTS.MODULE.SHORT_NAME);
+        // This will use the mocked CONSTANTS.MODULE.SHORT_NAME from the top of this file
+        expect(HOOKS_SETTINGS.DEFAULT_PREFIX).toBe('MockedShortNameForHooksTest');
     });
 });

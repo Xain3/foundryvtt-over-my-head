@@ -341,6 +341,29 @@ export class ContextUnit {
     if (returnOptions) output.options = this.options;
     return output;
   }
+
+  delete(key) {
+    try {
+      if (typeof key !== 'string') {
+        throw new Error(`Invalid key: ${key}. Expected a string.`);
+      }
+      if (!this.value.hasOwnProperty(key)) {
+        throw new Error(`Key "${key}" does not exist in the context property.`);
+      }
+      delete this.value[key];
+      this.#timestamp.updateTimestamp(Date.now(), 'modified'); // Update modified time
+      return this;
+    } catch (error) {
+      console.error(`Error deleting key "${key}":`, error);
+      return false;
+    }
+  }
+
+  clear() {
+    this.value = {};
+    this.#timestamp.updateTimestamp(Date.now(), 'modified'); // Update modified time
+    return this;
+  }
 }
 
 /**
@@ -416,48 +439,6 @@ export class ContextContainer extends ContextUnit {
   }
 
   /**
-   * Retrieves content from a specified value object based on the given mode.
-   *
-   * @param {any} value - The source object or container from which to retrieve content.
-   * @param {string} [mode='properties'] - Specifies the type of content to retrieve.
-   *   Possible values:
-   *   - 'properties': Retrieves container properties (default).
-   *   - 'containers': Retrieves inner containers.
-   *   - 'units': Retrieves both properties and inner containers.
-   *   - 'values': Retrieves the values of content properties.
-   *   - 'all': Retrieves container properties and their values.
-   *   If an invalid mode is provided, it defaults to 'properties'.
-   * @returns {object} An object containing the retrieved content based on the specified mode.
-   */
-  getContent(value, mode = 'properties') {
-    const resultObj = {};
-    switch (mode) {
-      case 'properties':
-        this.#retrieveContainerProperties(value, resultObj);
-        break;
-      case 'containers':
-        this.#retrieveInnerContainers(value, resultObj);
-        break;
-      case 'units':
-        this.#retrieveContainerProperties(value, resultObj);
-        this.#retrieveInnerContainers(value, resultObj);
-        break;
-      case 'values':
-        this.#getContentPropertiesValues(value, resultObj);
-        break;
-      case 'all':
-        this.#retrieveContainerProperties(value, resultObj);
-        this.#getContentPropertiesValues(value, resultObj);
-        break;
-      default:
-        console.error(`Invalid mode "${mode}" specified. Defaulting to 'properties'.`);
-        this.#retrieveContainerProperties(value, resultObj);
-        break;
-    }
-    return resultObj;
-  }
-
-  /**
    * Retrieves properties from the given object that are instances of `ContextProperty`
    * and adds them to the provided result object.
    *
@@ -509,5 +490,53 @@ export class ContextContainer extends ContextUnit {
       }
     }
     return resultObj;
+  }
+
+  /**
+   * Retrieves content from a specified value object based on the given mode.
+   *
+   * @param {any} value - The source object or container from which to retrieve content.
+   * @param {string} [mode='properties'] - Specifies the type of content to retrieve.
+   *   Possible values:
+   *   - 'properties': Retrieves container properties (default).
+   *   - 'containers': Retrieves inner containers.
+   *   - 'units': Retrieves both properties and inner containers.
+   *   - 'values': Retrieves the values of content properties.
+   *   - 'all': Retrieves container properties and their values.
+   *   If an invalid mode is provided, it defaults to 'properties'.
+   * @returns {object} An object containing the retrieved content based on the specified mode.
+   */
+  getContent(value, mode = 'properties') {
+    const resultObj = {};
+    switch (mode) {
+      case 'properties':
+        this.#retrieveContainerProperties(value, resultObj);
+        break;
+      case 'containers':
+        this.#retrieveInnerContainers(value, resultObj);
+        break;
+      case 'units':
+        this.#retrieveContainerProperties(value, resultObj);
+        this.#retrieveInnerContainers(value, resultObj);
+        break;
+      case 'values':
+        this.#getContentPropertiesValues(value, resultObj);
+        break;
+      case 'all':
+        this.#retrieveContainerProperties(value, resultObj);
+        this.#getContentPropertiesValues(value, resultObj);
+        break;
+      default:
+        console.error(`Invalid mode "${mode}" specified. Defaulting to 'properties'.`);
+        this.#retrieveContainerProperties(value, resultObj);
+        break;
+    }
+    return resultObj;
+  }
+
+  clear() {
+    this.value = {};
+    this.updateTimestamp(Date.now(), 'modified'); // Update modified time
+    return this;
   }
 }

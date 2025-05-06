@@ -51,14 +51,15 @@ class LocalContextInitializer {
   }
 
   // Updated initialize method
-  initialize(initialData = {}, initialFlags = {}, initialSettings = {} ) {
-      // Removed contextState recreation - initializer works on the state it was given
-      // Access keys from manager
-      console.log("Initializer: Populating context state..."); // Keep log for clarity
-      this.initializeData(initialData);
-      this.initializeFlags(initialFlags);
-      this.initializeSettings(initialSettings);
-      // Timestamps are handled by ContextContainer/Property and updated in the manager
+  initialize(initialData = {}, initialFlags = {}, initialSettings = {}, clear = true) {
+    if (clear) {
+        this.#contextState.clear(); // Clear context state if needed
+    }
+    console.log("Initializer: Populating context state...");
+    this.initializeData(initialData);
+    this.initializeFlags(initialFlags);
+    this.initializeSettings(initialSettings);
+    // Timestamps are handled by ContextContainer/Property and updated in the manager
   }
 }
 

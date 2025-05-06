@@ -5,7 +5,7 @@
   "shortName": "OMH",
   "version": "12.0.1-alpha1",
   "license": "Gnu GPL v3",
-  
+
   "compatibility": {
     "minimum": "12",
     "verified": "12"
@@ -52,6 +52,8 @@
   "url": "https://github.com/xain3/foundryvtt-vision-with-fade",
 
   "constants": {
+    "forNameUse": "tile",
+    "validatorSeparator": " || ",
     "context": {
       "initialState": {
         "flags": {

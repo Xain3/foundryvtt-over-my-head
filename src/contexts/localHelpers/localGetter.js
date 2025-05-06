@@ -150,11 +150,20 @@ class LocalContextGetter {
         return this.#getContainer(this.#manager.initialDataKey, key, updateTimestamp);
     }
 
+    
     #getFlags(key, updateTimestamp = true) {
         // Use manager's property for the key name
         return this.#getContainer(this.#manager.initialFlagsKey, key, updateTimestamp);
     }
 
+    /**
+     * Retrieves settings from context. If a key is provided, it retrieves the specific setting associated with that key.
+     *
+     * @private
+     * @param {string} key - The key for which to retrieve settings. If null, retrieves all settings.
+     * @param {boolean} [updateTimestamp=true] - Whether to update the timestamp when retrieving the settings.
+     * @returns {*} The settings object or value associated with the given key.
+     */
     #getSettings(key, updateTimestamp = true) {
         // Use manager's property for the key name
         return this.#getContainer(this.#manager.initialSettingsKey, key, updateTimestamp);

@@ -2,11 +2,38 @@
 import { ContextContainer, ContextProperty } from '@/baseClasses/contextUnits';
 import Timestamp from '@/baseClasses/timestamp.js'; // Import Timestamp
 import LocalContextGetter from './localHelpers/localGetter.js';
+import LocalContextSetter from './localHelpers/localSetter.js';
 import LocalContextInitializer from './localHelpers/localInitializer.js';
+import LocalContextEraser from './localHelpers/localEraser.js'; // Import the new eraser
 
+/**
+ * Manages a local context state, organizing data into distinct sections like 'data', 'flags', and 'settings'.
+ * This class acts as a central hub, delegating operations like getting, setting, erasing, and initializing
+ * context data to specialized helper classes (LocalContextGetter, LocalContextSetter, LocalContextEraser, LocalContextInitializer).
+ * It also maintains timestamps (created, modified, accessed) for the context itself.
+ *
+ * The context state is stored internally in a `ContextContainer` instance, which in turn holds separate
+ * `ContextContainer` instances for data, flags, and settings.
+ *
+ * @class LocalContextManager
+ * @param {object} [options={}] - Configuration options for the context manager.
+ * @param {object} [options.initialValues={data: {}, flags: {}, settings: {}}] - An object containing initial values for data, flags, and settings.
+ * @param {object} [options.initialData] - Specific initial data. Overrides `initialValues.data` if provided.
+ * @param {object} [options.initialFlags] - Specific initial flags. Overrides `initialValues.flags` if provided.
+ * @param {object} [options.initialSettings] - Specific initial settings. Overrides `initialValues.settings` if provided.
+ * @param {string} [options.initialDataKey='data'] - The key used to access the data section within the context state.
+ * @param {string} [options.initialFlagsKey='flags'] - The key used to access the flags section within the context state.
+ * @param {string} [options.initialSettingsKey='settings'] - The key used to access the settings section within the context state.
+ * @param {boolean} [options.initialize=true] - Whether to automatically initialize the context with initial values upon construction.
+ * @param {number|Date} [options.contextTimestamp=Date.now()] - The initial timestamp value to set for the context (used for created, modified, accessed initially).
+ * @param {string} [options.contextName='local'] - A name identifier for this context instance.
+ */
 class LocalContextManager {
     #contextState; // Private field to store context state
     #getter;       // Private field for the getter instance
+    #setter;       // Private field for the setter instance
+    #initializer;  // Private field for the initializer instance
+    #eraser;       // Private field for the eraser instance
     #timestamps;   // Private field for Timestamp instance
 
     // Public properties accessed by the getter
@@ -47,47 +74,46 @@ class LocalContextManager {
         this.contextName = contextName;
 
         // Create the main state container *first*
-        this.#contextState = this.#createNewContextState([initialDataKey, initialFlagsKey, initialSettingsKey]);
+        this.#contextState = this.createNewContextState([initialDataKey, initialFlagsKey, initialSettingsKey]);
 
         // Create the getter instance, passing the state and the manager instance
         this.#getter = new LocalContextGetter(this.#contextState, this);
 
+        // Create the setter instance, passing the state and the manager instance
+        this.#setter = new LocalContextSetter(this.#contextState, this);
+
+        // Create the eraser instance, passing the state and the manager instance
+        this.#eraser = new LocalContextEraser(this.#contextState, this); // Instantiate the eraser
+
         // Create and use the initializer, passing state and manager instance
-        this.initializer = new LocalContextInitializer(this.#contextState, this); // Updated instantiation
+        this.#initializer = new LocalContextInitializer(this.#contextState, this);
 
         // Initialize if requested
         if (initialize) this.initialize(this.initialData, this.initialFlags, this.initialSettings);
     }
 
-    // --- Timestamp Management Methods ---
+    // --- Timestamp Accessor ---
     /**
-     * Updates the manager's accessed timestamp.
-     * @param {number|Date} [timestamp=Date.now()] - The timestamp value.
+     * Provides access to the internal Timestamp instance.
+     * @returns {Timestamp} The Timestamp instance managing created, modified, and accessed times.
      */
-    updateAccessedTimestamp(timestamp = Date.now()) {
-        this.#timestamps.updateTimestamp(timestamp, 'accessed');
+    get timestamps() {
+        return this.#timestamps;
     }
+    // --- End Timestamp Accessor ---
 
-    /**
-     * Updates the manager's modified timestamp.
-     * @param {number|Date} [timestamp=Date.now()] - The timestamp value.
-     */
-    updateModifiedTimestamp(timestamp = Date.now()) {
-        this.#timestamps.updateTimestamp(timestamp, 'modified');
-    }
 
     /**
-     * Gets a specific timestamp from the manager.
-     * @param {'created'|'modified'|'accessed'} [mode='modified'] - The type of timestamp to retrieve.
-     * @returns {Date} The requested timestamp Date object.
+     * Creates a new context container and populates it with inner containers for specified keys.
+     * Optionally updates the managing object's modified timestamp based on the new container's creation time.
+     *
+     * @param {Array<string>} keys - An array of keys for which to create inner containers within the main context.
+     * @param {Function} [containerType=ContextContainer] - The constructor function/class to use for the main context container. Defaults to ContextContainer.
+     * @param {Function} [objectType=ContextContainer] - The constructor function/class to use for the inner containers (e.g., data, flags, settings). Defaults to ContextContainer.
+     * @param {boolean} [setContextTimestamp=true] - If true, updates the manager's modified timestamp using the creation timestamp of the new main container.
+     * @returns {ContextContainer} An instance of the specified `containerType`, populated with inner containers and configured with 'keep' timestamp behavior for manual management.
      */
-    getTimestamp(mode = 'modified') {
-        return this.#timestamps.getTimestamp(mode);
-    }
-    // --- End Timestamp Management Methods ---
-
-
-    #createNewContextState(
+    createNewContextState(
         keys,
         containerType = ContextContainer,
         objectType = ContextContainer, // Inner containers are also ContextContainers
@@ -101,7 +127,7 @@ class LocalContextManager {
         }
         if (setContextTimestamp) {
             // Use the container's creation time to set the manager's modified time
-            this.updateModifiedTimestamp(newContext.getTimestamp('created'));
+            this.#timestamps.updateTimestamp(newContext.getTimestamp('created'), 'modified');
         }
         return newContext;
     }
@@ -120,16 +146,30 @@ class LocalContextManager {
         return this.#getter.get(key, target, updateTimestamp);
     }
 
-    // --- Other Methods (initialize, set, erase, clear - remain here) ---
+    // --- Initializer Method (Delegates to the helper) ---
 
+    /**
+     * Initializes the context with provided data, flags, and settings.
+     * It delegates the core initialization logic to an internal initializer object
+     * and optionally updates the manager's modified timestamp based on the context's state.
+     *
+     * @param {object} [initialData={}] - The initial data to set for the context.
+     * @param {object} [initialFlags={}] - The initial flags to set for the context.
+     * @param {object} [initialSettings={}] - The initial settings to set for the context.
+     * @param {boolean} [setContextTimestamp=true] - Whether to update the manager's modified timestamp
+     *                                               based on the context state's modification time after initialization.
+     * @returns {void}
+     */
     initialize(initialData = {}, initialFlags = {}, initialSettings = {}, setContextTimestamp = true) {
         // Call initializer's method without passing state
-        this.initializer.initialize(initialData, initialFlags, initialSettings);
+        this.#initializer.initialize(initialData, initialFlags, initialSettings);
         if (setContextTimestamp) {
             // Update manager's modified timestamp based on the state's modification time
-            this.updateModifiedTimestamp(this.#contextState.getTimestamp('modified'));
+            this.#timestamps.updateTimestamp(this.#contextState.getTimestamp('modified'), 'modified');
         }
     }
+
+    // --- Setter Method (Delegates to the helper) ---
 
     /**
      * Sets or updates data in the context.
@@ -139,95 +179,65 @@ class LocalContextManager {
      * @param {'data'|'flags'|'settings'} [target='data'] - The section of the context to target.
      * @returns {boolean} - True if the operation was successful.
      */
-    set(key, value, target = 'data') {
-       try {
-            let targetKey;
-            switch(target) {
-                case 'data': targetKey = this.initialDataKey; break;
-                case 'flags': targetKey = this.initialFlagsKey; break;
-                case 'settings': targetKey = this.initialSettingsKey; break;
-                default:
-                    console.error(`Invalid target "${target}" for set operation.`);
-                    return false;
-            }
-
-            const targetContainer = this.#contextState.getKey(targetKey);
-            if (!targetContainer || !(targetContainer instanceof ContextContainer)) {
-                 console.error(`Target container "${targetKey}" not found or invalid.`);
-                 return false;
-            }
-
-            // Assuming key is a direct key within the target container for now
-            // If key is a path like 'user.preferences', more complex logic is needed
-            targetContainer.set(key, new ContextProperty({ value })); // Wrap value in ContextProperty
-
-            // Update manager's modified timestamp using the state's modified time
-            this.updateModifiedTimestamp(this.#contextState.getTimestamp('modified'));
-
+    set(key, value, target = 'data', behavior = 'set') {
+        try{
+            this.#setter.set(key, value, { target, behavior });
             return true;
-       } catch (error) {
-            console.error(`Error setting local context key "${key}" in target "${target}":`, error);
-            return false;
-       }
-    }
-
-    /**
-     * Erases data from the context.
-     * Needs refinement based on ContextContainer/ContextProperty structure.
-     * @param {string} key - The key or path (e.g., 'data.user.preferences') to erase.
-     * @param {'data'|'flags'|'settings'} [target='data'] - The section of the context to target.
-     * @returns {boolean} - True if data was found and erased, false otherwise.
-     */
-    erase(key, target = 'data') {
-        try {
-            let targetKey;
-            switch(target) {
-                case 'data': targetKey = this.initialDataKey; break;
-                case 'flags': targetKey = this.initialFlagsKey; break;
-                case 'settings': targetKey = this.initialSettingsKey; break;
-                default:
-                    console.error(`Invalid target "${target}" for erase operation.`);
-                    return false;
-            }
-            const targetContainer = this.#contextState.getKey(targetKey);
-             if (!targetContainer || !(targetContainer instanceof ContextContainer)) {
-                 console.error(`Target container "${targetKey}" not found or invalid.`);
-                 return false;
-            }
-
-            // Assuming key is direct for now. Use delete or similar on ContextContainer
-            const success = targetContainer.delete(key); // Assuming ContextContainer has a delete method
-
-            if (success) {
-                // Update manager's modified timestamp using the state's modified time
-                this.updateModifiedTimestamp(this.#contextState.getTimestamp('modified'));
-            }
-            return success;
-
         } catch (error) {
-            console.error(`Error erasing local context key "${key}" in target "${target}":`, error);
+            console.error(`Error setting local context key "${key}" in target "${target}":`, error);
             return false;
         }
     }
 
+    // --- Eraser Method (Delegates to the helper) ---
+
     /**
-     * Clears the entire context by re-initializing the state.
+     * Erases data from the context. Delegates to the LocalContextEraser.
+     * @param {string} key - The key or path (e.g., 'data.user.preferences') to erase.
+     * @param {'data'|'flags'|'settings'} [target='data'] - The section of the context to target.
+     * @param {boolean} [timestamp=true] - Whether to update the manager's modified timestamp.
+     * @returns {boolean} - True if data was found and erased, false otherwise.
      */
-    clear() {
-        console.log("Clearing local context...");
+    erase(key, target = 'data', timestamp = true) {
+        // Delegate the call to the eraser instance
+        return this.#eraser.erase(key, target, timestamp);
+    }
+
+    /**
+     * Clears the context state, delegating to the internal context state manager.
+     *
+     * @param {('data'|'flags'|'settings'|'all')} [target='all'] - Specifies which part of the context to clear. 
+     * Defaults to clearing everything ('all').
+     * @returns {*} The result returned by the internal `#contextState.clear` method.
+     */
+    clear(target = 'all') {
+        return this.#contextState.clear(target);
+    }
+
+    // --- Other Methods ---
+
+    /**
+     * Resets the entire context by re-initializing the state.
+     */
+    reset() {
+        console.log("Resetting local context...");
         // Re-create the state container
-        this.#contextState = this.#createNewContextState(
+        this.#contextState = this.createNewContextState(
             [this.initialDataKey, this.initialFlagsKey, this.initialSettingsKey],
             ContextContainer,
             ContextContainer,
             false // Don't update manager timestamp here, reset below
         );
-        // Re-assign the new state to the getter AND initializer
+        // Re-assign the new state to the helpers that depend on it
+        // Note: We need to recreate helpers that hold a reference to the *old* state.
         this.#getter = new LocalContextGetter(this.#contextState, this);
-        this.initializer = new LocalContextInitializer(this.#contextState, this); // Re-create initializer with new state
+        this.#setter = new LocalContextSetter(this.#contextState, this); // Recreate setter with new state
+        this.#eraser = new LocalContextEraser(this.#contextState, this); // Recreate eraser with new state
+        this.#initializer = new LocalContextInitializer(this.#contextState, this); // Recreate initializer with new state
+
         // Reset manager's timestamps
         this.#timestamps.resetTimestamps();
-        console.log("Local context cleared.");
+        console.log("Local context reset.");
     }
 }
 

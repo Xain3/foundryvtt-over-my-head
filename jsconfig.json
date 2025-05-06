@@ -14,6 +14,7 @@
       "@integrationTests/*": ["tests/integration/*"],
       "@mocks/*": ["tests/mocks/*"],
       "@scripts/*": ["scripts/*"],
+      "@manifest": ["module.json"],
     }
   },
   "include": ["src/**/*", "tests/**/*"]

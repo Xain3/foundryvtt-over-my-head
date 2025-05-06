@@ -1,29 +1,20 @@
 // ./config/constants.js
 
+import manifest from '@manifest'; // Import manifest data
 import MODULE_SETTINGS, { MODULE_SETTINGS_INTERFACE } from './moduleSettings.js';
 
 // Context constants
 export const CONTEXT = {
-    INIT: {
-        flags: {
-            settingsReady: false, // Flag to indicate if the settings are ready
-        },
-        data: {
-
-        },
-        settings: {
-
-        }
-    },
+    INITIAL_STATE: manifest.constants.context.initialState, // Initial state from module.json
     
     DEFAULTS: {
         REMOTE: {
-            ROOT: "module", // Root of the remote context
-            PATH: "moduleContext", // Path to the remote context
-            DATA_PATH: 'data', // Path to the data
-            FLAGS_PATH: 'flags', // Path to the flags
-            SETTINGS_PATH: 'settings', // Path to the settings
-            TIMESTAMP_KEY: 'timestamp', // Key for the timestamp
+            ROOT: manifest.constants.context.remote.root, // Root of the remote context
+            PATH: manifest.constants.context.remote.path, // Path to the remote context
+            DATA_PATH: manifest.constants.context.remote.dataPath, // Path to the data
+            FLAGS_PATH: manifest.constants.context.remote.flagsPath, // Path to the flags
+            SETTINGS_PATH: manifest.constants.context.remote.settingsPath, // Path to the settings
+            TIMESTAMP_KEY: manifest.constants.context.remote.timestampKey, // Key for the timestamp
             ROOT_MAP: (globalNamespace, module) => {
                 return {
                     window: globalNamespace.window,
@@ -38,21 +29,20 @@ export const CONTEXT = {
                     module: module,
                     invalid: null, // Example of an invalid source
                 }
-            },
+            }
         }
     }
-};
+}
 
 // Module constants
 export const MODULE = {
-    
-    SHORT_NAME: "OMH", // Short name of the module
-    ID: "foundryvtt-over-my-head",  // Module ID
-    NAME: "OverMyHead", // Module name
-    // CONTEXT_REMOTE: "moduleContext", // Deprecated, use DEFAULT.CONTEXT.REMOTE.PATH instead
+    // Kept for backwards compatibility - import directly from module.json in the future
+    SHORT_NAME: manifest.shortName, // Short name of the module from module.json
+    ID: manifest.id,  // Module ID from module.json
+    NAME: manifest.title, // Module name from module.json (using title field)
     DEFAULTS: {
-        DEBUG_MODE: true, // Debug mode default value
-        ONLY_GM: true, // Load only for GM default value
+        DEBUG_MODE: manifest.flags.debugMode, // Default debug mode from module.json
+        ONLY_GM: manifest.flags.onlyGM, // Default only GM mode from module.json
 
     },
     
@@ -64,17 +54,17 @@ export const MODULE = {
 
 // Localization paths
 const LOCALIZATION = {
-    SETTINGS: "settings" // Localization path for settings
+    SETTINGS: manifest.constants.localizationPathForSettings // Localization path for settings
 }
 
 const HANDLERS = {
     TILE: {
-        PLACEABLE_TYPE: "tiles",
-        ALLOWED_CORNERS: ['topLeft', 'bottomLeft', 'topRight', 'bottomRight'],
+        PLACEABLE_TYPE: manifest.constants.placeables.tile.type,
+        ALLOWED_CORNERS: manifest.constants.placeables.tile.allowedCorners,
     },
     TOKEN: {
-        PLACEABLE_TYPE: "tokens",
-        ALLOWED_CORNERS: ['topLeft', 'bottomLeft', 'topRight', 'bottomRight'],
+        PLACEABLE_TYPE: manifest.constants.placeables.token.type,
+        ALLOWED_CORNERS: manifest.constants.placeables.token.allowedCorners,
     }
 }
 

@@ -2,6 +2,7 @@
   "name": "foundryvtt-over-my-head",
   "id": "foundryvtt-over-my-head",
   "title": "OverMyHead",
+  "shortName": "OMH",
   "version": "12.0.1-alpha1",
   "license": "Gnu GPL v3",
   
@@ -11,6 +12,8 @@
   },
 
   "flags": {
+    "debugMode": false,
+    "onlyGM": true
   },
 
   "authors": [
@@ -46,5 +49,56 @@
   "readme": "https://raw.githubusercontent.com/xain3/foundryvtt-vision-with-fade/releases/latest/README.md",
   "manifest": "https://raw.githubusercontent.com/xain3/foundryvtt-vision-with-fade/releases/latest/module.json",
   "download": "https://www.github.com/xain3/foundryvtt-vision-with-fade/releases/latest/download/module.zip",
-  "url": "https://github.com/xain3/foundryvtt-vision-with-fade"
+  "url": "https://github.com/xain3/foundryvtt-vision-with-fade",
+
+  "constants": {
+    "context": {
+      "initialState": {
+        "flags": {
+            "settingsReady": false
+        },
+        "data": {
+
+        },
+        "settings": {
+
+        }
+      },
+      "remote": {
+        "root": "module",
+        "path": "moduleContext",
+        "dataPath": "data",
+        "flagsPath": "flags",
+        "settingsPath": "settings",
+        "timestampKey": "timestamp"
+      }
+    },
+    "placeables": {
+      "token": {
+        "type": "token",
+        "name": "Token",
+        "class": "TokenDocument",
+        "allowedCorners": [
+          "top-left",
+          "top-right",
+          "bottom-left",
+          "bottom-right"
+        ]
+      },
+      "tile": {
+        "type": "tile",
+        "name": "Tile",
+        "class": "TileDocument",
+        "allowedCorners": [
+          "top-left",
+          "top-right",
+          "bottom-left",
+          "bottom-right"
+        ]
+      }
+    },
+
+    "localizationPathForSettings": "settings"
+  }
+
 }

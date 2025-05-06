@@ -28,6 +28,7 @@ module.exports = {
           '@integrationTests': './tests/integration',
           '@mocks': './tests/mocks',
           '@scripts': './scripts',
+          '@manifest': './module.json',
         },
       },
     ],

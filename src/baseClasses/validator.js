@@ -1,48 +1,8 @@
 import manifest from '@manifest';
+import ErrorHandler from '@utils/static/errorHandler.js';
+import Checks from '@/utils/static/checks/checksbak.js';
 
 const moduleManifest = manifest
-
-function handleValidationError
-(behaviour, error, {
-  alsoReturn = true,
-  addPrefix = true,
-  errorList = [],
-  errorPrefix = "",
-  customSuffix = ""
-}) {
-  const message = addPrefix ? `${errorPrefix}${error.message}${customSuffix}` : error.message;
-  switch (behaviour) {
-    case 'throw':
-      error.message = message;
-      throw error;
-    case 'logError':
-      console.error(message);
-      if (alsoReturn) return false
-      break;
-    case 'warn':
-      console.warn(message);
-      if (alsoReturn) return false
-      break;
-    case 'log':
-      console.log(message);
-      if (alsoReturn) return false
-      break;
-    case 'logAndThrow':
-      console.error(message);
-      throw error;
-    case 'append':
-      error.message = message;
-      errorList.push(error);
-      if (alsoReturn) return false
-      break;
-    case 'return':
-      return false;
-    default:
-      console.error(message);
-      if (alsoReturn) return false
-      break;
-  }
-}
 
 class ManifestValidator {
   /**
@@ -52,9 +12,9 @@ class ManifestValidator {
    * @throws {Error} If the manifest does not have a validatorSeparator property.
    */
   static validateSeparator(manifest) {
-    if (!manifest.constants.validatorSeparator || typeof manifest.constants.validatorSeparator !== 'string') {
-      throw new Error('Invalid manifest: Must have a validatorSeparator property.');
-    }
+  if (!manifest.constants.validatorSeparator || typeof manifest.constants.validatorSeparator !== 'string') {
+    throw new Error('Invalid manifest: Must have a validatorSeparator property.');
+  }
   }
 
   /**
@@ -64,9 +24,9 @@ class ManifestValidator {
    * @throws {Error} If the manifest does not have a forNameUse property.
    */
   static validateForNameUse(manifest) {
-    if (!manifest.constants.forNameUse || typeof manifest.constants.forNameUse !== 'string') {
-      throw new Error('Invalid manifest: Must have a forNameUse property.');
-    }
+  if (!manifest.constants.forNameUse || typeof manifest.constants.forNameUse !== 'string') {
+    throw new Error('Invalid manifest: Must have a forNameUse property.');
+  }
   }
 
   /**
@@ -76,9 +36,9 @@ class ManifestValidator {
    * @throws {Error} If the manifest does not have a constants property.
    */
   static validateManifestConstants(manifest) {
-    if (!manifest.constants || typeof manifest.constants !== 'object') {
-      throw new Error('Invalid manifest: Must have a constants property.');
-    }
+  if (!manifest.constants || typeof manifest.constants !== 'object') {
+    throw new Error('Invalid manifest: Must have a constants property.');
+  }
   }
 
   /**
@@ -89,9 +49,9 @@ class ManifestValidator {
    * @throws {Error} If the manifest is not an object or is null/undefined.
    */
   static validateManifestObject(manifest) {
-    if (!manifest || typeof manifest !== 'object') {
-      throw new Error('Invalid manifest: Must be an object.');
-    }
+  if (!manifest || typeof manifest !== 'object') {
+    throw new Error('Invalid manifest: Must be an object.');
+  }
   }
 
   /**
@@ -107,10 +67,10 @@ class ManifestValidator {
    * @throws {Error} If any of the validation checks fail.
    */
   static validateManifest(manifest) {
-    ManifestValidator.validateManifestObject(manifest);
-    ManifestValidator.validateManifestConstants(manifest);
-    ManifestValidator.validateForNameUse(manifest);
-    ManifestValidator.validateSeparator(manifest);
+  ManifestValidator.validateManifestObject(manifest);
+  ManifestValidator.validateManifestConstants(manifest);
+  ManifestValidator.validateForNameUse(manifest);
+  ManifestValidator.validateSeparator(manifest);
   }
 }
 
@@ -123,9 +83,9 @@ class ParentObjectValidator {
    * @throws {Error} If the parent does not have a prototype with a name property.
    */
   static validateParentPrototype(parent) {
-    if (!parent.prototype || typeof parent.prototype.name !== 'string') {
-      throw new Error('Invalid parent: Must have a prototype with a name property.');
-    }
+  if (!parent.prototype || typeof parent.prototype.name !== 'string') {
+    throw new Error('Invalid parent: Must have a prototype with a name property.');
+  }
   }
 
   /**
@@ -136,9 +96,9 @@ class ParentObjectValidator {
    * @throws {Error} If the parent is not an object or is null/undefined.
    */
   static validateParentIsObject(parent) { // Renamed from validateParentObject
-    if (!parent || typeof parent !== 'object') {
-      throw new Error('Invalid parent: Must be an object.');
-    }
+  if (!parent || typeof parent !== 'object') {
+    throw new Error('Invalid parent: Must be an object.');
+  }
   }
 
   /**
@@ -149,8 +109,8 @@ class ParentObjectValidator {
    * @throws {TypeError} If the parent is not a valid object or does not have the expected prototype.
    */
   static validateParentObject(parent) { // This is the main validation method
-    ParentObjectValidator.validateParentIsObject(parent); // Call the specific check
-    ParentObjectValidator.validateParentPrototype(parent);
+  ParentObjectValidator.validateParentIsObject(parent); // Call the specific check
+  ParentObjectValidator.validateParentPrototype(parent);
   }
 }
 
@@ -203,6 +163,8 @@ class Validator {
   this.separator = separator;
   this.errorPrefix = this.constructErrorPrefix();
   this.validations = [];
+  this.errorHandler = ErrorHandler;
+  this.checks = Checks;
   // this.errors is already initialized
   }
 
@@ -222,23 +184,22 @@ class Validator {
   behaviour,
   error,
   {
-    alsoReturn = true,
-    addPrefix = true,
-    errorList = this.errors,
-    errorPrefix = this.errorPrefix,
-    customSuffix = ""
+  alsoReturn = true,
+  addPrefix = true,
+  errorList = this.errors,
+  errorPrefix = this.errorPrefix,
+  customSuffix = ""
   }) {
-    handleValidationError(
-    behaviour,
-    error,
-    {
-      alsoReturn,
-      addPrefix,
-      errorList,
-      errorPrefix,
-      customSuffix
-    }
-    )
+  this.errorHandler.handle(
+  behaviour,
+  error,
+  {
+    alsoReturn,
+    addPrefix,
+    errorList,
+    errorPrefix,
+    customSuffix
+  })
   }
 
   /**
@@ -248,24 +209,24 @@ class Validator {
    * @private
    * @param {object} manifest - The manifest object to validate.
    * @param {string} behavior - The behavior to follow in case of validation failure.
-   * @param {object} options - Additional options for error handling.
-   * @param {string} options.errorPrefix - The prefix to prepend to error messages.
+   * @param {object} handlerOptions - Additional options for error handling.
+   * @param {string} handlerOptions.errorPrefix - The prefix to prepend to error messages.
    * @returns {void}
    * @throws {Error} Throws an error if the manifest is invalid.
    */
   #validateManifest(manifest, behavior = 'throw', options = {}) { // Added options for errorPrefix
-    try {
-      ManifestValidator.validateManifest(manifest);
-    } catch (error) {
-      handleValidationError( behavior, error, options ) // Pass options (e.g., errorPrefix)
-    }
+  try {
+    ManifestValidator.validateManifest(manifest);
+  } catch (error) {
+    handleValidationError( behavior, error, options ) // Pass options (e.g., errorPrefix)
+  }
   }
 
   #validateParentObject(parent, behavior = 'log', args) {
   try {
-    ParentObjectValidator.validateParentObject(parent);
+  ParentObjectValidator.validateParentObject(parent);
   } catch (error) {
-    this.handleError(behavior, error, {...args});
+  this.handleError(behavior, error, {...args});
   }
   }
 
@@ -280,10 +241,10 @@ class Validator {
    * @returns {string} The generated error prefix.
    */
   #generateErrorPrefix(forNameUse, manifest, parent, separator) {
-    const moduleName = this.#retrieveModuleName(forNameUse, manifest);
-    const callerName = parent?.prototype?.name || 'unknown'; // Safer access
-    // Use the separator parameter directly
-    return this.constructErrorPrefix(moduleName, callerName, separator);
+  const moduleName = this.#retrieveModuleName(forNameUse, manifest);
+  const callerName = parent?.prototype?.name || 'unknown'; // Safer access
+  // Use the separator parameter directly
+  return this.constructErrorPrefix(moduleName, callerName, separator);
   }
 
   /**
@@ -298,15 +259,15 @@ class Validator {
    * @returns {void}
    */
   #validateOwnArgs(parent, manifest, forNameUse, separator) {
-    const constructorErrorPrefix = this.#generateErrorPrefix(forNameUse, manifest, parent, separator);
+  const constructorErrorPrefix = this.#generateErrorPrefix(forNameUse, manifest, parent, separator);
 
-    // Validate manifest, passing the generated prefix for consistent error messages
-    this.#validateManifest(manifest, 'throw', { errorPrefix: constructorErrorPrefix });
+  // Validate manifest, passing the generated prefix for consistent error messages
+  this.#validateManifest(manifest, 'throw', { errorPrefix: constructorErrorPrefix });
 
-    // Validate parent object, append errors to this.errors using the generated prefix
-    this.#validateParentObject(parent, 'throw', { errorList: this.errors, errorPrefix: constructorErrorPrefix });
+  // Validate parent object, append errors to this.errors using the generated prefix
+  this.#validateParentObject(parent, 'throw', { errorList: this.errors, errorPrefix: constructorErrorPrefix });
 
-    return true
+  return true
   }
 
   /**
@@ -319,14 +280,14 @@ class Validator {
    */
   #retrieveModuleName(forNameUse, manifest = this.#manifest) {
   switch (forNameUse) {
-    case 'title':
-    return manifest.title;
-    case 'name':
-    return manifest.name;
-    case 'shortName':
-    return manifest.shortName;
-    case 'id':
-    return manifest.id;
+  case 'title':
+  return manifest.title;
+  case 'name':
+  return manifest.name;
+  case 'shortName':
+  return manifest.shortName;
+  case 'id':
+  return manifest.id;
   }
   }
 
@@ -365,25 +326,25 @@ class Validator {
    * @throws {Error} Throws an error if returnMode is 'throw' and errors are present.
    */
   #handleErrorListReturnMode(errorList, returnMode) {
-    switch (returnMode) {
-      case 'bool':
-        return (errorList.length === 0);
-      case 'list':
-        return errorList;
-      case 'setProperty':
-        this.errors = errorList;
-        return errorList;
-      case 'throw':
-        if (errorList.length > 0) {
-          const error = new Error('Validation errors occurred');
-          error.errors = errorList;
-          throw error;
-        }
-        break;
-      default:
-        console.warn(`Unknown returnMode: ${returnMode}. Defaulting to 'bool'.`);
-        return (errorList.length === 0);
+  switch (returnMode) {
+    case 'bool':
+    return (errorList.length === 0);
+    case 'list':
+    return errorList;
+    case 'setProperty':
+    this.errors = errorList;
+    return errorList;
+    case 'throw':
+    if (errorList.length > 0) {
+      const error = new Error('Validation errors occurred');
+      error.errors = errorList;
+      throw error;
     }
+    break;
+    default:
+    console.warn(`Unknown returnMode: ${returnMode}. Defaulting to 'bool'.`);
+    return (errorList.length === 0);
+  }
   }
 
   /**
@@ -398,22 +359,22 @@ class Validator {
    * @returns {boolean|Array|void} Returns true if all validations pass, otherwise returns or throws errors based on returnMode.
    */
   runValidations(validationsList = this.validations, errorList = this.errors, returnMode = 'bool') {
-    if (validationsList.length === 0) {
-      console.warn('No validations to run.');
-      return true;
-    }
-    validationsList.forEach((validation) => {
-      try {
-        validation();
-      } catch (error) {
-        this.handleError('append', error, {errorList});
-    }
-    });
-    if (errorList.length > 0) {
-      return this.#handleErrorListReturnMode(errorList, returnMode);
-    } else {
-      return true;
-    }
+  if (validationsList.length === 0) {
+    console.warn('No validations to run.');
+    return true;
+  }
+  validationsList.forEach((validation) => {
+    try {
+    validation();
+    } catch (error) {
+    this.handleError('append', error, {errorList});
+  }
+  });
+  if (errorList.length > 0) {
+    return this.#handleErrorListReturnMode(errorList, returnMode);
+  } else {
+    return true;
+  }
   }
 
   /**
@@ -428,10 +389,10 @@ class Validator {
    * @returns {*} The result of the validation process, type depends on returnMode.
    */
   validate(validationsList = this.validations, errorList = this.errors, returnMode = 'bool') {
-    const result = this.runValidations(validationsList, errorList, returnMode);
-    if (result === false) {
-      console.error('Validation failed:', errorList);
-    }
+  const result = this.runValidations(validationsList, errorList, returnMode);
+  if (result === false) {
+    console.error('Validation failed:', errorList);
+  }
   return result;
   }
 }

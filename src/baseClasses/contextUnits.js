@@ -126,11 +126,11 @@ export class ContextUnit {
    *
    * @param {string|null} [key=null] - The key to set the value for. If null, sets the whole property value directly.
    * @param {*} value - The value to set.
-   * @param {Object} [options] - Additional options for setting the value.
-   * @param {boolean} [options.timestamp=this.timestampBehavior] - THe timestamp or timestamp behavior to use.
-   * @param {boolean} [options.enforceChildrenType=this.enforceChildrenType] - Whether to enforce children type.
-   * @param {boolean} [options.enforceOnlyForObject=this.enforceOnlyForObject] - Whether to enforce only for objects.
-   * @param {Array} [options.acceptedChildrenTypes=this.acceptedChildrenTypes] - Accepted types for children.
+   * @param {Object} [handlerOptions] - Additional options for setting the value.
+   * @param {boolean} [handlerOptions.timestamp=this.timestampBehavior] - THe timestamp or timestamp behavior to use.
+   * @param {boolean} [handlerOptions.enforceChildrenType=this.enforceChildrenType] - Whether to enforce children type.
+   * @param {boolean} [handlerOptions.enforceOnlyForObject=this.enforceOnlyForObject] - Whether to enforce only for objects.
+   * @param {Array} [handlerOptions.acceptedChildrenTypes=this.acceptedChildrenTypes] - Accepted types for children.
    * @returns {this} Returns the current instance for chaining.
    */
   set(key = null, value, options = {

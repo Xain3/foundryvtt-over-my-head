@@ -148,12 +148,12 @@ class Mocks {
     
     /**
      * Sets the global mock objects for testing.
-     * @param {Object} [options] - Options for setting globals.
-     * @param {boolean} [options.includeBrowserGlobals=false] - Whether to include browser globals.
-     * @param {boolean} [options.includeFoundryGlobals=true] - Whether to include FoundryVTT globals.
-     * @param {boolean} [options.includeLibraryGlobals=true] - Whether to include library globals.
-     * @param {MockGame} [options.mockGame] - Custom mock game object.
-     * @param {MockHooks} [options.mockHooks] - Custom mock hooks object.
+     * @param {Object} [handlerOptions] - Options for setting globals.
+     * @param {boolean} [handlerOptions.includeBrowserGlobals=false] - Whether to include browser globals.
+     * @param {boolean} [handlerOptions.includeFoundryGlobals=true] - Whether to include FoundryVTT globals.
+     * @param {boolean} [handlerOptions.includeLibraryGlobals=true] - Whether to include library globals.
+     * @param {MockGame} [handlerOptions.mockGame] - Custom mock game object.
+     * @param {MockHooks} [handlerOptions.mockHooks] - Custom mock hooks object.
      * @returns {void}
      * 
      * @example

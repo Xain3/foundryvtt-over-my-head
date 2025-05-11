@@ -1,11 +1,11 @@
 // ./src/utils/hookFormatter.js
 
-import Utility from '../baseClasses/utility.js';
+import Utility from '@baseClasses/utility.js';
 
 /**
  * HookFormatter class to format hook names based on group and mappings.
  * Requires CONFIG to be passed in the constructor.
- * 
+ *
  * @class HookFormatter
  * @extends Utility
  * @module HookFormatter
@@ -61,7 +61,7 @@ class HookFormatter extends Utility {
             throw new Error(`Hook location for group ${hookGroup} not found.`);
         }
         if (typeof currentHookGroup !== "object") {
-            throw new Error(`Hook location for group ${hookGroup} is not an object but a ${typeof currentHookGroup}.`);  
+            throw new Error(`Hook location for group ${hookGroup} is not an object but a ${typeof currentHookGroup}.`);
         }
 
         // Check if the hook group does not require a prefix

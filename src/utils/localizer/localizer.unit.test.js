@@ -1,5 +1,5 @@
 import Localizer from './localizer';
-import Utility from '../baseClasses/utility';
+import Utility from '@baseClasses/utility';
 
 // ./src/utils/localizer.test.js
 
@@ -13,9 +13,9 @@ describe('Localizer', () => {
     beforeEach(() => {
         mockConfig = {
             CONSTANTS: {
-              MODULE: {
+            MODULE: {
                 ID: 'testModule',
-              },
+            },
             },
         };
 

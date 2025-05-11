@@ -1,7 +1,7 @@
 // ./src/utils/hookFormatter.test.js
 
 import HookFormatter from './hookFormatter.js';
-import Utility from '../baseClasses/utility.js';
+import Utility from '@baseClasses/utility.js';
 
 describe('HookFormatter', () => {
   let CONFIG;

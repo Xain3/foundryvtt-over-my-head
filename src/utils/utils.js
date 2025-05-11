@@ -1,13 +1,13 @@
 // ./src/utils/utils.js
 
-import GameManager from "./gameManager.js";
-import HookFormatter from "./hookFormatter.js";
-import Initializer from "./initializer.js";
-import Logger from "./logger.js";
-import Localizer from "./localizer.js";
+import GameManager from "./gameManager/gameManager.js";
+import HookFormatter from "./hookFormatter/hookFormatter.js";
+import Initializer from "./initializer/initializer.js";
+import Logger from "./logger/logger.js";
+import Localizer from "./localizer/localizer.js";
 import Context from "../contexts/context.js";
-import JsonDataManager from "./jsonDataManager.js";
-import Validator from "./validator.js";
+import JsonDataManager from "./jsonDataManager/jsonDataManager.js";
+import Validator from "./validator/validator.js";
 
 /**
  * A utility class that provides various functionalities such as managing remote contexts,

@@ -1,11 +1,11 @@
 // ./src/utils/localizer.js
 
-import Utility from "../baseClasses/utility.js";
+import Utility from "@baseClasses/utility.js";
 
 /**
  * A utility class for localization within a specific module.
  * CONFIG and the game object are passed in the constructor.
- * 
+ *
  * @class
  * @extends Utility
  * @module Localizer
@@ -34,7 +34,7 @@ class Localizer extends Utility {
     /**
      * Localizes a string key using the i18n service.
      * If additional arguments are provided, the string will be formatted with those arguments.
-     * 
+     *
      * @param {string} stringKey - The key of the string to localize.
      * @param {...any} args - Additional arguments for string formatting.
      * @returns {string} - The localized string.
@@ -44,7 +44,7 @@ class Localizer extends Utility {
             return this.i18nService.format(`${this.moduleConstants.ID}.${stringKey}`, args);
         } else {
             return this.i18nService.localize(`${this.moduleConstants.ID}.${stringKey}`);
-        }    
+        }
     }
 }
 

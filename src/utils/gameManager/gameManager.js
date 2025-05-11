@@ -1,13 +1,13 @@
 // ./src/utils/gameManager.js
 
-import Utility from "../baseClasses/utility.js";
+import Utility from "@baseClasses/utility.js";
 
 
 /**
  * A utility class for managing game modules and remote contexts.
  * GameManager provides methods to interact with module objects,
  * acting as a bridge between the game system and module configurations.
- * 
+ *
  * @class
  * @extends Utility
  * @param {Object} CONFIG - The configuration object containing constants and module settings.
@@ -20,7 +20,7 @@ import Utility from "../baseClasses/utility.js";
  * @property {Object} moduleObject - The module object retrieved from the game instance.
  */
 class GameManager extends Utility {
-    
+
     /**
      * Creates a new GameManager instance.
      *
@@ -46,12 +46,12 @@ class GameManager extends Utility {
         if (this.game && this.game.modules && typeof this.game.modules.get === 'function') {
             return this.game.modules.get(moduleConfig.ID);
         }
-        
+
         // If the instance property doesn't work, try with the global game object
         if (globalThis.game && globalThis.game.modules && typeof globalThis.game.modules.get === 'function') {
             return globalThis.game.modules.get(moduleConfig.ID);
         }
-        
+
         // Error handling
         if (!this.game && !globalThis.game) {
             console.error('Game object is not available in instance or global scope.');
@@ -60,7 +60,7 @@ class GameManager extends Utility {
         } else {
             console.error('Game modules collection does not have a get function.');
         }
-        
+
         return null;
     }
 

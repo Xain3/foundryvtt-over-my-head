@@ -1,29 +1,29 @@
 // ./src/utils/initializer.js
 
-import Utility from '../baseClasses/utility.js';
+import Utility from '@baseClasses/utility.js';
 
 /**
  * Class representing an Initializer.
  * This class is responsible for initializing the context and registering settings for a module.
- * Dependencies: 
+ * Dependencies:
  * - Context
  * - GameManager
  * - SettingsHandler
  * - Logger
  * - HookFormatter
- * 
+ *
  * @class
  * @extends Utility
  * @module Initializer
  * @export Initializer
- * 
+ *
  * @property {Object} config - The configuration object.
  * @property {Object} utils - The utilities object.
  * @property {Object} logger - The logger object.
  * @property {Object} gameManager - The game manager object.
  * @property {Object} hookFormatter - The hook formatter object.
  * @property {Object} Context - The context class.
- * 
+ *
  * @method initializeContext
  * @method initializeRemoteContext
  * @method registerSettings
@@ -45,7 +45,7 @@ class Initializer extends Utility {
         this.hookFormatter = this.utils.hookFormatter;
         this.Context = Context;
     }
-    
+
     /**
      * Checks and returns the provided configuration.
      * If the provided configuration is null, it uses the instance's configuration.
@@ -67,7 +67,7 @@ class Initializer extends Utility {
     /**
      * Initialize the context for the module.
      * This method sets up the module configuration and stores it in the context.
-     * 
+     *
      * @param {Object} config - An optional configuration object to override the default configuration.
      */
     initializeContextObject(config = null) {
@@ -94,7 +94,7 @@ class Initializer extends Utility {
     /**
      * Register the settings for the module.
      * This method registers the settings using the SettingsHandler.
-     * 
+     *
      * @param {Object} handlers - The settings handlers.
      * @param {Object} context - The context object.
      */
@@ -106,7 +106,7 @@ class Initializer extends Utility {
 
     /**
      * Initializes the context with the provided configuration.
-     * 
+     *
      * @param {Object|null} config - The configuration object to initialize the context with. If null, a default configuration will be used.
      * @returns {Promise<Object>} A promise that resolves to the initialized context object.
      */
@@ -123,7 +123,7 @@ class Initializer extends Utility {
     /**
      * Initialize the module.
      * This method sets up the necessary hooks and initializes the context and settings once the i18n initialization is complete.
-     * 
+     *
      * @param {Object} config - An optional configuration object to override the default configuration.
      * @fires settingsReady
      */

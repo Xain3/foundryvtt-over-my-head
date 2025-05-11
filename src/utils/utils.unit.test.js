@@ -1,11 +1,11 @@
 import Utilities from './utils';
-import GameManager from './gameManager';
-import HookFormatter from './hookFormatter';
-import Initializer from './initializer';
-import Logger from './logger';
-import Localizer from './localizer';
-import JsonDataManager from './jsonDataManager';
-import Validator from './validator';
+import GameManager from './gameManager/gameManager';
+import HookFormatter from './hookFormatter/hookFormatter';
+import Initializer from './initializer/initializer';
+import Logger from './logger/logger';
+import Localizer from './localizer/localizer';
+import JsonDataManager from './jsonDataManager/jsonDataManager';
+import Validator from './validator/validator';
 import Context from '../contexts/context';
 
 // ./src/utils/utils.test.js

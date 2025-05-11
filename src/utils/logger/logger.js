@@ -1,17 +1,17 @@
 // ./src/utils/logger.js
 
-import Utility from '../baseClasses/utility.js';
+import Utility from '@baseClasses/utility.js';
 
 /**
  * A utility class for logging within a specific module.
  * config and the GameManager class are passed in the constructor.
- * 
+ *
  * @class
  * @extends Utility
  * @module Logger
  * @export Logger
  * @since 0.0.1
- * 
+ *
  * @property {Object} module - The module configuration object.
  * @property {Object} module.DEFAULTS - The module default values.
  * @property {string} module.SHORT_NAME - The module short name.
@@ -20,7 +20,7 @@ import Utility from '../baseClasses/utility.js';
 class Logger extends Utility {
     /**
      * Creates an instance of the logger.
-     * 
+     *
      * @constructor
      * @param {Object} config - The configuration object.
      */
@@ -38,7 +38,7 @@ class Logger extends Utility {
             return this.moduleConstants.DEFAULTS.DEBUG_MODE;
         }
     }
-    
+
     /**
      * Logs a message to the console with the module's short name as a prefix.
      *

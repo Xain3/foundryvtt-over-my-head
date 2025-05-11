@@ -1,78 +1,9 @@
 import manifest from '@manifest';
 import { z } from 'zod';
+import ManifestValidator from './manifestValidator';
+import ParentObjectValidator from './parentObjectValidator';
 
 const moduleManifest = manifest;
-
-class ManifestValidator {
-  static #manifestSchema = z.object({
-    constants: z.object({
-      validatorSeparator: z.string().min(1, { message: 'validatorSeparator cannot be empty' }),
-      forNameUse: z.string().min(1, { message: 'forNameUse cannot be empty' }),
-    }),
-    title: z.string().optional(),
-    name: z.string().optional(),
-    shortName: z.string().optional(),
-    id: z.string().optional(),
-  }).refine(data => data.title || data.name || data.shortName || data.id, {
-    message: "Manifest must have at least one of 'title', 'name', 'shortName', or 'id'",
-  });
-
-  /**
-   * Validates a manifest object by running a series of validation checks using Zod.
-   *
-   * @param {Object} manifest - The manifest object to validate.
-   * @throws {z.ZodError} If any of the validation checks fail.
-   */
-  static validateManifest(manifest) {
-    try {
-      this.#manifestSchema.parse(manifest);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        // Construct a more informative error message from Zod's issues
-        const messages = error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
-        throw new Error(`Invalid manifest: ${messages.join('; ')}`);
-      }
-      // Re-throw other errors
-      throw error;
-    }
-  }
-}
-
-class ParentObjectValidator {
-  static #parentSchema = z.object({
-    prototype: z.object({
-      name: z.string().min(1, { message: 'Parent prototype name cannot be empty' }),
-    }).refine(proto => typeof proto.name === 'string', {
-      message: 'Parent prototype must have a name property of type string.',
-      path: ['prototype', 'name'],
-    }),
-  }).refine(parent => parent !== null && typeof parent === 'object', {
-    message: 'Invalid parent: Must be a non-null object.',
-    path: [], // Path to the parent object itself
-  });
-
-  /**
-   * Validates the given parent object using a Zod schema.
-   * Throws a ZodError if validation fails.
-   *
-   * @param {Object} parent - The parent object to validate.
-   * @throws {z.ZodError} If the parent object does not conform to the schema.
-   */
-  static validateParentObject(parent) {
-    try {
-      this.#parentSchema.parse(parent);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        // Construct a more informative error message from Zod's issues
-        const messages = error.errors.map(err => `${err.path.join('.') || 'parent'}: ${err.message}`);
-        throw new Error(`Invalid parent object: ${messages.join('; ')}`);
-      }
-      // Re-throw other errors
-      throw error;
-    }
-  }
-}
-
 
 /**
  * @class Validator

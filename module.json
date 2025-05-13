@@ -52,7 +52,7 @@
   "url": "https://github.com/xain3/foundryvtt-vision-with-fade",
 
   "constants": {
-    "forNameUse": "tile",
+    "referToModuleBy": "tile",
     "validatorSeparator": " || ",
     "context": {
       "initialState": {

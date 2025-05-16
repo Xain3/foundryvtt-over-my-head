@@ -6,7 +6,7 @@ import MODULE_SETTINGS, { MODULE_SETTINGS_INTERFACE } from './moduleSettings.js'
 // Context constants
 export const CONTEXT = {
     INITIAL_STATE: manifest.constants.context.initialState, // Initial state from module.json
-    
+
     DEFAULTS: {
         REMOTE: {
             ROOT: manifest.constants.context.remote.root, // Root of the remote context
@@ -40,12 +40,13 @@ export const MODULE = {
     SHORT_NAME: manifest.shortName, // Short name of the module from module.json
     ID: manifest.id,  // Module ID from module.json
     NAME: manifest.title, // Module name from module.json (using title field)
+    REFER_BY: manifest.referToModuleBy, // If the module's name should be the short name, the title, or the id
     DEFAULTS: {
         DEBUG_MODE: manifest.flags.debugMode, // Default debug mode from module.json
         ONLY_GM: manifest.flags.onlyGM, // Default only GM mode from module.json
 
     },
-    
+
     SETTINGS: { // Module settings to be loaded by the VTT
         ...MODULE_SETTINGS,
         INTERFACE: MODULE_SETTINGS_INTERFACE,
@@ -84,12 +85,14 @@ export class Constants {
         context = CONTEXT,
         module = MODULE,
         localization = LOCALIZATION,
-        handlers = HANDLERS
+        handlers = HANDLERS,
+        manifest = manifest
     ) {
         this.CONTEXT = context;
         this.MODULE = module;
         this.LOCALIZATION = localization;
         this.HANDLERS = handlers;
+        this.MANIFEST = manifest;
     }
 }
 

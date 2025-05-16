@@ -1,19 +1,30 @@
 {
-  "id": "vision-with-fade",
-  "title": "Vision Occlusion Mode With Fade",
-  "description": "A module that enables overhead tile occlusion with both vision and fade effects",
+  "name": "foundryvtt-over-my-head",
+  "id": "foundryvtt-over-my-head",
+  "title": "OverMyHead",
+  "shortName": "OMH",
+  "version": "12.0.1-alpha1",
+  "license": "Gnu GPL v3",
+
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12"
+  },
+
+  "flags": {
+    "debugMode": false,
+    "onlyGM": true
+  },
+
   "authors": [
     {
+      "name": "Xain_it",
       "id": "Xain_it",
       "email": "andrea.pandolfo@gmail.com",
       "flags": {}
     }
   ],
-  "version": "12.1.0",
-  "compatibility": {
-    "minimum": "12",
-    "verified": "12"
-  },
+
   "languages": [
     {
       "lang": "en",
@@ -22,14 +33,21 @@
       "flags": {}
     }
   ],
+
+  "scripts": [
+
+  ],
+
   "styles": [
-    "styles/vision-with-fade.css"
+    "styles/foundryvtt-over-my-head.css"
   ],
+
   "esmodules": [
-    "/src/main.mjs"
+    "src/main.js"
   ],
-  "manifest": "https://github.com/xain3/foundryvtt-vision-with-fade/releases/latest/download/module.json",
-  "download": "https://github.com/xain3/foundryvtt-vision-with-fade/releases/download/v0.1.0/module.zip",
-  "readme": "https://raw.githubusercontent.com/xain3/foundryvtt-vision-with-fade/blob/main/README.md",
+
+  "readme": "https://raw.githubusercontent.com/xain3/foundryvtt-vision-with-fade/releases/latest/README.md",
+  "manifest": "https://raw.githubusercontent.com/xain3/foundryvtt-vision-with-fade/releases/latest/module.json",
+  "download": "https://www.github.com/xain3/foundryvtt-vision-with-fade/releases/latest/download/module.zip",
   "url": "https://github.com/xain3/foundryvtt-vision-with-fade"
 }

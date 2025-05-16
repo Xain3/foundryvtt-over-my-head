@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@baseClasses/*": ["src/baseClasses/*"],
+      "@config/*": ["src/config/*"],
+      "@contexts/*": ["src/contexts/*"],
+      "@data/*": ["src/data/*"],
+      "@handlers/*": ["src/handlers/*"],
+      "@utils/*": ["src/utils/*"],
+      "@listeners/*": ["src/listeners/*"],
+      "@integrationTests/*": ["tests/integration/*"],
+      "@mocks/*": ["tests/mocks/*"],
+      "@scripts/*": ["scripts/*"],
+      "@manifest": ["module.json"],
+    }
+  },
+  "include": ["src/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "dist", "release", "coverage"]
+}

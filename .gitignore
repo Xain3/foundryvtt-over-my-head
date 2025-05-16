@@ -1,2 +1,5 @@
 
 module.zip
+.dependencygraph/
+node_modules/
+coverage/

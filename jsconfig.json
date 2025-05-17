@@ -14,6 +14,8 @@
       "@mocks/*": ["tests/mocks/*"],
       "@scripts/*": ["scripts/*"],
       "@manifest": ["module.json"],
+      "@helpers/*": ["src/config/helpers/*"],
+      "@constants/*": ["src/constants/constants.js"],
     }
   },
   "include": ["src/**/*", "tests/**/*"],

@@ -28,6 +28,8 @@ module.exports = {
           '@mocks': './tests/mocks',
           '@scripts': './scripts',
           '@manifest': './module.json',
+          '@helpers': './src/helpers',
+          '@constants': './src/constants/constants.js',
         },
       },
     ],

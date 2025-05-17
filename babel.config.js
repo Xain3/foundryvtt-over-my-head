@@ -30,6 +30,7 @@ module.exports = {
           '@manifest': './module.json',
           '@helpers': './src/helpers',
           '@constants': './src/constants/constants.js',
+          '@maps': './src/maps',
         },
       },
     ],

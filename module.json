@@ -13,7 +13,8 @@
 
   "flags": {
     "debugMode": false,
-    "onlyGM": true
+    "onlyGM": true,
+    "settingsReady": false
   },
 
   "authors": [

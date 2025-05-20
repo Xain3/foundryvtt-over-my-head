@@ -1,4 +1,4 @@
-import yaml from 'yaml-js';
+import yaml from 'js-yaml';
 import _ from 'lodash';
 import { z } from 'zod';
 import { stringToZodType } from '@maps/stringToZodType';
@@ -59,7 +59,7 @@ class ConstantsParser {
 
     validateArgs();  // Validate the input arguments
     try {
-      const parsedConstants = _.cloneDeep(yaml.load(constants));
+      const parsedConstants = yaml.load(constants);
       if (buildContextSchema) parsedConstants.context.schema = this.buildContextSchema(parsedConstants.context.schema);
       return parsedConstants;
     } catch (error) {

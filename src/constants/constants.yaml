@@ -61,3 +61,6 @@ placeables:
       - "top-right"
       - "bottom-left"
       - "bottom-right"
+
+# The following constant is used only for testing purposes
+testConstant: "testValue" # DO NOT CHANGE THIS VALUE

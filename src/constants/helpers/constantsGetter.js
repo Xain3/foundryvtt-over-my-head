@@ -20,7 +20,7 @@ class ConstantsGetter {
  * @returns {string} The content of constants.yaml.
  */
 static getConstantsYaml(constantsFileName = constantsFile) {
-  const yamlPath = path.resolve(process.cwd(), 'src', 'constants', constantsFileName);
+  const yamlPath = path.resolve(process.cwd(), constantsFileName);
 
   try {
     return fs.readFileSync(yamlPath, 'utf8');

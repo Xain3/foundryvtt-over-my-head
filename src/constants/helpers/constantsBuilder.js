@@ -1,5 +1,5 @@
-import ConstantsParser from "@/constants/helpers/constantsParser";
-import ConstantsGetter from "@/constants/helpers/constantsGetter";
+import ConstantsParser from "./constantsParser";
+import ConstantsGetter from "./constantsGetter";
 
 /**
  * The ConstantsBuilder class is responsible for retrieving and parsing constant values

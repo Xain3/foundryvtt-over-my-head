@@ -15,6 +15,7 @@
       "@scripts/*": ["scripts/*"],
       "@manifest": ["module.json"],
       "@helpers/*": ["src/config/helpers/*"],
+      "@constantsHelpers/*": ["src/constants/helpers/*"],
       "@constants/*": ["src/constants/constants.js"],
       "@maps/*": ["src/maps/*"],
     }

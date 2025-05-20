@@ -1,4 +1,4 @@
-import ConstantsBuilder from "@/constants/helpers/constantsBuilder";
+import ConstantsBuilder from "./helpers/constantsBuilder";
 
 const constants = Object.freeze(new ConstantsBuilder().asObject);
 

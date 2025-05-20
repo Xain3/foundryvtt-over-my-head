@@ -29,6 +29,7 @@ module.exports = {
           '@scripts': './scripts',
           '@manifest': './module.json',
           '@helpers': './src/helpers',
+          '@constantsHelpers': './src/constants/helpers',
           '@constants': './src/constants/constants.js',
           '@maps': './src/maps',
         },

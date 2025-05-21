@@ -34,7 +34,7 @@ context:
     flags: 'object'
     data: 'object'
     settings: 'object'
-    timestamp: 'datetime'
+    timestamp: 'number'
 
   # How to structure the context object
   remote:

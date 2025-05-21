@@ -32,6 +32,7 @@ module.exports = {
           '@constantsHelpers': './src/constants/helpers',
           '@constants': './src/constants/constants.js',
           '@maps': './src/maps',
+          '@validator': './src/utils/static/validator.js',
         },
       },
     ],

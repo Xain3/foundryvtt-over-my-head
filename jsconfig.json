@@ -16,8 +16,9 @@
       "@manifest": ["module.json"],
       "@helpers/*": ["src/config/helpers/*"],
       "@constantsHelpers/*": ["src/constants/helpers/*"],
-      "@constants/*": ["src/constants/constants.js"],
+      "@constants": ["src/constants/constants.js"],
       "@maps/*": ["src/maps/*"],
+      "@validator": ["src/utils/static/validator.js"],
     }
   },
   "include": ["src/**/*", "tests/**/*"],

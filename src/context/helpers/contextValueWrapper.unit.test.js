@@ -1,0 +1,187 @@
+/**
+ * @file contextValueWrapper.test.js
+ * @description Unit tests for the ContextValueWrapper class.
+ * @path src/context/helpers/contextValueWrapper.test.js
+ */
+
+import { ContextValueWrapper } from './contextValueWrapper.js';
+import { ContextItem } from './contextItem.js';
+import { ContextContainer } from './contextContainer.js';
+
+describe('ContextValueWrapper', () => {
+  describe('_validateWrapOptions', () => {
+    it('should not throw for valid wrapAs options', () => {
+      expect(() => ContextValueWrapper._validateWrapOptions('ContextItem')).not.toThrow();
+      expect(() => ContextValueWrapper._validateWrapOptions('ContextContainer')).not.toThrow();
+    });
+
+    it('should throw TypeError for invalid wrapAs options', () => {
+      expect(() => ContextValueWrapper._validateWrapOptions('InvalidOption')).toThrow(TypeError);
+      expect(() => ContextValueWrapper._validateWrapOptions('contextItem')).toThrow(TypeError);
+      expect(() => ContextValueWrapper._validateWrapOptions('')).toThrow(TypeError);
+      expect(() => ContextValueWrapper._validateWrapOptions(null)).toThrow(TypeError);
+      expect(() => ContextValueWrapper._validateWrapOptions(undefined)).toThrow(TypeError);
+    });
+  });
+
+  describe('_handleExistingInstance', () => {
+    it('should return ContextItem instance when passed', () => {
+      const contextItem = new ContextItem('test');
+      const result = ContextValueWrapper._handleExistingInstance(contextItem);
+      expect(result).toBe(contextItem);
+    });
+
+    it('should return ContextContainer instance when passed', () => {
+      const contextContainer = new ContextContainer({});
+      const result = ContextValueWrapper._handleExistingInstance(contextContainer);
+      expect(result).toBe(contextContainer);
+    });
+
+    it('should return null for non-context instances', () => {
+      expect(ContextValueWrapper._handleExistingInstance('string')).toBeNull();
+      expect(ContextValueWrapper._handleExistingInstance(123)).toBeNull();
+      expect(ContextValueWrapper._handleExistingInstance({})).toBeNull();
+      expect(ContextValueWrapper._handleExistingInstance([])).toBeNull();
+      expect(ContextValueWrapper._handleExistingInstance(null)).toBeNull();
+      expect(ContextValueWrapper._handleExistingInstance(undefined)).toBeNull();
+    });
+  });
+
+  describe('_handlePrimitiveValue', () => {
+    it('should return primitive values when wrapPrimitives is false', () => {
+      expect(ContextValueWrapper._handlePrimitiveValue('string', false)).toBe('string');
+      expect(ContextValueWrapper._handlePrimitiveValue(123, false)).toBe(123);
+      expect(ContextValueWrapper._handlePrimitiveValue(true, false)).toBe(true);
+      expect(ContextValueWrapper._handlePrimitiveValue(null, false)).toBe(null);
+      expect(ContextValueWrapper._handlePrimitiveValue(undefined, false)).toBe(undefined);
+    });
+
+    it('should throw TypeError for objects/functions when wrapPrimitives is false', () => {
+      expect(() => ContextValueWrapper._handlePrimitiveValue({}, false)).toThrow(TypeError);
+      expect(() => ContextValueWrapper._handlePrimitiveValue([], false)).toThrow(TypeError);
+      expect(() => ContextValueWrapper._handlePrimitiveValue(() => {}, false)).toThrow(TypeError);
+    });
+
+    it('should return undefined when wrapPrimitives is true', () => {
+      expect(ContextValueWrapper._handlePrimitiveValue('string', true)).toBeUndefined();
+      expect(ContextValueWrapper._handlePrimitiveValue({}, true)).toBeUndefined();
+      expect(ContextValueWrapper._handlePrimitiveValue([], true)).toBeUndefined();
+    });
+  });
+
+  describe('_createNewInstance', () => {
+    it('should create ContextItem when wrapAs is "ContextItem"', () => {
+      const result = ContextValueWrapper._createNewInstance(
+        'test',
+        'ContextItem',
+        { key: 'value' },
+        { recordAccess: false },
+        {}
+      );
+      expect(result).toBeInstanceOf(ContextItem);
+    });
+
+    it('should create ContextContainer when wrapAs is "ContextContainer"', () => {
+      const result = ContextValueWrapper._createNewInstance(
+        {},
+        'ContextContainer',
+        { key: 'value' },
+        {},
+        { recordAccess: false }
+      );
+      expect(result).toBeInstanceOf(ContextContainer);
+    });
+  });
+
+  describe('wrap', () => {
+    it('should return existing ContextItem instance unchanged', () => {
+      const existingItem = new ContextItem('test');
+      const result = ContextValueWrapper.wrap(existingItem);
+      expect(result).toBe(existingItem);
+    });
+
+    it('should return existing ContextContainer instance unchanged', () => {
+      const existingContainer = new ContextContainer({});
+      const result = ContextValueWrapper.wrap(existingContainer);
+      expect(result).toBe(existingContainer);
+    });
+
+    it('should return primitives unchanged when wrapPrimitives is false', () => {
+      expect(ContextValueWrapper.wrap('test', { wrapPrimitives: false })).toBe('test');
+      expect(ContextValueWrapper.wrap(123, { wrapPrimitives: false })).toBe(123);
+      expect(ContextValueWrapper.wrap(true, { wrapPrimitives: false })).toBe(true);
+      expect(ContextValueWrapper.wrap(null, { wrapPrimitives: false })).toBe(null);
+    });
+
+    it('should throw TypeError for objects when wrapPrimitives is false', () => {
+      expect(() => ContextValueWrapper.wrap({}, { wrapPrimitives: false })).toThrow(TypeError);
+      expect(() => ContextValueWrapper.wrap([], { wrapPrimitives: false })).toThrow(TypeError);
+    });
+
+    it('should create ContextItem by default', () => {
+      const result = ContextValueWrapper.wrap('test');
+      expect(result).toBeInstanceOf(ContextItem);
+    });
+
+    it('should create ContextContainer when wrapAs is "ContextContainer"', () => {
+      const result = ContextValueWrapper.wrap({}, { wrapAs: 'ContextContainer' });
+      expect(result).toBeInstanceOf(ContextContainer);
+    });
+
+    it('should throw TypeError for invalid wrapAs option', () => {
+      expect(() => ContextValueWrapper.wrap('test', { wrapAs: 'Invalid' })).toThrow(TypeError);
+    });
+
+    it('should pass options correctly to ContextItem', () => {
+      const metadata = { key: 'value' };
+      const result = ContextValueWrapper.wrap('test', {
+        wrapAs: 'ContextItem',
+        recordAccess: false,
+        recordAccessForMetadata: true,
+        metadata
+      });
+      expect(result).toBeInstanceOf(ContextItem);
+      // Note: We would need access to internal properties to fully test option passing
+    });
+
+    it('should pass options correctly to ContextContainer', () => {
+      const metadata = { key: 'value' };
+      const containerOptions = {
+        recordAccess: false,
+        recordAccessForMetadata: true,
+        defaultItemWrapPrimitives: false,
+        defaultItemWrapAs: 'ContextContainer',
+        defaultItemRecordAccess: false,
+        defaultItemRecordAccessForMetadata: true
+      };
+      const result = ContextValueWrapper.wrap({}, {
+        wrapAs: 'ContextContainer',
+        metadata,
+        containerOptions
+      });
+      expect(result).toBeInstanceOf(ContextContainer);
+    });
+
+    it('should work with default options when no options provided', () => {
+      const result = ContextValueWrapper.wrap('test');
+      expect(result).toBeInstanceOf(ContextItem);
+    });
+
+    it('should work with partial options', () => {
+      const result = ContextValueWrapper.wrap('test', { wrapAs: 'ContextItem' });
+      expect(result).toBeInstanceOf(ContextItem);
+    });
+
+    it('should handle complex objects', () => {
+      const complexObject = { nested: { prop: 'value' }, array: [1, 2, 3] };
+      const result = ContextValueWrapper.wrap(complexObject);
+      expect(result).toBeInstanceOf(ContextItem);
+    });
+
+    it('should handle functions', () => {
+      const testFunction = () => 'test';
+      const result = ContextValueWrapper.wrap(testFunction);
+      expect(result).toBeInstanceOf(ContextItem);
+    });
+  });
+});

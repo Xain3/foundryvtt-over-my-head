@@ -1,13 +1,41 @@
+/**
+ * @file overMyHead.js
+ * @description This file contains the main class for the OverMyHead module, responsible for initialization and core functionalities.
+ * @path /src/overMyHead.js
+ */
 import manifest from "@manifest";
 import constants from "@constants";
 
+/**
+ * @class OverMyHead
+ * @description Main class for the "Over My Head" module.
+ * It handles the initialization of the module, unpacks manifest data, and sets up constants.
+ */
 class OverMyHead {
+  /**
+   * @constructor
+   * @description Initializes a new instance of the OverMyHead class.
+   * It assigns the manifest and constants to instance properties and unpacks the manifest.
+   */
   constructor() {
+    /**
+     * @property {object} manifest - The module manifest data.
+     */
     this.manifest = manifest;
+    /**
+     * @property {object} constants - The module constants.
+     */
     this.constants = constants;
     this.#unpackManifest();
   }
 
+  /**
+   * @private
+   * @method #unpackManifest
+   * @description Unpacks properties from the manifest object directly onto the class instance.
+   * This makes manifest properties (like title, version, etc.) directly accessible via `this.propertyName`.
+   * @throws {Error} If an error occurs during the unpacking process.
+   */
   #unpackManifest() {
     try {
       for (const [key, value] of Object.entries(this.manifest)) {
@@ -19,9 +47,18 @@ class OverMyHead {
     }
   }
 
+  /**
+   * @async
+   * @method init
+   * @description Initializes the module.
+   * This method is typically called during the Foundry VTT initialization phase.
+   * It exports constants to the global scope and logs an initialization message.
+   * @throws {Error} If an error occurs during the initialization process.
+   */
   async init() {
     try {
-
+      // Export constants to global scope
+      window.OMHconstants = this.constants;
       // Initialization logic to go here
       console.log(`${this.title} v${this.version} initialized.`);
     } catch (error) {

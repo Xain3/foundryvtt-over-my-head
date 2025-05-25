@@ -1,7 +1,14 @@
+/**
+ * @file constantsParser.js
+ * @description This file contains a utility class for parsing and processing constants from YAML input, including root map creation.
+ * @path src/constants/helpers/constantsParser.js
+ */
+
 import yaml from 'js-yaml';
 import _ from 'lodash';
 import { z } from 'zod';
 import { stringToZodType } from '@maps/stringToZodType';
+import { resolvePath } from '@helpers/resolvePath';
 
 /**
  * A utility class for parsing and processing constants from YAML input.
@@ -41,13 +48,15 @@ class ConstantsParser {
    *
    * Loads the YAML string, deeply clones the resulting object, and optionally replaces the `context.schema`
    * property with a Zod schema built from its original value.
+   * It also optionally parses the `context.rootMap` property to create a root map function.
    *
    * @param {string} constants - The YAML string containing the constants to parse.
    * @param {boolean} [buildContextSchema=true] - Whether to build and replace `context.schema` with a Zod schema. Defaults to true.
+   * @param {boolean} [parseContextRootMap=true] - Whether to parse the `context.rootMap` property. Defaults to true.
    * @returns {Object} The parsed constants object, with `context.schema` as a Zod schema if `buildContextSchema` is true.
    * @throws {Error} If parsing or schema building fails.
    */
-  static parseConstants(constants, buildContextSchema = true) {
+  static parseConstants(constants, buildContextSchema = true, parseContextRootMap = true) {
     const validateArgs = () => {
       if (typeof constants !== 'string') {
         throw new TypeError('constants must be a string');
@@ -61,11 +70,37 @@ class ConstantsParser {
     try {
       const parsedConstants = yaml.load(constants);
       if (buildContextSchema) parsedConstants.context.schema = this.buildContextSchema(parsedConstants.context.schema);
+      if (parseContextRootMap) parsedConstants.context.rootMap = this.createRootMapFromYaml(parsedConstants.context.rootMap);
       return parsedConstants;
     } catch (error) {
       console.error('Error parsing constants:', error);
       throw new Error('Failed to parse constants');
     }
   }
+
+  /**
+   * Creates a root map function from configuration object
+   * @param {Object} config - The configuration object containing rootMap
+   * @returns {Function} A function that creates the root map
+   */
+  static createRootMapFromYaml(config) {
+    return (globalNamespace, module) => {
+      const rootMap = {};
+
+      for (const [key, value] of Object.entries(config.rootMap)) {
+        if (value === null) {
+          rootMap[key] = null;
+        } else if (value === "module") {
+          rootMap[key] = module;
+        } else {
+          // Dynamically resolve the path
+          rootMap[key] = resolvePath(globalNamespace, value);
+        }
+      }
+
+      return rootMap;
+    };
+  }
 }
+
 export default ConstantsParser;

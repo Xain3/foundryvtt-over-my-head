@@ -1,5 +1,4 @@
 import fs from 'fs';
-import { constant } from 'lodash';
 import path from 'path';
 
 /**

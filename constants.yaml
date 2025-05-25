@@ -7,10 +7,19 @@
 # Can be "title", "id", "name", or "shortName"
 referToModuleBy: "title"
 
+# Configuration constants for Foundry VTT module management
+#
+# defaultFoundryModulesLocation:
+#   Description: Specifies the default path where Foundry VTT modules are located within the game system
+#   Type: String
+#   Default: "game.modules"
+#   Usage: Used as a reference point for module discovery and management operations. Path is relative to the global namespace.
+defaultFoundryModulesLocation: "game.modules"
+
 # How to structure error messages
 errors:
-  separator: " || "
-  pattern: "{{module}}{{caller}}{{error}}{{stack}}"
+  separator: " || " # The separator used to join multiple error messages
+  pattern: "{{module}}{{caller}}{{error}}{{stack}}"  # The pattern used to format error messages
 
 # Constants relative to context and state management
 context:
@@ -20,43 +29,43 @@ context:
       rootIdentifier: "module" # The default identifier for the root object of the context.
       defaultPathFromRoot: "context" # The default path of the context relative to the root object.
     rootMap:
-      window: "globalNamespace.window"
-      document: "globalNamespace.document"
-      game: "globalNamespace.game"
-      user: "globalNamespace.game?.user"
-      world: "globalNamespace.game?.world"
-      canvas: "globalNamespace.canvas"
-      ui: "globalNamespace.ui"
-      local: "globalNamespace.localStorage"
-      session: "globalNamespace.sessionStorage"
-      module: "module"
-      invalid: null
+      window: "globalNamespace.window"  # The root object for the context, typically the global window object.
+      document: "globalNamespace.document"  # The root object for the context, typically the global document object.
+      game: "globalNamespace.game"  # The root object for the game context, typically the global game object.
+      user: "globalNamespace.game?.user"  # The root object for the user context, typically the global game user object.
+      world: "globalNamespace.game?.world"  # The root object for the world context, typically the global game world object.
+      canvas: "globalNamespace.canvas"  # The root object for the canvas context, typically the global canvas object.
+      ui: "globalNamespace.ui"  # The root object for the UI context, typically the global UI object.
+      local: "globalNamespace.localStorage"  # The root object for local storage, typically the global localStorage object.
+      session: "globalNamespace.sessionStorage"  # The root object for session storage, typically the global sessionStorage object.
+      module: "module"  # The root object for the module context, typically the module's own namespace.
+      invalid: null  # An invalid root object, used to indicate an error or uninitialized state.
 
   sync:
     # Default synchronization configuration
     defaults:
-      autoSync: true
-      pullBeforeGet: true
-      pushAfterSet: true
-      syncStrategy: "mergeNewerWins"
-      syncThrottleMs: 1000
-      deepSync: true
-      compareBy: "modifiedAt"
+      autoSync: true  # Whether to automatically synchronize data with the remote context
+      pullBeforeGet: true  # Whether to pull data from the remote context before getting it
+      pushAfterSet: true  # Whether to push data to the remote context after setting it
+      syncStrategy: "mergeNewerWins"  # The default synchronization strategy to use
+      syncThrottleMs: 1000  # The default throttle time in milliseconds for synchronization operations
+      deepSync: true  # Whether to perform deep synchronization of objects
+      compareBy: "modifiedAt"  # The default method to compare objects for synchronization
 
     # Available sync strategies
     strategies:
-      - "mergeNewerWins"
-      - "mergeOlderWins"
-      - "overwriteLocal"
-      - "overwriteRemote"
-      - "manual"
+      - "mergeNewerWins"  # Merge changes from the remote context, preferring newer values
+      - "mergeOlderWins"  # Merge changes from the remote context, preferring older values
+      - "overwriteLocal"  # Overwrite local data with remote data
+      - "overwriteRemote"  # Overwrite remote data with local data
+      - "manual"  # Manual synchronization, no automatic merging or overwriting
 
     # Available comparison methods
     comparisonMethods:
-      - "modifiedAt"
-      - "createdAt"
-      - "version"
-      - "hash"
+      - "modifiedAt"  # Compare objects based on their last modified timestamp
+      - "createdAt"  # Compare objects based on their creation timestamp
+      - "version"  # Compare objects based on their version number
+      - "hash"  # Compare objects based on their hash value
 
   # NOTE: The "naming" and "schema" values above are for backwards compatibility only.
   # Do not change these unless absolutely necessary, as doing so will likely cause errors.

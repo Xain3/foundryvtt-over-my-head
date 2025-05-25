@@ -14,28 +14,6 @@ errors:
 
 # Constants relative to context and state management
 context:
-  naming:
-    # The name of the state object
-    state: "state"
-    # The name of the settings object
-    settings: "settings"
-    # The name of the flags object
-    flags: "flags"
-    # The name of the data object
-    data: "data"
-    # The name of the manifest object
-    manifest: "manifest"
-    # The name of the timestamp
-    timestamp: "timestamp"
-  # The schema for the context object
-  schema:
-    manifest: 'object'
-    constants: 'object'
-    flags: 'object'
-    data: 'object'
-    settings: 'object'
-    timestamp: 'number'
-
   # How to structure the context object
   remote:
     defaults:
@@ -79,6 +57,31 @@ context:
       - "createdAt"
       - "version"
       - "hash"
+
+  # NOTE: The "naming" and "schema" values above are for backwards compatibility only.
+  # Do not change these unless absolutely necessary, as doing so will likely cause errors.
+  # They are not intended for modification.
+  naming:
+    # The name of the state object
+    state: "state"
+    # The name of the settings object
+    settings: "settings"
+    # The name of the flags object
+    flags: "flags"
+    # The name of the data object
+    data: "data"
+    # The name of the manifest object
+    manifest: "manifest"
+    # The name of the timestamp
+    timestamp: "timestamp"
+  # The schema for the context object
+  schema:
+    manifest: 'object'
+    constants: 'object'
+    flags: 'object'
+    data: 'object'
+    settings: 'object'
+    timestamp: 'number'
 
 # Constants relative to placeables
 placeables:

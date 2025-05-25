@@ -14,6 +14,53 @@ errors:
 
 # Constants relative to context and state management
 context:
+  # How to structure the context object
+  remote:
+    defaults:
+      rootIdentifier: "module" # The default identifier for the root object of the context.
+      defaultPathFromRoot: "context" # The default path of the context relative to the root object.
+    rootMap:
+      window: "globalNamespace.window"
+      document: "globalNamespace.document"
+      game: "globalNamespace.game"
+      user: "globalNamespace.game?.user"
+      world: "globalNamespace.game?.world"
+      canvas: "globalNamespace.canvas"
+      ui: "globalNamespace.ui"
+      local: "globalNamespace.localStorage"
+      session: "globalNamespace.sessionStorage"
+      module: "module"
+      invalid: null
+
+  sync:
+    # Default synchronization configuration
+    defaults:
+      autoSync: true
+      pullBeforeGet: true
+      pushAfterSet: true
+      syncStrategy: "mergeNewerWins"
+      syncThrottleMs: 1000
+      deepSync: true
+      compareBy: "modifiedAt"
+
+    # Available sync strategies
+    strategies:
+      - "mergeNewerWins"
+      - "mergeOlderWins"
+      - "overwriteLocal"
+      - "overwriteRemote"
+      - "manual"
+
+    # Available comparison methods
+    comparisonMethods:
+      - "modifiedAt"
+      - "createdAt"
+      - "version"
+      - "hash"
+
+  # NOTE: The "naming" and "schema" values above are for backwards compatibility only.
+  # Do not change these unless absolutely necessary, as doing so will likely cause errors.
+  # They are not intended for modification.
   naming:
     # The name of the state object
     state: "state"
@@ -34,12 +81,7 @@ context:
     flags: 'object'
     data: 'object'
     settings: 'object'
-    timestamp: 'datetime'
-
-  # How to structure the context object
-  remote:
-    root: "module" # The root of the context object.
-    path: "context" # The path to the context object.
+    timestamp: 'number'
 
 # Constants relative to placeables
 placeables:

@@ -1,5 +1,5 @@
-import ConstantsParser from "./constantsParser";
-import ConstantsGetter from "./constantsGetter";
+import ConstantsParser from "./constantsParser.js";
+import ConstantsGetter from "./constantsGetter.js";
 
 /**
  * The ConstantsBuilder class is responsible for retrieving and parsing constant values
@@ -20,11 +20,12 @@ class ConstantsBuilder {
   constructor() {
     // Fetch the YAML string using the ConstantsGetter helper
     this.#string = ConstantsGetter.getConstantsYaml();
-    this.#parsedObject = ConstantsParser.parseConstants(this.#string);
+    // Parse constants without module dependency to avoid circular imports
+    this.#parsedObject = ConstantsParser.parseConstants(this.#string, globalThis, true, false, null);
   }
 
 
-  /**`
+  /**
    * Returns the YAML string representation of the constants.
    *
    * @returns {string} The YAML string of constants.

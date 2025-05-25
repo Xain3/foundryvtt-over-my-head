@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import ConstantsGetter from './constantsGetter';
+import ConstantsGetter from './constantsGetter.js';
 
 jest.mock('fs');
 jest.mock('path');

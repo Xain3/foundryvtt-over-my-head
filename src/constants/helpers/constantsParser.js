@@ -51,12 +51,14 @@ class ConstantsParser {
    * It also optionally parses the `context.rootMap` property to create a root map function.
    *
    * @param {string} constants - The YAML string containing the constants to parse.
+   * @param {Object} [globalNamespace=globalThis] - The global namespace to use for path resolution.
    * @param {boolean} [buildContextSchema=true] - Whether to build and replace `context.schema` with a Zod schema. Defaults to true.
    * @param {boolean} [parseContextRootMap=true] - Whether to parse the `context.rootMap` property. Defaults to true.
+   * @param {Object} [module=null] - The module object to use for root map creation.
    * @returns {Object} The parsed constants object, with `context.schema` as a Zod schema if `buildContextSchema` is true.
    * @throws {Error} If parsing or schema building fails.
    */
-  static parseConstants(constants, buildContextSchema = true, parseContextRootMap = true) {
+  static parseConstants(constants, globalNamespace = globalThis, buildContextSchema = true, parseContextRootMap = true, module = null) {
     const validateArgs = () => {
       if (typeof constants !== 'string') {
         throw new TypeError('constants must be a string');
@@ -64,13 +66,21 @@ class ConstantsParser {
       if (typeof buildContextSchema !== 'boolean') {
         throw new TypeError('buildContextSchema must be a boolean');
       }
+      if (typeof parseContextRootMap !== 'boolean') {
+        throw new TypeError('parseContextRootMap must be a boolean');
+      }
     };
 
     validateArgs();  // Validate the input arguments
     try {
       const parsedConstants = yaml.load(constants);
-      if (buildContextSchema) parsedConstants.context.schema = this.buildContextSchema(parsedConstants.context.schema);
-      if (parseContextRootMap) parsedConstants.context.rootMap = this.createRootMapFromYaml(parsedConstants.context.rootMap);
+      globalNamespace = globalNamespace || globalThis;
+      if (buildContextSchema && parsedConstants.context?.schema) {
+        parsedConstants.context.schema = this.buildContextSchema(parsedConstants.context.schema);
+      }
+      if (parseContextRootMap && parsedConstants.context?.remote?.rootMap) {
+        parsedConstants.context.rootMap = this.createRootMapFromYaml(parsedConstants.context.remote.rootMap, globalNamespace, module);
+      }
       return parsedConstants;
     } catch (error) {
       console.error('Error parsing constants:', error);
@@ -83,7 +93,7 @@ class ConstantsParser {
    * @param {Object} config - The configuration object containing rootMap
    * @returns {Function} A function that creates the root map
    */
-  static createRootMapFromYaml(config) {
+  static createRootMapFromYaml(config, globalNamespace = undefined, module = undefined) {
     return (globalNamespace, module) => {
       const rootMap = {};
 

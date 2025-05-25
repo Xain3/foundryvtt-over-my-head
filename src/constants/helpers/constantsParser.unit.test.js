@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import yaml from 'js-yaml';
-import ConstantsParser from './constantsParser';
+import ConstantsParser from './constantsParser.js';
 import * as stringToZodTypeModule from '@maps/stringToZodType';
 import * as resolvePathModule from '@helpers/resolvePath';
 
@@ -79,7 +79,7 @@ describe('ConstantsParser', () => {
     });
 
     it('parses YAML and does not build context.schema if buildContextSchema is false', () => {
-      const result = ConstantsParser.parseConstants(yamlString, false);
+      const result = ConstantsParser.parseConstants(yamlString, globalThis, false);
       expect(yaml.load).toHaveBeenCalledWith(yamlString);
       expect(result.context.schema).toEqual(parsedYaml.context.schema);
     });
@@ -89,7 +89,7 @@ describe('ConstantsParser', () => {
     });
 
     it('throws if buildContextSchema is not a boolean', () => {
-      expect(() => ConstantsParser.parseConstants(yamlString, 'yes')).toThrow(TypeError);
+      expect(() => ConstantsParser.parseConstants(yamlString, globalThis, 'yes')).toThrow(TypeError);
     });
 
     it('throws and logs error if YAML parsing fails', () => {

@@ -41,7 +41,12 @@ class ErrorFormatter {
           } else if (key === 'stack') {
             formattedError = formattedError.replace(`{{${key}}}`, `\nCall Stack:\n${value}` );
           } else {
-            formattedError = formattedError.replace(`{{${key}}}`, value + separator);
+            // Only add separator for module if caller will be included
+            if (key === 'module' && !includeCaller) {
+              formattedError = formattedError.replace(`{{${key}}}`, value);
+            } else {
+              formattedError = formattedError.replace(`{{${key}}}`, value + separator);
+            }
           }
         } else {
           formattedError = formattedError.replace(`{{${key}}}`, '');

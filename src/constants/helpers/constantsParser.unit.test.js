@@ -1,7 +1,12 @@
-import { z } from 'zod';
+/**
+ * @file constantsParser.unit.test.js
+ * @description Unit tests for the ConstantsParser class.
+ * @path src/constants/helpers/constantsParser.unit.test.js
+ * @date 26 May 2025
+ */
+
 import yaml from 'js-yaml';
 import ConstantsParser from './constantsParser.js';
-import * as stringToZodTypeModule from '@maps/stringToZodType';
 import * as resolvePathModule from '@helpers/resolvePath';
 
 jest.mock('js-yaml', () => ({
@@ -14,43 +19,6 @@ jest.mock('@helpers/resolvePath', () => ({
 describe('ConstantsParser', () => {
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('buildContextSchema', () => {
-    it('builds a Zod schema from a valid schema definition', () => {
-      const schemaDef = { foo: 'string', bar: 'number' };
-      const mockTypeMap = {
-        string: z.string(),
-        number: z.number(),
-      };
-      jest.spyOn(stringToZodTypeModule, 'stringToZodType')
-        .mockImplementation(type => mockTypeMap[type]);
-
-      const schema = ConstantsParser.buildContextSchema(schemaDef);
-
-      expect(schema).toBeInstanceOf(z.ZodObject);
-      expect(schema.shape.foo).toBe(mockTypeMap.string);
-      expect(schema.shape.bar).toBe(mockTypeMap.number);
-
-      expect(schema.safeParse({ foo: 'abc', bar: 123 }).success).toBe(true);
-      expect(schema.safeParse({ foo: 123, bar: 'abc' }).success).toBe(false);
-    });
-
-    it('throws if schemaDefinition is not an object', () => {
-      expect(() => ConstantsParser.buildContextSchema(null)).toThrow(TypeError);
-      expect(() => ConstantsParser.buildContextSchema('not an object')).toThrow(TypeError);
-    });
-
-    it('throws and logs error if stringToZodType throws', () => {
-      const schemaDef = { foo: 'string' };
-      jest.spyOn(stringToZodTypeModule, 'stringToZodType').mockImplementation(() => {
-        throw new Error('bad type');
-      });
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      expect(() => ConstantsParser.buildContextSchema(schemaDef)).toThrow('Failed to build context schema');
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
-    });
   });
 
   describe('parseConstants', () => {
@@ -66,42 +34,20 @@ describe('ConstantsParser', () => {
       yaml.load.mockReturnValue(JSON.parse(JSON.stringify(parsedYaml)));
     });
 
-    it('parses YAML and builds context.schema as Zod schema by default', () => {
-      const mockZodSchema = z.object({ foo: z.string(), bar: z.number() });
-      jest.spyOn(ConstantsParser, 'buildContextSchema').mockReturnValue(mockZodSchema);
-
+    it('parses YAML and returns the parsed structure', () => {
       const result = ConstantsParser.parseConstants(yamlString);
 
       expect(yaml.load).toHaveBeenCalledWith(yamlString);
-      expect(ConstantsParser.buildContextSchema).toHaveBeenCalledWith(parsedYaml.context.schema);
-      expect(result.context.schema).toBe(mockZodSchema);
-      expect(result.other).toBe(42);
-    });
-
-    it('parses YAML and does not build context.schema if buildContextSchema is false', () => {
-      const result = ConstantsParser.parseConstants(yamlString, globalThis, false);
-      expect(yaml.load).toHaveBeenCalledWith(yamlString);
       expect(result.context.schema).toEqual(parsedYaml.context.schema);
+      expect(result.other).toBe(42);
     });
 
     it('throws if constants is not a string', () => {
       expect(() => ConstantsParser.parseConstants(123)).toThrow(TypeError);
     });
 
-    it('throws if buildContextSchema is not a boolean', () => {
-      expect(() => ConstantsParser.parseConstants(yamlString, globalThis, 'yes')).toThrow(TypeError);
-    });
-
     it('throws and logs error if YAML parsing fails', () => {
       yaml.load.mockImplementation(() => { throw new Error('bad yaml'); });
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      expect(() => ConstantsParser.parseConstants(yamlString)).toThrow('Failed to parse constants');
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
-    });
-
-    it('throws and logs error if buildContextSchema throws', () => {
-      jest.spyOn(ConstantsParser, 'buildContextSchema').mockImplementation(() => { throw new Error('fail'); });
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       expect(() => ConstantsParser.parseConstants(yamlString)).toThrow('Failed to parse constants');
       expect(consoleSpy).toHaveBeenCalled();

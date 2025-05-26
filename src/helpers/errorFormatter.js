@@ -1,6 +1,5 @@
 import manifest from '@manifest';
 import constants from '@constants';
-import { z } from 'zod';
 
 const moduleIdentifiers = {
   "title": manifest.title,

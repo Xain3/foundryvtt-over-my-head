@@ -83,7 +83,8 @@ context:
     manifest: "manifest"
     # The name of the timestamp
     timestamp: "timestamp"
-  # The schema for the context object
+
+  # The schema for the context object to be used in validations
   schema:
     manifest: 'object'
     constants: 'object'

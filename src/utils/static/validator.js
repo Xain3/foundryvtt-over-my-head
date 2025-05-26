@@ -185,17 +185,6 @@ class Validator {
     if (!Validator.isDefined(schemaStructure)) throw new Error('Context schema must be provided.');
 
     this.validateObject(schemaStructure, name, { allowEmpty: false, checkKeys: true }); // Uses updated validateObject
-
-    Object.values(schemaStructure).forEach((value, index) => {
-      const keyName = Object.keys(schemaStructure)[index];
-      if (!Validator.isObject(value)) { // isObject checks for non-null, non-array object
-        throw new Error(`Value for key "${keyName}" in Context schema must be a non-null object and not an array.`);
-      }
-      if (Validator.isEmpty(value)) { // isEmpty checks for empty object
-        throw new Error(`Value for key "${keyName}" in Context schema cannot be an empty object.`);
-      }
-      // Not validating keys of inner objects to be strings, as per original logic.
-    });
   }
 
   static validateStringAgainstPattern(value, name, pattern, patternDescription, stringValidationOptions = {}) {

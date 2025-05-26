@@ -13,7 +13,13 @@ import RootMapValidator from "./validators/rootMapValidator";
  */
 class ExternalContextRootMap {
     constructor(globalNamespace, module, rootMapBuilder) {
-        RootMapValidator.validateArgs();
+        RootMapValidator.validateArgs(
+            globalNamespace,
+            { module, remoteContextDefaults: { ROOT_MAP: rootMapBuilder } },
+            true, // throwError
+            true, // consoleLog
+            'error' // logLevel
+        );
         this.globalNamespace = globalNamespace;
         this.module = module;
         this.rootMapBuilder = rootMapBuilder;

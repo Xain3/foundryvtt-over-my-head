@@ -32,7 +32,7 @@ class Context extends ContextContainer {
    * @constructor
    * @param {object} [initializationParams={}] - The parameters for initializing the context.
    * @param {object} [initializationParams.contextSchema=constants.context.schema] - The schema definition for the context.
-   * @param {string} [initializationParams.namingConvention=constants.context.naming] - The naming convention to be used.
+   * @param {object} [initializationParams.namingConvention=constants.context.naming] - The naming convention to be used.
    * @param {object} [initializationParams.constants=constants] - Module-wide constants.
    * @param {object} [initializationParams.manifest=manifest] - The module's manifest data.
    * @param {object} [initializationParams.flags=constants.flags] - Initial flags for the context.
@@ -70,7 +70,7 @@ class Context extends ContextContainer {
      * @description Validates the arguments passed to the Context constructor.
      * @param {object} constructorArgs - The arguments object to validate.
      * @param {object} constructorArgs.contextSchema - The context schema.
-     * @param {string} constructorArgs.namingConvention - The naming convention.
+     * @param {object} constructorArgs.namingConvention - The naming convention.
      * @param {object} constructorArgs.constants - The constants object.
      * @param {object} constructorArgs.manifest - The manifest object.
      * @param {object} constructorArgs.flags - The flags object.
@@ -102,7 +102,7 @@ class Context extends ContextContainer {
    * @description Validates the arguments passed to the Context constructor.
    * @param {object} constructorArgs - The arguments object to validate.
    * @param {object} constructorArgs.contextSchema - The context schema.
-   * @param {string} constructorArgs.namingConvention - The naming convention.
+   * @param {object} constructorArgs.namingConvention - The naming convention.
    * @param {object} constructorArgs.constants - The constants object.
    * @param {object} constructorArgs.manifest - The manifest object.
    * @param {object} constructorArgs.flags - The flags object.
@@ -118,14 +118,17 @@ class Context extends ContextContainer {
 
     Validator.validateSchemaDefinition(contextSchema, 'Context schema');
 
+    Validator.validateObject(namingConvention, 'Naming convention');
     // Validate naming convention;
+    Object.entries(namingConvention).forEach(([property, name]) => {
     Validator.validateStringAgainstPattern(
-      namingConvention,
-      'Naming convention',
+        name,
+        `Naming convention.${property}`,
       /^[a-zA-Z0-9_]+$/,
       'alphanumeric characters and underscores',
       { allowEmpty: false }
     );
+    });
 
     Validator.validateObject(constants, 'Constants', { allowEmpty: false });
     Validator.validateObject(manifest, 'Manifest', { allowEmpty: false });

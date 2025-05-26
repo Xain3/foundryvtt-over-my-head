@@ -24,10 +24,10 @@ errors:
 # Constants relative to context and state management
 context:
   # How to structure the context object
-  remote:
+  external:
     defaults:
       rootIdentifier: "module" # The default identifier for the root object of the context.
-      defaultPathFromRoot: "context" # The default path of the context relative to the root object.
+      pathFromRoot: "context" # The default path of the context relative to the root object.
     rootMap:
       window: "globalNamespace.window"  # The root object for the context, typically the global window object.
       document: "globalNamespace.document"  # The root object for the context, typically the global document object.

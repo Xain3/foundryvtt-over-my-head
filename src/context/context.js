@@ -9,6 +9,16 @@ import Validator from '@/utils/static/validator';
 import {ContextContainer} from './helpers/contextContainer.js';
 import ContextSync from './helpers/contextSync.js';
 
+export const DEFAULT_INITIALIZATION_PARAMS = {
+  contextSchema: constants.context.schema,
+  namingConvention: constants.context.naming,
+  constants: constants,
+  manifest: manifest,
+  flags: constants.flags,
+  data: {},
+  settings: {}
+};
+
 /**
  * @class Context
  * @description Represents the operational context for the module, holding configuration,
@@ -30,29 +40,30 @@ class Context extends ContextContainer {
   #namingConvention;
   /**
    * @constructor
-   * @param {object} [initializationParams={}] - The parameters for initializing the context.
-   * @param {object} [initializationParams.contextSchema=constants.context.schema] - The schema definition for the context.
-   * @param {object} [initializationParams.namingConvention=constants.context.naming] - The naming convention to be used.
-   * @param {object} [initializationParams.constants=constants] - Module-wide constants.
-   * @param {object} [initializationParams.manifest=manifest] - The module's manifest data.
-   * @param {object} [initializationParams.flags=constants.flags] - Initial flags for the context.
-   * @param {object} [initializationParams.data={}] - Initial data for the context.
-   * @param {object} [initializationParams.settings={}] - Initial settings for the context.
+   * @param {object} [options={}] - The options object.
+   * @param {object} [options.initializationParams=DEFAULT_INITIALIZATION_PARAMS] - The parameters for initializing the context.
+   * @param {object} [options.initializationParams.contextSchema=constants.context.schema] - The schema definition for the context.
+   * @param {object} [options.initializationParams.namingConvention=constants.context.naming] - The naming convention to be used.
+   * @param {object} [options.initializationParams.constants=constants] - Module-wide constants.
+   * @param {object} [options.initializationParams.manifest=manifest] - The module's manifest data.
+   * @param {object} [options.initializationParams.flags=constants.flags] - Initial flags for the context.
+   * @param {object} [options.initializationParams.data={}] - Initial data for the context.
+   * @param {object} [options.initializationParams.settings={}] - Initial settings for the context.
    */
-  constructor(
-    {
-    contextSchema = constants.context.schema,
-    namingConvention = constants.context.naming,
-    constants: consts = constants, // Renamed to avoid conflict with imported 'constants'
-    manifest: manifestData = manifest, // Renamed to avoid conflict with imported 'manifest'
-    flags = constants.flags,
-    data = {},
-    settings = {}
-  } = {}
-  ) {
+  constructor({ initializationParams = DEFAULT_INITIALIZATION_PARAMS } = {}) {
     // Initialize ContextContainer part.
-    // Context itself doesn't typically need its access/metadata recorded like a data item.
     super({}, {}, { recordAccess: false, recordAccessForMetadata: false, defaultItemWrapAs: 'ContextContainer' });
+
+    // Extract parameters with defaults
+    const {
+      contextSchema = constants.context.schema,
+      namingConvention = constants.context.naming,
+      constants: consts = constants,
+      manifest: manifestData = manifest,
+      flags = constants.flags,
+      data = {},
+      settings = {}
+    } = initializationParams;
 
     const constructorArgs = {
       contextSchema,
@@ -64,25 +75,9 @@ class Context extends ContextContainer {
       settings
     };
 
-    /**
-     * @private
-     * @method #validateConstructorArgs
-     * @description Validates the arguments passed to the Context constructor.
-     * @param {object} constructorArgs - The arguments object to validate.
-     * @param {object} constructorArgs.contextSchema - The context schema.
-     * @param {object} constructorArgs.namingConvention - The naming convention.
-     * @param {object} constructorArgs.constants - The constants object.
-     * @param {object} constructorArgs.manifest - The manifest object.
-     * @param {object} constructorArgs.flags - The flags object.
-     * @param {object} constructorArgs.data - The data object.
-     * @param {object} constructorArgs.settings - The settings object.
-     * @throws {Error} If any validation fails.
-     */
     this.#validateConstructorArgs(constructorArgs);
 
     // Initialize properties as items within this ContextContainer
-    // The defaultItemWrapAs option in super() handles making these ContextContainers.
-    // If more specific options per item are needed, they can be passed to setItem.
     this.setItem('schema', Object.freeze(contextSchema));
     this.setItem('constants', Object.freeze(consts));
     this.setItem('manifest', Object.freeze(manifestData));
@@ -92,7 +87,6 @@ class Context extends ContextContainer {
     this.setItem('settings', settings);
 
     // #namingConvention remains a private property, not an item in the container.
-    // It's metadata for the Context's operation rather than a data partition.
     this.#namingConvention = new ContextContainer(Object.freeze(namingConvention), {}, { recordAccess: false });
   }
 

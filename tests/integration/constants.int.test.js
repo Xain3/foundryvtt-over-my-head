@@ -7,11 +7,12 @@ describe('Constants Integration Test', () => {
     expect(constants.testConstant).toBe('testValue');
   });
 
-  it('should have the context schema parsed as a Zod schema', () => {
+  it('should have the context schema parsed as an object', () => {
     expect(constants.context).toBeDefined();
     expect(constants.context.schema).toBeDefined();
-    // Check if it's a Zod schema by looking for a known Zod method, e.g., safeParse
-    expect(typeof constants.context.schema.safeParse).toBe('function');
+    // Check if it's a plain object (no longer using Zod schema)
+    expect(typeof constants.context.schema).toBe('object');
+    expect(constants.context.schema).not.toBeNull();
   });
 
   it('should load other values from constants.yaml', () => {

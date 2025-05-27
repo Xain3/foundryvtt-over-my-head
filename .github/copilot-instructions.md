@@ -134,3 +134,27 @@ if (flag && flag2 && veryLongFlag3) {
 - Use `Jest` for unit testing.
 - Use `describe` for grouping related tests.
 - Use `it` for defining individual tests.
+- Aim for 100% test coverage, but prioritize meaningful tests over achieving coverage metrics.
+- Tests for functions should aim to include:
+  - Input validation
+  - Successful cases
+  - Error cases and handling
+  - Edge cases
+  - Constants integration
+  - Alternative constants configuration
+  - Real-world scenarios
+  - Any other relevant scenarios that ensure the function behaves as expected in all situations.
+
+- Tests for classes should aim to include:
+  - Initialization and setup
+  - Constructor parameter validation
+  - Method functionality
+  - Property access and modification
+  - Inheritance behavior (if applicable)
+  - State management
+  - Error cases and handling
+  - Edge cases
+  - Constants integration
+  - Alternative constants configuration
+  - Real-world scenarios
+  - Any other relevant scenarios that ensure the class behaves as expected in all situations.

@@ -2,6 +2,7 @@
   "name": "foundryvtt-over-my-head",
   "id": "foundryvtt-over-my-head",
   "title": "OverMyHead",
+  "description": "A Foundry VTT module for managing vision occlusion with fade effects when a token is under a tile",
   "shortName": "OMH",
   "version": "12.0.1-alpha1",
   "license": "Gnu GPL v3",

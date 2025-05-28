@@ -112,10 +112,12 @@ if (flag && flag2 && veryLongFlag3) {
 - Use `console.table` for logging arrays and objects in a table format.
 - Use `console.group` and `console.groupEnd` for grouping log messages.
 
-#### Unit Testing ####
+#### Testing ####
 - Write unit tests for all functions and classes.
 - Unit tests should be independent and not rely on external resources (e.g., databases, APIs).
-- Unit test files are named with the `.unit.test.js` suffix.
+- Unit test files are named with the `.unit.test.js` suffix and are placed in the same directory as the tested file.
+- Integration test files are named with the `.int.test.js` suffix and are placed in the `tests/integration` directory.
+- Setup test files are named with the `.setup.test.js` suffix and are placed in the `tests/setup` directory.
 - Use `beforeEach` and `afterEach` for setup and teardown of tests.
 - Use `beforeAll` and `afterAll` for setup and teardown of tests that run once for all tests.
 - Use `expect` for assertions in tests.
@@ -133,7 +135,7 @@ if (flag && flag2 && veryLongFlag3) {
 - Use `toContain` for checking if an array contains a value.
 - Use `Jest` for unit testing.
 - Use `describe` for grouping related tests.
-- Use `it` for defining individual tests.
+- Prefer `it` instead of `test` for defining individual tests.
 - Aim for 100% test coverage, but prioritize meaningful tests over achieving coverage metrics.
 - Tests for functions should aim to include:
   - Input validation

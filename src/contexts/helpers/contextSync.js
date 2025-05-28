@@ -7,6 +7,7 @@
 import { ContextItem } from './contextItem.js';
 import { ContextContainer } from './contextContainer.js';
 import Context from '../context.js';
+import ContextMerger from './contextMerger.js';
 
 /**
  * @class ContextSync
@@ -99,6 +100,7 @@ class ContextSync {
 
   /**
    * Synchronizes two context objects based on the specified operation.
+   * This method now delegates complex merge operations to ContextMerger for better consistency.
    * @param {Context|ContextContainer|ContextItem} source - The source context object.
    * @param {Context|ContextContainer|ContextItem} target - The target context object.
    * @param {string} operation - The synchronization operation to perform.
@@ -110,12 +112,22 @@ class ContextSync {
    * @returns {object} Synchronization result with details.
    */
   static sync(source, target, operation, { deepSync = true, compareBy = 'modifiedAt', preserveMetadata = true, autoSync = false } = {}) {
-    const comparison = ContextSync.compare(source, target, { compareBy });
-
     // Handle 'auto' operation by delegating to autoSync
     if (operation === 'auto' || autoSync) {
       return ContextSync.autoSync(source, target, { deepSync, compareBy, preserveMetadata });
     }
+
+    // For Context instances, delegate to ContextMerger for more sophisticated handling
+    if (source instanceof Context && target instanceof Context) {
+      return ContextMerger.merge(source, target, operation, {
+        compareBy,
+        preserveMetadata,
+        createMissing: deepSync
+      });
+    }
+
+    // For simple ContextItem and ContextContainer operations, use legacy methods
+    const comparison = ContextSync.compare(source, target, { compareBy });
 
     switch (operation) {
       case ContextSync.SYNC_OPERATIONS.UPDATE_SOURCE_TO_TARGET:
@@ -134,7 +146,13 @@ class ContextSync {
         return ContextSync.#mergeWithPriority(source, target, 'target', { deepSync, preserveMetadata });
 
       case ContextSync.SYNC_OPERATIONS.NO_ACTION:
-        return { success: true, message: 'No synchronization performed', changes: [] };
+        return {
+          success: true,
+          message: 'No synchronization performed',
+          operation,
+          comparison,
+          changes: []
+        };
 
       default:
         throw new Error(`Unknown synchronization operation: ${operation}`);
@@ -152,6 +170,15 @@ class ContextSync {
    * @returns {object} Automatic synchronization result.
    */
   static autoSync(source, target, { compareBy = 'modifiedAt', deepSync = true, preserveMetadata = true } = {}) {
+    // For Context instances, delegate to ContextMerger with automatic strategy
+    if (source instanceof Context && target instanceof Context) {
+      return ContextMerger.merge(source, target, 'mergeNewerWins', {
+        compareBy,
+        preserveMetadata,
+        createMissing: deepSync
+      });
+    }
+
     const comparison = ContextSync.compare(source, target, { compareBy });
 
     let operation;

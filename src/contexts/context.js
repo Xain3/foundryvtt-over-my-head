@@ -6,8 +6,9 @@
 import manifest from '@manifest';
 import constants from '@/constants/constants';
 import Validator from '@/utils/static/validator';
-import {ContextContainer} from './helpers/contextContainer.js';
+import {ContextContainer} from '../contexts/helpers/contextContainer.js';
 import ContextSync from './helpers/contextSync.js';
+import ContextMerger from '../contexts/helpers/contextMerger.js';
 
 export const DEFAULT_INITIALIZATION_PARAMS = {
   contextSchema: constants.context.schema,
@@ -174,6 +175,7 @@ class Context extends ContextContainer {
 
   /**
    * Synchronizes this context with another context object.
+   * @deprecated Use the merge() method instead for more sophisticated merging capabilities.
    * @param {Context|ContextContainer|ContextItem} target - The target context object to sync with.
    * @param {string} operation - The synchronization operation to perform.
    * @param {object} [options={}] - Synchronization options.
@@ -190,6 +192,7 @@ class Context extends ContextContainer {
 
   /**
    * Automatically synchronizes this context with another context object.
+   * @deprecated Use the merge() method with 'mergeNewerWins' strategy instead for more sophisticated merging capabilities.
    * @param {Context|ContextContainer|ContextItem} target - The target context object to sync with.
    * @param {object} [options={}] - Options for automatic sync determination.
    * @param {string} [options.compareBy='modifiedAt'] - Which timestamp to use for comparisons.
@@ -205,6 +208,7 @@ class Context extends ContextContainer {
 
   /**
    * Updates this context to match the target context.
+   * @deprecated Use the merge() method with 'updateSourceToTarget' strategy instead.
    * @param {Context|ContextContainer|ContextItem} target - The target context to match.
    * @param {object} [options={}] - Update options.
    * @param {boolean} [options.deepSync=true] - Whether to recursively sync nested containers.
@@ -219,6 +223,7 @@ class Context extends ContextContainer {
 
   /**
    * Updates the target context to match this context.
+   * @deprecated Use the merge() method with 'updateTargetToSource' strategy instead.
    * @param {Context|ContextContainer|ContextItem} target - The target context to update.
    * @param {object} [options={}] - Update options.
    * @param {boolean} [options.deepSync=true] - Whether to recursively sync nested containers.
@@ -232,7 +237,49 @@ class Context extends ContextContainer {
   }
 
   /**
+   * Performs a deep merge of this context with a target context using ContextMerger.
+   * This method provides granular synchronization at the ContextItem level with comprehensive
+   * options for conflict resolution and change tracking.
+   *
+   * @param {Context|ContextContainer|ContextItem} target - The target context to merge with.
+   * @param {string} [strategy='mergeNewerWins'] - The merge strategy to apply. Options include:
+   *   - 'mergeNewerWins': Choose the item with the newer timestamp
+   *   - 'mergeSourcePriority': Always prefer source context items
+   *   - 'mergeTargetPriority': Always prefer target context items
+   *   - 'updateSourceToTarget': Update source items to match target
+   *   - 'updateTargetToSource': Update target items to match source
+   *   - 'replace': Replace entire containers rather than merging items
+   *   - 'noAction': Compare but don't modify anything
+   * @param {object} [options={}] - Merge options to control behavior.
+   * @param {string} [options.compareBy='modifiedAt'] - Which timestamp to use for comparisons ('createdAt', 'modifiedAt', 'lastAccessedAt').
+   * @param {boolean} [options.preserveMetadata=true] - Whether to preserve metadata during merge operations.
+   * @param {boolean} [options.createMissing=true] - Whether to create missing items in the target context.
+   * @param {string[]} [options.excludeComponents=[]] - Array of component keys to exclude from merging.
+   * @param {string[]} [options.includeComponents] - Array of component keys to include (if specified, only these will be merged).
+   * @param {boolean} [options.dryRun=false] - If true, performs comparison without making changes.
+   * @param {Function} [options.onConflict] - Custom callback function called for each conflict: (sourceItem, targetItem, path) => chosenItem
+   * @returns {object} Detailed merge result with statistics and applied changes.
+   *
+   * @example
+   * ```javascript
+   * const result = context.merge(targetContext, 'mergeNewerWins', {
+   *   excludeComponents: ['schema'],
+   *   preserveMetadata: true,
+   *   onConflict: (sourceItem, targetItem, path) => {
+   *     return path.includes('critical') ? sourceItem : null;
+   *   }
+   * });
+   *
+   * console.log(`Merged ${result.itemsProcessed} items with ${result.conflicts} conflicts`);
+   * ```
+   */
+  merge(target, strategy = 'mergeNewerWins', options = {}) {
+    return ContextMerger.merge(this, target, strategy, options);
+  }
+
+  /**
    * Merges this context with the target, with newer timestamps winning.
+   * @deprecated Use merge(target, 'mergeNewerWins', options) instead. This method will be removed in a future version.
    * @param {Context|ContextContainer|ContextItem} target - The target context to merge with.
    * @param {object} [options={}] - Merge options.
    * @param {boolean} [options.deepSync=true] - Whether to recursively sync nested containers.
@@ -242,12 +289,14 @@ class Context extends ContextContainer {
    * @returns {object} Merge result with details.
    */
   mergeNewerWins(target, options = {}) {
+    console.warn('Context.mergeNewerWins() is deprecated. Use Context.merge(target, "mergeNewerWins", options) instead.');
     const { sourceContext = this, ...otherOptions } = options;
     return ContextSync.sync(sourceContext, target, ContextSync.SYNC_OPERATIONS.MERGE_NEWER_WINS, otherOptions);
   }
 
   /**
    * Merges this context with the target, with this context having priority.
+   * @deprecated Use merge(target, 'mergeSourcePriority', options) instead. This method will be removed in a future version.
    * @param {Context|ContextContainer|ContextItem} target - The target context to merge with.
    * @param {object} [options={}] - Merge options.
    * @param {boolean} [options.deepSync=true] - Whether to recursively sync nested containers.
@@ -256,12 +305,14 @@ class Context extends ContextContainer {
    * @returns {object} Merge result with details.
    */
   mergeWithPriority(target, options = {}) {
+    console.warn('Context.mergeWithPriority() is deprecated. Use Context.merge(target, "mergeSourcePriority", options) instead.');
     const { sourceContext = this, ...otherOptions } = options;
     return ContextSync.sync(sourceContext, target, ContextSync.SYNC_OPERATIONS.MERGE_SOURCE_PRIORITY, otherOptions);
   }
 
   /**
    * Merges this context with the target, with the target having priority.
+   * @deprecated Use merge(target, 'mergeTargetPriority', options) instead. This method will be removed in a future version.
    * @param {Context|ContextContainer|ContextItem} target - The target context to merge with.
    * @param {object} [options={}] - Merge options.
    * @param {boolean} [options.deepSync=true] - Whether to recursively sync nested containers.
@@ -270,6 +321,7 @@ class Context extends ContextContainer {
    * @returns {object} Merge result with details.
    */
   mergeWithTargetPriority(target, options = {}) {
+    console.warn('Context.mergeWithTargetPriority() is deprecated. Use Context.merge(target, "mergeTargetPriority", options) instead.');
     const { sourceContext = this, ...otherOptions } = options;
     return ContextSync.sync(sourceContext, target, ContextSync.SYNC_OPERATIONS.MERGE_TARGET_PRIORITY, otherOptions);
   }

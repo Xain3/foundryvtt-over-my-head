@@ -16,7 +16,14 @@ jest.mock('@manifest', () => ({ manifestKey: 'manifestValue', version: '1.0.0' }
 jest.mock('@/constants/constants', () => ({
   context: {
     schema: { defaultSchema: true, type: 'object' },
-    naming: 'camelCase',
+    naming: {
+      state: "state",
+      settings: "settings", 
+      flags: "flags",
+      data: "data",
+      manifest: "manifest",
+      timestamp: "timestamp"
+    },
   },
   flags: { initialFlag: true },
   otherConstant: 'someValue',
@@ -80,6 +87,37 @@ describe('Context', () => {
     jest.clearAllMocks();
     mockNamingConventionContainerInstance = null; // Reset for each test
 
+    // Reset all validator mocks to default implementations
+    Validator.validateArgsObjectStructure.mockImplementation(() => {});
+    Validator.validateSchemaDefinition.mockImplementation(() => {});
+    Validator.validateStringAgainstPattern.mockImplementation(() => {});
+    Validator.validateObject.mockImplementation(() => {});
+
+    // Reset ContextContainer mock implementation
+    const { ContextContainer } = require('./helpers/contextContainer.js');
+    ContextContainer.mockClear();
+    ContextContainer.mockImplementation(function(value, options, itemOptions) {
+      this.mockedValue = value;
+      this.mockedOptions = options;
+      this.mockedItemOptions = itemOptions;
+      this.mockedInternalItems = {};
+
+      this.setItem = jest.fn((key, itemValue) => {
+        this.mockedInternalItems[key] = itemValue;
+      });
+
+      this.getItem = jest.fn((key) => {
+        return this.mockedInternalItems[key];
+      });
+
+      // Identify the call for #namingConvention
+      // The super() call has defaultItemWrapAs, #namingConvention call does not and has recordAccess: false
+      if (itemOptions && itemOptions.recordAccess === false && itemOptions.defaultItemWrapAs === undefined) {
+        mockNamingConventionContainerInstance = this;
+      }
+      return this;
+    });
+
     defaultConstructorArgs = {
       contextSchema: importedConstants.context.schema,
       namingConvention: importedConstants.context.naming,
@@ -118,8 +156,43 @@ describe('Context', () => {
         'Context schema'
       );
       expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith(
-        defaultConstructorArgs.namingConvention,
-        'Naming convention',
+        'state',
+        'Naming convention.state',
+        /^[a-zA-Z0-9_]+$/,
+        'alphanumeric characters and underscores',
+        { allowEmpty: false }
+      );
+      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith(
+        'settings',
+        'Naming convention.settings',
+        /^[a-zA-Z0-9_]+$/,
+        'alphanumeric characters and underscores',
+        { allowEmpty: false }
+      );
+      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith(
+        'flags',
+        'Naming convention.flags',
+        /^[a-zA-Z0-9_]+$/,
+        'alphanumeric characters and underscores',
+        { allowEmpty: false }
+      );
+      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith(
+        'data',
+        'Naming convention.data',
+        /^[a-zA-Z0-9_]+$/,
+        'alphanumeric characters and underscores',
+        { allowEmpty: false }
+      );
+      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith(
+        'manifest',
+        'Naming convention.manifest',
+        /^[a-zA-Z0-9_]+$/,
+        'alphanumeric characters and underscores',
+        { allowEmpty: false }
+      );
+      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith(
+        'timestamp',
+        'Naming convention.timestamp',
         /^[a-zA-Z0-9_]+$/,
         'alphanumeric characters and underscores',
         { allowEmpty: false }
@@ -160,18 +233,31 @@ describe('Context', () => {
     it('should use provided parameters for initialization', () => {
       const customParams = {
         contextSchema: { customSchema: true, type: 'object' },
-        namingConvention: 'snake_case',
+        namingConvention: {
+          state: "custom_state",
+          settings: "custom_settings",
+          flags: "custom_flags",
+          data: "custom_data",
+          manifest: "custom_manifest",
+          timestamp: "custom_timestamp"
+        },
         constants: { customConst: 1 },
         manifest: { customManifest: 'v2' },
         flags: { customFlag: false },
         data: { customData: 'abc' },
         settings: { customSetting: true },
       };
-      context = new Context(customParams);
+      context = new Context({ initializationParams: customParams });
 
       expect(Validator.validateArgsObjectStructure).toHaveBeenCalledWith(customParams, 'Context constructor parameters');
       expect(Validator.validateSchemaDefinition).toHaveBeenCalledWith(customParams.contextSchema, 'Context schema');
-      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith(customParams.namingConvention, 'Naming convention', expect.any(RegExp), expect.any(String), { allowEmpty: false });
+      // Should validate each naming convention property
+      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith('custom_state', 'Naming convention.state', expect.any(RegExp), expect.any(String), { allowEmpty: false });
+      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith('custom_settings', 'Naming convention.settings', expect.any(RegExp), expect.any(String), { allowEmpty: false });
+      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith('custom_flags', 'Naming convention.flags', expect.any(RegExp), expect.any(String), { allowEmpty: false });
+      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith('custom_data', 'Naming convention.data', expect.any(RegExp), expect.any(String), { allowEmpty: false });
+      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith('custom_manifest', 'Naming convention.manifest', expect.any(RegExp), expect.any(String), { allowEmpty: false });
+      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith('custom_timestamp', 'Naming convention.timestamp', expect.any(RegExp), expect.any(String), { allowEmpty: false });
       expect(Validator.validateObject).toHaveBeenCalledWith(customParams.constants, 'Constants', { allowEmpty: false });
 
       expect(context.setItem).toHaveBeenCalledWith('schema', Object.freeze(customParams.contextSchema));
@@ -196,16 +282,23 @@ describe('Context', () => {
       expect(() => new Context()).toThrow('Invalid schema definition');
     });
 
-    it('should throw if Validator.validateStringAgainstPattern for namingConvention fails', () => {
-      Validator.validateStringAgainstPattern.mockImplementationOnce((value, name) => {
-        if (name === 'Naming convention') throw new Error('Invalid naming convention');
+    it('should throw if validateStringAgainstPattern fails for naming convention', () => {
+      Validator.validateStringAgainstPattern.mockImplementation((value, name, pattern, description, options) => {
+        if (name.startsWith('Naming convention.')) throw new Error('Invalid naming convention');
+        // Let other calls pass through normally
       });
       expect(() => new Context()).toThrow('Invalid naming convention');
     });
 
     it('should throw if Validator.validateObject for constants fails', () => {
-      Validator.validateObject.mockImplementationOnce((value, name) => {
+      // Clear any previous mock implementations
+      Validator.validateStringAgainstPattern.mockImplementation(() => {
+        // Allow all validation calls to pass
+      });
+      
+      Validator.validateObject.mockImplementation((value, name, options) => {
         if (name === 'Constants') throw new Error('Invalid constants object');
+        // Let other calls pass through normally  
       });
       expect(() => new Context()).toThrow('Invalid constants object');
     });

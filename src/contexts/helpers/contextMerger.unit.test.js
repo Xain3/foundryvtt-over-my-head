@@ -5,7 +5,7 @@
  */
 
 import ContextMerger from './contextMerger.js';
-import ContextSync from '../../context/helpers/contextSync.js';
+import ContextSync from './contextSync.js';
 import { ContextItem } from './contextItem.js';
 import { ContextContainer } from './contextContainer.js';
 import Context from '../context.js';
@@ -215,6 +215,10 @@ describe('ContextMerger', () => {
         return null;
       });
 
+      targetContainer.hasItem.mockImplementation((key) => {
+        return key === 'item1';
+      });
+
       const customResolver = jest.fn().mockReturnValue(targetItem);
 
       const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
@@ -358,6 +362,10 @@ describe('ContextMerger', () => {
       targetContainer.getItem.mockImplementation((key) => {
         if (key === 'item1') return targetItem;
         return null;
+      });
+
+      targetContainer.hasItem.mockImplementation((key) => {
+        return key === 'item1';
       });
 
       ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins');

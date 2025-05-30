@@ -233,7 +233,10 @@ class Context extends ContextContainer {
    * ]);
    */
   mergeOnly(target, allowedPaths, strategy = 'mergeNewerWins', options = {}) {
-    return ContextMerger.mergeOnly(this, target, allowedPaths, strategy, options);
+    return ContextMerger.merge(this, target, strategy, {
+      ...options,
+      allowOnly: allowedPaths
+    });
   }
 
   /**
@@ -252,7 +255,10 @@ class Context extends ContextContainer {
    * ]);
    */
   mergeExcept(target, blockedPaths, strategy = 'mergeNewerWins', options = {}) {
-    return ContextMerger.mergeExcept(this, target, blockedPaths, strategy, options);
+    return ContextMerger.merge(this, target, strategy, {
+      ...options,
+      blockOnly: blockedPaths
+    });
   }
 
   /**
@@ -275,7 +281,11 @@ class Context extends ContextContainer {
    * );
    */
   mergeSingleItem(target, itemPath, options = {}) {
-    return ContextMerger.mergeSingleItem(this, target, itemPath, options);
+    const { strategy = 'mergeNewerWins', ...mergeOptions } = options;
+    return ContextMerger.merge(this, target, strategy, {
+      ...mergeOptions,
+      singleItem: itemPath
+    });
   }
 
   /**
@@ -301,7 +311,10 @@ class Context extends ContextContainer {
    * );
    */
   mergePattern(target, pattern, strategy = 'mergeNewerWins', options = {}) {
-    return ContextMerger.mergePattern(this, target, pattern, strategy, options);
+    return ContextMerger.merge(this, target, strategy, {
+      ...options,
+      matchPattern: pattern
+    });
   }
 
   /**
@@ -332,7 +345,10 @@ class Context extends ContextContainer {
    * );
    */
   mergeWhere(target, conditionFn, strategy = 'mergeNewerWins', options = {}) {
-    return ContextMerger.mergeWhere(this, target, conditionFn, strategy, options);
+    return ContextMerger.merge(this, target, strategy, {
+      ...options,
+      customFilter: conditionFn
+    });
   }
 
   /**

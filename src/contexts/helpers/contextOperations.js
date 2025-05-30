@@ -138,7 +138,10 @@ class ContextOperations {
       throw new Error('Item paths must be a non-empty array');
     }
 
-    return ContextMerger.mergeOnly(source, target, itemPaths, strategy, options);
+    return ContextMerger.merge(source, target, strategy, {
+      ...options,
+      allowOnly: itemPaths
+    });
   }
 
   /**
@@ -175,7 +178,10 @@ class ContextOperations {
             sourceIndex,
             targetIndex,
             success: true,
-            result: ContextMerger.mergeOnly(source, target, itemPaths, strategy, options)
+            result: ContextMerger.merge(source, target, strategy, {
+              ...options,
+              allowOnly: itemPaths
+            })
           };
         } catch (error) {
           return {
@@ -235,7 +241,10 @@ class ContextOperations {
     }
 
     // Pull is just mergeOnly with source and target swapped
-    return ContextMerger.mergeOnly(target, source, itemPaths, strategy, options);
+    return ContextMerger.merge(target, source, strategy, {
+      ...options,
+      allowOnly: itemPaths
+    });
   }
 
   /**

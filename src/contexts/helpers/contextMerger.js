@@ -102,27 +102,34 @@ class ItemFilter {
  *
  * @example
  * // Merge only specific items using simple path filtering
- * const result = ContextMerger.mergeOnly(sourceContext, targetContext, [
- *   'data.inventory',
- *   'settings.volume',
- *   'flags.experimentalFeatures'
- * ]);
+ * const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+ *   allowOnly: ['data.inventory', 'settings.volume', 'flags.experimentalFeatures']
+ * });
  *
  * @example
  * // Merge everything except specific items
- * const result = ContextMerger.mergeExcept(sourceContext, targetContext, [
- *   'data.temporaryCache',
- *   'state.uiState'
- * ]);
+ * const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+ *   blockOnly: ['data.temporaryCache', 'state.uiState']
+ * });
  *
  * @example
  * // Merge single item with detailed options
- * const result = ContextMerger.mergeSingleItem(
- *   sourceContext,
- *   targetContext,
- *   'data.playerStats.level',
- *   { strategy: 'mergeSourcePriority', preserveMetadata: true }
- * );
+ * const result = ContextMerger.merge(sourceContext, targetContext, 'mergeSourcePriority', {
+ *   singleItem: 'data.playerStats.level',
+ *   preserveMetadata: true
+ * });
+ *
+ * @example
+ * // Merge items matching a pattern
+ * const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+ *   matchPattern: /data\.player/
+ * });
+ *
+ * @example
+ * // Merge items based on custom condition
+ * const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+ *   customFilter: (sourceItem, targetItem, itemPath) => sourceItem?.version > targetItem?.version
+ * });
  */
 class ContextMerger {
   /**
@@ -620,37 +627,6 @@ class ContextMerger {
   }
 
   /**
-   * Merges only specific items between contexts using simple path-based filtering.
-   * @param {Context} source - The source Context instance.
-   * @param {Context} target - The target Context instance to merge into.
-   * @param {string[]} allowedPaths - Array of item paths to merge (e.g., ['data.inventory', 'settings.volume'])
-   * @param {string} [strategy='mergeNewerWins'] - The merge strategy to apply.
-   * @param {object} [options={}] - Additional merge options.
-   * @returns {object} Detailed merge result with statistics and changes.
-   *
-   * @example
-   * // Merge only player stats and UI settings
-   * const result = ContextMerger.mergeOnly(sourceContext, targetContext, [
-   *   'data.playerStats',
-   *   'settings.ui.theme',
-   *   'settings.ui.language'
-   * ]);
-   *
-   * @example
-   * // Merge inventory items with source priority
-   * const result = ContextMerger.mergeOnly(sourceContext, targetContext, [
-   *   'data.inventory.weapons',
-   *   'data.inventory.armor'
-   * ], 'mergeSourcePriority');
-   */
-  static mergeOnly(source, target, allowedPaths, strategy = 'mergeNewerWins', options = {}) {
-    return ContextMerger.merge(source, target, strategy, {
-      ...options,
-      onConflict: ItemFilter.allowOnly(allowedPaths)
-    });
-  }
-
-  /**
    * Merges all items except specific ones using path-based filtering.
    * @param {Context} source - The source Context instance.
    * @param {Context} target - The target Context instance to merge into.
@@ -661,126 +637,6 @@ class ContextMerger {
    *
    * @example
    * // Merge everything except temporary data
-   * const result = ContextMerger.mergeExcept(sourceContext, targetContext, [
-   *   'data.temporaryCache',
-   *   'state.pendingRequests'
-   * ]);
-   */
-  static mergeExcept(source, target, blockedPaths, strategy = 'mergeNewerWins', options = {}) {
-    return ContextMerger.merge(source, target, strategy, {
-      ...options,
-      onConflict: ItemFilter.blockOnly(blockedPaths)
-    });
-  }
-
-  /**
-   * Merges a single specific item between contexts.
-   * @param {Context} source - The source Context instance.
-   * @param {Context} target - The target Context instance to merge into.
-   * @param {string} itemPath - The specific item path to merge (e.g., 'data.playerStats.level')
-   * @param {object} [options={}] - Merge options.
-   * @param {string} [options.strategy='mergeNewerWins'] - The merge strategy to apply.
-   * @param {boolean} [options.createMissing=true] - Whether to create the item if it doesn't exist in target.
-   * @param {boolean} [options.preserveMetadata=false] - Whether to preserve existing metadata.
-   * @param {boolean} [options.dryRun=false] - If true, performs analysis without making changes.
-   * @returns {object} Detailed merge result for the single item.
-   *
-   * @example
-   * // Merge only the player level with source priority
-   * const result = ContextMerger.mergeSingleItem(
-   *   sourceContext,
-   *   targetContext,
-   *   'data.playerStats.level',
-   *   { strategy: 'mergeSourcePriority', preserveMetadata: true }
-   * );
-   *
-   * @example
-   * // Preview what would happen when merging a single setting
-   * const preview = ContextMerger.mergeSingleItem(
-   *   sourceContext,
-   *   targetContext,
-   *   'settings.graphics.quality',
-   *   { dryRun: true }
-   * );
-   */
-  static mergeSingleItem(source, target, itemPath, options = {}) {
-    const { strategy = 'mergeNewerWins', ...mergeOptions } = options;
-
-    return ContextMerger.merge(source, target, strategy, {
-      ...mergeOptions,
-      onConflict: ItemFilter.allowOnly([itemPath])
-    });
-  }
-
-  /**
-   * Merges items matching a regular expression pattern.
-   * @param {Context} source - The source Context instance.
-   * @param {Context} target - The target Context instance to merge into.
-   * @param {RegExp} pattern - Regular expression to match against item paths
-   * @param {string} [strategy='mergeNewerWins'] - The merge strategy to apply.
-   * @param {object} [options={}] - Additional merge options.
-   * @returns {object} Detailed merge result with statistics and changes.
-   *
-   * @example
-   * // Merge all player-related data
-   * const result = ContextMerger.mergePattern(
-   *   sourceContext,
-   *   targetContext,
-   *   /data\.player/
-   * );
-   *
-   * @example
-   * // Merge all settings that end with 'volume'
-   * const result = ContextMerger.mergePattern(
-   *   sourceContext,
-   *   targetContext,
-   *   /settings\..*volume$/
-   * );
-   */
-  static mergePattern(source, target, pattern, strategy = 'mergeNewerWins', options = {}) {
-    return ContextMerger.merge(source, target, strategy, {
-      ...options,
-      onConflict: ItemFilter.matchPattern(pattern)
-    });
-  }
-
-  /**
-   * Merges items based on a custom condition function.
-   * @param {Context} source - The source Context instance.
-   * @param {Context} target - The target Context instance to merge into.
-   * @param {Function} conditionFn - Function that receives (sourceItem, targetItem, itemPath) and returns boolean
-   * @param {string} [strategy='mergeNewerWins'] - The merge strategy to apply.
-   * @param {object} [options={}] - Additional merge options.
-   * @returns {object} Detailed merge result with statistics and changes.
-   *
-   * @example
-   * // Merge items where source has higher version
-   * const result = ContextMerger.mergeWhere(
-   *   sourceContext,
-   *   targetContext,
-   *   (sourceItem, targetItem, itemPath) => {
-   *     return sourceItem?.version > targetItem?.version;
-   *   }
-   * );
-   *
-   * @example
-   * // Merge only items that have been modified recently
-   * const result = ContextMerger.mergeWhere(
-   *   sourceContext,
-   *   targetContext,
-   *   (sourceItem, targetItem, itemPath) => {
-   *     const hourAgo = Date.now() - (60 * 60 * 1000);
-   *     return sourceItem?.timestamp > hourAgo;
-   *   }
-   * );
-   */
-  static mergeWhere(source, target, conditionFn, strategy = 'mergeNewerWins', options = {}) {
-    return ContextMerger.merge(source, target, strategy, {
-      ...options,
-      onConflict: ItemFilter.custom(conditionFn)
-    });
-  }
-
   /**
    * Performs a sophisticated merge of two Context instances with detailed tracking and options.
    * @param {Context} source - The source Context instance.
@@ -794,14 +650,39 @@ class ContextMerger {
    * @param {boolean} [options.dryRun=false] - If true, performs analysis without making changes.
    * @param {boolean} [options.preserveMetadata=false] - Whether to preserve existing metadata when updating items.
    * @param {Function} [options.onConflict] - Custom conflict resolver function.
+   * @param {string[]} [options.allowOnly] - Array of item paths to allow (alternative to onConflict).
+   * @param {string[]} [options.blockOnly] - Array of item paths to block (alternative to onConflict).
+   * @param {string} [options.singleItem] - Single item path to merge (alternative to onConflict).
+   * @param {RegExp} [options.matchPattern] - Pattern to match item paths (alternative to onConflict).
+   * @param {Function} [options.customFilter] - Custom filter function (alternative to onConflict).
    * @returns {object} Detailed merge result with statistics and changes.
    */
   static merge(source, target, strategy = 'mergeNewerWins', options = {}) {
+    // Process convenience parameters and convert them to onConflict filter
+    const processedOptions = { ...options };
+
+    // If no onConflict is specified but convenience parameters are provided, create appropriate filter
+    if (!processedOptions.onConflict) {
+      const { allowOnly, blockOnly, singleItem, matchPattern, customFilter } = processedOptions;
+
+      if (allowOnly) {
+        processedOptions.onConflict = ItemFilter.allowOnly(allowOnly);
+      } else if (blockOnly) {
+        processedOptions.onConflict = ItemFilter.blockOnly(blockOnly);
+      } else if (singleItem) {
+        processedOptions.onConflict = ItemFilter.allowOnly([singleItem]);
+      } else if (matchPattern) {
+        processedOptions.onConflict = ItemFilter.matchPattern(matchPattern);
+      } else if (customFilter) {
+        processedOptions.onConflict = ItemFilter.custom(customFilter);
+      }
+    }
+
     const result = ContextMerger.#initializeMergeResult(source, target, strategy);
 
     try {
-      const componentsToProcess = ContextMerger.#determineComponentsToProcess(options);
-      ContextMerger.#processAllComponents(source, target, componentsToProcess, strategy, options, result);
+      const componentsToProcess = ContextMerger.#determineComponentsToProcess(processedOptions);
+      ContextMerger.#processAllComponents(source, target, componentsToProcess, strategy, processedOptions, result);
       result.success = result.errors.length === 0;
     } catch (error) {
       result.success = false;

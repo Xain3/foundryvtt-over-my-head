@@ -586,7 +586,7 @@ describe('ContextMerger', () => {
     });
   });
 
-  describe('ContextMerger convenience methods', () => {
+  describe('ContextMerger merge() with filtering parameters', () => {
     beforeEach(() => {
       // Setup common mock behavior for convenience method tests
       sourceContainer.getItem.mockImplementation((key) => {
@@ -604,106 +604,93 @@ describe('ContextMerger', () => {
       });
     });
 
-    describe('mergeOnly()', () => {
+    describe('allowOnly parameter', () => {
       it('should merge only specified paths', () => {
         const allowedPaths = ['data.inventory', 'settings.volume'];
-        const result = ContextMerger.mergeOnly(sourceContext, targetContext, allowedPaths);
+        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+          allowOnly: allowedPaths
+        });
 
         expect(result.success).toBe(true);
         expect(result.strategy).toBe('mergeNewerWins');
       });
 
       it('should accept custom strategy', () => {
-        const result = ContextMerger.mergeOnly(
-          sourceContext,
-          targetContext,
-          ['data.inventory'],
-          'mergeSourcePriority'
-        );
+        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeSourcePriority', {
+          allowOnly: ['data.inventory']
+        });
 
         expect(result.success).toBe(true);
         expect(result.strategy).toBe('mergeSourcePriority');
       });
 
       it('should accept additional options', () => {
-        const result = ContextMerger.mergeOnly(
-          sourceContext,
-          targetContext,
-          ['data.inventory'],
-          'mergeNewerWins',
-          { dryRun: true }
-        );
+        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+          allowOnly: ['data.inventory'],
+          dryRun: true
+        });
 
         expect(result.success).toBe(true);
       });
     });
 
-    describe('mergeExcept()', () => {
+    describe('blockOnly parameter', () => {
       it('should merge everything except specified paths', () => {
         const blockedPaths = ['data.temp', 'state.cache'];
-        const result = ContextMerger.mergeExcept(sourceContext, targetContext, blockedPaths);
+        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+          blockOnly: blockedPaths
+        });
 
         expect(result.success).toBe(true);
         expect(result.strategy).toBe('mergeNewerWins');
       });
 
       it('should accept custom strategy', () => {
-        const result = ContextMerger.mergeExcept(
-          sourceContext,
-          targetContext,
-          ['data.temp'],
-          'mergeTargetPriority'
-        );
+        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeTargetPriority', {
+          blockOnly: ['data.temp']
+        });
 
         expect(result.success).toBe(true);
         expect(result.strategy).toBe('mergeTargetPriority');
       });
     });
 
-    describe('mergeSingleItem()', () => {
+    describe('singleItem parameter', () => {
       it('should merge a single specific item', () => {
-        const result = ContextMerger.mergeSingleItem(
-          sourceContext,
-          targetContext,
-          'data.playerStats.level'
-        );
+        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+          singleItem: 'data.playerStats.level'
+        });
 
         expect(result.success).toBe(true);
         expect(result.strategy).toBe('mergeNewerWins');
       });
 
-      it('should accept strategy in options', () => {
-        const result = ContextMerger.mergeSingleItem(
-          sourceContext,
-          targetContext,
-          'data.playerStats.level',
-          { strategy: 'mergeSourcePriority' }
-        );
+      it('should accept custom strategy', () => {
+        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeSourcePriority', {
+          singleItem: 'data.playerStats.level'
+        });
 
         expect(result.success).toBe(true);
         expect(result.strategy).toBe('mergeSourcePriority');
       });
 
       it('should support all merge options', () => {
-        const result = ContextMerger.mergeSingleItem(
-          sourceContext,
-          targetContext,
-          'data.playerStats.level',
-          {
-            strategy: 'mergeSourcePriority',
-            preserveMetadata: true,
-            dryRun: true
-          }
-        );
+        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeSourcePriority', {
+          singleItem: 'data.playerStats.level',
+          preserveMetadata: true,
+          dryRun: true
+        });
 
         expect(result.success).toBe(true);
       });
     });
 
-    describe('mergePattern()', () => {
+    describe('matchPattern parameter', () => {
       it('should merge items matching regex pattern', () => {
         const pattern = /data\.player/;
-        const result = ContextMerger.mergePattern(sourceContext, targetContext, pattern);
+        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+          matchPattern: pattern
+        });
 
         expect(result.success).toBe(true);
         expect(result.strategy).toBe('mergeNewerWins');
@@ -711,22 +698,21 @@ describe('ContextMerger', () => {
 
       it('should accept custom strategy', () => {
         const pattern = /settings\..*volume$/;
-        const result = ContextMerger.mergePattern(
-          sourceContext,
-          targetContext,
-          pattern,
-          'mergeSourcePriority'
-        );
+        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeSourcePriority', {
+          matchPattern: pattern
+        });
 
         expect(result.success).toBe(true);
         expect(result.strategy).toBe('mergeSourcePriority');
       });
     });
 
-    describe('mergeWhere()', () => {
+    describe('customFilter parameter', () => {
       it('should merge items based on custom condition', () => {
         const conditionFn = jest.fn().mockReturnValue(true);
-        const result = ContextMerger.mergeWhere(sourceContext, targetContext, conditionFn);
+        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+          customFilter: conditionFn
+        });
 
         expect(result.success).toBe(true);
         expect(result.strategy).toBe('mergeNewerWins');
@@ -735,7 +721,9 @@ describe('ContextMerger', () => {
       it('should call condition function with correct parameters', () => {
         const conditionFn = jest.fn().mockReturnValue(false);
 
-        ContextMerger.mergeWhere(sourceContext, targetContext, conditionFn);
+        ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+          customFilter: conditionFn
+        });
 
         // The condition function should be wrapped in ItemFilter.custom
         // Exact verification depends on implementation details
@@ -744,12 +732,9 @@ describe('ContextMerger', () => {
 
       it('should accept custom strategy', () => {
         const conditionFn = () => true;
-        const result = ContextMerger.mergeWhere(
-          sourceContext,
-          targetContext,
-          conditionFn,
-          'mergeTargetPriority'
-        );
+        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeTargetPriority', {
+          customFilter: conditionFn
+        });
 
         expect(result.success).toBe(true);
         expect(result.strategy).toBe('mergeTargetPriority');
@@ -772,32 +757,49 @@ describe('ContextMerger', () => {
     });
 
     it('should handle multiple convenience methods chaining', () => {
-      // Test that convenience methods work with different strategies
+      // Test that merge method with filtering parameters works with different strategies
       const strategies = ['mergeNewerWins', 'mergeSourcePriority', 'mergeTargetPriority'];
 
       strategies.forEach(strategy => {
-        const result = ContextMerger.mergeOnly(
-          sourceContext,
-          targetContext,
-          ['data.inventory'],
-          strategy
-        );
+        const result = ContextMerger.merge(sourceContext, targetContext, strategy, {
+          allowOnly: ['data.inventory']
+        });
         expect(result.success).toBe(true);
         expect(result.strategy).toBe(strategy);
       });
     });
 
-    it('should handle edge cases in convenience methods', () => {
+    it('should handle parameter precedence correctly', () => {
+      // Test that onConflict takes precedence over convenience parameters
+      const customFilter = jest.fn().mockReturnValue(true);
+
+      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+        onConflict: customFilter,
+        allowOnly: ['data.inventory'], // This should be ignored since onConflict is provided
+        blockOnly: ['data.temp']      // This should also be ignored
+      });
+
+      expect(result.success).toBe(true);
+      // The customFilter should be used instead of the convenience parameters
+    });
+
+    it('should handle edge cases in filtering parameters', () => {
       // Test empty paths
-      const result1 = ContextMerger.mergeOnly(sourceContext, targetContext, []);
+      const result1 = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+        allowOnly: []
+      });
       expect(result1.success).toBe(true);
 
-      // Test invalid regex (should be handled gracefully)
-      const result2 = ContextMerger.mergePattern(sourceContext, targetContext, /valid\.pattern/);
+      // Test valid regex pattern
+      const result2 = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+        matchPattern: /valid\.pattern/
+      });
       expect(result2.success).toBe(true);
 
       // Test undefined condition function (should not throw during method call, but might fail during merge)
-      const result3 = ContextMerger.mergeWhere(sourceContext, targetContext, undefined);
+      const result3 = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+        customFilter: undefined
+      });
       // The method call itself shouldn't throw, but the result might indicate failure
       expect(result3).toBeDefined();
     });
@@ -849,10 +851,9 @@ describe('ContextMerger', () => {
 
     it('should handle selective player data sync', () => {
       // Only sync player stats and inventory, not settings
-      const result = ContextMerger.mergeOnly(sourceContext, targetContext, [
-        'data.playerStats',
-        'data.inventory'
-      ], 'mergeSourcePriority');
+      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeSourcePriority', {
+        allowOnly: ['data.playerStats', 'data.inventory']
+      });
 
       expect(result.success).toBe(true);
       expect(result.strategy).toBe('mergeSourcePriority');
@@ -860,38 +861,30 @@ describe('ContextMerger', () => {
 
     it('should handle excluding temporary data', () => {
       // Merge everything except cache and temporary data
-      const result = ContextMerger.mergeExcept(sourceContext, targetContext, [
-        'data.cache',
-        'data.temp',
-        'state.pending'
-      ]);
+      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+        blockOnly: ['data.cache', 'data.temp', 'state.pending']
+      });
 
       expect(result.success).toBe(true);
     });
 
     it('should handle pattern-based game data sync', () => {
       // Sync all player-related data using pattern
-      const result = ContextMerger.mergePattern(
-        sourceContext,
-        targetContext,
-        /data\.player/,
-        'mergeNewerWins'
-      );
+      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+        matchPattern: /data\.player/
+      });
 
       expect(result.success).toBe(true);
     });
 
     it('should handle conditional version-based sync', () => {
       // Only sync items with higher version numbers
-      const result = ContextMerger.mergeWhere(
-        sourceContext,
-        targetContext,
-        (sourceItem, targetItem, itemPath) => {
+      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeSourcePriority', {
+        customFilter: (sourceItem, targetItem, itemPath) => {
           if (!sourceItem?.version || !targetItem?.version) return false;
           return sourceItem.version > targetItem.version;
-        },
-        'mergeSourcePriority'
-      );
+        }
+      });
 
       expect(result.success).toBe(true);
     });

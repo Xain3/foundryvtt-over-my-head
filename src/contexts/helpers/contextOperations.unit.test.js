@@ -31,7 +31,6 @@ jest.mock('./contextMerger.js', () => {
     __esModule: true,
     default: {
       merge: jest.fn().mockReturnValue(mockResult),
-      mergeOnly: jest.fn().mockReturnValue(mockResult),
       analyze: jest.fn().mockReturnValue(mockResult)
     },
     ItemFilter: {
@@ -291,7 +290,7 @@ describe('ContextOperations', () => {
 
       it('should handle errors in bulk operations', () => {
         const ContextMerger = require('./contextMerger.js').default;
-        ContextMerger.mergeOnly.mockImplementationOnce(() => {
+        ContextMerger.merge.mockImplementationOnce(() => {
           throw new Error('Bulk error');
         });
 

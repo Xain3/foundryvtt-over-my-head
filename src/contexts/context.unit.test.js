@@ -18,7 +18,7 @@ jest.mock('@/constants/constants', () => ({
     schema: { defaultSchema: true, type: 'object' },
     naming: {
       state: "state",
-      settings: "settings", 
+      settings: "settings",
       flags: "flags",
       data: "data",
       manifest: "manifest",
@@ -38,16 +38,6 @@ jest.mock('@/utils/static/validator', () => ({
 
 jest.mock('./helpers/contextSync.js', () => ({
   compare: jest.fn(),
-  sync: jest.fn(),
-  autoSync: jest.fn(),
-  validateCompatibility: jest.fn(),
-  SYNC_OPERATIONS: {
-    UPDATE_SOURCE_TO_TARGET: 'updateSourceToTarget',
-    UPDATE_TARGET_TO_SOURCE: 'updateTargetToSource',
-    MERGE_NEWER_WINS: 'mergeNewerWins',
-    MERGE_SOURCE_PRIORITY: 'mergeSourcePriority',
-    MERGE_TARGET_PRIORITY: 'mergeTargetPriority',
-  },
 }));
 
 // Mock setup for ContextContainer
@@ -295,10 +285,10 @@ describe('Context', () => {
       Validator.validateStringAgainstPattern.mockImplementation(() => {
         // Allow all validation calls to pass
       });
-      
+
       Validator.validateObject.mockImplementation((value, name, options) => {
         if (name === 'Constants') throw new Error('Invalid constants object');
-        // Let other calls pass through normally  
+        // Let other calls pass through normally
       });
       expect(() => new Context()).toThrow('Invalid constants object');
     });
@@ -340,7 +330,7 @@ describe('Context', () => {
     });
   });
 
-  describe('Sync Functionalities', () => {
+  describe('Context Comparison', () => {
     let targetContext;
     let mockOptions;
 
@@ -349,9 +339,6 @@ describe('Context', () => {
       targetContext = new Context(); // A separate instance to act as target
       mockOptions = { deepSync: false, compareBy: 'createdAt' };
       ContextSync.compare.mockReturnValue({ result: 'equal' });
-      ContextSync.sync.mockReturnValue({ success: true, changes: [] });
-      ContextSync.autoSync.mockReturnValue({ success: true, changes: [] });
-      ContextSync.validateCompatibility.mockReturnValue(true);
     });
 
     it('compare should call ContextSync.compare with itself as default source', () => {
@@ -363,171 +350,6 @@ describe('Context', () => {
       const explicitSource = new Context();
       context.compare(targetContext, { ...mockOptions, sourceContext: explicitSource });
       expect(ContextSync.compare).toHaveBeenCalledWith(explicitSource, targetContext, mockOptions);
-    });
-
-    it('sync should call ContextSync.sync with itself as default source', () => {
-      const operation = 'testOp';
-      context.sync(targetContext, operation, mockOptions);
-      expect(ContextSync.sync).toHaveBeenCalledWith(context, targetContext, operation, mockOptions);
-    });
-
-    it('autoSync should call ContextSync.autoSync with itself as default source', () => {
-      context.autoSync(targetContext, mockOptions);
-      expect(ContextSync.autoSync).toHaveBeenCalledWith(context, targetContext, mockOptions);
-    });
-
-    it('updateToMatch should call ContextSync.sync with UPDATE_SOURCE_TO_TARGET operation', () => {
-      context.updateToMatch(targetContext, mockOptions);
-      expect(ContextSync.sync).toHaveBeenCalledWith(context, targetContext, ContextSync.SYNC_OPERATIONS.UPDATE_SOURCE_TO_TARGET, mockOptions);
-    });
-
-    it('updateTarget should call ContextSync.sync with UPDATE_TARGET_TO_SOURCE operation', () => {
-      context.updateTarget(targetContext, mockOptions);
-      expect(ContextSync.sync).toHaveBeenCalledWith(context, targetContext, ContextSync.SYNC_OPERATIONS.UPDATE_TARGET_TO_SOURCE, mockOptions);
-    });
-
-    it('mergeNewerWins should call ContextSync.sync with MERGE_NEWER_WINS operation', () => {
-      context.mergeNewerWins(targetContext, mockOptions);
-      expect(ContextSync.sync).toHaveBeenCalledWith(context, targetContext, ContextSync.SYNC_OPERATIONS.MERGE_NEWER_WINS, mockOptions);
-    });
-
-    it('mergeWithPriority should call ContextSync.sync with MERGE_SOURCE_PRIORITY operation', () => {
-      context.mergeWithPriority(targetContext, mockOptions);
-      expect(ContextSync.sync).toHaveBeenCalledWith(context, targetContext, ContextSync.SYNC_OPERATIONS.MERGE_SOURCE_PRIORITY, mockOptions);
-    });
-
-    it('mergeWithTargetPriority should call ContextSync.sync with MERGE_TARGET_PRIORITY operation', () => {
-      context.mergeWithTargetPriority(targetContext, mockOptions);
-      expect(ContextSync.sync).toHaveBeenCalledWith(context, targetContext, ContextSync.SYNC_OPERATIONS.MERGE_TARGET_PRIORITY, mockOptions);
-    });
-
-    it('isCompatibleWith should call ContextSync.validateCompatibility with itself as default source', () => {
-      context.isCompatibleWith(targetContext, mockOptions);
-      expect(ContextSync.validateCompatibility).toHaveBeenCalledWith(context, targetContext);
-    });
-
-    describe('syncComponent', () => {
-      it('should call ContextSync.sync with correct components and options', () => {
-        const componentKey = 'data';
-        const operation = 'testOp';
-        const sourceComponent = context[componentKey];
-        const targetComponent = targetContext[componentKey];
-
-        context.syncComponent(componentKey, targetContext, operation, mockOptions);
-        expect(ContextSync.sync).toHaveBeenCalledWith(sourceComponent, targetComponent, operation, mockOptions);
-      });
-
-      it('should throw if componentKey is invalid', () => {
-        expect(() => context.syncComponent('invalidKey', targetContext, 'op'))
-          .toThrow(/Invalid component key: invalidKey/);
-      });
-
-      it('should throw if target is not a Context instance', () => {
-        expect(() => context.syncComponent('data', {}, 'op'))
-          .toThrow('Target must be a Context instance');
-      });
-
-      it('should throw if a component is not found (e.g., schema is null)', () => {
-        // Simulate a component being missing by temporarily making the getter return null
-        jest.spyOn(context, 'schema', 'get').mockReturnValueOnce(null);
-        expect(() => context.syncComponent('schema', targetContext, 'op'))
-          .toThrow("Component 'schema' not found in source or target context");
-      });
-    });
-
-    describe('autoSyncComponent', () => {
-      it('should call syncComponent with "auto" operation and autoSync true', () => {
-        const componentKey = 'flags';
-        const sourceComponent = context[componentKey];
-        const targetComponent = targetContext[componentKey];
-        jest.spyOn(context, 'syncComponent'); // Spy on the instance method
-
-        context.autoSyncComponent(componentKey, targetContext, mockOptions);
-        expect(context.syncComponent).toHaveBeenCalledWith(componentKey, targetContext, 'auto', { ...mockOptions, autoSync: true });
-      });
-    });
-
-    // Test individual component sync methods (syncSchema, syncData, etc.)
-    const componentSyncMethods = ['Schema', 'Constants', 'Manifest', 'Flags', 'State', 'Data', 'Settings'];
-    componentSyncMethods.forEach(compName => {
-      const methodName = `sync${compName}`;
-      const componentKey = compName.toLowerCase();
-
-      describe(methodName, () => {
-        it(`should call syncComponent with '${componentKey}' and default 'auto' operation`, () => {
-          jest.spyOn(context, 'autoSyncComponent');
-          context[methodName](targetContext, 'auto', mockOptions); // Explicitly 'auto'
-          expect(context.autoSyncComponent).toHaveBeenCalledWith(componentKey, targetContext, mockOptions);
-        });
-
-        it(`should call syncComponent with '${componentKey}' and specified operation`, () => {
-          const operation = 'customOp';
-          jest.spyOn(context, 'syncComponent');
-          context[methodName](targetContext, operation, mockOptions);
-          expect(context.syncComponent).toHaveBeenCalledWith(componentKey, targetContext, operation, mockOptions);
-        });
-      });
-    });
-
-    describe('syncComponents', () => {
-      it('should call autoSyncComponent for each key when operation is "auto"', () => {
-        const keys = ['data', 'flags'];
-        jest.spyOn(context, 'autoSyncComponent').mockResolvedValue({ success: true });
-
-        context.syncComponents(keys, targetContext, 'auto', mockOptions);
-
-        expect(context.autoSyncComponent).toHaveBeenCalledTimes(keys.length);
-        expect(context.autoSyncComponent).toHaveBeenCalledWith('data', targetContext, mockOptions);
-        expect(context.autoSyncComponent).toHaveBeenCalledWith('flags', targetContext, mockOptions);
-      });
-
-      it('should call syncComponent for each key with specified operation', () => {
-        const keys = ['settings', 'state'];
-        const operation = 'merge';
-        jest.spyOn(context, 'syncComponent').mockResolvedValue({ success: true });
-
-        context.syncComponents(keys, targetContext, operation, mockOptions);
-
-        expect(context.syncComponent).toHaveBeenCalledTimes(keys.length);
-        expect(context.syncComponent).toHaveBeenCalledWith('settings', targetContext, operation, mockOptions);
-        expect(context.syncComponent).toHaveBeenCalledWith('state', targetContext, operation, mockOptions);
-      });
-
-      it('should return results and success true if all components sync successfully', () => {
-        const keys = ['data', 'flags'];
-        const mockResultData = { success: true, message: 'data synced' };
-        const mockResultFlags = { success: true, message: 'flags synced' };
-        jest.spyOn(context, 'autoSyncComponent')
-          .mockImplementation(key => (key === 'data' ? mockResultData : mockResultFlags));
-
-        const result = context.syncComponents(keys, targetContext, 'auto', mockOptions);
-
-        expect(result.success).toBe(true);
-        expect(result.results.data).toEqual(mockResultData);
-        expect(result.results.flags).toEqual(mockResultFlags);
-        expect(result.errors).toBeUndefined();
-        expect(result.syncedComponents).toEqual(expect.arrayContaining(['data', 'flags']));
-        expect(result.failedComponents).toEqual([]);
-      });
-
-      it('should return errors and success false if any component sync fails', () => {
-        const keys = ['data', 'state'];
-        const mockResultData = { success: true, message: 'data synced' };
-        const errorState = new Error('state sync failed');
-        jest.spyOn(context, 'autoSyncComponent')
-          .mockImplementation(key => {
-            if (key === 'data') return mockResultData;
-            if (key === 'state') throw errorState;
-          });
-
-        const result = context.syncComponents(keys, targetContext, 'auto', mockOptions);
-
-        expect(result.success).toBe(false);
-        expect(result.results.data).toEqual(mockResultData);
-        expect(result.errors.state).toBe(errorState.message);
-        expect(result.syncedComponents).toEqual(['data']);
-        expect(result.failedComponents).toEqual(['state']);
-      });
     });
   });
 });

@@ -154,30 +154,6 @@ describe('Context Synchronization Refactoring Integration', () => {
 
       contextMergerSpy.mockRestore();
     });
-
-    it('should still support deprecated sync methods', () => {
-      const contextSyncSpy = jest.spyOn(ContextSync, 'sync');
-
-      const result = sourceContext.sync(targetContext, 'mergeSourcePriority');
-
-      expect(contextSyncSpy).toHaveBeenCalled();
-      expect(result).toBeDefined();
-      expect(result.success).toBeDefined();
-
-      contextSyncSpy.mockRestore();
-    });
-
-    it('should still support deprecated autoSync method', () => {
-      const contextSyncSpy = jest.spyOn(ContextSync, 'autoSync');
-
-      const result = sourceContext.autoSync(targetContext);
-
-      expect(contextSyncSpy).toHaveBeenCalled();
-      expect(result).toBeDefined();
-      expect(result.success).toBeDefined();
-
-      contextSyncSpy.mockRestore();
-    });
   });
 
   describe('Strategy consistency between ContextSync and ContextMerger', () => {
@@ -238,14 +214,20 @@ describe('Context Synchronization Refactoring Integration', () => {
       expect(ContextSync.SYNC_OPERATIONS.MERGE_SOURCE_PRIORITY).toBe('mergeSourcePriority');
     });
 
-    it('should maintain the same API for existing Context methods', () => {
-      // Test that all expected instance methods exist and are marked as deprecated
+    it('should maintain the same API for remaining Context methods', () => {
+      // Test that the remaining non-deprecated methods exist
       expect(typeof sourceContext.compare).toBe('function');
-      expect(typeof sourceContext.sync).toBe('function');
-      expect(typeof sourceContext.autoSync).toBe('function');
-      expect(typeof sourceContext.updateToMatch).toBe('function');
-      expect(typeof sourceContext.updateTarget).toBe('function');
-      expect(typeof sourceContext.merge).toBe('function'); // New method
+      expect(typeof sourceContext.merge).toBe('function'); // New primary method
+
+      // Test that deprecated methods have been removed
+      expect(sourceContext.sync).toBeUndefined();
+      expect(sourceContext.autoSync).toBeUndefined();
+      expect(sourceContext.updateToMatch).toBeUndefined();
+      expect(sourceContext.updateTarget).toBeUndefined();
+      expect(sourceContext.mergeNewerWins).toBeUndefined();
+      expect(sourceContext.mergeWithPriority).toBeUndefined();
+      expect(sourceContext.mergeWithTargetPriority).toBeUndefined();
+      expect(sourceContext.isCompatibleWith).toBeUndefined();
     });
   });
 

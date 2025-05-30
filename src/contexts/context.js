@@ -7,8 +7,8 @@ import manifest from '@manifest';
 import constants from '@/constants/constants';
 import Validator from '@/utils/static/validator';
 import {ContextContainer} from '../contexts/helpers/contextContainer.js';
-import ContextSync from './helpers/contextSync.js';
 import ContextMerger from '../contexts/helpers/contextMerger.js';
+import ContextSync from '../contexts/helpers/contextSync.js';
 
 export const DEFAULT_INITIALIZATION_PARAMS = {
   contextSchema: constants.context.schema,
@@ -173,68 +173,7 @@ class Context extends ContextContainer {
     return ContextSync.compare(sourceContext, target, otherOptions);
   }
 
-  /**
-   * Synchronizes this context with another context object.
-   * @deprecated Use the merge() method instead for more sophisticated merging capabilities.
-   * @param {Context|ContextContainer|ContextItem} target - The target context object to sync with.
-   * @param {string} operation - The synchronization operation to perform.
-   * @param {object} [options={}] - Synchronization options.
-   * @param {boolean} [options.deepSync=true] - Whether to recursively sync nested containers.
-   * @param {string} [options.compareBy='modifiedAt'] - Which timestamp to use for comparisons.
-   * @param {boolean} [options.preserveMetadata=true] - Whether to preserve metadata during sync.
-   * @param {Context|ContextContainer|ContextItem} [options.sourceContext=this] - The source context to use for sync.
-   * @returns {object} Synchronization result with details.
-   */
-  sync(target, operation, options = {}) {
-    const { sourceContext = this, ...otherOptions } = options;
-    return ContextSync.sync(sourceContext, target, operation, otherOptions);
-  }
 
-  /**
-   * Automatically synchronizes this context with another context object.
-   * @deprecated Use the merge() method with 'mergeNewerWins' strategy instead for more sophisticated merging capabilities.
-   * @param {Context|ContextContainer|ContextItem} target - The target context object to sync with.
-   * @param {object} [options={}] - Options for automatic sync determination.
-   * @param {string} [options.compareBy='modifiedAt'] - Which timestamp to use for comparisons.
-   * @param {boolean} [options.deepSync=true] - Whether to recursively sync nested containers.
-   * @param {boolean} [options.preserveMetadata=true] - Whether to preserve metadata during sync.
-   * @param {Context|ContextContainer|ContextItem} [options.sourceContext=this] - The source context to use for sync.
-   * @returns {object} Automatic synchronization result.
-   */
-  autoSync(target, options = {}) {
-    const { sourceContext = this, ...otherOptions } = options;
-    return ContextSync.autoSync(sourceContext, target, otherOptions);
-  }
-
-  /**
-   * Updates this context to match the target context.
-   * @deprecated Use the merge() method with 'updateSourceToTarget' strategy instead.
-   * @param {Context|ContextContainer|ContextItem} target - The target context to match.
-   * @param {object} [options={}] - Update options.
-   * @param {boolean} [options.deepSync=true] - Whether to recursively sync nested containers.
-   * @param {boolean} [options.preserveMetadata=true] - Whether to preserve metadata during sync.
-   * @param {Context|ContextContainer|ContextItem} [options.sourceContext=this] - The source context to use for sync.
-   * @returns {object} Update result with details.
-   */
-  updateToMatch(target, options = {}) {
-    const { sourceContext = this, ...otherOptions } = options;
-    return ContextSync.sync(sourceContext, target, ContextSync.SYNC_OPERATIONS.UPDATE_SOURCE_TO_TARGET, otherOptions);
-  }
-
-  /**
-   * Updates the target context to match this context.
-   * @deprecated Use the merge() method with 'updateTargetToSource' strategy instead.
-   * @param {Context|ContextContainer|ContextItem} target - The target context to update.
-   * @param {object} [options={}] - Update options.
-   * @param {boolean} [options.deepSync=true] - Whether to recursively sync nested containers.
-   * @param {boolean} [options.preserveMetadata=true] - Whether to preserve metadata during sync.
-   * @param {Context|ContextContainer|ContextItem} [options.sourceContext=this] - The source context to use for sync.
-   * @returns {object} Update result with details.
-   */
-  updateTarget(target, options = {}) {
-    const { sourceContext = this, ...otherOptions } = options;
-    return ContextSync.sync(sourceContext, target, ContextSync.SYNC_OPERATIONS.UPDATE_TARGET_TO_SOURCE, otherOptions);
-  }
 
   /**
    * Performs a deep merge of this context with a target context using ContextMerger.
@@ -278,260 +217,142 @@ class Context extends ContextContainer {
   }
 
   /**
-   * Merges this context with the target, with newer timestamps winning.
-   * @deprecated Use merge(target, 'mergeNewerWins', options) instead. This method will be removed in a future version.
-   * @param {Context|ContextContainer|ContextItem} target - The target context to merge with.
-   * @param {object} [options={}] - Merge options.
-   * @param {boolean} [options.deepSync=true] - Whether to recursively sync nested containers.
-   * @param {string} [options.compareBy='modifiedAt'] - Which timestamp to use for comparisons.
-   * @param {boolean} [options.preserveMetadata=true] - Whether to preserve metadata during sync.
-   * @param {Context|ContextContainer|ContextItem} [options.sourceContext=this] - The source context to use for sync.
-   * @returns {object} Merge result with details.
-   */
-  mergeNewerWins(target, options = {}) {
-    console.warn('Context.mergeNewerWins() is deprecated. Use Context.merge(target, "mergeNewerWins", options) instead.');
-    const { sourceContext = this, ...otherOptions } = options;
-    return ContextSync.sync(sourceContext, target, ContextSync.SYNC_OPERATIONS.MERGE_NEWER_WINS, otherOptions);
-  }
-
-  /**
-   * Merges this context with the target, with this context having priority.
-   * @deprecated Use merge(target, 'mergeSourcePriority', options) instead. This method will be removed in a future version.
-   * @param {Context|ContextContainer|ContextItem} target - The target context to merge with.
-   * @param {object} [options={}] - Merge options.
-   * @param {boolean} [options.deepSync=true] - Whether to recursively sync nested containers.
-   * @param {boolean} [options.preserveMetadata=true] - Whether to preserve metadata during sync.
-   * @param {Context|ContextContainer|ContextItem} [options.sourceContext=this] - The source context to use for sync.
-   * @returns {object} Merge result with details.
-   */
-  mergeWithPriority(target, options = {}) {
-    console.warn('Context.mergeWithPriority() is deprecated. Use Context.merge(target, "mergeSourcePriority", options) instead.');
-    const { sourceContext = this, ...otherOptions } = options;
-    return ContextSync.sync(sourceContext, target, ContextSync.SYNC_OPERATIONS.MERGE_SOURCE_PRIORITY, otherOptions);
-  }
-
-  /**
-   * Merges this context with the target, with the target having priority.
-   * @deprecated Use merge(target, 'mergeTargetPriority', options) instead. This method will be removed in a future version.
-   * @param {Context|ContextContainer|ContextItem} target - The target context to merge with.
-   * @param {object} [options={}] - Merge options.
-   * @param {boolean} [options.deepSync=true] - Whether to recursively sync nested containers.
-   * @param {boolean} [options.preserveMetadata=true] - Whether to preserve metadata during sync.
-   * @param {Context|ContextContainer|ContextItem} [options.sourceContext=this] - The source context to use for sync.
-   * @returns {object} Merge result with details.
-   */
-  mergeWithTargetPriority(target, options = {}) {
-    console.warn('Context.mergeWithTargetPriority() is deprecated. Use Context.merge(target, "mergeTargetPriority", options) instead.');
-    const { sourceContext = this, ...otherOptions } = options;
-    return ContextSync.sync(sourceContext, target, ContextSync.SYNC_OPERATIONS.MERGE_TARGET_PRIORITY, otherOptions);
-  }
-
-  /**
-   * Validates that this context is compatible with another context for synchronization.
-   * @param {Context|ContextContainer|ContextItem} target - The target context to validate compatibility with.
-   * @param {object} [options={}] - Validation options.
-   * @param {Context|ContextContainer|ContextItem} [options.sourceContext=this] - The source context to use for validation.
-   * @returns {boolean} True if contexts are compatible for sync.
-   */
-  isCompatibleWith(target, options = {}) {
-    const { sourceContext = this } = options;
-    return ContextSync.validateCompatibility(sourceContext, target);
-  }
-
-  /**
-   * Synchronizes a specific component (ContextContainer or ContextItem) with the same component in a target context.
-   * @param {string} componentKey - The key of the component to sync ('schema', 'constants', 'manifest', 'flags', 'state', 'data', 'settings').
-   * @param {Context} target - The target context to sync the component with.
-   * @param {string} operation - The synchronization operation to perform.
-   * @param {object} [options={}] - Synchronization options.
-   * @param {boolean} [options.deepSync=true] - Whether to recursively sync nested containers.
-   * @param {string} [options.compareBy='modifiedAt'] - Which timestamp to use for comparisons.
-   * @param {boolean} [options.preserveMetadata=true] - Whether to preserve metadata during sync.
-   * @returns {object} Synchronization result with details.
-   * @throws {Error} If the component key is invalid or contexts are incompatible.
-   *
+   * Merges only specific items between this context and target using path-based filtering.
+   * @param {Context} target - The target Context instance to merge into.
+   * @param {string[]} allowedPaths - Array of item paths to merge (e.g., ['data.inventory', 'settings.volume'])
+   * @param {string} [strategy='mergeNewerWins'] - The merge strategy to apply.
+   * @param {object} [options={}] - Additional merge options.
+   * @returns {object} Detailed merge result with statistics and changes.
+   * 
    * @example
-   * ```javascript
-   * const context1 = new Context();
-   * const context2 = new Context();
-   *
-   * // Sync only the 'data' component between contexts
-   * const result = context1.syncComponent('data', context2, 'merge');
-   * ```
+   * // Merge only player stats and UI settings
+   * const result = context.mergeOnly(targetContext, [
+   *   'data.playerStats',
+   *   'settings.ui.theme',
+   *   'settings.ui.language'
+   * ]);
    */
-  syncComponent(componentKey, target, operation, options = {}) {
-    const validComponents = ['schema', 'constants', 'manifest', 'flags', 'state', 'data', 'settings'];
-
-    if (!validComponents.includes(componentKey)) {
-      throw new Error(`Invalid component key: ${componentKey}. Valid keys are: ${validComponents.join(', ')}`);
-    }
-
-    if (!(target instanceof Context)) {
-      throw new Error('Target must be a Context instance');
-    }
-
-    const sourceComponent = this[componentKey];
-    const targetComponent = target[componentKey];
-
-    if (!sourceComponent || !targetComponent) {
-      throw new Error(`Component '${componentKey}' not found in source or target context`);
-    }
-
-    return ContextSync.sync(sourceComponent, targetComponent, operation, options);
+  mergeOnly(target, allowedPaths, strategy = 'mergeNewerWins', options = {}) {
+    return ContextMerger.mergeOnly(this, target, allowedPaths, strategy, options);
   }
 
   /**
-   * Automatically synchronizes a specific component with the same component in a target context.
-   * @param {string} componentKey - The key of the component to sync.
-   * @param {Context} target - The target context to sync the component with.
-   * @param {object} [options={}] - Synchronization options.
-   * @returns {object} Synchronization result with details.
-   *
+   * Merges all items except specific ones using path-based filtering.
+   * @param {Context} target - The target Context instance to merge into.
+   * @param {string[]} blockedPaths - Array of item paths to exclude from merge
+   * @param {string} [strategy='mergeNewerWins'] - The merge strategy to apply.
+   * @param {object} [options={}] - Additional merge options.
+   * @returns {object} Detailed merge result with statistics and changes.
+   * 
    * @example
-   * ```javascript
-   * const result = context1.autoSyncComponent('state', context2);
-   * ```
+   * // Merge everything except temporary data
+   * const result = context.mergeExcept(targetContext, [
+   *   'data.temporaryCache',
+   *   'state.pendingRequests'
+   * ]);
    */
-  autoSyncComponent(componentKey, target, options = {}) {
-    return this.syncComponent(componentKey, target, 'auto', { ...options, autoSync: true });
+  mergeExcept(target, blockedPaths, strategy = 'mergeNewerWins', options = {}) {
+    return ContextMerger.mergeExcept(this, target, blockedPaths, strategy, options);
   }
 
   /**
-   * Synchronizes the schema component with another context.
-   * @param {Context} target - The target context to sync with.
-   * @param {string} [operation='auto'] - The synchronization operation to perform.
-   * @param {object} [options={}] - Synchronization options.
-   * @returns {object} Synchronization result with details.
-   */
-  syncSchema(target, operation = 'auto', options = {}) {
-    if (operation === 'auto') {
-      return this.autoSyncComponent('schema', target, options);
-    }
-    return this.syncComponent('schema', target, operation, options);
-  }
-
-  /**
-   * Synchronizes the constants component with another context.
-   * @param {Context} target - The target context to sync with.
-   * @param {string} [operation='auto'] - The synchronization operation to perform.
-   * @param {object} [options={}] - Synchronization options.
-   * @returns {object} Synchronization result with details.
-   */
-  syncConstants(target, operation = 'auto', options = {}) {
-    if (operation === 'auto') {
-      return this.autoSyncComponent('constants', target, options);
-    }
-    return this.syncComponent('constants', target, operation, options);
-  }
-
-  /**
-   * Synchronizes the manifest component with another context.
-   * @param {Context} target - The target context to sync with.
-   * @param {string} [operation='auto'] - The synchronization operation to perform.
-   * @param {object} [options={}] - Synchronization options.
-   * @returns {object} Synchronization result with details.
-   */
-  syncManifest(target, operation = 'auto', options = {}) {
-    if (operation === 'auto') {
-      return this.autoSyncComponent('manifest', target, options);
-    }
-    return this.syncComponent('manifest', target, operation, options);
-  }
-
-  /**
-   * Synchronizes the flags component with another context.
-   * @param {Context} target - The target context to sync with.
-   * @param {string} [operation='auto'] - The synchronization operation to perform.
-   * @param {object} [options={}] - Synchronization options.
-   * @returns {object} Synchronization result with details.
-   */
-  syncFlags(target, operation = 'auto', options = {}) {
-    if (operation === 'auto') {
-      return this.autoSyncComponent('flags', target, options);
-    }
-    return this.syncComponent('flags', target, operation, options);
-  }
-
-  /**
-   * Synchronizes the state component with another context.
-   * @param {Context} target - The target context to sync with.
-   * @param {string} [operation='auto'] - The synchronization operation to perform.
-   * @param {object} [options={}] - Synchronization options.
-   * @returns {object} Synchronization result with details.
-   */
-  syncState(target, operation = 'auto', options = {}) {
-    if (operation === 'auto') {
-      return this.autoSyncComponent('state', target, options);
-    }
-    return this.syncComponent('state', target, operation, options);
-  }
-
-  /**
-   * Synchronizes the data component with another context.
-   * @param {Context} target - The target context to sync with.
-   * @param {string} [operation='auto'] - The synchronization operation to perform.
-   * @param {object} [options={}] - Synchronization options.
-   * @returns {object} Synchronization result with details.
-   */
-  syncData(target, operation = 'auto', options = {}) {
-    if (operation === 'auto') {
-      return this.autoSyncComponent('data', target, options);
-    }
-    return this.syncComponent('data', target, operation, options);
-  }
-
-  /**
-   * Synchronizes the settings component with another context.
-   * @param {Context} target - The target context to sync with.
-   * @param {string} [operation='auto'] - The synchronization operation to perform.
-   * @param {object} [options={}] - Synchronization options.
-   * @returns {object} Synchronization result with details.
-   */
-  syncSettings(target, operation = 'auto', options = {}) {
-    if (operation === 'auto') {
-      return this.autoSyncComponent('settings', target, options);
-    }
-    return this.syncComponent('settings', target, operation, options);
-  }
-
-  /**
-   * Synchronizes multiple components at once with another context.
-   * @param {string[]} componentKeys - Array of component keys to sync.
-   * @param {Context} target - The target context to sync with.
-   * @param {string} [operation='auto'] - The synchronization operation to perform.
-   * @param {object} [options={}] - Synchronization options.
-   * @returns {object} Object containing results for each component sync operation.
-   *
+   * Merges a single specific item between this context and target.
+   * @param {Context} target - The target Context instance to merge into.
+   * @param {string} itemPath - The specific item path to merge (e.g., 'data.playerStats.level')
+   * @param {object} [options={}] - Merge options.
+   * @param {string} [options.strategy='mergeNewerWins'] - The merge strategy to apply.
+   * @param {boolean} [options.createMissing=true] - Whether to create the item if it doesn't exist in target.
+   * @param {boolean} [options.preserveMetadata=false] - Whether to preserve existing metadata.
+   * @param {boolean} [options.dryRun=false] - If true, performs analysis without making changes.
+   * @returns {object} Detailed merge result for the single item.
+   * 
    * @example
-   * ```javascript
-   * const results = context1.syncComponents(['data', 'state', 'flags'], context2);
-   * console.log(results.data); // Result of data sync
-   * console.log(results.state); // Result of state sync
-   * ```
+   * // Merge only the player level with source priority
+   * const result = context.mergeSingleItem(
+   *   targetContext, 
+   *   'data.playerStats.level',
+   *   { strategy: 'mergeSourcePriority', preserveMetadata: true }
+   * );
    */
-  syncComponents(componentKeys, target, operation = 'auto', options = {}) {
-    const results = {};
-    const errors = {};
+  mergeSingleItem(target, itemPath, options = {}) {
+    return ContextMerger.mergeSingleItem(this, target, itemPath, options);
+  }
 
-    for (const key of componentKeys) {
-      try {
-        if (operation === 'auto') {
-          results[key] = this.autoSyncComponent(key, target, options);
-        } else {
-          results[key] = this.syncComponent(key, target, operation, options);
-        }
-      } catch (error) {
-        errors[key] = error.message;
-      }
-    }
+  /**
+   * Merges items matching a regular expression pattern.
+   * @param {Context} target - The target Context instance to merge into.
+   * @param {RegExp} pattern - Regular expression to match against item paths
+   * @param {string} [strategy='mergeNewerWins'] - The merge strategy to apply.
+   * @param {object} [options={}] - Additional merge options.
+   * @returns {object} Detailed merge result with statistics and changes.
+   * 
+   * @example
+   * // Merge all player-related data
+   * const result = context.mergePattern(
+   *   targetContext, 
+   *   /data\.player/
+   * );
+   * 
+   * @example
+   * // Merge all settings that end with 'volume'
+   * const result = context.mergePattern(
+   *   targetContext, 
+   *   /settings\..*volume$/
+   * );
+   */
+  mergePattern(target, pattern, strategy = 'mergeNewerWins', options = {}) {
+    return ContextMerger.mergePattern(this, target, pattern, strategy, options);
+  }
 
-    return {
-      success: Object.keys(errors).length === 0,
-      results,
-      errors: Object.keys(errors).length > 0 ? errors : undefined,
-      syncedComponents: Object.keys(results),
-      failedComponents: Object.keys(errors)
-    };
+  /**
+   * Merges items based on a custom condition function.
+   * @param {Context} target - The target Context instance to merge into.
+   * @param {Function} conditionFn - Function that receives (sourceItem, targetItem, itemPath) and returns boolean
+   * @param {string} [strategy='mergeNewerWins'] - The merge strategy to apply.
+   * @param {object} [options={}] - Additional merge options.
+   * @returns {object} Detailed merge result with statistics and changes.
+   * 
+   * @example
+   * // Merge items where source has higher version
+   * const result = context.mergeWhere(
+   *   targetContext,
+   *   (sourceItem, targetItem, itemPath) => {
+   *     return sourceItem?.version > targetItem?.version;
+   *   }
+   * );
+   * 
+   * @example
+   * // Merge only items that have been modified recently
+   * const result = context.mergeWhere(
+   *   targetContext,
+   *   (sourceItem, targetItem, itemPath) => {
+   *     const hourAgo = Date.now() - (60 * 60 * 1000);
+   *     return sourceItem?.timestamp > hourAgo;
+   *   }
+   * );
+   */
+  mergeWhere(target, conditionFn, strategy = 'mergeNewerWins', options = {}) {
+    return ContextMerger.mergeWhere(this, target, conditionFn, strategy, options);
+  }
+
+  /**
+   * Creates a detailed preview of potential merge operations without executing them.
+   * @param {Context} target - The target context.
+   * @param {string} [strategy='mergeNewerWins'] - The merge strategy to analyze.
+   * @param {object} [options={}] - Analysis options. Same as merge() options.
+   * @returns {object} Detailed analysis of what would happen during merge.
+   * 
+   * @example
+   * // Preview what would be merged for specific components
+   * const preview = context.analyzeMerge(targetContext, 'mergeNewerWins', {
+   *   includeComponents: ['data']
+   * });
+   * 
+   * console.log(`Would process ${preview.itemsProcessed} items with ${preview.conflicts} conflicts`);
+   * preview.changes.forEach(change => console.log(`${change.action}: ${change.path}`));
+   */
+  analyzeMerge(target, strategy = 'mergeNewerWins', options = {}) {
+    return ContextMerger.analyze(this, target, strategy, options);
   }
 }
 

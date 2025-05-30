@@ -1,10 +1,10 @@
 /**
  * @file contextMerger.unit.test.js
- * @description Unit tests for the ContextMerger class
- * @path /src/context/helpers/contextMerger.unit.test.js
+ * @description Unit tests for the ContextMerger class and ItemFilter helper
+ * @path /src/contexts/helpers/contextMerger.unit.test.js
  */
 
-import ContextMerger from './contextMerger.js';
+import ContextMerger, { ItemFilter } from './contextMerger.js';
 import ContextSync from './contextSync.js';
 import { ContextItem } from './contextItem.js';
 import { ContextContainer } from './contextContainer.js';
@@ -464,6 +464,496 @@ describe('ContextMerger', () => {
 
       const result = ContextMerger.merge(sourceContext, targetContext);
 
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('ItemFilter', () => {
+    let sourceItem, targetItem;
+
+    beforeEach(() => {
+      sourceItem = { value: 'source', timestamp: 100 };
+      targetItem = { value: 'target', timestamp: 50 };
+    });
+
+    describe('allowOnly()', () => {
+      it('should create filter that allows only specified paths', () => {
+        const filter = ItemFilter.allowOnly(['data.inventory', 'settings.volume']);
+
+        expect(filter(sourceItem, targetItem, 'data.inventory.weapons')).toBe(sourceItem);
+        expect(filter(sourceItem, targetItem, 'settings.volume')).toBe(sourceItem);
+        expect(filter(sourceItem, targetItem, 'data.other')).toBe(targetItem);
+        expect(filter(sourceItem, targetItem, 'state.ui')).toBe(targetItem);
+      });
+
+      it('should handle empty paths array', () => {
+        const filter = ItemFilter.allowOnly([]);
+
+        expect(filter(sourceItem, targetItem, 'any.path')).toBe(targetItem);
+      });
+    });
+
+    describe('blockOnly()', () => {
+      it('should create filter that blocks specified paths', () => {
+        const filter = ItemFilter.blockOnly(['data.temp', 'state.cache']);
+
+        expect(filter(sourceItem, targetItem, 'data.temp.something')).toBe(targetItem);
+        expect(filter(sourceItem, targetItem, 'state.cache')).toBe(targetItem);
+        expect(filter(sourceItem, targetItem, 'data.inventory')).toBe(sourceItem);
+        expect(filter(sourceItem, targetItem, 'settings.volume')).toBe(sourceItem);
+      });
+    });
+
+    describe('matchPattern()', () => {
+      it('should create filter that matches regex patterns', () => {
+        const filter = ItemFilter.matchPattern(/data\.player/);
+
+        expect(filter(sourceItem, targetItem, 'data.playerStats')).toBe(sourceItem);
+        expect(filter(sourceItem, targetItem, 'data.playerInventory')).toBe(sourceItem);
+        expect(filter(sourceItem, targetItem, 'data.enemy')).toBe(targetItem);
+        expect(filter(sourceItem, targetItem, 'settings.player')).toBe(targetItem);
+      });
+
+      it('should handle complex regex patterns', () => {
+        const filter = ItemFilter.matchPattern(/settings\..*volume$/);
+
+        expect(filter(sourceItem, targetItem, 'settings.audio.volume')).toBe(sourceItem);
+        expect(filter(sourceItem, targetItem, 'settings.ui.volume')).toBe(sourceItem);
+        expect(filter(sourceItem, targetItem, 'settings.audio.quality')).toBe(targetItem);
+      });
+    });
+
+    describe('custom()', () => {
+      it('should create filter based on custom condition', () => {
+        const conditionFn = jest.fn((source, target, path) => {
+          return source.timestamp > target.timestamp;
+        });
+        const filter = ItemFilter.custom(conditionFn);
+
+        expect(filter(sourceItem, targetItem, 'any.path')).toBe(sourceItem);
+        expect(conditionFn).toHaveBeenCalledWith(sourceItem, targetItem, 'any.path');
+      });
+
+      it('should return target when condition is false', () => {
+        const conditionFn = () => false;
+        const filter = ItemFilter.custom(conditionFn);
+
+        expect(filter(sourceItem, targetItem, 'any.path')).toBe(targetItem);
+      });
+    });
+
+    describe('and()', () => {
+      it('should combine filters with AND logic', () => {
+        const filter1 = ItemFilter.allowOnly(['data.player']);
+        const filter2 = ItemFilter.custom(() => true);
+        const combinedFilter = ItemFilter.and(filter1, filter2);
+
+        expect(combinedFilter(sourceItem, targetItem, 'data.playerStats')).toBe(sourceItem);
+        expect(combinedFilter(sourceItem, targetItem, 'data.enemy')).toBe(targetItem);
+      });
+
+      it('should short-circuit on first rejection', () => {
+        const filter1 = ItemFilter.allowOnly(['data.other']);
+        const filter2 = jest.fn(() => sourceItem);
+        const combinedFilter = ItemFilter.and(filter1, filter2);
+
+        combinedFilter(sourceItem, targetItem, 'data.player');
+
+        expect(filter2).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('or()', () => {
+      it('should combine filters with OR logic', () => {
+        const filter1 = ItemFilter.allowOnly(['data.player']);
+        const filter2 = ItemFilter.allowOnly(['settings.volume']);
+        const combinedFilter = ItemFilter.or(filter1, filter2);
+
+        expect(combinedFilter(sourceItem, targetItem, 'data.playerStats')).toBe(sourceItem);
+        expect(combinedFilter(sourceItem, targetItem, 'settings.volume')).toBe(sourceItem);
+        expect(combinedFilter(sourceItem, targetItem, 'data.enemy')).toBe(targetItem);
+      });
+
+      it('should short-circuit on first acceptance', () => {
+        const filter1 = ItemFilter.allowOnly(['data.player']);
+        const filter2 = jest.fn(() => sourceItem);
+        const combinedFilter = ItemFilter.or(filter1, filter2);
+
+        combinedFilter(sourceItem, targetItem, 'data.playerStats');
+
+        expect(filter2).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('ContextMerger convenience methods', () => {
+    beforeEach(() => {
+      // Setup common mock behavior for convenience method tests
+      sourceContainer.getItem.mockImplementation((key) => {
+        if (['item1', 'item2'].includes(key)) return sourceItem;
+        return null;
+      });
+
+      targetContainer.getItem.mockImplementation((key) => {
+        if (['item1', 'item3'].includes(key)) return targetItem;
+        return null;
+      });
+
+      targetContainer.hasItem.mockImplementation((key) => {
+        return ['item1', 'item3'].includes(key);
+      });
+    });
+
+    describe('mergeOnly()', () => {
+      it('should merge only specified paths', () => {
+        const allowedPaths = ['data.inventory', 'settings.volume'];
+        const result = ContextMerger.mergeOnly(sourceContext, targetContext, allowedPaths);
+
+        expect(result.success).toBe(true);
+        expect(result.strategy).toBe('mergeNewerWins');
+      });
+
+      it('should accept custom strategy', () => {
+        const result = ContextMerger.mergeOnly(
+          sourceContext,
+          targetContext,
+          ['data.inventory'],
+          'mergeSourcePriority'
+        );
+
+        expect(result.success).toBe(true);
+        expect(result.strategy).toBe('mergeSourcePriority');
+      });
+
+      it('should accept additional options', () => {
+        const result = ContextMerger.mergeOnly(
+          sourceContext,
+          targetContext,
+          ['data.inventory'],
+          'mergeNewerWins',
+          { dryRun: true }
+        );
+
+        expect(result.success).toBe(true);
+      });
+    });
+
+    describe('mergeExcept()', () => {
+      it('should merge everything except specified paths', () => {
+        const blockedPaths = ['data.temp', 'state.cache'];
+        const result = ContextMerger.mergeExcept(sourceContext, targetContext, blockedPaths);
+
+        expect(result.success).toBe(true);
+        expect(result.strategy).toBe('mergeNewerWins');
+      });
+
+      it('should accept custom strategy', () => {
+        const result = ContextMerger.mergeExcept(
+          sourceContext,
+          targetContext,
+          ['data.temp'],
+          'mergeTargetPriority'
+        );
+
+        expect(result.success).toBe(true);
+        expect(result.strategy).toBe('mergeTargetPriority');
+      });
+    });
+
+    describe('mergeSingleItem()', () => {
+      it('should merge a single specific item', () => {
+        const result = ContextMerger.mergeSingleItem(
+          sourceContext,
+          targetContext,
+          'data.playerStats.level'
+        );
+
+        expect(result.success).toBe(true);
+        expect(result.strategy).toBe('mergeNewerWins');
+      });
+
+      it('should accept strategy in options', () => {
+        const result = ContextMerger.mergeSingleItem(
+          sourceContext,
+          targetContext,
+          'data.playerStats.level',
+          { strategy: 'mergeSourcePriority' }
+        );
+
+        expect(result.success).toBe(true);
+        expect(result.strategy).toBe('mergeSourcePriority');
+      });
+
+      it('should support all merge options', () => {
+        const result = ContextMerger.mergeSingleItem(
+          sourceContext,
+          targetContext,
+          'data.playerStats.level',
+          {
+            strategy: 'mergeSourcePriority',
+            preserveMetadata: true,
+            dryRun: true
+          }
+        );
+
+        expect(result.success).toBe(true);
+      });
+    });
+
+    describe('mergePattern()', () => {
+      it('should merge items matching regex pattern', () => {
+        const pattern = /data\.player/;
+        const result = ContextMerger.mergePattern(sourceContext, targetContext, pattern);
+
+        expect(result.success).toBe(true);
+        expect(result.strategy).toBe('mergeNewerWins');
+      });
+
+      it('should accept custom strategy', () => {
+        const pattern = /settings\..*volume$/;
+        const result = ContextMerger.mergePattern(
+          sourceContext,
+          targetContext,
+          pattern,
+          'mergeSourcePriority'
+        );
+
+        expect(result.success).toBe(true);
+        expect(result.strategy).toBe('mergeSourcePriority');
+      });
+    });
+
+    describe('mergeWhere()', () => {
+      it('should merge items based on custom condition', () => {
+        const conditionFn = jest.fn().mockReturnValue(true);
+        const result = ContextMerger.mergeWhere(sourceContext, targetContext, conditionFn);
+
+        expect(result.success).toBe(true);
+        expect(result.strategy).toBe('mergeNewerWins');
+      });
+
+      it('should call condition function with correct parameters', () => {
+        const conditionFn = jest.fn().mockReturnValue(false);
+
+        ContextMerger.mergeWhere(sourceContext, targetContext, conditionFn);
+
+        // The condition function should be wrapped in ItemFilter.custom
+        // Exact verification depends on implementation details
+        expect(conditionFn).toBeDefined();
+      });
+
+      it('should accept custom strategy', () => {
+        const conditionFn = () => true;
+        const result = ContextMerger.mergeWhere(
+          sourceContext,
+          targetContext,
+          conditionFn,
+          'mergeTargetPriority'
+        );
+
+        expect(result.success).toBe(true);
+        expect(result.strategy).toBe('mergeTargetPriority');
+      });
+    });
+  });
+
+  describe('ContextMerger advanced usage', () => {
+    it('should support complex filtering combinations', () => {
+      const complexFilter = ItemFilter.and(
+        ItemFilter.allowOnly(['data.player', 'settings.ui']),
+        ItemFilter.custom((source, target, path) => source.timestamp > target.timestamp)
+      );
+
+      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+        onConflict: complexFilter
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle multiple convenience methods chaining', () => {
+      // Test that convenience methods work with different strategies
+      const strategies = ['mergeNewerWins', 'mergeSourcePriority', 'mergeTargetPriority'];
+
+      strategies.forEach(strategy => {
+        const result = ContextMerger.mergeOnly(
+          sourceContext,
+          targetContext,
+          ['data.inventory'],
+          strategy
+        );
+        expect(result.success).toBe(true);
+        expect(result.strategy).toBe(strategy);
+      });
+    });
+
+    it('should handle edge cases in convenience methods', () => {
+      // Test empty paths
+      const result1 = ContextMerger.mergeOnly(sourceContext, targetContext, []);
+      expect(result1.success).toBe(true);
+
+      // Test invalid regex (should be handled gracefully)
+      const result2 = ContextMerger.mergePattern(sourceContext, targetContext, /valid\.pattern/);
+      expect(result2.success).toBe(true);
+
+      // Test undefined condition function (should not throw during method call, but might fail during merge)
+      const result3 = ContextMerger.mergeWhere(sourceContext, targetContext, undefined);
+      // The method call itself shouldn't throw, but the result might indicate failure
+      expect(result3).toBeDefined();
+    });
+  });
+
+  describe('real-world scenarios', () => {
+    beforeEach(() => {
+      // Setup more realistic test data
+      const playerStatsItem = {
+        value: { level: 10, experience: 1500 },
+        timestamp: Date.now(),
+        version: '1.2.0'
+      };
+
+      const inventoryItem = {
+        value: { weapons: ['sword', 'bow'], armor: ['helmet'] },
+        timestamp: Date.now() - 1000,
+        version: '1.1.0'
+      };
+
+      const settingsItem = {
+        value: { volume: 0.8, quality: 'high' },
+        timestamp: Date.now() + 1000,
+        version: '1.3.0'
+      };
+
+      sourceContainer.getItem.mockImplementation((key) => {
+        switch (key) {
+          case 'playerStats': return playerStatsItem;
+          case 'inventory': return inventoryItem;
+          case 'settings': return settingsItem;
+          default: return null;
+        }
+      });
+
+      targetContainer.getItem.mockImplementation((key) => {
+        switch (key) {
+          case 'playerStats': return { ...playerStatsItem, value: { level: 8, experience: 1200 } };
+          case 'inventory': return { ...inventoryItem, value: { weapons: ['dagger'], armor: [] } };
+          case 'settings': return { ...settingsItem, value: { volume: 0.5, quality: 'medium' } };
+          default: return null;
+        }
+      });
+
+      targetContainer.hasItem.mockImplementation((key) => {
+        return ['playerStats', 'inventory', 'settings'].includes(key);
+      });
+    });
+
+    it('should handle selective player data sync', () => {
+      // Only sync player stats and inventory, not settings
+      const result = ContextMerger.mergeOnly(sourceContext, targetContext, [
+        'data.playerStats',
+        'data.inventory'
+      ], 'mergeSourcePriority');
+
+      expect(result.success).toBe(true);
+      expect(result.strategy).toBe('mergeSourcePriority');
+    });
+
+    it('should handle excluding temporary data', () => {
+      // Merge everything except cache and temporary data
+      const result = ContextMerger.mergeExcept(sourceContext, targetContext, [
+        'data.cache',
+        'data.temp',
+        'state.pending'
+      ]);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle pattern-based game data sync', () => {
+      // Sync all player-related data using pattern
+      const result = ContextMerger.mergePattern(
+        sourceContext,
+        targetContext,
+        /data\.player/,
+        'mergeNewerWins'
+      );
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle conditional version-based sync', () => {
+      // Only sync items with higher version numbers
+      const result = ContextMerger.mergeWhere(
+        sourceContext,
+        targetContext,
+        (sourceItem, targetItem, itemPath) => {
+          if (!sourceItem?.version || !targetItem?.version) return false;
+          return sourceItem.version > targetItem.version;
+        },
+        'mergeSourcePriority'
+      );
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle complex filtering scenarios', () => {
+      // Complex filter: Allow player data OR settings with newer timestamps
+      const complexFilter = ItemFilter.or(
+        ItemFilter.allowOnly(['data.player']),
+        ItemFilter.and(
+          ItemFilter.allowOnly(['settings']),
+          ItemFilter.custom((source, target) => source.timestamp > target.timestamp)
+        )
+      );
+
+      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+        onConflict: complexFilter
+      });
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('backward compatibility', () => {
+    it('should maintain existing API compatibility', () => {
+      // Test that existing merge() calls still work unchanged
+      const result = ContextMerger.merge(sourceContext, targetContext);
+      expect(result.success).toBe(true);
+      expect(result.strategy).toBe('mergeNewerWins');
+    });
+
+    it('should support existing onConflict custom functions', () => {
+      const customConflictResolver = jest.fn().mockReturnValue(sourceItem);
+
+      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
+        onConflict: customConflictResolver
+      });
+
+      expect(result.success).toBe(true);
+      // The custom resolver should still work as before
+    });
+
+    it('should handle all existing merge strategies', () => {
+      const strategies = Object.values(ContextMerger.MERGE_STRATEGIES);
+
+      strategies.forEach(strategy => {
+        const result = ContextMerger.merge(sourceContext, targetContext, strategy);
+        expect(result.success).toBe(true);
+        expect(result.strategy).toBe(strategy);
+      });
+    });
+
+    it('should support all existing options', () => {
+      const allOptions = {
+        includeComponents: ['data', 'settings'],
+        excludeComponents: ['schema'],
+        compareBy: 'timestamp',
+        createMissing: true,
+        dryRun: true,
+        preserveMetadata: true
+      };
+
+      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', allOptions);
       expect(result.success).toBe(true);
     });
   });

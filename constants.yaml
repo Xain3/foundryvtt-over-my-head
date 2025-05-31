@@ -23,6 +23,21 @@ errors:
 
 # Constants relative to context and state management
 context:
+  operationsParams:
+    # Default parameters for context operations
+    defaults:
+      alwaysPullBeforeGetting: false
+      alwaysPullBeforeSetting: false
+      pullFrom: []
+      alwaysPushAfterSetting: false
+      pushTo: []
+      errorHandling: {
+      # Possible values: warn, throw, silent
+        onPullError: 'warn',
+        onPushError: 'warn',
+        onValidationError: 'throw'
+      }
+
   # How to structure the context object
   external:
     defaults:

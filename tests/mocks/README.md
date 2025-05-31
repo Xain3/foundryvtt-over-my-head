@@ -34,7 +34,14 @@ The Enhanced MockGlobals System provides a comprehensive mock environment for Fo
 ### Basic Setup
 
 ```javascript
-import MockGlobals from '../mocks/mockGlobals.js';
+import MockGlobals, {
+  MockActor,
+  MockItem,
+  MockUser,
+  MockScene,
+  createMockFunction,
+  createSpy
+} from '../mocks/mockGlobals.js';
 
 describe('My Foundry Module Tests', () => {
   let mockGlobals;
@@ -124,6 +131,51 @@ Returns the current mock game instance.
 
 ##### `getHooks()`
 Returns the current mock hooks instance.
+
+## Utility Functions
+
+### `createMockFunction(implementation)`
+Creates a Jest mock function when Jest is available, otherwise returns a regular function.
+
+```javascript
+// With Jest available
+const mockFn = createMockFunction(() => 'test result');
+expect(jest.isMockFunction(mockFn)).toBe(true);
+
+// Without Jest
+const regularFn = createMockFunction(() => 'test result');
+expect(typeof regularFn).toBe('function');
+```
+
+### `createSpy(object, methodName)`
+Creates a Jest spy when Jest is available, otherwise returns the original method.
+
+```javascript
+const obj = { method: () => 'original' };
+const spy = createSpy(obj, 'method');
+
+// With Jest, spy tracks calls
+if (jest.isMockFunction(spy)) {
+  obj.method();
+  expect(spy).toHaveBeenCalled();
+}
+```
+
+### `createBrowserGlobals()`
+Returns an object containing browser globals for manual setup.
+
+```javascript
+const browserGlobals = createBrowserGlobals();
+// Contains: window, document, navigator, localStorage, fetch, etc.
+```
+
+### `createLibraryGlobals()`
+Returns an object containing library globals for manual setup.
+
+```javascript
+const libraryGlobals = createLibraryGlobals();
+// Contains: PIXI, $, jQuery, Handlebars, io, dragula
+```
 
 ## Document Types
 
@@ -426,26 +478,35 @@ reader.onload = (e) => console.log(e.target.result);
 reader.readAsText(file);
 ```
 
-## Library Globals
+### Library Globals
+
+When `libraries: true` is enabled, the following globals are available:
 
 ### PIXI.js Mocks
+
 ```javascript
 // Graphics rendering
 const app = new PIXI.Application();
 const container = new PIXI.Container();
 const graphics = new PIXI.Graphics();
+const sprite = new PIXI.Sprite();
 const texture = PIXI.Texture.from('image.png');
 ```
 
 ### jQuery
+
 ```javascript
 // DOM manipulation
 const $element = $('#my-element');
 $element.addClass('active');
 $element.on('click', handler);
+
+// Chaining support
+$element.find('.child').removeClass('hidden');
 ```
 
 ### Handlebars
+
 ```javascript
 // Template compilation
 const template = Handlebars.compile('<div>{{message}}</div>');
@@ -453,6 +514,75 @@ const html = template({ message: 'Hello World' });
 
 // Helper registration
 Handlebars.registerHelper('upper', (str) => str.toUpperCase());
+Handlebars.registerPartial('myPartial', '<span>{{text}}</span>');
+```
+
+### Socket.io
+
+```javascript
+// Socket connection mock
+const socket = io();
+socket.on('connect', () => console.log('Connected'));
+socket.emit('message', { data: 'test' });
+socket.disconnect();
+```
+
+### Dragula
+
+```javascript
+// Drag and drop mock
+const drake = dragula();
+drake.on('drop', (el, target) => console.log('Dropped'));
+drake.destroy();
+```
+
+## Exported Constants and Classes
+
+The mock system exports the following constants and classes for direct use:
+
+### Exported Constants
+
+```javascript
+import { CONST, CONFIG, UI } from '../mocks/mockGlobals.js';
+
+// User roles
+console.log(CONST.USER_ROLES.PLAYER); // 1
+console.log(CONST.USER_ROLES.GAMEMASTER); // 4
+
+// Document classes
+console.log(CONFIG.Actor.documentClass); // MockActor
+console.log(CONFIG.Item.documentClass); // MockItem
+
+// UI notifications
+UI.notifications.info('Test message');
+```
+
+### Exported Mock Classes
+
+```javascript
+import {
+  MockCollection,
+  MockDocument,
+  MockActor,
+  MockItem,
+  MockUser,
+  MockApplication,
+  MockDialog,
+  MockRoll,
+  MockSettings,
+  MockHooks,
+  MockGame,
+  MockScene,
+  MockChatMessage,
+  MockCombat,
+  MockToken,
+  MockFolder
+} from '../mocks/mockGlobals.js';
+
+// Use directly without global setup
+const actor = new MockActor({ name: 'Direct Actor' });
+const collection = new MockCollection();
+collection.set('actor1', actor);
 ```
 
 ## Test Data
@@ -511,6 +641,8 @@ const hasOwnership = document.permission >= CONST.DOCUMENT_PERMISSION_LEVELS.OWN
 ### Custom Document Classes
 
 ```javascript
+import { MockActor, CONFIG } from '../mocks/mockGlobals.js';
+
 // Extend mock documents
 class CustomActor extends MockActor {
   get customProperty() {
@@ -525,21 +657,19 @@ CONFIG.Actor.documentClass = CustomActor;
 ### Event Testing
 
 ```javascript
-// Test hook interactions
-let hookCalled = false;
-let hookData = null;
+import { createMockFunction } from '../mocks/mockGlobals.js';
 
-Hooks.on('myModule.customEvent', (data) => {
-  hookCalled = true;
-  hookData = data;
-});
+// Test hook interactions
+const handler = createMockFunction();
+Hooks.on('myModule.customEvent', handler);
 
 // Trigger from your code
 Hooks.call('myModule.customEvent', { test: true });
 
 // Verify in tests
-expect(hookCalled).toBe(true);
-expect(hookData.test).toBe(true);
+if (jest.isMockFunction(handler)) {
+  expect(handler).toHaveBeenCalledWith({ test: true });
+}
 ```
 
 ### Async Operations
@@ -617,6 +747,16 @@ it('should call the correct methods', () => {
   myModule.redrawCanvas();
 
   expect(mockMethod).toHaveBeenCalled();
+  mockMethod.mockRestore();
+});
+
+it('should verify mock functions', () => {
+  // Use Jest-specific checks for mock functions
+  expect(jest.isMockFunction(UI.notifications.info)).toBe(true);
+
+  // Test mock calls
+  UI.notifications.info('Test message');
+  expect(UI.notifications.info).toHaveBeenCalledWith('Test message');
 });
 ```
 
@@ -646,16 +786,40 @@ it('should handle hook events', () => {
 
 4. **Collection Modifications**: Mock collections behave like Maps - use `set()`, `get()`, `delete()` methods.
 
+5. **Jest Mock Functions**: Use `jest.isMockFunction()` to check if a function is a Jest mock rather than `toBeInstanceOf(Function)`.
+
+6. **Browser Environment Issues**: Some JSDOM operations may cause stack overflow. Skip problematic tests or use simpler alternatives.
+
+### Jest Integration
+
+```javascript
+// Check if Jest is available
+if (typeof jest !== 'undefined') {
+  // Use Jest-specific features
+  const mockFn = createMockFunction();
+  expect(jest.isMockFunction(mockFn)).toBe(true);
+} else {
+  // Fallback for non-Jest environments
+  const regularFn = createMockFunction();
+  expect(typeof regularFn).toBe('function');
+}
+```
+
 ### Debug Mode
 
 ```javascript
 // Enable debug logging
-CONFIG.debug = true;
+CONFIG.debug = { hooks: true };
 
 // Check mock state
 console.log('Game ready:', game.ready);
 console.log('User role:', game.user.role);
 console.log('Actors:', game.actors.size);
+
+// Verify exports
+import { CONST, CONFIG } from '../mocks/mockGlobals.js';
+console.log('CONST exported:', typeof CONST);
+console.log('CONFIG exported:', typeof CONFIG);
 ```
 
 ## Contributing

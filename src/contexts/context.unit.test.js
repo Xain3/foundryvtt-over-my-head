@@ -1,355 +1,1052 @@
+import Context, { DEFAULT_INITIALIZATION_PARAMS } from './context.js';
+import { ContextContainer } from './helpers/contextContainer.js';
+import ContextMerger from './helpers/contextMerger.js';
+import ContextSync from './helpers/contextSync.js';
+import ContextOperations from './helpers/contextOperations.js';
+import Validator from '@utils/static/validator';
+import manifest from '@manifest';
+import constants from '@constants';
+
 /**
  * @file context.test.js
- * @description Unit tests for the Context class.
- * @path src/context/context.test.js
-*/
+ * @description Unit tests for Context class with comprehensive testing of initialization, operations, and merge functionality.
+ * @path /src/contexts/context.test.js
+ */
 
-import Context from './context.js';
-import { ContextContainer } from './helpers/contextContainer.js';
-import Validator from '@/utils/static/validator';
-import importedManifest from '@manifest';
-import importedConstants from '@/constants/constants';
-import ContextSync from './helpers/contextSync.js';
 
-// Jest Mocks - Must be at the top
-jest.mock('@manifest', () => ({ manifestKey: 'manifestValue', version: '1.0.0' }), { virtual: true });
-jest.mock('@/constants/constants', () => ({
+// Mock external dependencies
+jest.mock('@utils/static/validator');
+jest.mock('./helpers/contextMerger.js');
+jest.mock('./helpers/contextSync.js');
+jest.mock('./helpers/contextOperations.js');
+jest.mock('@manifest', () => ({
+  name: 'test-module',
+  version: '1.0.0',
+  description: 'Test module'
+}));
+jest.mock('@constants', () => ({
   context: {
-    schema: { defaultSchema: true, type: 'object' },
-    naming: {
-      state: "state",
-      settings: "settings",
-      flags: "flags",
-      data: "data",
-      manifest: "manifest",
-      timestamp: "timestamp"
-    },
-  },
-  flags: { initialFlag: true },
-  otherConstant: 'someValue',
-}), { virtual: true });
-
-jest.mock('@/utils/static/validator', () => ({
-  validateArgsObjectStructure: jest.fn(),
-  validateSchemaDefinition: jest.fn(),
-  validateStringAgainstPattern: jest.fn(),
-  validateObject: jest.fn(),
-}));
-
-jest.mock('./helpers/contextSync.js', () => ({
-  compare: jest.fn(),
-}));
-
-// Mock setup for ContextContainer
-let mockNamingConventionContainerInstance;
-
-jest.mock('./helpers/contextContainer.js', () => ({
-  ContextContainer: jest.fn().mockImplementation(function(value, options, itemOptions) {
-    this.mockedValue = value;
-    this.mockedOptions = options;
-    this.mockedItemOptions = itemOptions;
-    this.mockedInternalItems = {};
-
-    this.setItem = jest.fn((key, itemValue) => {
-      this.mockedInternalItems[key] = itemValue;
-    });
-
-    this.getItem = jest.fn((key) => {
-      return this.mockedInternalItems[key];
-    });
-
-    // Identify the call for #namingConvention
-    // The super() call has defaultItemWrapAs, #namingConvention call does not and has recordAccess: false
-    if (itemOptions && itemOptions.recordAccess === false && itemOptions.defaultItemWrapAs === undefined) {
-      mockNamingConventionContainerInstance = this;
+    schema: { version: '1.0', type: 'context' },
+    naming: { data: 'data', settings: 'settings', flags: 'flags' },
+    operationsParams: {
+      defaults: {
+        alwaysPullBeforeGetting: false,
+        alwaysPullBeforeSetting: false,
+        pullFrom: [],
+        alwaysPushAfterSetting: false,
+        pushTo: [],
+        errorHandling: {
+          onPullError: 'warn',
+          onPushError: 'warn',
+          onValidationError: 'throw'
+        }
+      }
     }
-    return this;
-  }),
+  },
+  flags: { debug: false }
 }));
-
 
 describe('Context', () => {
-  let context;
-  let defaultConstructorArgs;
-  const creationDate = new Date().toISOString().split('T')[0]; // For file header, not used in tests directly
+  let mockMergeResult;
+  let mockCompareResult;
+  let mockOperationsResult;
 
   beforeEach(() => {
+    // Reset all mocks
     jest.clearAllMocks();
-    mockNamingConventionContainerInstance = null; // Reset for each test
 
-    // Reset all validator mocks to default implementations
+    // Setup default mock returns
+    mockMergeResult = {
+      success: true,
+      strategy: 'mergeNewerWins',
+      itemsProcessed: 5,
+      conflicts: 2,
+      changes: [
+        { action: 'updated', path: 'data.test', timestamp: Date.now() }
+      ],
+      statistics: {
+        sourcePreferred: 1,
+        targetPreferred: 1,
+        created: 0,
+        updated: 1,
+        skipped: 2
+      },
+      errors: []
+    };
+
+    mockCompareResult = {
+      isNewer: true,
+      timeDifference: 1000,
+      sourceTimestamp: Date.now(),
+      targetTimestamp: Date.now() - 1000
+    };
+
+    mockOperationsResult = {
+      success: true,
+      itemsProcessed: 3,
+      conflicts: 1,
+      changes: [
+        { action: 'pulled', path: 'data.item', timestamp: Date.now() }
+      ]
+    };
+
+    ContextMerger.merge.mockReturnValue(mockMergeResult);
+    ContextMerger.analyze.mockReturnValue(mockMergeResult);
+    ContextSync.compare.mockReturnValue(mockCompareResult);
+    ContextOperations.pullItems.mockReturnValue(mockOperationsResult);
+    ContextOperations.pushItems.mockReturnValue(mockOperationsResult);
+
+    // Setup validator mocks
     Validator.validateArgsObjectStructure.mockImplementation(() => {});
     Validator.validateSchemaDefinition.mockImplementation(() => {});
-    Validator.validateStringAgainstPattern.mockImplementation(() => {});
     Validator.validateObject.mockImplementation(() => {});
-
-    // Reset ContextContainer mock implementation
-    const { ContextContainer } = require('./helpers/contextContainer.js');
-    ContextContainer.mockClear();
-    ContextContainer.mockImplementation(function(value, options, itemOptions) {
-      this.mockedValue = value;
-      this.mockedOptions = options;
-      this.mockedItemOptions = itemOptions;
-      this.mockedInternalItems = {};
-
-      this.setItem = jest.fn((key, itemValue) => {
-        this.mockedInternalItems[key] = itemValue;
-      });
-
-      this.getItem = jest.fn((key) => {
-        return this.mockedInternalItems[key];
-      });
-
-      // Identify the call for #namingConvention
-      // The super() call has defaultItemWrapAs, #namingConvention call does not and has recordAccess: false
-      if (itemOptions && itemOptions.recordAccess === false && itemOptions.defaultItemWrapAs === undefined) {
-        mockNamingConventionContainerInstance = this;
-      }
-      return this;
-    });
-
-    defaultConstructorArgs = {
-      contextSchema: importedConstants.context.schema,
-      namingConvention: importedConstants.context.naming,
-      constants: importedConstants,
-      manifest: importedManifest,
-      flags: importedConstants.flags,
-      data: {},
-      settings: {},
-    };
+    Validator.validateStringAgainstPattern.mockImplementation(() => {});
   });
 
-  describe('constructor', () => {
-    it('should call super constructor (ContextContainer) with correct parameters', () => {
-      context = new Context();
-      // First call to ContextContainer constructor is super()
-      expect(ContextContainer).toHaveBeenCalledTimes(2); // super() + namingConvention
+  describe('Constructor', () => {
+    describe('Basic initialization', () => {
+      it('should create context with default parameters', () => {
+        const context = new Context();
 
-      const superCallArgs = ContextContainer.mock.calls[0];
-      expect(superCallArgs[0]).toEqual({}); // value for super()
-      expect(superCallArgs[1]).toEqual({}); // options for super()
-      expect(superCallArgs[2]).toEqual({
-        recordAccess: false,
-        recordAccessForMetadata: false,
-        defaultItemWrapAs: 'ContextContainer',
+        expect(context).toBeInstanceOf(Context);
+        expect(context).toBeInstanceOf(ContextContainer);
+        expect(context.schema).toBeDefined();
+        expect(context.constants).toBeDefined();
+        expect(context.manifest).toBeDefined();
+        expect(context.flags).toBeDefined();
+        expect(context.state).toBeDefined();
+        expect(context.data).toBeDefined();
+        expect(context.settings).toBeDefined();
+      });
+
+      it('should create context with custom initialization parameters', () => {
+        const customData = { test: 'value' };
+        const customSettings = { volume: 0.8 };
+        const customFlags = { debug: true };
+
+        const context = new Context({
+          initializationParams: {
+            data: customData,
+            settings: customSettings,
+            flags: customFlags
+          }
+        });
+
+        expect(context.data.getItem('test')).toBe('value');
+        expect(context.settings.getItem('volume')).toBe(0.8);
+        expect(context.flags.getItem('debug')).toBe(true);
+      });
+
+      it('should create context with custom operations parameters', () => {
+        const customOpsParams = {
+          alwaysPullBeforeGetting: true,
+          alwaysPushAfterSetting: true,
+          pullFrom: [],
+          pushTo: []
+        };
+
+        const context = new Context({
+          operationsParams: customOpsParams
+        });
+
+        expect(context).toBeInstanceOf(Context);
+      });
+
+      it('should freeze schema, constants, and manifest items', () => {
+        const context = new Context();
+
+        expect(Object.isFrozen(context.schema.value)).toBe(true);
+        expect(Object.isFrozen(context.constants.value)).toBe(true);
+        expect(Object.isFrozen(context.manifest.value)).toBe(true);
+      });
+
+      it('should initialize empty state container', () => {
+        const context = new Context();
+
+        expect(context.state).toBeInstanceOf(ContextContainer);
+        expect(Object.keys(context.state.value)).toHaveLength(0);
       });
     });
 
-    it('should validate constructor arguments using Validator', () => {
-      context = new Context();
-      expect(Validator.validateArgsObjectStructure).toHaveBeenCalledWith(
-        defaultConstructorArgs,
-        'Context constructor parameters'
-      );
-      expect(Validator.validateSchemaDefinition).toHaveBeenCalledWith(
-        defaultConstructorArgs.contextSchema,
-        'Context schema'
-      );
-      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith(
-        'state',
-        'Naming convention.state',
-        /^[a-zA-Z0-9_]+$/,
-        'alphanumeric characters and underscores',
-        { allowEmpty: false }
-      );
-      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith(
-        'settings',
-        'Naming convention.settings',
-        /^[a-zA-Z0-9_]+$/,
-        'alphanumeric characters and underscores',
-        { allowEmpty: false }
-      );
-      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith(
-        'flags',
-        'Naming convention.flags',
-        /^[a-zA-Z0-9_]+$/,
-        'alphanumeric characters and underscores',
-        { allowEmpty: false }
-      );
-      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith(
-        'data',
-        'Naming convention.data',
-        /^[a-zA-Z0-9_]+$/,
-        'alphanumeric characters and underscores',
-        { allowEmpty: false }
-      );
-      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith(
-        'manifest',
-        'Naming convention.manifest',
-        /^[a-zA-Z0-9_]+$/,
-        'alphanumeric characters and underscores',
-        { allowEmpty: false }
-      );
-      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith(
-        'timestamp',
-        'Naming convention.timestamp',
-        /^[a-zA-Z0-9_]+$/,
-        'alphanumeric characters and underscores',
-        { allowEmpty: false }
-      );
-      expect(Validator.validateObject).toHaveBeenCalledWith(defaultConstructorArgs.constants, 'Constants', { allowEmpty: false });
-      expect(Validator.validateObject).toHaveBeenCalledWith(defaultConstructorArgs.manifest, 'Manifest', { allowEmpty: false });
-      expect(Validator.validateObject).toHaveBeenCalledWith(defaultConstructorArgs.flags, 'Flags', { allowEmpty: true, checkKeys: true });
-      expect(Validator.validateObject).toHaveBeenCalledWith(defaultConstructorArgs.data, 'Data', { allowEmpty: true, checkKeys: true });
-      expect(Validator.validateObject).toHaveBeenCalledWith(defaultConstructorArgs.settings, 'Settings', { allowEmpty: true, checkKeys: true });
-    });
+    describe('Parameter validation', () => {
+      it('should validate constructor arguments', () => {
+        new Context();
 
-    it('should initialize items using setItem with default values on the context instance', () => {
-      context = new Context();
-      // `context` itself is the first instance of MockContextContainer due to `extends`
-      // Its `setItem` method is the mocked one.
-      expect(context.setItem).toHaveBeenCalledWith('schema', Object.freeze(defaultConstructorArgs.contextSchema));
-      expect(context.setItem).toHaveBeenCalledWith('constants', Object.freeze(defaultConstructorArgs.constants));
-      expect(context.setItem).toHaveBeenCalledWith('manifest', Object.freeze(defaultConstructorArgs.manifest));
-      expect(context.setItem).toHaveBeenCalledWith('flags', defaultConstructorArgs.flags);
-      expect(context.setItem).toHaveBeenCalledWith('state', {});
-      expect(context.setItem).toHaveBeenCalledWith('data', defaultConstructorArgs.data);
-      expect(context.setItem).toHaveBeenCalledWith('settings', defaultConstructorArgs.settings);
-    });
-
-    it('should initialize #namingConvention as a new, separate ContextContainer instance', () => {
-      context = new Context();
-      expect(ContextContainer).toHaveBeenCalledTimes(2); // super() and namingConvention
-
-      const namingConventionCallArgs = ContextContainer.mock.calls[1];
-      expect(namingConventionCallArgs[0]).toEqual(Object.freeze(defaultConstructorArgs.namingConvention));
-      expect(namingConventionCallArgs[1]).toEqual({});
-      expect(namingConventionCallArgs[2]).toEqual({ recordAccess: false });
-
-      expect(mockNamingConventionContainerInstance).not.toBeNull();
-      expect(mockNamingConventionContainerInstance.mockedValue).toEqual(Object.freeze(defaultConstructorArgs.namingConvention));
-    });
-
-    it('should use provided parameters for initialization', () => {
-      const customParams = {
-        contextSchema: { customSchema: true, type: 'object' },
-        namingConvention: {
-          state: "custom_state",
-          settings: "custom_settings",
-          flags: "custom_flags",
-          data: "custom_data",
-          manifest: "custom_manifest",
-          timestamp: "custom_timestamp"
-        },
-        constants: { customConst: 1 },
-        manifest: { customManifest: 'v2' },
-        flags: { customFlag: false },
-        data: { customData: 'abc' },
-        settings: { customSetting: true },
-      };
-      context = new Context({ initializationParams: customParams });
-
-      expect(Validator.validateArgsObjectStructure).toHaveBeenCalledWith(customParams, 'Context constructor parameters');
-      expect(Validator.validateSchemaDefinition).toHaveBeenCalledWith(customParams.contextSchema, 'Context schema');
-      // Should validate each naming convention property
-      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith('custom_state', 'Naming convention.state', expect.any(RegExp), expect.any(String), { allowEmpty: false });
-      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith('custom_settings', 'Naming convention.settings', expect.any(RegExp), expect.any(String), { allowEmpty: false });
-      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith('custom_flags', 'Naming convention.flags', expect.any(RegExp), expect.any(String), { allowEmpty: false });
-      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith('custom_data', 'Naming convention.data', expect.any(RegExp), expect.any(String), { allowEmpty: false });
-      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith('custom_manifest', 'Naming convention.manifest', expect.any(RegExp), expect.any(String), { allowEmpty: false });
-      expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith('custom_timestamp', 'Naming convention.timestamp', expect.any(RegExp), expect.any(String), { allowEmpty: false });
-      expect(Validator.validateObject).toHaveBeenCalledWith(customParams.constants, 'Constants', { allowEmpty: false });
-
-      expect(context.setItem).toHaveBeenCalledWith('schema', Object.freeze(customParams.contextSchema));
-      expect(context.setItem).toHaveBeenCalledWith('constants', Object.freeze(customParams.constants));
-      expect(context.setItem).toHaveBeenCalledWith('manifest', Object.freeze(customParams.manifest));
-      expect(context.setItem).toHaveBeenCalledWith('flags', customParams.flags);
-      expect(context.setItem).toHaveBeenCalledWith('data', customParams.data);
-      expect(context.setItem).toHaveBeenCalledWith('settings', customParams.settings);
-
-      const namingConventionCallArgs = ContextContainer.mock.calls[1];
-      expect(namingConventionCallArgs[0]).toEqual(Object.freeze(customParams.namingConvention));
-      expect(mockNamingConventionContainerInstance.mockedValue).toEqual(Object.freeze(customParams.namingConvention));
-    });
-
-    it('should throw if Validator.validateArgsObjectStructure fails', () => {
-      Validator.validateArgsObjectStructure.mockImplementationOnce(() => { throw new Error('Invalid args structure'); });
-      expect(() => new Context()).toThrow('Invalid args structure');
-    });
-
-    it('should throw if Validator.validateSchemaDefinition fails', () => {
-      Validator.validateSchemaDefinition.mockImplementationOnce(() => { throw new Error('Invalid schema definition'); });
-      expect(() => new Context()).toThrow('Invalid schema definition');
-    });
-
-    it('should throw if validateStringAgainstPattern fails for naming convention', () => {
-      Validator.validateStringAgainstPattern.mockImplementation((value, name, pattern, description, options) => {
-        if (name.startsWith('Naming convention.')) throw new Error('Invalid naming convention');
-        // Let other calls pass through normally
-      });
-      expect(() => new Context()).toThrow('Invalid naming convention');
-    });
-
-    it('should throw if Validator.validateObject for constants fails', () => {
-      // Clear any previous mock implementations
-      Validator.validateStringAgainstPattern.mockImplementation(() => {
-        // Allow all validation calls to pass
+        expect(Validator.validateArgsObjectStructure).toHaveBeenCalled();
+        expect(Validator.validateSchemaDefinition).toHaveBeenCalled();
+        expect(Validator.validateObject).toHaveBeenCalledWith(
+          expect.any(Object),
+          'Naming convention'
+        );
       });
 
-      Validator.validateObject.mockImplementation((value, name, options) => {
-        if (name === 'Constants') throw new Error('Invalid constants object');
-        // Let other calls pass through normally
+      it('should validate naming convention patterns', () => {
+        new Context();
+
+        expect(Validator.validateStringAgainstPattern).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.stringContaining('Naming convention'),
+          /^[a-zA-Z0-9_]+$/,
+          'alphanumeric characters and underscores',
+          { allowEmpty: false }
+        );
       });
-      expect(() => new Context()).toThrow('Invalid constants object');
+
+      it('should throw error for invalid operations parameters', () => {
+        expect(() => {
+          new Context({
+            operationsParams: {
+              pullFrom: 'not-an-array'
+            }
+          });
+        }).toThrow('operationsParams.pullFrom must be an array');
+      });
+
+      it('should throw error for invalid context instances in operations params', () => {
+        expect(() => {
+          new Context({
+            operationsParams: {
+              pullFrom: [{ notAContext: true }]
+            }
+          });
+        }).toThrow('Context at index 0 is not a valid Context instance');
+      });
     });
   });
 
-  describe('getters', () => {
+  describe('Item Operations', () => {
+    let context;
+
     beforeEach(() => {
-      context = new Context(); // This sets up `context` with mocked getItem/setItem
+      context = new Context();
     });
 
-    const testGetter = (getterName, expectedKey) => {
-      it(`get ${getterName} should call getItem('${expectedKey}') on the context instance and return its value`, () => {
-        const mockReturnValue = { data: `mock data for ${expectedKey}` };
-        // Configure the mock getItem on the context instance to return a specific value for this key
-        context.mockedInternalItems[expectedKey] = mockReturnValue;
+    describe('setItem', () => {
+      it('should set item without pull/push operations by default', () => {
+        context.setItem('data.test', 'value');
 
-        const result = context[getterName]; // Access the getter
-
-        expect(context.getItem).toHaveBeenCalledWith(expectedKey);
-        expect(result).toBe(mockReturnValue);
+        expect(context.data.getItem('test')).toBe('value');
+        expect(ContextOperations.pullItems).not.toHaveBeenCalled();
+        expect(ContextOperations.pushItems).not.toHaveBeenCalled();
       });
-    };
 
-    testGetter('schema', 'schema');
-    testGetter('constants', 'constants');
-    testGetter('manifest', 'manifest');
-    testGetter('flags', 'flags');
-    testGetter('state', 'state');
-    testGetter('data', 'data');
-    testGetter('settings', 'settings');
+      it('should perform pull operation when configured', () => {
+        const sourceContext = new Context();
+        sourceContext.data.setItem('test', 'sourceValue');
 
-    it('get namingConvention should return the dedicated ContextContainer instance for #namingConvention', () => {
-      // `context` is already initialized, and `mockNamingConventionContainerInstance`
-      // should have been set by the ContextContainer mock during `new Context()`.
-      expect(context.namingConvention).toBe(mockNamingConventionContainerInstance);
-      expect(mockNamingConventionContainerInstance).not.toBeNull();
-      // Verify it's the correct instance by checking its mockedValue
-      expect(mockNamingConventionContainerInstance.mockedValue).toEqual(Object.freeze(defaultConstructorArgs.namingConvention));
+        context.setItem('data.test', 'value', {
+          pull: true,
+          pullFrom: [sourceContext]
+        });
+
+        expect(ContextOperations.pullItems).toHaveBeenCalledWith(
+          sourceContext,
+          context,
+          ['data.test'],
+          'mergeNewerWins',
+          { dryRun: true }
+        );
+      });
+
+      it('should perform push operation when configured', () => {
+        const targetContext = new Context();
+
+        context.setItem('data.test', 'value', {
+          push: true,
+          pushTo: [targetContext]
+        });
+
+        expect(ContextOperations.pushItems).toHaveBeenCalledWith(
+          context,
+          targetContext,
+          ['data.test'],
+          'mergeSourcePriority'
+        );
+      });
+
+      it('should handle pull errors gracefully', () => {
+        const sourceContext = new Context();
+        ContextOperations.pullItems.mockImplementationOnce(() => {
+          throw new Error('Pull failed');
+        });
+
+        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+        context.setItem('data.test', 'value', {
+          pull: true,
+          pullFrom: [sourceContext]
+        });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'Pull failed:',
+          expect.any(Error)
+        );
+
+        consoleSpy.mockRestore();
+      });
+
+      it('should handle push errors gracefully', () => {
+        const targetContext = new Context();
+        ContextOperations.pushItems.mockImplementationOnce(() => {
+          throw new Error('Push failed');
+        });
+
+        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+        context.setItem('data.test', 'value', {
+          push: true,
+          pushTo: [targetContext]
+        });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'Push failed:',
+          expect.any(Error)
+        );
+
+        consoleSpy.mockRestore();
+      });
+    });
+
+    describe('pullAndGetItem', () => {
+      it('should return undefined when no pull sources configured', () => {
+        const result = context.pullAndGetItem({ itemPath: 'data.test' });
+
+        expect(result).toBeUndefined();
+        expect(ContextOperations.pullItems).not.toHaveBeenCalled();
+      });
+
+      it('should return undefined when pullFrom array is empty', () => {
+        const result = context.pullAndGetItem({
+          itemPath: 'data.test',
+          pullFrom: []
+        });
+
+        expect(result).toBeUndefined();
+      });
+
+      it('should pull and return item from source context', () => {
+        const sourceContext = new Context();
+        sourceContext.data.setItem('test', 'sourceValue');
+
+        // Mock successful pull with changes
+        ContextOperations.pullItems.mockReturnValue({
+          success: true,
+          changes: [{ path: 'data.test' }]
+        });
+
+        const result = context.pullAndGetItem({
+          itemPath: 'data.test',
+          pullFrom: [sourceContext]
+        });
+
+        expect(ContextOperations.pullItems).toHaveBeenCalledWith(
+          sourceContext,
+          context,
+          ['data.test'],
+          'mergeNewerWins',
+          { dryRun: true }
+        );
+        expect(result).toBeDefined();
+      });
+
+      it('should return undefined when pull operation has no changes', () => {
+        const sourceContext = new Context();
+
+        ContextOperations.pullItems.mockReturnValue({
+          success: true,
+          changes: []
+        });
+
+        const result = context.pullAndGetItem({
+          itemPath: 'data.test',
+          pullFrom: [sourceContext]
+        });
+
+        expect(result).toBeUndefined();
+      });
+
+      it('should handle pull errors and return undefined', () => {
+        const sourceContext = new Context();
+        ContextOperations.pullItems.mockImplementationOnce(() => {
+          throw new Error('Pull failed');
+        });
+
+        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+        const result = context.pullAndGetItem({
+          itemPath: 'data.test',
+          pullFrom: [sourceContext]
+        });
+
+        expect(result).toBeUndefined();
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'Failed to pull and get item data.test:',
+          expect.any(Error)
+        );
+
+        consoleSpy.mockRestore();
+      });
+
+      it('should try multiple sources and return first successful pull', () => {
+        const sourceContext1 = new Context();
+        const sourceContext2 = new Context();
+        sourceContext2.data.setItem('test', 'value2');
+
+        // First source fails, second succeeds
+        ContextOperations.pullItems
+          .mockReturnValueOnce({ success: true, changes: [] })
+          .mockReturnValueOnce({ success: true, changes: [{ path: 'data.test' }] });
+
+        const result = context.pullAndGetItem({
+          itemPath: 'data.test',
+          pullFrom: [sourceContext1, sourceContext2]
+        });
+
+        expect(ContextOperations.pullItems).toHaveBeenCalledTimes(2);
+        expect(result).toBeDefined();
+      });
     });
   });
 
-  describe('Context Comparison', () => {
+  describe('Property Getters', () => {
+    let context;
+
+    beforeEach(() => {
+      context = new Context();
+    });
+
+    it('should return schema property', () => {
+      const schema = context.schema;
+
+      expect(schema).toBeInstanceOf(ContextContainer);
+      expect(schema.value).toEqual(constants.context.schema);
+    });
+
+    it('should return constants property', () => {
+      const contextConstants = context.constants;
+
+      expect(contextConstants).toBeInstanceOf(ContextContainer);
+      expect(contextConstants.value).toEqual(constants);
+    });
+
+    it('should return manifest property', () => {
+      const contextManifest = context.manifest;
+
+      expect(contextManifest).toBeInstanceOf(ContextContainer);
+      expect(contextManifest.value).toEqual(manifest);
+    });
+
+    it('should return flags property', () => {
+      const flags = context.flags;
+
+      expect(flags).toBeInstanceOf(ContextContainer);
+      expect(flags.value).toEqual(constants.flags);
+    });
+
+    it('should return state property', () => {
+      const state = context.state;
+
+      expect(state).toBeInstanceOf(ContextContainer);
+      expect(typeof state.value).toBe('object');
+    });
+
+    it('should return data property', () => {
+      const data = context.data;
+
+      expect(data).toBeInstanceOf(ContextContainer);
+      expect(typeof data.value).toBe('object');
+    });
+
+    it('should return settings property', () => {
+      const settings = context.settings;
+
+      expect(settings).toBeInstanceOf(ContextContainer);
+      expect(typeof settings.value).toBe('object');
+    });
+
+    it('should return namingConvention property', () => {
+      const naming = context.namingConvention;
+
+      expect(naming).toBeInstanceOf(ContextContainer);
+      expect(Object.isFrozen(naming.value)).toBe(true);
+    });
+
+    it('should trigger pull operation when alwaysPullBeforeGetting is enabled', () => {
+      const sourceContext = new Context();
+      const contextWithPull = new Context({
+        operationsParams: {
+          alwaysPullBeforeGetting: true,
+          pullFrom: [sourceContext]
+        }
+      });
+
+      // Mock to simulate cooldown passed
+      Date.now = jest.fn().mockReturnValue(2000);
+
+      contextWithPull.data;
+
+      expect(ContextOperations.pullItems).toHaveBeenCalled();
+    });
+  });
+
+  describe('Merge Operations', () => {
+    let context;
     let targetContext;
-    let mockOptions;
 
     beforeEach(() => {
-      context = new Context(); // `context` is the source
-      targetContext = new Context(); // A separate instance to act as target
-      mockOptions = { deepSync: false, compareBy: 'createdAt' };
-      ContextSync.compare.mockReturnValue({ result: 'equal' });
+      context = new Context();
+      targetContext = new Context();
     });
 
-    it('compare should call ContextSync.compare with itself as default source', () => {
-      context.compare(targetContext, mockOptions);
-      expect(ContextSync.compare).toHaveBeenCalledWith(context, targetContext, mockOptions);
+    describe('merge', () => {
+      it('should call ContextMerger.merge with correct parameters', () => {
+        const strategy = 'mergeSourcePriority';
+        const options = { preserveMetadata: true };
+
+        const result = context.merge(targetContext, strategy, options);
+
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          context,
+          targetContext,
+          strategy,
+          options
+        );
+        expect(result).toEqual(mockMergeResult);
+      });
+
+      it('should use default strategy when not specified', () => {
+        context.merge(targetContext);
+
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          context,
+          targetContext,
+          'mergeNewerWins',
+          {}
+        );
+      });
+
+      it('should pass through all merge options', () => {
+        const options = {
+          allowOnly: ['data.test'],
+          preserveMetadata: false,
+          dryRun: true
+        };
+
+        context.merge(targetContext, 'mergeTargetPriority', options);
+
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          context,
+          targetContext,
+          'mergeTargetPriority',
+          options
+        );
+      });
     });
 
-    it('compare should call ContextSync.compare with provided sourceContext', () => {
-      const explicitSource = new Context();
-      context.compare(targetContext, { ...mockOptions, sourceContext: explicitSource });
-      expect(ContextSync.compare).toHaveBeenCalledWith(explicitSource, targetContext, mockOptions);
+    describe('mergeItem', () => {
+      it('should merge single item successfully', () => {
+        const itemPath = 'data.testItem';
+        const strategy = 'mergeSourcePriority';
+
+        const result = context.mergeItem(targetContext, itemPath, strategy);
+
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          context,
+          targetContext,
+          strategy,
+          { singleItem: itemPath }
+        );
+
+        expect(result.success).toBe(true);
+        expect(result.itemPath).toBe(itemPath);
+        expect(result.wasConflict).toBe(true);
+        expect(result.changes).toEqual(mockMergeResult.changes);
+      });
+
+      it('should throw error for missing itemPath', () => {
+        expect(() => {
+          context.mergeItem(targetContext, '');
+        }).toThrow('itemPath must be a non-empty string');
+
+        expect(() => {
+          context.mergeItem(targetContext, null);
+        }).toThrow('itemPath must be a non-empty string');
+      });
+
+      it('should use default strategy when not specified', () => {
+        const itemPath = 'data.testItem';
+
+        context.mergeItem(targetContext, itemPath);
+
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          context,
+          targetContext,
+          'mergeNewerWins',
+          { singleItem: itemPath }
+        );
+      });
+
+      it('should pass additional options correctly', () => {
+        const itemPath = 'data.testItem';
+        const options = { preserveMetadata: false, dryRun: true };
+
+        context.mergeItem(targetContext, itemPath, 'mergeSourcePriority', options);
+
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          context,
+          targetContext,
+          'mergeSourcePriority',
+          { ...options, singleItem: itemPath }
+        );
+      });
+
+      it('should determine resolution correctly when no conflict', () => {
+        ContextMerger.merge.mockReturnValue({
+          ...mockMergeResult,
+          conflicts: 0
+        });
+
+        const result = context.mergeItem(targetContext, 'data.test');
+
+        expect(result.wasConflict).toBe(false);
+        expect(result.resolution).toBeNull();
+      });
+
+      it('should handle custom conflict resolution', () => {
+        const customResolver = jest.fn();
+        const options = { onConflict: customResolver };
+
+        context.mergeItem(targetContext, 'data.test', 'mergeNewerWins', options);
+
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          context,
+          targetContext,
+          'mergeNewerWins',
+          { ...options, singleItem: 'data.test' }
+        );
+      });
+    });
+
+    describe('analyzeMerge', () => {
+      it('should call ContextMerger.analyze with correct parameters', () => {
+        const strategy = 'mergeSourcePriority';
+        const options = { includeComponents: ['data'] };
+
+        const result = context.analyzeMerge(targetContext, strategy, options);
+
+        expect(ContextMerger.analyze).toHaveBeenCalledWith(
+          context,
+          targetContext,
+          strategy,
+          options
+        );
+        expect(result).toEqual(mockMergeResult);
+      });
+
+      it('should use default strategy when not specified', () => {
+        context.analyzeMerge(targetContext);
+
+        expect(ContextMerger.analyze).toHaveBeenCalledWith(
+          context,
+          targetContext,
+          'mergeNewerWins',
+          {}
+        );
+      });
+    });
+  });
+
+  describe('Comparison Operations', () => {
+    let context;
+    let targetContext;
+
+    beforeEach(() => {
+      context = new Context();
+      targetContext = new Context();
+    });
+
+    it('should call ContextSync.compare with correct parameters', () => {
+      const options = { compareBy: 'createdAt' };
+
+      const result = context.compare(targetContext, options);
+
+      expect(ContextSync.compare).toHaveBeenCalledWith(
+        context,
+        targetContext,
+        options
+      );
+      expect(result).toEqual(mockCompareResult);
+    });
+
+    it('should use context as default source', () => {
+      context.compare(targetContext);
+
+      expect(ContextSync.compare).toHaveBeenCalledWith(
+        context,
+        targetContext,
+        {}
+      );
+    });
+
+    it('should allow custom source context', () => {
+      const customSource = new Context();
+      const options = { sourceContext: customSource };
+
+      context.compare(targetContext, options);
+
+      expect(ContextSync.compare).toHaveBeenCalledWith(
+        customSource,
+        targetContext,
+        {}
+      );
+    });
+  });
+
+  describe('Performance Metrics', () => {
+    let context;
+
+    beforeEach(() => {
+      context = new Context();
+    });
+
+    it('should return performance metrics object', () => {
+      const metrics = context.getPerformanceMetrics();
+
+      expect(metrics).toEqual({
+        pullOperations: 0,
+        pushOperations: 0,
+        averagePullTime: 0,
+        averagePushTime: 0
+      });
+    });
+
+    it('should return a copy of metrics (not reference)', () => {
+      const metrics1 = context.getPerformanceMetrics();
+      const metrics2 = context.getPerformanceMetrics();
+
+      expect(metrics1).not.toBe(metrics2);
+      expect(metrics1).toEqual(metrics2);
+    });
+  });
+
+  describe('Error Handling', () => {
+    let context;
+    let consoleSpy;
+
+    beforeEach(() => {
+      context = new Context();
+      consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+    });
+
+    afterEach(() => {
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle pull errors with warn strategy', () => {
+      const sourceContext = new Context();
+      const error = new Error('Pull failed');
+
+      ContextOperations.pullItems.mockImplementationOnce(() => {
+        throw error;
+      });
+
+      context.setItem('data.test', 'value', {
+        pull: true,
+        pullFrom: [sourceContext]
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith('Pull failed:', error);
+    });
+
+    it('should handle push errors with warn strategy', () => {
+      const targetContext = new Context();
+      const error = new Error('Push failed');
+
+      ContextOperations.pushItems.mockImplementationOnce(() => {
+        throw error;
+      });
+
+      context.setItem('data.test', 'value', {
+        push: true,
+        pushTo: [targetContext]
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith('Push failed:', error);
+    });
+
+    it('should throw errors when configured with throw strategy', () => {
+      const errorThrowingContext = new Context({
+        operationsParams: {
+          errorHandling: {
+            onPullError: 'throw'
+          }
+        }
+      });
+
+      const sourceContext = new Context();
+      ContextOperations.pullItems.mockImplementationOnce(() => {
+        throw new Error('Pull failed');
+      });
+
+      expect(() => {
+        errorThrowingContext.setItem('data.test', 'value', {
+          pull: true,
+          pullFrom: [sourceContext]
+        });
+      }).toThrow('Pull failed');
+    });
+
+    it('should silently handle errors when configured with silent strategy', () => {
+      const silentContext = new Context({
+        operationsParams: {
+          errorHandling: {
+            onPullError: 'silent'
+          }
+        }
+      });
+
+      const sourceContext = new Context();
+      ContextOperations.pullItems.mockImplementationOnce(() => {
+        throw new Error('Pull failed');
+      });
+
+      silentContext.setItem('data.test', 'value', {
+        pull: true,
+        pullFrom: [sourceContext]
+      });
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle context with no data gracefully', () => {
+      const emptyContext = new Context({
+        initializationParams: {
+          data: {},
+          settings: {},
+          flags: {}
+        }
+      });
+
+      expect(emptyContext.data).toBeInstanceOf(ContextContainer);
+      expect(Object.keys(emptyContext.data.value)).toHaveLength(0);
+    });
+
+    it('should handle null/undefined values in initialization', () => {
+      const context = new Context({
+        initializationParams: {
+          data: { nullValue: null, undefinedValue: undefined },
+          settings: { emptyString: '' }
+        }
+      });
+
+      expect(context.data.getItem('nullValue')).toBeNull();
+      expect(context.data.getItem('undefinedValue')).toBeUndefined();
+      expect(context.settings.getItem('emptyString')).toBe('');
+    });
+
+    it('should handle complex nested data structures', () => {
+      const complexData = {
+        player: {
+          stats: {
+            level: 10,
+            experience: 1500,
+            skills: ['magic', 'combat']
+          },
+          inventory: {
+            items: [
+              { id: 1, name: 'sword', quantity: 1 },
+              { id: 2, name: 'potion', quantity: 5 }
+            ]
+          }
+        }
+      };
+
+      const context = new Context({
+        initializationParams: {
+          data: complexData
+        }
+      });
+
+      expect(context.data.getItem('player.stats.level')).toBe(10);
+      expect(context.data.getItem('player.inventory.items')).toHaveLength(2);
+    });
+
+    it('should handle concurrent pull operations with cooldown', () => {
+      let currentTime = 1000;
+      Date.now = jest.fn().mockImplementation(() => currentTime);
+
+      const sourceContext = new Context();
+      const contextWithCooldown = new Context({
+        operationsParams: {
+          alwaysPullBeforeGetting: true,
+          pullFrom: [sourceContext]
+        }
+      });
+
+      // First access - should pull
+      contextWithCooldown.data;
+      expect(ContextOperations.pullItems).toHaveBeenCalledTimes(1);
+
+      // Second access within cooldown - should not pull
+      currentTime = 1500;
+      contextWithCooldown.data;
+      expect(ContextOperations.pullItems).toHaveBeenCalledTimes(1);
+
+      // Third access after cooldown - should pull again
+      currentTime = 2100;
+      contextWithCooldown.data;
+      expect(ContextOperations.pullItems).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('Integration Scenarios', () => {
+    it('should handle game session context integration', () => {
+      const playerContext = new Context({
+        initializationParams: {
+          data: {
+            player: { id: 1, name: 'TestPlayer', level: 5 },
+            inventory: { gold: 100, items: [] }
+          },
+          settings: {
+            volume: 0.8,
+            difficulty: 'normal'
+          }
+        }
+      });
+
+      const gameStateContext = new Context({
+        initializationParams: {
+          data: {
+            currentMap: 'forest',
+            enemies: ['goblin', 'orc'],
+            questProgress: { mainQuest: 50 }
+          }
+        }
+      });
+
+      // Merge player data into game state
+      const mergeResult = playerContext.merge(gameStateContext, 'mergeSourcePriority', {
+        includeComponents: ['data'],
+        allowOnly: ['data.player', 'data.inventory']
+      });
+
+      expect(ContextMerger.merge).toHaveBeenCalledWith(
+        playerContext,
+        gameStateContext,
+        'mergeSourcePriority',
+        {
+          includeComponents: ['data'],
+          allowOnly: ['data.player', 'data.inventory']
+        }
+      );
+      expect(mergeResult.success).toBe(true);
+    });
+
+    it('should handle multi-context synchronization scenario', () => {
+      const localContext = new Context({
+        initializationParams: {
+          data: { localData: 'local' },
+          settings: { theme: 'dark' }
+        }
+      });
+
+      const remoteContext = new Context({
+        initializationParams: {
+          data: { remoteData: 'remote' },
+          settings: { language: 'en' }
+        }
+      });
+
+      const cacheContext = new Context({
+        initializationParams: {
+          data: { cacheData: 'cached' }
+        }
+      });
+
+      // Configure local context to pull from remote and cache
+      const syncContext = new Context({
+        operationsParams: {
+          alwaysPullBeforeSetting: true,
+          pullFrom: [remoteContext, cacheContext],
+          alwaysPushAfterSetting: true,
+          pushTo: [cacheContext]
+        }
+      });
+
+      syncContext.setItem('data.newItem', 'newValue');
+
+      expect(ContextOperations.pullItems).toHaveBeenCalled();
+      expect(ContextOperations.pushItems).toHaveBeenCalled();
+    });
+
+    it('should handle error recovery in distributed context scenario', () => {
+      const primaryContext = new Context();
+      const backupContext = new Context({
+        initializationParams: {
+          data: { backup: 'data' }
+        }
+      });
+
+      // Simulate primary context failure
+      ContextOperations.pullItems
+        .mockImplementationOnce(() => {
+          throw new Error('Primary failed');
+        })
+        .mockReturnValueOnce({
+          success: true,
+          changes: [{ path: 'data.item' }]
+        });
+
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      const result = primaryContext.pullAndGetItem({
+        itemPath: 'data.item',
+        pullFrom: [primaryContext, backupContext]
+      });
+
+      expect(consoleSpy).toHaveBeenCalled();
+      expect(result).toBeDefined();
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('Real-world Performance Scenarios', () => {
+    it('should handle large data sets efficiently', () => {
+      const largeData = {};
+      for (let i = 0; i < 1000; i++) {
+        largeData[`item${i}`] = { id: i, value: `value${i}` };
+      }
+
+      const context = new Context({
+        initializationParams: {
+          data: largeData
+        }
+      });
+
+      expect(context.data).toBeInstanceOf(ContextContainer);
+      expect(Object.keys(context.data.value)).toHaveLength(1000);
+    });
+
+    it('should handle frequent merge operations', () => {
+      const source = new Context({
+        initializationParams: {
+          data: { counter: 0 }
+        }
+      });
+
+      const target = new Context();
+
+      // Simulate frequent merges
+      for (let i = 0; i < 10; i++) {
+        source.merge(target, 'mergeSourcePriority', {
+          singleItem: 'data.counter'
+        });
+      }
+
+      expect(ContextMerger.merge).toHaveBeenCalledTimes(10);
     });
   });
 });

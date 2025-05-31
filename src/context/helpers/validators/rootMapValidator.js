@@ -1,3 +1,14 @@
+/**
+ * @file rootMapValidator.js
+ * @description This file contains the RootMapValidator class for validating root map configurations.
+ * @path /src/context/helpers/validators/rootMapValidator.js
+ */
+
+/**
+ * @class RootMapValidator
+ * @description Validates the arguments and configuration for root map initialization.
+ * Ensures that all required components are present and properly structured.
+ */
 class RootMapValidator {
   static #validateGlobalNamespace(globalNamespace, throwError = true, consoleLog = true, logLevel = 'error') {
     const baseErrorMsg = 'Error while initializing ContextRootMap.';
@@ -88,22 +99,23 @@ class RootMapValidator {
     const baseErrorMsg = 'Error while initializing ContextRootMap.';
     const module = manager.module;
     let rootMapResult;
+
     try {
       rootMapResult = manager.remoteContextDefaults.ROOT_MAP(globalNamespace, module);
-    } catch (e) {
-        const errorMsg = `${baseErrorMsg} ROOT_MAP function threw an error during execution: ${e.message}`;
-        if (throwError) throw new Error(errorMsg);
-        if (consoleLog) console[logLevel](errorMsg);
-        return false;
+    } catch (error) {
+      const errorMsg = `${baseErrorMsg} ROOT_MAP function threw an error during execution: ${error.message}`;
+      if (throwError) throw new Error(errorMsg);
+      if (consoleLog) console[logLevel](errorMsg);
+      return false;
     }
 
-
-    if (typeof rootMapResult !== 'object' || rootMapResult === null) { // Added null check
+    if (typeof rootMapResult !== 'object' || rootMapResult === null) {
       const errorMsg = `${baseErrorMsg} ROOT_MAP must return a non-null object`;
       if (throwError) throw new Error(errorMsg);
       if (consoleLog) console[logLevel](errorMsg);
       return false;
     }
+
     if (Object.keys(rootMapResult).length === 0) {
       const errorMsg = `${baseErrorMsg} ROOT_MAP must not return an empty object`;
       if (throwError) throw new Error(errorMsg);
@@ -128,5 +140,4 @@ class RootMapValidator {
   }
 }
 
-// Export the class if it's intended to be used as a module
 export default RootMapValidator;

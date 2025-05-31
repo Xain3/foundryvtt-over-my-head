@@ -5,6 +5,7 @@
       "@/*": ["src/*"],
       "@config/*": ["src/config/*"],
       "@constants": ["src/constants/constants.js"],
+      "@manifest": ["src/constants/manifest.js"],
       "@constantsFolder/*": ["src/constants/*"],
       "@contexts/*": ["src/contexts/*"],
       "@data/*": ["src/data/*"],
@@ -17,7 +18,6 @@
       "@validator": ["src/utils/static/validator.js"],
       "@integrationTests/*": ["tests/integration/*"],
       "@mocks/*": ["tests/mocks/*"],
-      "@manifest": ["module.json"]
     }
   },
   "include": ["src/**/*", "tests/**/*"],

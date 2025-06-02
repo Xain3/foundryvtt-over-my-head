@@ -5,7 +5,7 @@
  */
 
 import constants from "@/constants/constants";
-import { resolvePath } from "./resolvePath.js";
+import PathUtils from "./pathUtils.js";
 
 /**
  * Retrieves a module by name from the global modules collection.
@@ -25,7 +25,7 @@ export const getModule = (moduleName, globalNamespace = globalThis) => {
   }
 
   const modulesLocation = constants.defaultFoundryModulesLocation || 'game.modules';
-  const modulesCollection = resolvePath(modulesLocation, { namespace: globalNamespace });
+  const modulesCollection = PathUtils.resolvePath(modulesLocation, { namespace: globalNamespace });
   if (!modulesCollection || typeof modulesCollection.get !== 'function') {
     return null;
   }

@@ -1,6 +1,6 @@
 import { getModule } from './moduleGetter.js';
 import constants from '@/constants/constants';
-import { resolvePath } from './resolvePath.js';
+import PathUtils from './pathUtils.js';
 
 /**
  * @file moduleGetter.test.js
@@ -13,9 +13,7 @@ jest.mock('@/constants/constants', () => ({
   defaultFoundryModulesLocation: 'game.modules'
 }));
 
-jest.mock('./resolvePath.js', () => ({
-  resolvePath: jest.fn()
-}));
+jest.mock('./pathUtils.js');
 
 describe('getModule', () => {
   let mockGlobalNamespace;
@@ -30,6 +28,10 @@ describe('getModule', () => {
         modules: mockModulesCollection
       }
     };
+
+    // Set up PathUtils mock
+    PathUtils.resolvePath = jest.fn();
+
     jest.clearAllMocks();
   });
 
@@ -64,18 +66,18 @@ describe('getModule', () => {
   describe('Successful Cases', () => {
     it('should return module when found in collection', () => {
       const mockModule = { id: 'test-module', active: true };
-      resolvePath.mockReturnValue(mockModulesCollection);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(mockModule);
 
       const result = getModule('test-module', mockGlobalNamespace);
 
-      expect(resolvePath).toHaveBeenCalledWith('game.modules', { namespace: mockGlobalNamespace });
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith('game.modules', { namespace: mockGlobalNamespace });
       expect(mockModulesCollection.get).toHaveBeenCalledWith('test-module');
       expect(result).toBe(mockModule);
     });
 
     it('should accept empty string as moduleName', () => {
-      resolvePath.mockReturnValue(mockModulesCollection);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(null);
 
       const result = getModule('', mockGlobalNamespace);
@@ -87,12 +89,12 @@ describe('getModule', () => {
     it('should use globalThis as default namespace', () => {
       const originalGlobalThis = globalThis;
       globalThis.game = { modules: mockModulesCollection };
-      resolvePath.mockReturnValue(mockModulesCollection);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(null);
 
       getModule('test-module');
 
-      expect(resolvePath).toHaveBeenCalledWith('game.modules', { namespace: globalThis });
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith('game.modules', { namespace: globalThis });
 
       globalThis.game = originalGlobalThis.game;
     });
@@ -100,7 +102,7 @@ describe('getModule', () => {
 
   describe('Error Cases', () => {
     it('should return null when modules collection is not found', () => {
-      resolvePath.mockReturnValue(null);
+      PathUtils.resolvePath.mockReturnValue(null);
 
       const result = getModule('test-module', mockGlobalNamespace);
 
@@ -108,7 +110,7 @@ describe('getModule', () => {
     });
 
     it('should return null when modules collection does not have get method', () => {
-      resolvePath.mockReturnValue({});
+      PathUtils.resolvePath.mockReturnValue({});
 
       const result = getModule('test-module', mockGlobalNamespace);
 
@@ -116,7 +118,7 @@ describe('getModule', () => {
     });
 
     it('should return null when modules collection get method is not a function', () => {
-      resolvePath.mockReturnValue({ get: 'not-a-function' });
+      PathUtils.resolvePath.mockReturnValue({ get: 'not-a-function' });
 
       const result = getModule('test-module', mockGlobalNamespace);
 
@@ -124,7 +126,7 @@ describe('getModule', () => {
     });
 
     it('should return null when module is not found in collection', () => {
-      resolvePath.mockReturnValue(mockModulesCollection);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(undefined);
 
       const result = getModule('non-existent-module', mockGlobalNamespace);
@@ -137,7 +139,7 @@ describe('getModule', () => {
     it('should handle module names with special characters', () => {
       const specialModuleName = 'my-module_v2.0@test';
       const mockModule = { id: specialModuleName };
-      resolvePath.mockReturnValue(mockModulesCollection);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(mockModule);
 
       const result = getModule(specialModuleName, mockGlobalNamespace);
@@ -148,7 +150,7 @@ describe('getModule', () => {
 
     it('should handle very long module names', () => {
       const longModuleName = 'a'.repeat(1000);
-      resolvePath.mockReturnValue(mockModulesCollection);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(null);
 
       const result = getModule(longModuleName, mockGlobalNamespace);
@@ -158,7 +160,7 @@ describe('getModule', () => {
     });
 
     it('should handle modules collection that throws on get', () => {
-      resolvePath.mockReturnValue(mockModulesCollection);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockImplementation(() => {
         throw new Error('Collection error');
       });
@@ -169,24 +171,24 @@ describe('getModule', () => {
 
   describe('Constants Integration', () => {
     it('should use defaultFoundryModulesLocation from constants', () => {
-      resolvePath.mockReturnValue(mockModulesCollection);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(null);
 
       getModule('test-module', mockGlobalNamespace);
 
-      expect(resolvePath).toHaveBeenCalledWith(constants.defaultFoundryModulesLocation, { namespace: mockGlobalNamespace });
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(constants.defaultFoundryModulesLocation, { namespace: mockGlobalNamespace });
     });
 
     it('should fallback to game.modules when constants.defaultFoundryModulesLocation is undefined', () => {
       const originalConstant = constants.defaultFoundryModulesLocation;
       constants.defaultFoundryModulesLocation = undefined;
 
-      resolvePath.mockReturnValue(mockModulesCollection);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(null);
 
       getModule('test-module', mockGlobalNamespace);
 
-      expect(resolvePath).toHaveBeenCalledWith('game.modules', { namespace: mockGlobalNamespace });
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith('game.modules', { namespace: mockGlobalNamespace });
 
       constants.defaultFoundryModulesLocation = originalConstant;
     });
@@ -197,12 +199,12 @@ describe('getModule', () => {
       const originalConstant = constants.defaultFoundryModulesLocation;
       constants.defaultFoundryModulesLocation = 'custom.modules.location';
 
-      resolvePath.mockReturnValue(mockModulesCollection);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(null);
 
       getModule('test-module', mockGlobalNamespace);
 
-      expect(resolvePath).toHaveBeenCalledWith('custom.modules.location', { namespace: mockGlobalNamespace });
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith('custom.modules.location', { namespace: mockGlobalNamespace });
 
       constants.defaultFoundryModulesLocation = originalConstant;
     });
@@ -213,7 +215,7 @@ describe('getModule', () => {
       const mapLikeCollection = new Map();
       mapLikeCollection.set('test-module', { id: 'test-module', data: 'test' });
 
-      resolvePath.mockReturnValue(mapLikeCollection);
+      PathUtils.resolvePath.mockReturnValue(mapLikeCollection);
 
       const result = getModule('test-module', mockGlobalNamespace);
 
@@ -221,7 +223,7 @@ describe('getModule', () => {
     });
 
     it('should handle collection with get method that returns falsy values', () => {
-      resolvePath.mockReturnValue(mockModulesCollection);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(false);
 
       const result = getModule('test-module', mockGlobalNamespace);
@@ -230,7 +232,7 @@ describe('getModule', () => {
     });
 
     it('should handle collection with get method that returns 0', () => {
-      resolvePath.mockReturnValue(mockModulesCollection);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(0);
 
       const result = getModule('test-module', mockGlobalNamespace);
@@ -248,7 +250,7 @@ describe('getModule', () => {
         version: '4.2.6'
       };
 
-      resolvePath.mockReturnValue(mockModulesCollection);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(foundryModule);
 
       const result = getModule('dice-so-nice', mockGlobalNamespace);
@@ -264,7 +266,7 @@ describe('getModule', () => {
         active: false
       };
 
-      resolvePath.mockReturnValue(mockModulesCollection);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(inactiveModule);
 
       const result = getModule('some-module', mockGlobalNamespace);
@@ -283,19 +285,19 @@ describe('getModule', () => {
       const originalConstant = constants.defaultFoundryModulesLocation;
       constants.defaultFoundryModulesLocation = 'foundry.modules';
 
-      resolvePath.mockReturnValue(mockModulesCollection);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue({ id: 'system-module' });
 
       const result = getModule('system-module', customNamespace);
 
-      expect(resolvePath).toHaveBeenCalledWith('foundry.modules', { namespace: customNamespace });
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith('foundry.modules', { namespace: customNamespace });
       expect(result).toEqual({ id: 'system-module' });
 
       constants.defaultFoundryModulesLocation = originalConstant;
     });
 
     it('should handle case where resolvePath throws an error', () => {
-      resolvePath.mockImplementation(() => {
+      PathUtils.resolvePath.mockImplementation(() => {
         throw new Error('Path resolution failed');
       });
 

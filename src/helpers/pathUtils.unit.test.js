@@ -1,17 +1,14 @@
 /**
- * @file resolvePath.unit.test.js
- * @description Unit tests for the resolvePath helper function.
- * @path src/helpers/resolvePath.unit.test.js
- * @date 25 May 2025
+ * @file pathUtils.unit.test.js
+ * @description Unit tests for the PathUtils static utility class.
+ * @path src/helpers/pathUtils.unit.test.js
+ * @date 1 June 2025
  */
 
-<<<<<<< HEAD
-import { resolvePath } from './resolvePath.js';
-=======
 import PathUtils from './pathUtils.js';
->>>>>>> dev
 
-describe('resolvePath', () => {
+describe('PathUtils', () => {
+  describe('resolvePath', () => {
   let mockNamespace;
 
   beforeEach(() => {
@@ -56,26 +53,6 @@ describe('resolvePath', () => {
 
   describe('input validation', () => {
     it('should throw TypeError if namespace is not an object', () => {
-<<<<<<< HEAD
-      expect(() => resolvePath(null, 'test.path')).toThrow(TypeError);
-      expect(() => resolvePath(undefined, 'test.path')).toThrow(TypeError);
-      expect(() => resolvePath('string', 'test.path')).toThrow(TypeError);
-      expect(() => resolvePath(123, 'test.path')).toThrow(TypeError);
-      expect(() => resolvePath(true, 'test.path')).toThrow(TypeError);
-    });
-
-    it('should throw TypeError if path is not a string', () => {
-      expect(() => resolvePath(mockNamespace, null)).toThrow(TypeError);
-      expect(() => resolvePath(mockNamespace, undefined)).toThrow(TypeError);
-      expect(() => resolvePath(mockNamespace, 123)).toThrow(TypeError);
-      expect(() => resolvePath(mockNamespace, {})).toThrow(TypeError);
-      expect(() => resolvePath(mockNamespace, [])).toThrow(TypeError);
-    });
-
-    it('should provide meaningful error messages', () => {
-      expect(() => resolvePath(null, 'test.path')).toThrow('namespace must be an object');
-      expect(() => resolvePath(mockNamespace, 123)).toThrow('path must be a string');
-=======
       expect(() => PathUtils.resolvePath(null, 'test.path')).toThrow(TypeError);
       expect(() => PathUtils.resolvePath(undefined, 'test.path')).toThrow(TypeError);
       expect(() => PathUtils.resolvePath('string', 'test.path')).toThrow(TypeError);
@@ -94,40 +71,11 @@ describe('resolvePath', () => {
     it('should provide meaningful error messages', () => {
       expect(() => PathUtils.resolvePath(null, 'test.path')).toThrow('namespace must be an object');
       expect(() => PathUtils.resolvePath(mockNamespace, 123)).toThrow('path must be a string');
->>>>>>> dev
     });
   });
 
   describe('basic path resolution', () => {
     it('should return the namespace itself for empty path', () => {
-<<<<<<< HEAD
-      expect(resolvePath(mockNamespace, '')).toBe(mockNamespace);
-      expect(resolvePath(mockNamespace, '   ')).toBe(mockNamespace);
-    });
-
-    it('should resolve single-level paths', () => {
-      expect(resolvePath(mockNamespace, 'game')).toBe(mockNamespace.game);
-      expect(resolvePath(mockNamespace, 'ui')).toBe(mockNamespace.ui);
-      expect(resolvePath(mockNamespace, 'document')).toBe(mockNamespace.document);
-    });
-
-    it('should resolve multi-level paths', () => {
-      expect(resolvePath(mockNamespace, 'game.settings')).toBe(mockNamespace.game.settings);
-      expect(resolvePath(mockNamespace, 'ui.notifications')).toBe(mockNamespace.ui.notifications);
-      expect(resolvePath(mockNamespace, 'game.user.id')).toBe('user123');
-      expect(resolvePath(mockNamespace, 'game.user.name')).toBe('TestUser');
-    });
-
-    it('should resolve deeply nested paths', () => {
-      expect(resolvePath(mockNamespace, 'deeply.nested.property.value')).toBe('found');
-    });
-
-    it('should return undefined for non-existent paths', () => {
-      expect(resolvePath(mockNamespace, 'nonexistent')).toBeUndefined();
-      expect(resolvePath(mockNamespace, 'game.nonexistent')).toBeUndefined();
-      expect(resolvePath(mockNamespace, 'game.settings.nonexistent')).toBeUndefined();
-      expect(resolvePath(mockNamespace, 'deeply.nested.nonexistent.value')).toBeUndefined();
-=======
       expect(PathUtils.resolvePath(mockNamespace, '')).toBe(mockNamespace);
       expect(PathUtils.resolvePath(mockNamespace, '   ')).toBe(mockNamespace);
     });
@@ -154,7 +102,6 @@ describe('resolvePath', () => {
       expect(PathUtils.resolvePath(mockNamespace, 'game.nonexistent')).toBeUndefined();
       expect(PathUtils.resolvePath(mockNamespace, 'game.settings.nonexistent')).toBeUndefined();
       expect(PathUtils.resolvePath(mockNamespace, 'deeply.nested.nonexistent.value')).toBeUndefined();
->>>>>>> dev
     });
 
     it('should handle null/undefined intermediate values gracefully', () => {
@@ -165,13 +112,8 @@ describe('resolvePath', () => {
         }
       };
 
-<<<<<<< HEAD
-      expect(resolvePath(namespaceWithNulls, 'valid.nullProp.something')).toBeUndefined();
-      expect(resolvePath(namespaceWithNulls, 'valid.undefinedProp.something')).toBeUndefined();
-=======
       expect(PathUtils.resolvePath(namespaceWithNulls, 'valid.nullProp.something')).toBeUndefined();
       expect(PathUtils.resolvePath(namespaceWithNulls, 'valid.undefinedProp.something')).toBeUndefined();
->>>>>>> dev
     });
   });
 
@@ -185,28 +127,16 @@ describe('resolvePath', () => {
       mockNamespace.withGetter = objWithGetter;
 
       // Normal property access should work without calling getter
-<<<<<<< HEAD
-      expect(resolvePath(mockNamespace, 'withGetter.normalProp')).toBe('normal-value');
-      expect(mockGetter).not.toHaveBeenCalled();
-
-      // Non-existent property should use getter
-      expect(resolvePath(mockNamespace, 'withGetter.nonExistentProp')).toBe('getter-value');
-=======
       expect(PathUtils.resolvePath(mockNamespace, 'withGetter.normalProp')).toBe('normal-value');
       expect(mockGetter).not.toHaveBeenCalled();
 
       // Non-existent property should use getter
       expect(PathUtils.resolvePath(mockNamespace, 'withGetter.nonExistentProp')).toBe('getter-value');
->>>>>>> dev
       expect(mockGetter).toHaveBeenCalledWith('nonExistentProp');
     });
 
     it('should work with Map objects', () => {
-<<<<<<< HEAD
-      expect(resolvePath(mockNamespace, 'game.modules.test-module')).toEqual({
-=======
       expect(PathUtils.resolvePath(mockNamespace, 'game.modules.test-module')).toEqual({
->>>>>>> dev
         id: 'test-module',
         active: true
       });
@@ -220,11 +150,7 @@ describe('resolvePath', () => {
       };
       mockNamespace.withGetter = objWithGetter;
 
-<<<<<<< HEAD
-      expect(resolvePath(mockNamespace, 'withGetter.nonExistentProp', false)).toBeUndefined();
-=======
       expect(PathUtils.resolvePath(mockNamespace, 'withGetter.nonExistentProp', false)).toBeUndefined();
->>>>>>> dev
       expect(mockGetter).not.toHaveBeenCalled();
     });
 
@@ -234,11 +160,7 @@ describe('resolvePath', () => {
       };
       mockNamespace.withoutGetter = objWithoutGetter;
 
-<<<<<<< HEAD
-      expect(resolvePath(mockNamespace, 'withoutGetter.nonExistentProp')).toBeUndefined();
-=======
       expect(PathUtils.resolvePath(mockNamespace, 'withoutGetter.nonExistentProp')).toBeUndefined();
->>>>>>> dev
     });
 
     it('should prefer normal property access over getter', () => {
@@ -249,11 +171,7 @@ describe('resolvePath', () => {
       };
       mockNamespace.withBoth = objWithBoth;
 
-<<<<<<< HEAD
-      expect(resolvePath(mockNamespace, 'withBoth.existingProp')).toBe('existing-value');
-=======
       expect(PathUtils.resolvePath(mockNamespace, 'withBoth.existingProp')).toBe('existing-value');
->>>>>>> dev
       expect(mockGetter).not.toHaveBeenCalled();
     });
 
@@ -264,11 +182,7 @@ describe('resolvePath', () => {
       };
       mockNamespace.withGetter = objWithGetter;
 
-<<<<<<< HEAD
-      expect(resolvePath(mockNamespace, 'withGetter.nonExistentProp')).toBeUndefined();
-=======
       expect(PathUtils.resolvePath(mockNamespace, 'withGetter.nonExistentProp')).toBeUndefined();
->>>>>>> dev
       expect(mockGetter).toHaveBeenCalledWith('nonExistentProp');
     });
   });
@@ -286,21 +200,12 @@ describe('resolvePath', () => {
         }
       };
 
-<<<<<<< HEAD
-      expect(resolvePath(namespaceFalsy, 'zero')).toBe(0);
-      expect(resolvePath(namespaceFalsy, 'false')).toBe(false);
-      expect(resolvePath(namespaceFalsy, 'empty')).toBe('');
-      expect(resolvePath(namespaceFalsy, 'nested.zero')).toBe(0);
-      expect(resolvePath(namespaceFalsy, 'nested.false')).toBe(false);
-      expect(resolvePath(namespaceFalsy, 'nested.empty')).toBe('');
-=======
       expect(PathUtils.resolvePath(namespaceFalsy, 'zero')).toBe(0);
       expect(PathUtils.resolvePath(namespaceFalsy, 'false')).toBe(false);
       expect(PathUtils.resolvePath(namespaceFalsy, 'empty')).toBe('');
       expect(PathUtils.resolvePath(namespaceFalsy, 'nested.zero')).toBe(0);
       expect(PathUtils.resolvePath(namespaceFalsy, 'nested.false')).toBe(false);
       expect(PathUtils.resolvePath(namespaceFalsy, 'nested.empty')).toBe('');
->>>>>>> dev
     });
 
     it('should handle numeric property names', () => {
@@ -312,15 +217,9 @@ describe('resolvePath', () => {
         }
       };
 
-<<<<<<< HEAD
-      expect(resolvePath(namespaceNumeric, '0')).toBe('zero');
-      expect(resolvePath(namespaceNumeric, '123')).toBe('one-two-three');
-      expect(resolvePath(namespaceNumeric, 'nested.456')).toBe('four-five-six');
-=======
       expect(PathUtils.resolvePath(namespaceNumeric, '0')).toBe('zero');
       expect(PathUtils.resolvePath(namespaceNumeric, '123')).toBe('one-two-three');
       expect(PathUtils.resolvePath(namespaceNumeric, 'nested.456')).toBe('four-five-six');
->>>>>>> dev
     });
 
     it('should handle special characters in property names', () => {
@@ -330,15 +229,9 @@ describe('resolvePath', () => {
         '$pecial': 'special-value'
       };
 
-<<<<<<< HEAD
-      expect(resolvePath(namespaceSpecial, 'prop-with-dash')).toBe('dash-value');
-      expect(resolvePath(namespaceSpecial, 'prop_with_underscore')).toBe('underscore-value');
-      expect(resolvePath(namespaceSpecial, '$pecial')).toBe('special-value');
-=======
       expect(PathUtils.resolvePath(namespaceSpecial, 'prop-with-dash')).toBe('dash-value');
       expect(PathUtils.resolvePath(namespaceSpecial, 'prop_with_underscore')).toBe('underscore-value');
       expect(PathUtils.resolvePath(namespaceSpecial, '$pecial')).toBe('special-value');
->>>>>>> dev
     });
 
     it('should handle functions as properties', () => {
@@ -350,13 +243,8 @@ describe('resolvePath', () => {
         }
       };
 
-<<<<<<< HEAD
-      expect(resolvePath(namespaceFunc, 'myFunction')).toBe(testFunction);
-      expect(resolvePath(namespaceFunc, 'nested.myFunction')).toBe(testFunction);
-=======
       expect(PathUtils.resolvePath(namespaceFunc, 'myFunction')).toBe(testFunction);
       expect(PathUtils.resolvePath(namespaceFunc, 'nested.myFunction')).toBe(testFunction);
->>>>>>> dev
     });
 
     it('should handle arrays as properties', () => {
@@ -367,13 +255,8 @@ describe('resolvePath', () => {
         }
       };
 
-<<<<<<< HEAD
-      expect(resolvePath(namespaceArray, 'myArray')).toEqual([1, 2, 3]);
-      expect(resolvePath(namespaceArray, 'nested.myArray')).toEqual(['a', 'b', 'c']);
-=======
       expect(PathUtils.resolvePath(namespaceArray, 'myArray')).toEqual([1, 2, 3]);
       expect(PathUtils.resolvePath(namespaceArray, 'nested.myArray')).toEqual(['a', 'b', 'c']);
->>>>>>> dev
     });
 
     it('should handle complex object chains', () => {
@@ -391,31 +274,12 @@ describe('resolvePath', () => {
         }
       };
 
-<<<<<<< HEAD
-      expect(resolvePath(complexNamespace, 'level1.level2.level3.level4.level5.value')).toBe('deep-value');
-=======
       expect(PathUtils.resolvePath(complexNamespace, 'level1.level2.level3.level4.level5.value')).toBe('deep-value');
->>>>>>> dev
     });
   });
 
   describe('real-world usage scenarios', () => {
     it('should resolve Foundry VTT-like paths', () => {
-<<<<<<< HEAD
-      expect(resolvePath(mockNamespace, 'game.settings.get')).toBe(mockNamespace.game.settings.get);
-      expect(resolvePath(mockNamespace, 'ui.notifications.info')).toBe(mockNamespace.ui.notifications.info);
-      expect(resolvePath(mockNamespace, 'game.user.id')).toBe('user123');
-    });
-
-    it('should handle browser API-like paths', () => {
-      expect(resolvePath(mockNamespace, 'document.getElementById')).toBe(mockNamespace.document.getElementById);
-      expect(resolvePath(mockNamespace, 'localStorage.getItem')).toBe(mockNamespace.localStorage.getItem);
-    });
-
-    it('should work with module registry patterns', () => {
-      expect(resolvePath(mockNamespace, 'game.modules.test-module.id')).toBe('test-module');
-      expect(resolvePath(mockNamespace, 'game.modules.test-module.active')).toBe(true);
-=======
       expect(PathUtils.resolvePath(mockNamespace, 'game.settings.get')).toBe(mockNamespace.game.settings.get);
       expect(PathUtils.resolvePath(mockNamespace, 'ui.notifications.info')).toBe(mockNamespace.ui.notifications.info);
       expect(PathUtils.resolvePath(mockNamespace, 'game.user.id')).toBe('user123');
@@ -429,19 +293,13 @@ describe('resolvePath', () => {
     it('should work with module registry patterns', () => {
       expect(PathUtils.resolvePath(mockNamespace, 'game.modules.test-module.id')).toBe('test-module');
       expect(PathUtils.resolvePath(mockNamespace, 'game.modules.test-module.active')).toBe(true);
->>>>>>> dev
     });
   });
 
   describe('parameter combinations', () => {
     it('should work with all parameter combinations', () => {
-<<<<<<< HEAD
-      const result1 = resolvePath(mockNamespace, 'game.user.id', true);
-      const result2 = resolvePath(mockNamespace, 'game.user.id', false);
-=======
       const result1 = PathUtils.resolvePath(mockNamespace, 'game.user.id', true);
       const result2 = PathUtils.resolvePath(mockNamespace, 'game.user.id', false);
->>>>>>> dev
 
       expect(result1).toBe('user123');
       expect(result2).toBe('user123');
@@ -456,22 +314,98 @@ describe('resolvePath', () => {
       mockNamespace.testObj = testObj;
 
       // With getter fallback (default)
-<<<<<<< HEAD
-      expect(resolvePath(mockNamespace, 'testObj.missingProp')).toBe('getter-result');
-=======
       expect(PathUtils.resolvePath(mockNamespace, 'testObj.missingProp')).toBe('getter-result');
->>>>>>> dev
       expect(mockGetter).toHaveBeenCalledWith('missingProp');
 
       mockGetter.mockClear();
 
       // Without getter fallback
-<<<<<<< HEAD
-      expect(resolvePath(mockNamespace, 'testObj.missingProp', false)).toBeUndefined();
-=======
       expect(PathUtils.resolvePath(mockNamespace, 'testObj.missingProp', false)).toBeUndefined();
->>>>>>> dev
       expect(mockGetter).not.toHaveBeenCalled();
     });
   });
+
+  describe('getNestedObjectValue', () => {
+    it('should navigate through nested objects using path array', () => {
+      const obj = {
+        user: {
+          profile: {
+            name: 'John Doe',
+            age: 30
+          }
+        }
+      };
+
+      expect(PathUtils.getNestedObjectValue(obj, ['user', 'profile', 'name'])).toBe('John Doe');
+      expect(PathUtils.getNestedObjectValue(obj, ['user', 'profile', 'age'])).toBe(30);
+    });
+
+    it('should return undefined for non-existent paths', () => {
+      const obj = { a: { b: 'value' } };
+
+      expect(PathUtils.getNestedObjectValue(obj, ['a', 'c'])).toBeUndefined();
+      expect(PathUtils.getNestedObjectValue(obj, ['x', 'y'])).toBeUndefined();
+    });
+
+    it('should handle startIndex option', () => {
+      const obj = { user: { name: 'John' } };
+      const pathParts = ['ignored', 'user', 'name'];
+
+      expect(PathUtils.getNestedObjectValue(obj, pathParts, { startIndex: 1 })).toBe('John');
+    });
+
+    it('should throw TypeError for invalid pathParts', () => {
+      const obj = {};
+
+      expect(() => PathUtils.getNestedObjectValue(obj, 'not-array')).toThrow(TypeError);
+      expect(() => PathUtils.getNestedObjectValue(obj, ['valid', 123])).toThrow(TypeError);
+    });
+  });
+
+  describe('extractKeyComponents', () => {
+    it('should extract first key and remaining path', () => {
+      const result = PathUtils.extractKeyComponents('user.profile.name');
+
+      expect(result.firstKey).toBe('user');
+      expect(result.remainingPath).toBe('profile.name');
+    });
+
+    it('should handle single key without dots', () => {
+      const result = PathUtils.extractKeyComponents('singleKey');
+
+      expect(result.firstKey).toBe('singleKey');
+      expect(result.remainingPath).toBe('');
+    });
+
+    it('should return parts array when returnParts is true', () => {
+      const result = PathUtils.extractKeyComponents('a.b.c', { returnParts: true });
+
+      expect(result.firstKey).toBe('a');
+      expect(result.remainingPath).toBe('b.c');
+      expect(result.parts).toEqual(['a', 'b', 'c']);
+    });
+
+    it('should call validateFirstKey if provided', () => {
+      const mockValidator = jest.fn();
+
+      PathUtils.extractKeyComponents('test.key', { validateFirstKey: mockValidator });
+
+      expect(mockValidator).toHaveBeenCalledWith('test');
+    });
+
+    it('should throw error from validateFirstKey', () => {
+      const validator = (key) => {
+        if (key === 'reserved') throw new Error('Reserved key');
+      };
+
+      expect(() => PathUtils.extractKeyComponents('reserved.path', { validateFirstKey: validator }))
+        .toThrow('Reserved key');
+    });
+
+    it('should throw TypeError for invalid key', () => {
+      expect(() => PathUtils.extractKeyComponents('')).toThrow(TypeError);
+      expect(() => PathUtils.extractKeyComponents(123)).toThrow(TypeError);
+    });
+  });
+});
 });

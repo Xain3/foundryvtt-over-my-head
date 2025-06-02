@@ -1,5 +1,5 @@
 import importedManifest from "../../module.json";
 
-const manifest = importedManifest;
+const manifest = Object.freeze(importedManifest);
 
 export default manifest;

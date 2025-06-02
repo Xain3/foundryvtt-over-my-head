@@ -1,13 +1,14 @@
 /**
- * @file resolvePath.unit.test.js
- * @description Unit tests for the resolvePath helper function.
- * @path src/helpers/resolvePath.unit.test.js
- * @date 25 May 2025
+ * @file pathUtils.unit.test.js
+ * @description Unit tests for the PathUtils static utility class.
+ * @path src/helpers/pathUtils.unit.test.js
+ * @date 1 June 2025
  */
 
 import PathUtils from './pathUtils.js';
 
-describe('resolvePath', () => {
+describe('PathUtils', () => {
+  describe('resolvePath', () => {
   let mockNamespace;
 
   beforeEach(() => {
@@ -323,4 +324,88 @@ describe('resolvePath', () => {
       expect(mockGetter).not.toHaveBeenCalled();
     });
   });
+
+  describe('getNestedObjectValue', () => {
+    it('should navigate through nested objects using path array', () => {
+      const obj = {
+        user: {
+          profile: {
+            name: 'John Doe',
+            age: 30
+          }
+        }
+      };
+
+      expect(PathUtils.getNestedObjectValue(obj, ['user', 'profile', 'name'])).toBe('John Doe');
+      expect(PathUtils.getNestedObjectValue(obj, ['user', 'profile', 'age'])).toBe(30);
+    });
+
+    it('should return undefined for non-existent paths', () => {
+      const obj = { a: { b: 'value' } };
+
+      expect(PathUtils.getNestedObjectValue(obj, ['a', 'c'])).toBeUndefined();
+      expect(PathUtils.getNestedObjectValue(obj, ['x', 'y'])).toBeUndefined();
+    });
+
+    it('should handle startIndex option', () => {
+      const obj = { user: { name: 'John' } };
+      const pathParts = ['ignored', 'user', 'name'];
+
+      expect(PathUtils.getNestedObjectValue(obj, pathParts, { startIndex: 1 })).toBe('John');
+    });
+
+    it('should throw TypeError for invalid pathParts', () => {
+      const obj = {};
+
+      expect(() => PathUtils.getNestedObjectValue(obj, 'not-array')).toThrow(TypeError);
+      expect(() => PathUtils.getNestedObjectValue(obj, ['valid', 123])).toThrow(TypeError);
+    });
+  });
+
+  describe('extractKeyComponents', () => {
+    it('should extract first key and remaining path', () => {
+      const result = PathUtils.extractKeyComponents('user.profile.name');
+
+      expect(result.firstKey).toBe('user');
+      expect(result.remainingPath).toBe('profile.name');
+    });
+
+    it('should handle single key without dots', () => {
+      const result = PathUtils.extractKeyComponents('singleKey');
+
+      expect(result.firstKey).toBe('singleKey');
+      expect(result.remainingPath).toBe('');
+    });
+
+    it('should return parts array when returnParts is true', () => {
+      const result = PathUtils.extractKeyComponents('a.b.c', { returnParts: true });
+
+      expect(result.firstKey).toBe('a');
+      expect(result.remainingPath).toBe('b.c');
+      expect(result.parts).toEqual(['a', 'b', 'c']);
+    });
+
+    it('should call validateFirstKey if provided', () => {
+      const mockValidator = jest.fn();
+
+      PathUtils.extractKeyComponents('test.key', { validateFirstKey: mockValidator });
+
+      expect(mockValidator).toHaveBeenCalledWith('test');
+    });
+
+    it('should throw error from validateFirstKey', () => {
+      const validator = (key) => {
+        if (key === 'reserved') throw new Error('Reserved key');
+      };
+
+      expect(() => PathUtils.extractKeyComponents('reserved.path', { validateFirstKey: validator }))
+        .toThrow('Reserved key');
+    });
+
+    it('should throw TypeError for invalid key', () => {
+      expect(() => PathUtils.extractKeyComponents('')).toThrow(TypeError);
+      expect(() => PathUtils.extractKeyComponents(123)).toThrow(TypeError);
+    });
+  });
+});
 });

@@ -7,13 +7,15 @@
 
 import yaml from 'js-yaml';
 import ConstantsParser from './constantsParser.js';
-import * as resolvePathModule from '@helpers/resolvePath';
+import PathUtils from '@helpers/pathUtils.js';
 
 jest.mock('js-yaml', () => ({
   load: jest.fn(),
 }));
-jest.mock('@helpers/resolvePath', () => ({
-  resolvePath: jest.fn(),
+jest.mock('@helpers/pathUtils.js', () => ({
+  default: {
+    resolvePath: jest.fn(),
+  },
 }));
 
 describe('ConstantsParser', () => {
@@ -60,7 +62,9 @@ describe('ConstantsParser', () => {
     const mockModule = { id: 'my-module', api: {} };
 
     beforeEach(() => {
-      resolvePathModule.resolvePath.mockClear();
+      // Set up PathUtils mock
+      PathUtils.resolvePath = jest.fn();
+      PathUtils.resolvePath.mockClear();
     });
 
     it('should create a root map function that correctly resolves paths', () => {
@@ -70,7 +74,7 @@ describe('ConstantsParser', () => {
           moduleApi: 'module.api',
         },
       };
-      resolvePathModule.resolvePath
+      PathUtils.resolvePath
         .mockReturnValueOnce(mockGlobalNamespace.game.system) // for 'game.system'
         .mockReturnValueOnce(mockModule.api); // for 'module.api'
 
@@ -78,9 +82,9 @@ describe('ConstantsParser', () => {
       const rootMap = rootMapFn(mockGlobalNamespace, mockModule);
 
       expect(rootMap.systemName).toBe('dnd5e');
-      expect(resolvePathModule.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'game.system');
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'game.system');
       expect(rootMap.moduleApi).toBe(mockModule.api);
-      expect(resolvePathModule.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'module.api');
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'module.api');
     });
 
     it('should handle "module" keyword correctly', () => {
@@ -93,7 +97,7 @@ describe('ConstantsParser', () => {
       const rootMap = rootMapFn(mockGlobalNamespace, mockModule);
 
       expect(rootMap.currentModule).toBe(mockModule);
-      expect(resolvePathModule.resolvePath).not.toHaveBeenCalled();
+      expect(PathUtils.resolvePath).not.toHaveBeenCalled();
     });
 
     it('should handle null values correctly', () => {
@@ -106,7 +110,7 @@ describe('ConstantsParser', () => {
       const rootMap = rootMapFn(mockGlobalNamespace, mockModule);
 
       expect(rootMap.optionalFeature).toBeNull();
-      expect(resolvePathModule.resolvePath).not.toHaveBeenCalled();
+      expect(PathUtils.resolvePath).not.toHaveBeenCalled();
     });
 
     it('should handle a mix of path resolutions, "module", and null values', () => {
@@ -117,16 +121,16 @@ describe('ConstantsParser', () => {
           nothing: null,
         },
       };
-      resolvePathModule.resolvePath.mockReturnValueOnce(mockGlobalNamespace.game.system);
+      PathUtils.resolvePath.mockReturnValueOnce(mockGlobalNamespace.game.system);
 
       const rootMapFn = ConstantsParser.createRootMapFromYaml(config);
       const rootMap = rootMapFn(mockGlobalNamespace, mockModule);
 
       expect(rootMap.system).toBe('dnd5e');
-      expect(resolvePathModule.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'game.system');
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'game.system');
       expect(rootMap.self).toBe(mockModule);
       expect(rootMap.nothing).toBeNull();
-      expect(resolvePathModule.resolvePath).toHaveBeenCalledTimes(1);
+      expect(PathUtils.resolvePath).toHaveBeenCalledTimes(1);
     });
 
     it('should return an empty object if config.rootMap is empty', () => {
@@ -137,7 +141,7 @@ describe('ConstantsParser', () => {
       const rootMap = rootMapFn(mockGlobalNamespace, mockModule);
 
       expect(rootMap).toEqual({});
-      expect(resolvePathModule.resolvePath).not.toHaveBeenCalled();
+      expect(PathUtils.resolvePath).not.toHaveBeenCalled();
     });
 
     it('should assign undefined if resolvePath returns undefined for a path', () => {
@@ -146,13 +150,13 @@ describe('ConstantsParser', () => {
           nonExistent: 'path.to.nothing',
         },
       };
-      resolvePathModule.resolvePath.mockReturnValueOnce(undefined);
+      PathUtils.resolvePath.mockReturnValueOnce(undefined);
 
       const rootMapFn = ConstantsParser.createRootMapFromYaml(config);
       const rootMap = rootMapFn(mockGlobalNamespace, mockModule);
 
       expect(rootMap.nonExistent).toBeUndefined();
-      expect(resolvePathModule.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'path.to.nothing');
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'path.to.nothing');
     });
   });
 });

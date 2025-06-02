@@ -66,6 +66,22 @@ class Validator {
   }
 
   /**
+   * Checks if a value is a plain object (not a built-in object, array, or null).
+   * Plain objects are objects created by the Object constructor or with object literal syntax.
+   * @param {*} value - The value to check.
+   * @returns {boolean} True if value is a plain object, false otherwise.
+   */
+  static isPlainObject(value) {
+    if (typeof value !== 'object') return false;
+    if (value === null) return false;
+    if (Array.isArray(value)) return false;
+
+    // Check if it's a plain object (created by Object constructor or object literal)
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === null || prototype === Object.prototype;
+  }
+
+  /**
    * Checks if a value is a number, with flexible options.
    * @param {*} value - The value to check.
    * @param {Object} [options={}] - Options for validation.
@@ -345,6 +361,61 @@ class Validator {
       }
     }
   }
+
+  /**
+   * Checks if a key is reserved based on class prototypes and additional reserved keys.
+   * @param {string} key - The key to check.
+   * @param {Object} [options={}] - Options for validation.
+   * @param {Object|Object[]} [options.classPrototypes] - Class or array of classes whose prototype methods/properties should be considered reserved.
+   * @param {Set<string>|string[]} [options.additionalReservedKeys] - Additional keys to consider reserved.
+   * @param {Object} [options.instance] - Instance to check against (for prototype chain traversal).
+   * @returns {boolean} True if the key is reserved, false otherwise.
+   */
+  static isReservedKey(key, { classPrototypes, additionalReservedKeys, instance } = {}) {
+    if (!Validator.isString(key) || key.length === 0) return false;
+
+    // Initialize reserved keys set
+    const reservedKeys = new Set();
+
+    // Add additional reserved keys if provided
+    if (additionalReservedKeys) {
+      const keysToAdd = additionalReservedKeys instanceof Set
+        ? additionalReservedKeys
+        : Array.isArray(additionalReservedKeys)
+          ? additionalReservedKeys
+          : [additionalReservedKeys];
+
+      for (const reservedKey of keysToAdd) {
+        if (Validator.isString(reservedKey)) {
+          reservedKeys.add(reservedKey);
+        }
+      }
+    }
+
+    // Add prototype method/property names if class prototypes provided
+    if (classPrototypes) {
+      const classes = Array.isArray(classPrototypes) ? classPrototypes : [classPrototypes];
+
+      for (const classConstructor of classes) {
+        if (classConstructor && classConstructor.prototype) {
+          Object.getOwnPropertyNames(classConstructor.prototype).forEach(prop => {
+            if (Validator.isString(prop)) {
+              reservedKeys.add(prop);
+            }
+          });
+        }
+      }
+    }
+
+    // Check if key is in reserved set
+    if (reservedKeys.has(key)) return true;
+
+    // If instance provided, check if key exists on instance or prototype chain
+    if (instance && key in instance) return true;
+
+    return false;
+  }
 }
 
+export { Validator };
 export default Validator;

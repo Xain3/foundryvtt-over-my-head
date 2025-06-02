@@ -4,13 +4,13 @@
  * @path /src/contexts/context.js
  */
 
-import manifest from '@manifest';
-import constants from '@constants';
-import Validator from '@utils/static/validator';
-import {ContextContainer} from '@contexts/helpers/contextContainer.js';
-import ContextMerger from '@contexts/helpers/contextMerger.js';
-import ContextSync from '@contexts/helpers/contextSync.js';
-import ContextOperations from '@contexts/helpers/contextOperations.js';
+import manifest from '../constants/manifest.js';
+import constants from '../constants/constants.js';
+import Validator from '../utils/static/validator.js';
+import ContextContainer from './helpers/contextContainer.js';
+import ContextMerger from './helpers/contextMerger.js';
+import ContextSync from './helpers/contextSync.js';
+import ContextOperations from './helpers/contextOperations.js';
 
 export const DEFAULT_INITIALIZATION_PARAMS = {
   contextSchema: constants.context.schema,
@@ -21,6 +21,8 @@ export const DEFAULT_INITIALIZATION_PARAMS = {
   data: {},
   settings: {}
 };
+
+
 
 const DEFAULT_OPERATIONS_PARAMS = constants.context.operationsParams.defaults;
 
@@ -129,17 +131,40 @@ class Context extends ContextContainer {
     this.#initializeContextItems(contextSchema, consts, manifestData, flags, data, settings);
 
     // #namingConvention remains a private property, not an item in the container.
-    this.#namingConvention = new ContextContainer(Object.freeze(namingConvention), {}, { recordAccess: false });
+    this.#namingConvention = new ContextContainer(namingConvention, {}, { 
+      recordAccess: false,
+      defaultItemRecordAccess: false 
+    });
+    
+    // Freeze the naming convention container and its items
+    this.#namingConvention.freeze();
+    for (const [key, item] of this.#namingConvention.entries()) {
+      item.freeze();
+    }
   }
 
   #initializeContextItems(contextSchema, consts, manifestData, flags, data, settings) {
-    this.setItem('schema', Object.freeze(contextSchema));
-    this.setItem('constants', Object.freeze(consts));
-    this.setItem('manifest', Object.freeze(manifestData));
-    this.setItem('flags', flags);
+    // Use ContextItem for simple data objects that should be frozen
+    this.setItem('schema', contextSchema, { 
+      wrapAs: 'ContextItem', 
+      frozen: true 
+    });
+    
+    this.setItem('constants', consts, { 
+      wrapAs: 'ContextItem', 
+      frozen: true 
+    });
+    
+    this.setItem('manifest', manifestData, { 
+      wrapAs: 'ContextItem', 
+      frozen: true 
+    });
+
+    // Use ContextContainer for mutable container-like objects
+    this.setItem('flags', flags);  // Uses default ContextContainer
     this.setItem('state', {}); // State is initialized as an empty container
-    this.setItem('data', data);
-    this.setItem('settings', settings);
+    this.setItem('data', data);  // Uses default ContextContainer
+    this.setItem('settings', settings);  // Uses default ContextContainer
   }
 
   // Private helper methods (placed at top for better organization)
@@ -487,10 +512,15 @@ class Context extends ContextContainer {
    * @description Sets an item in the context with optional pull/push operations.
    * @param {string} itemPath - The path of the item to set.
    * @param {*} itemValue - The value to set.
-   * @param {object} options - Options for the set operation.
+   * @param {object} [options] - Options for the set operation.
+   * @param {boolean} [options.pull] - Whether to pull from sources before setting.
+   * @param {Context[]} [options.pullFrom] - Array of contexts to pull from.
+   * @param {boolean} [options.push] - Whether to push to targets after setting.
+   * @param {Context[]} [options.pushTo] - Array of contexts to push to.
+   * @param {boolean} [options.ignoreFrozen=false] - If true, allows overwriting frozen items without error.
    * @param {object} [overrides={}] - Override options for the underlying setItem call.
    */
-  setItem(itemPath, itemValue, options, overrides = {}) {
+  setItem(itemPath, itemValue, options = {}, overrides = {}) {
     const finalOptions = this.#prepareFinalOptions(options);
     let finalValue = itemValue;
 
@@ -498,7 +528,10 @@ class Context extends ContextContainer {
       finalValue = this.#performPull(finalOptions, itemPath, finalValue);
     }
 
-    super.setItem(itemPath, finalValue, overrides);
+    // Merge options and overrides, with overrides taking precedence
+    const mergedOptions = { ...finalOptions, ...overrides };
+    
+    super.setItem(itemPath, finalValue, mergedOptions);
 
     if (finalOptions.push) {
       this.#performPush(finalOptions, itemPath);
@@ -832,7 +865,7 @@ class Context extends ContextContainer {
    */
   get schema() {
     this.#pullPropertyIfNeeded('schema');
-    return this.getItem('schema');
+    return this.getWrappedItem('schema');
   }
 
   /**
@@ -841,7 +874,7 @@ class Context extends ContextContainer {
    */
   get constants() {
     this.#pullPropertyIfNeeded('constants');
-    return this.getItem('constants');
+    return this.getWrappedItem('constants');
   }
 
   /**
@@ -850,7 +883,7 @@ class Context extends ContextContainer {
    */
   get manifest() {
     this.#pullPropertyIfNeeded('manifest');
-    return this.getItem('manifest');
+    return this.getWrappedItem('manifest');
   }
 
   /**
@@ -859,7 +892,7 @@ class Context extends ContextContainer {
    */
   get flags() {
     this.#pullPropertyIfNeeded('flags');
-    return this.getItem('flags');
+    return this.getWrappedItem('flags');
   }
 
   /**
@@ -868,7 +901,7 @@ class Context extends ContextContainer {
    */
   get state() {
     this.#pullPropertyIfNeeded('state');
-    return this.getItem('state');
+    return this.getWrappedItem('state');
   }
 
   /**
@@ -877,7 +910,7 @@ class Context extends ContextContainer {
    */
   get data() {
     this.#pullPropertyIfNeeded('data');
-    return this.getItem('data');
+    return this.getWrappedItem('data');
   }
 
   /**
@@ -886,7 +919,7 @@ class Context extends ContextContainer {
    */
   get settings() {
     this.#pullPropertyIfNeeded('settings');
-    return this.getItem('settings');
+    return this.getWrappedItem('settings');
   }
 
   /**

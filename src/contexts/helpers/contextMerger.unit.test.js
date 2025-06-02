@@ -7,7 +7,7 @@
 import ContextMerger, { ItemFilter } from './contextMerger.js';
 import ContextSync from './contextSync.js';
 import { ContextItem } from './contextItem.js';
-import { ContextContainer } from './contextContainer.js';
+import ContextContainer from './contextContainer.js';
 import Context from '../context.js';
 
 // Mock dependencies

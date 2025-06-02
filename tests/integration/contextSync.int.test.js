@@ -4,20 +4,48 @@
  * @path tests/integration/contextRefactoring.int.test.js
  */
 
-import Context from '@contexts/context.js';
-import ContextSync from '@contexts/helpers/contextSync.js';
-import ContextMerger from '@contexts/helpers/contextMerger.js';
+import Context from '../../src/contexts/context.js';
+import ContextSync from '../../src/contexts/helpers/contextSync.js';
+import ContextMerger from '../../src/contexts/helpers/contextMerger.js';
 
 // Mock dependencies
-jest.mock('@manifest', () => ({ name: 'test-module', version: '1.0.0' }));
-jest.mock('@/constants/constants', () => ({
+jest.mock('../../src/constants/manifest.js', () => ({ name: 'test-module', version: '1.0.0' }));
+jest.mock('../../src/constants/constants.js', () => ({
   context: {
-    schema: {},
-    naming: {}
+    operationsParams: {
+      defaults: {
+        alwaysPullBeforeGetting: false,
+        alwaysPullBeforeSetting: false,
+        pullFrom: [],
+        alwaysPushAfterSetting: false,
+        pushTo: [],
+        errorHandling: {
+          onPullError: 'warn',
+          onPushError: 'warn',
+          onValidationError: 'throw'
+        }
+      }
+    },
+    schema: {
+      manifest: 'object',
+      constants: 'object',
+      flags: 'object',
+      data: 'object',
+      settings: 'object',
+      timestamp: 'number'
+    },
+    naming: {
+      state: 'state',
+      settings: 'settings',
+      flags: 'flags',
+      data: 'data',
+      manifest: 'manifest',
+      timestamp: 'timestamp'
+    }
   },
   flags: {}
 }));
-jest.mock('@/utils/static/validator', () => ({
+jest.mock('../../src/utils/static/validator.js', () => ({
   validateObject: jest.fn(() => true),
   validateArgsObjectStructure: jest.fn(() => true),
   validateSchemaDefinition: jest.fn(() => true),
@@ -25,7 +53,7 @@ jest.mock('@/utils/static/validator', () => ({
 }));
 
 // Mock setup for ContextContainer
-jest.mock('@contexts/helpers/contextContainer.js', () => ({
+jest.mock('../../src/contexts/helpers/contextContainer.js', () => ({
   ContextContainer: jest.fn().mockImplementation(function(value, options, itemOptions) {
     this.mockedValue = value;
     this.mockedOptions = options;

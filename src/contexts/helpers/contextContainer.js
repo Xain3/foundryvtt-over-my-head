@@ -1,23 +1,23 @@
 /**
  * @file contextContainer.js
- * @description This file contains the ContextContainer class for managing a collection of ContextItems/ContextContainers.
- * @path /src/context/helpers/contextContainer.js
- * @date 23 May 2025
+ * @description This file contains the ContextContainer class for managing collections of named ContextItems.
+ * @path src/contexts/helpers/contextContainer.js
  */
 
 import { ContextItem } from './contextItem.js';
 import { ContextValueWrapper } from './contextValueWrapper.js';
+import { Validator } from '../../utils/static/validator.js';
+import PathUtils from '../../helpers/pathUtils.js';
 
 /**
  * @class ContextContainer
  * @classdesc Represents a container that manages a collection of named ContextItems or nested ContextContainers.
- *            It extends ContextItem, inheriting its own metadata and timestamp features.
+ *            Extends ContextItem, inheriting metadata and timestamp features.
  * @extends ContextItem
  * @property {object} value - A plain object representation of all managed items, with their unwrapped values. Setting this clears and repopulates items.
  * @property {number} size - The number of items in the container.
  * @property {object} #defaultItemOptions - Default options for items added to this container.
  * @property {Map<string, ContextItem|ContextContainer>} #managedItems - Internal storage for managed items.
- *
  */
 class ContextContainer extends ContextItem {
   #managedItems;
@@ -48,7 +48,7 @@ class ContextContainer extends ContextItem {
       defaultItemRecordAccessForMetadata = false,
     } = {}
   ) {
-    super(undefined, metadata, { recordAccess, recordAccessForMetadata }); // Container's own value is undefined initially
+    super(undefined, metadata, { recordAccess, recordAccessForMetadata });
 
     this.#managedItems = new Map();
     this.#defaultItemOptions = {
@@ -59,114 +59,301 @@ class ContextContainer extends ContextItem {
     };
 
     if (initialItemsOrValue !== undefined) {
-      if (this.#isPlainObject(initialItemsOrValue)) {
+      if (Validator.isPlainObject(initialItemsOrValue)) {
         for (const [key, value] of Object.entries(initialItemsOrValue)) {
-          this.setItem(key, value); // Uses default item options from constructor
+          this.setItem(key, value);
         }
       } else {
-        // Not a plain object, treat as a single value for a 'default' item
         this.setItem('default', initialItemsOrValue);
       }
     }
   }
 
   /**
-   * @private
-   * Checks if a value is a plain object (not an array, ContextItem, ContextContainer, or null).
+   * Checks if a value is a plain object.
+   * @protected
    * @param {*} value - The value to check.
    * @returns {boolean} True if the value is a plain object, false otherwise.
    */
-  #isPlainObject(value) {
-    return (
-      typeof value === 'object' &&
-      value !== null &&
-      !Array.isArray(value) &&
-      !(value instanceof ContextItem) &&
-      !(value instanceof ContextContainer)
-    );
+  _isPlainObject(value) {
+    return Validator.isPlainObject(value);
   }
 
+  /**
+   * Checks if a key is reserved.
+   * @protected
+   * @param {string} key - The key to check.
+   * @returns {boolean} True if the key is reserved, false otherwise.
+   */
+  _isReservedKey(key) {
+    return this.#isReservedKey(key);
+  }
 
   /**
-   * @private
+   * Extracts key components from a dot-notation path.
+   * @protected
+   * @param {string} path - The dot-notation path.
+   * @returns {object} Object with firstKey and remainingPath.
+   */
+  _extractKeyComponents(path) {
+    return PathUtils.extractKeyComponents(path, {
+      validateFirstKey: (firstKey) => {
+        if (this.#isReservedKey(firstKey)) {
+          throw new TypeError(`Key "${firstKey}" is reserved and cannot be used for an item.`);
+        }
+      }
+    });
+  }
+
+  /**
+   * Creates or returns a nested container for a given key.
+   * @protected
+   * @param {string} key - The key for the nested container.
+   * @returns {ContextContainer} The nested container.
+   */
+  _createNestedContainer(key) {
+    let container = this.#managedItems.get(key);
+    if (!container) {
+      container = ContextValueWrapper.wrap({}, {
+        ...this.#defaultItemOptions,
+        wrapAs: 'ContextContainer'
+      });
+      this.#managedItems.set(key, container);
+    }
+
+    if (!(container instanceof ContextContainer)) {
+      throw new TypeError(`Cannot set nested value on non-container item at key "${key}"`);
+    }
+
+    return container;
+  }
+
+  /**
+   * Sets an item in a nested container using dot notation.
+   * @protected
+   * @param {ContextContainer} nestedContainer - The container to set the item in.
+   * @param {string} path - The path to set the item at.
+   * @param {*} value - The value to set.
+   * @param {object} itemOptions - Options for the item.
+   * @returns {ContextContainer} The nested container.
+   */
+  _setNestedItem(nestedContainer, path, value, itemOptions) {
+    nestedContainer.setItem(path, value, itemOptions);
+    this._updateModificationTimestamps();
+    return nestedContainer;
+  }
+
+  /**
+   * Validates if a key is reserved.
    * Checks if a key is reserved (e.g., a property/method of ContextItem or ContextContainer).
+   * @private
    * @param {string} key - The key to check.
    * @returns {boolean} True if the key is reserved, false otherwise.
    */
   #isReservedKey(key) {
-    // Check own properties and prototype chain of ContextContainer and ContextItem
-    let currentProto = Object.getPrototypeOf(this);
-    const reservedKeys = new Set(['value', 'metadata', 'createdAt', 'modifiedAt', 'lastAccessedAt', 'size']); // Add known properties
+    return Validator.isReservedKey(key, {
+      classPrototypes: [ContextItem, ContextContainer],
+      additionalReservedKeys: ['value', 'metadata', 'createdAt', 'modifiedAt', 'lastAccessedAt', 'size'],
+      instance: this
+    });
+  }
 
-    // Add methods from ContextItem and ContextContainer prototypes
-    Object.getOwnPropertyNames(ContextItem.prototype).forEach(p => reservedKeys.add(p));
-    Object.getOwnPropertyNames(ContextContainer.prototype).forEach(p => reservedKeys.add(p));
+  /**
+   * Handles nested access using dot notation.
+   * @private
+   * @param {string} key - The dot-notated key.
+   * @returns {*} The unwrapped value, or undefined if not found.
+   */
+  #handleNestedAccess(key) {
+    const { firstKey, remainingPath, parts } = PathUtils.extractKeyComponents(key, {
+      returnParts: true,
+      validateFirstKey: (firstKey) => {
+        if (this.#isReservedKey(firstKey)) {
+          throw new TypeError(`Key "${firstKey}" is reserved and cannot be used for an item.`);
+        }
+      }
+    });
 
-    if (reservedKeys.has(key)) return true;
+    const item = this.#managedItems.get(firstKey);
+    if (item && this.recordAccess) this._updateAccessTimestamp();
 
-    // Check if key exists on instance or its prototypes (less common for string keys but safer)
-    // This check might be too broad if we only care about direct method/property name conflicts.
-    // For now, focusing on known important names.
-    // if (key in this) return true; // This would catch #defaultItemOptions if it wasn't private
+    if (!item) return undefined;
 
-    return false;
+    if (item instanceof ContextContainer) {
+      return item.getItem(remainingPath);
+    }
+
+    const value = item.value;
+    if (value && typeof value === 'object') {
+      return PathUtils.getNestedObjectValue(value, parts, { startIndex: 1 });
+    }
+
+    return undefined;
   }
 
   /**
    * Sets or updates an item in the container.
-   * @param {string} key - The key for the item. Must be a non-empty string.
+   * Supports dot-notation path traversal for nested items (e.g., 'player.stats.level').
+   * @param {string} key - The key for the item. Must be a non-empty string. Can use dot notation for nested access.
    * @param {*} rawValue - The raw value of the item.
    * @param {object} [itemOptionsOverrides={}] - Options to override container's default item options for this specific item.
-   *                                          Includes `wrapPrimitives`, `wrapAs`, `recordAccess`, `recordAccessForMetadata`, `metadata`.
+   * @param {boolean} [itemOptionsOverrides.wrapPrimitives] - Whether to wrap primitive values.
+   * @param {"ContextItem"|"ContextContainer"} [itemOptionsOverrides.wrapAs] - How to wrap the value.
+   * @param {boolean} [itemOptionsOverrides.recordAccess] - Whether to record access to the item's value.
+   * @param {boolean} [itemOptionsOverrides.recordAccessForMetadata] - Whether to record access to the item's metadata.
+   * @param {boolean} [itemOptionsOverrides.frozen] - Whether the item should start in a frozen state.
+   * @param {object} [itemOptionsOverrides.metadata] - Metadata to associate with the item.
+   * @param {boolean} [itemOptionsOverrides.ignoreFrozen=false] - If true, allows overwriting frozen items without error.
    * @returns {ContextContainer} The instance of the container for chaining.
    * @throws {TypeError} If the key is invalid, reserved, or if wrapping fails.
+   * @throws {Error} If attempting to modify a frozen item and ignoreFrozen is false.
    */
   setItem(key, rawValue, itemOptionsOverrides = {}) {
     if (typeof key !== 'string' || key.length === 0) {
       throw new TypeError('Item key must be a non-empty string.');
     }
+
+    // Handle dot notation for nested setting
+    if (key.includes('.')) {
+      const { firstKey, remainingPath } = PathUtils.extractKeyComponents(key, {
+        validateFirstKey: (firstKey) => {
+          if (this.#isReservedKey(firstKey)) {
+            throw new TypeError(`Key "${firstKey}" is reserved and cannot be used for an item.`);
+          }
+        }
+      });
+
+      // Get or create the nested container
+      let container = this.#managedItems.get(firstKey);
+      if (!container) {
+        container = ContextValueWrapper.wrap({}, {
+          ...this.#defaultItemOptions,
+          wrapAs: 'ContextContainer'
+        });
+        this.#managedItems.set(firstKey, container);
+      }
+
+      if (!(container instanceof ContextContainer)) {
+        throw new TypeError(`Cannot set nested value on non-container item at key "${firstKey}"`);
+      }
+
+      container.setItem(remainingPath, rawValue, itemOptionsOverrides);
+      this._updateModificationTimestamps();
+      return this;
+    }
+
+    // Simple key setting (no dot notation)
     if (this.#isReservedKey(key)) {
       throw new TypeError(`Key "${key}" is reserved and cannot be used for an item.`);
     }
 
+    // Check if we're trying to overwrite a frozen item
+    const existingItem = this.#managedItems.get(key);
+    const ignoreFrozen = itemOptionsOverrides.ignoreFrozen || false;
+
+    if (existingItem && existingItem.isFrozen && existingItem.isFrozen() && !ignoreFrozen) {
+      throw new Error(`Cannot overwrite frozen item at key "${key}". Use ignoreFrozen option to force overwrite.`);
+    }
+
     const itemSpecificMetadata = itemOptionsOverrides.metadata || {};
     const itemOptionsForWrapper = {
-      ...this.#defaultItemOptions, // Start with container defaults
-      ...itemOptionsOverrides, // Override with per-item specifics
-      metadata: itemSpecificMetadata, // Ensure metadata is correctly passed
+      ...this.#defaultItemOptions,
+      ...itemOptionsOverrides,
+      metadata: itemSpecificMetadata,
     };
-    // Ensure wrapAs is present, defaulting from container if not in overrides
     itemOptionsForWrapper.wrapAs = itemOptionsForWrapper.wrapAs || this.#defaultItemOptions.wrapAs;
-
 
     const wrappedValue = ContextValueWrapper.wrap(rawValue, itemOptionsForWrapper);
     this.#managedItems.set(key, wrappedValue);
-    this._updateModificationTimestamps(); // Container itself was modified
+    this._updateModificationTimestamps();
     return this;
   }
 
   /**
-   * Retrieves a managed item (ContextItem or ContextContainer instance).
-   * Accessing an item updates the container's lastAccessedAt timestamp if its recordAccess is true.
-   * @param {string} key - The key of the item to retrieve.
-   * @returns {ContextItem|ContextContainer|undefined} The managed item, or undefined if not found.
+   * Checks if an item exists in the container.
+   * Supports dot-notation path traversal for nested items (e.g., 'player.stats.level').
+   * @param {string} key - The key of the item to check. Can use dot notation for nested access.
+   * @returns {boolean} True if the item exists, false otherwise.
    */
-  getItem(key) {
-    const item = this.#managedItems.get(key);
-    if (item && this.recordAccess) this._updateAccessTimestamp();
-    return item;
+  hasItem(key) {
+    if (typeof key !== 'string' || key.length === 0) {
+      return false;
+    }
+
+    // Handle dot notation for nested access
+    if (key.includes('.')) {
+      const { firstKey, remainingPath } = PathUtils.extractKeyComponents(key, {
+        validateFirstKey: (firstKey) => {
+          if (this.#isReservedKey(firstKey)) {
+            throw new TypeError(`Key "${firstKey}" is reserved and cannot be used for an item.`);
+          }
+        }
+      });
+      const item = this.#managedItems.get(firstKey);
+      if (item && item instanceof ContextContainer) {
+        return item.hasItem(remainingPath);
+      }
+      return false;
+    }
+
+    return this.#managedItems.has(key);
   }
 
   /**
    * Retrieves the unwrapped value of a managed item.
-   * Accessing an item updates the container's lastAccessedAt timestamp (via getItem).
-   * Accessing the item's .value property updates the item's own lastAccessedAt timestamp.
-   * @param {string} key - The key of the item.
-   * @returns {*} The unwrapped value, or undefined if item not found.
+   * Supports dot-notation path traversal for nested items (e.g., 'player.stats.level').
+   * This is an alias for getItem() that updates both container and item access timestamps.
+   * @param {string} key - The key of the item to retrieve. Can use dot notation for nested access.
+   * @returns {*} The unwrapped value, or undefined if not found.
    */
   getValue(key) {
-    const item = this.getItem(key);
-    return item ? item.value : undefined;
+    const result = this.getItem(key);
+    // Update item access timestamp if it exists and recordAccess is enabled
+    if (result !== undefined && typeof key === 'string' && !key.includes('.')) {
+      const item = this.#managedItems.get(key);
+      if (item && item.recordAccess && typeof item._updateAccessTimestamp === 'function') {
+        item._updateAccessTimestamp();
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Retrieves a managed item wrapper (ContextItem or ContextContainer instance).
+   * Supports dot-notation path traversal for nested items (e.g., 'player.stats.level').
+   * Accessing an item updates the container's lastAccessedAt timestamp if its recordAccess is true.
+   * @param {string} key - The key of the item to retrieve. Can use dot notation for nested access.
+   * @returns {ContextItem|ContextContainer|undefined} The wrapped item, or undefined if not found.
+   */
+  getWrappedItem(key) {
+    if (typeof key !== 'string') {
+      return undefined;
+    }
+
+    if (key.includes('.')) {
+      const { firstKey, remainingPath } = PathUtils.extractKeyComponents(key, {
+        validateFirstKey: (firstKey) => {
+          if (this.#isReservedKey(firstKey)) {
+            throw new TypeError(`Key "${firstKey}" is reserved and cannot be used for an item.`);
+          }
+        }
+      });
+
+      const item = this.#managedItems.get(firstKey);
+      if (item && this.recordAccess) this._updateAccessTimestamp();
+
+      if (!item) return undefined;
+
+      if (item instanceof ContextContainer) {
+        return item.getWrappedItem(remainingPath);
+      }
+
+      return undefined;
+    }
+
+    const item = this.#managedItems.get(key);
+    if (item && this.recordAccess) this._updateAccessTimestamp();
+    return item;
   }
 
   /**
@@ -178,17 +365,6 @@ class ContextContainer extends ContextItem {
     const deleted = this.#managedItems.delete(key);
     if (deleted) this._updateModificationTimestamps();
     return deleted;
-  }
-
-  /**
-   * Checks if an item exists in the container.
-   * Updates container's access timestamp if its recordAccess is true.
-   * @param {string} key - The key to check.
-   * @returns {boolean} True if the item exists, false otherwise.
-   */
-  hasItem(key) {
-    if (this.recordAccess) this._updateAccessTimestamp();
-    return this.#managedItems.has(key);
   }
 
   /**
@@ -252,7 +428,7 @@ class ContextContainer extends ContextItem {
     if (this.recordAccess) this._updateAccessTimestamp();
     const result = {};
     for (const [key, managedItem] of this.#managedItems) {
-      result[key] = managedItem.value; // This access updates the managedItem's timestamp
+      result[key] = managedItem.value;
     }
     return result;
   }
@@ -270,18 +446,10 @@ class ContextContainer extends ContextItem {
     if (typeof newItemsObject !== 'object' || newItemsObject === null) {
       throw new TypeError('ContextContainer value to set must be an object to populate items.');
     }
-    this.clearItems(); // Clears and updates timestamps if items existed
+    this.clearItems();
     for (const [key, val] of Object.entries(newItemsObject)) {
-      this.setItem(key, val); // Uses default item options; setItem updates timestamps
+      this.setItem(key, val);
     }
-    // If newItemsObject was empty, and container was already empty, no timestamp update needed beyond initial state.
-    // If items were added/cleared, timestamps are handled by clearItems/setItem.
-    // Explicitly ensure modification is marked if the object was different, even if resulting size is same.
-    // The calls to clearItems and setItem should cover this.
-    // If newItemsObject is empty and container was empty, no modification.
-    // If newItemsObject is empty and container was not, clearItems handles it.
-    // If newItemsObject has items, setItem handles it.
-    // One final update to ensure the "set value" operation itself is marked if there was any change.
     this._updateModificationTimestamps();
   }
 
@@ -308,19 +476,17 @@ class ContextContainer extends ContextItem {
     this.#defaultItemOptions.recordAccess = options.defaultItemRecordAccess !== undefined ? options.defaultItemRecordAccess : this.#defaultItemOptions.recordAccess;
     this.#defaultItemOptions.recordAccessForMetadata = options.defaultItemRecordAccessForMetadata !== undefined ? options.defaultItemRecordAccessForMetadata : this.#defaultItemOptions.recordAccessForMetadata;
 
-    this.#managedItems.clear(); // Does not update timestamps itself
+    this.#managedItems.clear();
 
     if (initialItemsOrValue !== undefined) {
-      if (typeof initialItemsOrValue === 'object' && initialItemsOrValue !== null && !Array.isArray(initialItemsOrValue) && !(initialItemsOrValue instanceof ContextItem) && !(initialItemsOrValue instanceof ContextContainer)) {
+      if (Validator.isPlainObject(initialItemsOrValue)) {
         for (const [key, value] of Object.entries(initialItemsOrValue)) {
-          this.setItem(key, value); // setItem updates modification timestamps
+          this.setItem(key, value);
         }
       } else {
-        this.setItem('default', initialItemsOrValue); // setItem updates modification timestamps
+        this.setItem('default', initialItemsOrValue);
       }
     }
-    // Timestamps are reset by super.reinitialize. If items are added, setItem updates them again.
-    // If no items are added, timestamps reflect the reinitialization time.
   }
 
   /**
@@ -328,10 +494,9 @@ class ContextContainer extends ContextItem {
    * @override
    */
   clear() {
-    this.clearItems(); // Clears items and updates timestamps
-    super.clear(); // Resets metadata and timestamps
+    this.clearItems();
+    super.clear();
   }
 }
 
 export { ContextContainer };
-export default ContextContainer;

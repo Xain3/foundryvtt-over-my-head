@@ -1,23 +1,22 @@
 /**
- * @file contextContainer.test.js
+ * @file contextContainer.unit.test.js
  * @description This file contains tests for the ContextContainer class.
- * @path src/context/helpers/contextContainer.test.js
+ * @path src/context/helpers/contextContainer.unit.test.js
  */
 
 import { ContextContainer } from './contextContainer.js';
 import { ContextItem } from './contextItem.js';
-import { ContextValueWrapper } from './contextValueWrapper.js';
 
-// Mock ContextValueWrapper
+// Mock ContextValueWrapper to avoid circular dependency issues
 jest.mock('./contextValueWrapper.js', () => ({
   ContextValueWrapper: {
-    wrap: jest.fn((value, options) => {
+    createItem: jest.fn((value, key, metadata) => {
       const { ContextItem } = jest.requireActual('./contextItem.js');
-      // Return a real ContextItem that behaves like the wrapped value
-      return new ContextItem(value, options?.metadata || {}, {
-        recordAccess: options?.recordAccess ?? true,
-        recordAccessForMetadata: options?.recordAccessForMetadata ?? false
-      });
+      return new ContextItem(value, { key, ...metadata });
+    }),
+    createContainer: jest.fn((items, metadata) => {
+      const { ContextContainer } = jest.requireActual('./contextContainer.js');
+      return new ContextContainer(items, metadata);
     })
   }
 }));
@@ -66,7 +65,7 @@ describe('ContextContainer', () => {
         defaultItemRecordAccessForMetadata: true
       });
 
-      const item = customContainer.setItem('test', 'value').getItem('test');
+      const item = customContainer.setItem('test', 'value').getWrappedItem('test');
       expect(item.recordAccess).toBe(false);
       expect(item.recordAccessForMetadata).toBe(true);
     });
@@ -114,7 +113,7 @@ describe('ContextContainer', () => {
         metadata: { custom: 'data' }
       });
 
-      const item = container.getItem('test');
+      const item = container.getWrappedItem('test');
       expect(item.recordAccess).toBe(false);
       expect(item.metadata.custom).toBe('data');
     });
@@ -126,7 +125,7 @@ describe('ContextContainer', () => {
     });
 
     it('should return the managed item', () => {
-      const item = container.getItem('test');
+      const item = container.getWrappedItem('test');
       expect(item).toBeInstanceOf(ContextItem);
       expect(item.value).toBe('value');
     });
@@ -171,7 +170,7 @@ describe('ContextContainer', () => {
 
     it('should update both container and item access timestamps', () => {
       const originalContainerAccess = container.lastAccessedAt;
-      const item = container.getItem('test');
+      const item = container.getWrappedItem('test');
       const originalItemAccess = item.lastAccessedAt;
 
       setTimeout(() => {
@@ -288,7 +287,7 @@ describe('ContextContainer', () => {
       const originalLastAccessed = container.lastAccessedAt;
 
       setTimeout(() => {
-        const size = container.size;
+        container.size;
         expect(container.lastAccessedAt.getTime()).toBeGreaterThan(originalLastAccessed.getTime());
       }, 10);
     });
@@ -370,7 +369,7 @@ describe('ContextContainer', () => {
       const originalLastAccessed = container.lastAccessedAt;
 
       setTimeout(() => {
-        const value = container.value;
+        container.value;
         expect(container.lastAccessedAt.getTime()).toBeGreaterThan(originalLastAccessed.getTime());
       }, 10);
     });
@@ -382,7 +381,7 @@ describe('ContextContainer', () => {
       const originalAgeAccess = ageItem.lastAccessedAt;
 
       setTimeout(() => {
-        const value = container.value;
+        container.value;
         expect(nameItem.lastAccessedAt.getTime()).toBeGreaterThan(originalNameAccess.getTime());
         expect(ageItem.lastAccessedAt.getTime()).toBeGreaterThan(originalAgeAccess.getTime());
       }, 10);
@@ -462,7 +461,7 @@ describe('ContextContainer', () => {
 
       expect(container.recordAccess).toBe(false);
 
-      const item = container.setItem('test', 'value').getItem('test');
+      const item = container.setItem('test', 'value').getWrappedItem('test');
       expect(item.recordAccess).toBe(false);
     });
 
@@ -519,9 +518,402 @@ describe('ContextContainer', () => {
       const nestedContainer = new ContextContainer({ nested: 'value' });
       container.setItem('container', nestedContainer, { wrapAs: 'ContextContainer' });
 
-      const retrieved = container.getItem('container');
+      const retrieved = container.getWrappedItem('container');
       expect(retrieved).toBeInstanceOf(ContextContainer);
       expect(retrieved.getValue('nested')).toBe('value');
+    });
+  });
+
+  describe('Protected Methods', () => {
+    describe('_isPlainObject', () => {
+      it('should return true for plain objects', () => {
+        expect(container._isPlainObject({})).toBe(true);
+        expect(container._isPlainObject({ key: 'value' })).toBe(true);
+        expect(container._isPlainObject({ nested: { object: true } })).toBe(true);
+      });
+
+      it('should return false for arrays', () => {
+        expect(container._isPlainObject([])).toBe(false);
+        expect(container._isPlainObject([1, 2, 3])).toBe(false);
+      });
+
+      it('should return false for null', () => {
+        expect(container._isPlainObject(null)).toBe(false);
+      });
+
+      it('should return false for primitive values', () => {
+        expect(container._isPlainObject('string')).toBe(false);
+        expect(container._isPlainObject(123)).toBe(false);
+        expect(container._isPlainObject(true)).toBe(false);
+        expect(container._isPlainObject(undefined)).toBe(false);
+      });
+
+      it('should return false for ContextItem instances', () => {
+        const contextItem = new ContextItem('value');
+        expect(container._isPlainObject(contextItem)).toBe(false);
+      });
+
+      it('should return false for ContextContainer instances', () => {
+        const contextContainer = new ContextContainer();
+        expect(container._isPlainObject(contextContainer)).toBe(false);
+      });
+    });
+
+    describe('_isReservedKey', () => {
+      it('should return true for known reserved property names', () => {
+        expect(container._isReservedKey('value')).toBe(true);
+        expect(container._isReservedKey('metadata')).toBe(true);
+        expect(container._isReservedKey('createdAt')).toBe(true);
+        expect(container._isReservedKey('modifiedAt')).toBe(true);
+        expect(container._isReservedKey('lastAccessedAt')).toBe(true);
+        expect(container._isReservedKey('size')).toBe(true);
+      });
+
+      it('should return true for ContextItem method names', () => {
+        expect(container._isReservedKey('setValue')).toBe(true);
+        expect(container._isReservedKey('setMetadata')).toBe(true);
+        expect(container._isReservedKey('reinitialize')).toBe(true);
+        expect(container._isReservedKey('clear')).toBe(true);
+      });
+
+      it('should return true for ContextContainer method names', () => {
+        expect(container._isReservedKey('setItem')).toBe(true);
+        expect(container._isReservedKey('getItem')).toBe(true);
+        expect(container._isReservedKey('getValue')).toBe(true);
+        expect(container._isReservedKey('removeItem')).toBe(true);
+        expect(container._isReservedKey('hasItem')).toBe(true);
+        expect(container._isReservedKey('clearItems')).toBe(true);
+        expect(container._isReservedKey('keys')).toBe(true);
+        expect(container._isReservedKey('items')).toBe(true);
+        expect(container._isReservedKey('entries')).toBe(true);
+      });
+
+      it('should return false for non-reserved keys', () => {
+        expect(container._isReservedKey('customKey')).toBe(false);
+        expect(container._isReservedKey('user')).toBe(false);
+        expect(container._isReservedKey('data')).toBe(false);
+        expect(container._isReservedKey('config')).toBe(false);
+      });
+
+      it('should handle edge case keys', () => {
+        expect(container._isReservedKey('constructor')).toBe(true);
+        expect(container._isReservedKey('prototype')).toBe(false); // Not in our reserved set
+        expect(container._isReservedKey('__proto__')).toBe(false);
+      });
+    });
+
+    describe('_extractKeyComponents', () => {
+      it('should extract first key and remaining path for dot notation', () => {
+        const result = container._extractKeyComponents('player.stats.level');
+        expect(result).toEqual({
+          firstKey: 'player',
+          remainingPath: 'stats.level'
+        });
+      });
+
+      it('should handle single level paths', () => {
+        const result = container._extractKeyComponents('player.name');
+        expect(result).toEqual({
+          firstKey: 'player',
+          remainingPath: 'name'
+        });
+      });
+
+      it('should handle deeply nested paths', () => {
+        const result = container._extractKeyComponents('a.b.c.d.e.f');
+        expect(result).toEqual({
+          firstKey: 'a',
+          remainingPath: 'b.c.d.e.f'
+        });
+      });
+
+      it('should throw error if first key is reserved', () => {
+        expect(() => container._extractKeyComponents('value.nested')).toThrow(TypeError);
+        expect(() => container._extractKeyComponents('metadata.type')).toThrow(TypeError);
+        expect(() => container._extractKeyComponents('size.length')).toThrow(TypeError);
+      });
+
+      it('should handle empty path components', () => {
+        const result = container._extractKeyComponents('player.');
+        expect(result).toEqual({
+          firstKey: 'player',
+          remainingPath: ''
+        });
+      });
+    });
+
+    describe('_createNestedContainer', () => {
+      beforeEach(() => {
+        // Reset mock to handle ContextContainer creation
+        jest.clearAllMocks();
+        ContextValueWrapper.wrap.mockImplementation((value, options) => {
+          if (options?.wrapAs === 'ContextContainer') {
+            return new ContextContainer(value, options?.metadata || {}, {
+              recordAccess: options?.recordAccess ?? true,
+              recordAccessForMetadata: options?.recordAccessForMetadata ?? false
+            });
+          }
+          return new ContextItem(value, options?.metadata || {}, {
+            recordAccess: options?.recordAccess ?? true,
+            recordAccessForMetadata: options?.recordAccessForMetadata ?? false
+          });
+        });
+      });
+
+      it('should create new container if key does not exist', () => {
+        const result = container._createNestedContainer('player');
+        expect(result).toBeInstanceOf(ContextContainer);
+        expect(container.hasItem('player')).toBe(true);
+      });
+
+      it('should return existing container if key already exists', () => {
+        const existingContainer = new ContextContainer({ nested: 'value' });
+        container.setItem('player', existingContainer, { wrapAs: 'ContextContainer' });
+
+        const result = container._createNestedContainer('player');
+        expect(result).toBe(container.getWrappedItem('player'));
+        expect(result.getValue('nested')).toBe('value');
+      });
+
+      it('should throw error if existing item is not a ContextContainer', () => {
+        container.setItem('player', 'string value');
+
+        expect(() => container._createNestedContainer('player')).toThrow(TypeError);
+        expect(() => container._createNestedContainer('player')).toThrow(/Cannot set nested value on non-container item/);
+      });
+
+      it('should use default item options for new containers', () => {
+        const customContainer = new ContextContainer({}, {}, {
+          defaultItemRecordAccess: false,
+          defaultItemWrapAs: 'ContextContainer'
+        });
+
+        const result = customContainer._createNestedContainer('newContainer');
+        expect(result.recordAccess).toBe(false);
+      });
+    });
+
+    describe('_setNestedItem', () => {
+      let nestedContainer;
+
+      beforeEach(() => {
+        // Reset mock to handle ContextContainer creation
+        jest.clearAllMocks();
+        ContextValueWrapper.wrap.mockImplementation((value, options) => {
+          if (options?.wrapAs === 'ContextContainer') {
+            return new ContextContainer(value, options?.metadata || {}, {
+              recordAccess: options?.recordAccess ?? true,
+              recordAccessForMetadata: options?.recordAccessForMetadata ?? false
+            });
+          }
+          return new ContextItem(value, options?.metadata || {}, {
+            recordAccess: options?.recordAccess ?? true,
+            recordAccessForMetadata: options?.recordAccessForMetadata ?? false
+          });
+        });
+
+        nestedContainer = new ContextContainer();
+      });
+
+      it('should set item in nested container', () => {
+        const result = container._setNestedItem(nestedContainer, 'stats.level', 10, {});
+
+        expect(result).toBe(container);
+        expect(nestedContainer.getValue('stats.level')).toBe(10);
+      });
+
+      it('should update container modification timestamps', () => {
+        const originalModified = container.modifiedAt;
+
+        setTimeout(() => {
+          container._setNestedItem(nestedContainer, 'test', 'value', {});
+          expect(container.modifiedAt.getTime()).toBeGreaterThan(originalModified.getTime());
+        }, 10);
+      });
+
+      it('should pass through item options to nested container', () => {
+        const customOptions = {
+          metadata: { nested: 'metadata' },
+          recordAccess: false
+        };
+
+        container._setNestedItem(nestedContainer, 'test', 'value', customOptions);
+
+        const item = nestedContainer.getWrappedItem('test');
+        expect(item.metadata.nested).toBe('metadata');
+        expect(item.recordAccess).toBe(false);
+      });
+
+      it('should handle deeply nested paths', () => {
+        container._setNestedItem(nestedContainer, 'a.b.c.d', 'deep value', {});
+        expect(nestedContainer.getValue('a.b.c.d')).toBe('deep value');
+      });
+    });
+  });
+
+  describe('Dot Notation Support', () => {
+    beforeEach(() => {
+      // Reset mock to handle ContextContainer creation properly
+      jest.clearAllMocks();
+      ContextValueWrapper.wrap.mockImplementation((value, options) => {
+        if (options?.wrapAs === 'ContextContainer') {
+          return new ContextContainer(value, options?.metadata || {}, {
+            recordAccess: options?.recordAccess ?? true,
+            recordAccessForMetadata: options?.recordAccessForMetadata ?? false
+          });
+        }
+        return new ContextItem(value, options?.metadata || {}, {
+          recordAccess: options?.recordAccess ?? true,
+          recordAccessForMetadata: options?.recordAccessForMetadata ?? false
+        });
+      });
+    });
+
+    describe('setItem with dot notation', () => {
+      it('should create nested containers for dot notation paths', () => {
+        container.setItem('player.stats.level', 10);
+
+        expect(container.getValue('player.stats.level')).toBe(10);
+        expect(container.getWrappedItem('player')).toBeInstanceOf(ContextContainer);
+        expect(container.getWrappedItem('player').getWrappedItem('stats')).toBeInstanceOf(ContextContainer);
+      });
+
+      it('should work with multiple nested levels', () => {
+        container.setItem('game.player.character.stats.strength', 15);
+        container.setItem('game.player.character.stats.dexterity', 12);
+
+        expect(container.getValue('game.player.character.stats.strength')).toBe(15);
+        expect(container.getValue('game.player.character.stats.dexterity')).toBe(12);
+      });
+
+      it('should throw error when trying to nest under non-container', () => {
+        container.setItem('player', 'string value');
+
+        expect(() => container.setItem('player.stats.level', 10)).toThrow(TypeError);
+        expect(() => container.setItem('player.stats.level', 10)).toThrow(/Cannot set nested value on non-container item/);
+      });
+
+      it('should work with existing nested containers', () => {
+        container.setItem('player.name', 'Alice');
+        container.setItem('player.level', 5);
+
+        expect(container.getValue('player.name')).toBe('Alice');
+        expect(container.getValue('player.level')).toBe(5);
+
+        const playerContainer = container.getWrappedItem('player');
+        expect(playerContainer.size).toBe(2);
+      });
+    });
+
+    describe('getItem with dot notation', () => {
+      beforeEach(() => {
+        container.setItem('player.stats.level', 10);
+        container.setItem('player.name', 'Alice');
+        container.setItem('config.debug', true);
+      });
+
+      it('should retrieve nested values using dot notation', () => {
+        expect(container.getItem('player.stats.level')).toBe(10);
+        expect(container.getItem('player.name')).toBe('Alice');
+        expect(container.getItem('config.debug')).toBe(true);
+      });
+
+      it('should return undefined for non-existent nested paths', () => {
+        expect(container.getItem('player.stats.nonexistent')).toBeUndefined();
+        expect(container.getItem('nonexistent.path')).toBeUndefined();
+        expect(container.getItem('player.nonexistent.deep')).toBeUndefined();
+      });
+
+      it('should handle access to nested object properties in ContextItems', () => {
+        // Set a ContextItem with an object value
+        container.setItem('data', { user: { name: 'Bob', age: 30 } });
+
+        expect(container.getItem('data.user.name')).toBe('Bob');
+        expect(container.getItem('data.user.age')).toBe(30);
+        expect(container.getItem('data.user.nonexistent')).toBeUndefined();
+      });
+
+      it('should update access timestamps for containers in path', () => {
+        const originalContainerAccess = container.lastAccessedAt;
+        const playerContainer = container.getWrappedItem('player');
+        const originalPlayerAccess = playerContainer.lastAccessedAt;
+
+        setTimeout(() => {
+          container.getItem('player.name');
+          expect(container.lastAccessedAt.getTime()).toBeGreaterThan(originalContainerAccess.getTime());
+          expect(playerContainer.lastAccessedAt.getTime()).toBeGreaterThan(originalPlayerAccess.getTime());
+        }, 10);
+      });
+    });
+
+    describe('getWrappedItem with dot notation', () => {
+      beforeEach(() => {
+        container.setItem('player.stats.level', 10);
+        container.setItem('player.name', 'Alice');
+      });
+
+      it('should retrieve nested wrapped items using dot notation', () => {
+        const levelItem = container.getWrappedItem('player.stats.level');
+        expect(levelItem).toBeInstanceOf(ContextItem);
+        expect(levelItem.value).toBe(10);
+
+        const nameItem = container.getWrappedItem('player.name');
+        expect(nameItem).toBeInstanceOf(ContextItem);
+        expect(nameItem.value).toBe('Alice');
+      });
+
+      it('should return nested containers', () => {
+        const playerContainer = container.getWrappedItem('player');
+        expect(playerContainer).toBeInstanceOf(ContextContainer);
+
+        const statsContainer = container.getWrappedItem('player.stats');
+        expect(statsContainer).toBeInstanceOf(ContextContainer);
+      });
+
+      it('should return undefined for non-existent nested paths', () => {
+        expect(container.getWrappedItem('player.stats.nonexistent')).toBeUndefined();
+        expect(container.getWrappedItem('nonexistent.path')).toBeUndefined();
+      });
+    });
+
+    describe('Complex dot notation scenarios', () => {
+      it('should handle mixed container and item access patterns', () => {
+        // Create a complex nested structure
+        container.setItem('app.config.database.host', 'localhost');
+        container.setItem('app.config.database.port', 5432);
+        container.setItem('app.config.debug', true);
+        container.setItem('app.users.admin', { name: 'Admin', role: 'administrator' });
+
+        // Verify structure
+        expect(container.getValue('app.config.database.host')).toBe('localhost');
+        expect(container.getValue('app.config.database.port')).toBe(5432);
+        expect(container.getValue('app.config.debug')).toBe(true);
+        expect(container.getValue('app.users.admin.name')).toBe('Admin');
+        expect(container.getValue('app.users.admin.role')).toBe('administrator');
+
+        // Verify container structure
+        expect(container.getWrappedItem('app')).toBeInstanceOf(ContextContainer);
+        expect(container.getWrappedItem('app.config')).toBeInstanceOf(ContextContainer);
+        expect(container.getWrappedItem('app.config.database')).toBeInstanceOf(ContextContainer);
+        expect(container.getWrappedItem('app.users')).toBeInstanceOf(ContextContainer);
+      });
+
+      it('should maintain proper isolation between nested paths', () => {
+        container.setItem('a.b.c', 'value1');
+        container.setItem('a.b.d', 'value2');
+        container.setItem('a.e.f', 'value3');
+
+        expect(container.getValue('a.b.c')).toBe('value1');
+        expect(container.getValue('a.b.d')).toBe('value2');
+        expect(container.getValue('a.e.f')).toBe('value3');
+
+        // Verify containers don't interfere with each other
+        const bContainer = container.getWrappedItem('a.b');
+        const eContainer = container.getWrappedItem('a.e');
+
+        expect(bContainer.size).toBe(2);
+        expect(eContainer.size).toBe(1);
+      });
     });
   });
 });

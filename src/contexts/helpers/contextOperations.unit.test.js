@@ -6,7 +6,7 @@
 
 import ContextOperations from './contextOperations.js';
 import Context from '../context.js';
-import { ContextContainer } from './contextContainer.js';
+import ContextContainer from './contextContainer.js';
 import { ContextItem } from './contextItem.js';
 
 // Mock ContextMerger since it's thoroughly tested separately
@@ -58,7 +58,7 @@ describe('ContextOperations', () => {
     // Add some test data
     sourceContext.data.setItem('testItem1', 'value1');
     sourceContext.data.setItem('testItem2', 'value2');
-    
+
     targetContext.data.setItem('testItem1', 'oldValue1');
     targetContext.settings.setItem('volume', 0.8);
 
@@ -70,7 +70,7 @@ describe('ContextOperations', () => {
     describe('pushContext', () => {
       it('should push context using default strategy', () => {
         const result = ContextOperations.pushContext(sourceContext, targetContext);
-        
+
         expect(result).toBeDefined();
         expect(result.success).toBe(true);
         expect(result.itemsProcessed).toBe(5);
@@ -78,11 +78,11 @@ describe('ContextOperations', () => {
 
       it('should push context with custom strategy', () => {
         const result = ContextOperations.pushContext(
-          sourceContext, 
-          targetContext, 
+          sourceContext,
+          targetContext,
           'mergeSourcePriority'
         );
-        
+
         expect(result).toBeDefined();
         expect(result.success).toBe(true);
       });
@@ -103,7 +103,7 @@ describe('ContextOperations', () => {
     describe('pullContext', () => {
       it('should pull context using default strategy', () => {
         const result = ContextOperations.pullContext(sourceContext, targetContext);
-        
+
         expect(result).toBeDefined();
         expect(result.success).toBe(true);
       });
@@ -121,15 +121,15 @@ describe('ContextOperations', () => {
       it('should push from multiple sources successfully', () => {
         const sources = [sourceContext, context2, context3];
         const results = ContextOperations.pushFromMultipleSources(sources, targetContext);
-        
+
         expect(results).toHaveLength(3);
         expect(results[0].sourceIndex).toBe(0);
         expect(results[0].success).toBe(true);
         expect(results[0].result).toBeDefined();
-        
+
         expect(results[1].sourceIndex).toBe(1);
         expect(results[1].success).toBe(true);
-        
+
         expect(results[2].sourceIndex).toBe(2);
         expect(results[2].success).toBe(true);
       });
@@ -142,7 +142,7 @@ describe('ContextOperations', () => {
 
         const sources = [sourceContext];
         const results = ContextOperations.pushFromMultipleSources(sources, targetContext);
-        
+
         expect(results).toHaveLength(1);
         expect(results[0].success).toBe(false);
         expect(results[0].error).toBe('Test error');
@@ -174,15 +174,15 @@ describe('ContextOperations', () => {
       it('should push to multiple targets successfully', () => {
         const targets = [targetContext, context2, context3];
         const results = ContextOperations.pushToMultipleTargets(sourceContext, targets);
-        
+
         expect(results).toHaveLength(3);
         expect(results[0].targetIndex).toBe(0);
         expect(results[0].success).toBe(true);
         expect(results[0].result).toBeDefined();
-        
+
         expect(results[1].targetIndex).toBe(1);
         expect(results[1].success).toBe(true);
-        
+
         expect(results[2].targetIndex).toBe(2);
         expect(results[2].success).toBe(true);
       });
@@ -195,7 +195,7 @@ describe('ContextOperations', () => {
 
         const targets = [targetContext];
         const results = ContextOperations.pushToMultipleTargets(sourceContext, targets);
-        
+
         expect(results).toHaveLength(1);
         expect(results[0].success).toBe(false);
         expect(results[0].error).toBe('Target error');
@@ -221,11 +221,11 @@ describe('ContextOperations', () => {
       it('should push specific items successfully', () => {
         const itemPaths = ['data.testItem1', 'settings.volume'];
         const result = ContextOperations.pushItems(
-          sourceContext, 
-          targetContext, 
+          sourceContext,
+          targetContext,
           itemPaths
         );
-        
+
         expect(result).toBeDefined();
         expect(result.success).toBe(true);
       });
@@ -247,11 +247,11 @@ describe('ContextOperations', () => {
       it('should pull specific items successfully', () => {
         const itemPaths = ['data.testItem1', 'settings.volume'];
         const result = ContextOperations.pullItems(
-          sourceContext, 
-          targetContext, 
+          sourceContext,
+          targetContext,
           itemPaths
         );
-        
+
         expect(result).toBeDefined();
         expect(result.success).toBe(true);
       });
@@ -268,21 +268,21 @@ describe('ContextOperations', () => {
         const sources = [sourceContext, context2];
         const targets = [targetContext, context3];
         const itemPaths = ['data.testItem1'];
-        
+
         const results = ContextOperations.pushItemsBulk(
-          sources, 
-          targets, 
+          sources,
+          targets,
           itemPaths
         );
-        
+
         expect(results).toHaveLength(2); // 2 sources
         expect(results[0]).toHaveLength(2); // 2 targets for first source
         expect(results[1]).toHaveLength(2); // 2 targets for second source
-        
+
         expect(results[0][0].sourceIndex).toBe(0);
         expect(results[0][0].targetIndex).toBe(0);
         expect(results[0][0].success).toBe(true);
-        
+
         expect(results[1][1].sourceIndex).toBe(1);
         expect(results[1][1].targetIndex).toBe(1);
         expect(results[1][1].success).toBe(true);
@@ -297,9 +297,9 @@ describe('ContextOperations', () => {
         const sources = [sourceContext];
         const targets = [targetContext];
         const itemPaths = ['data.testItem1'];
-        
+
         const results = ContextOperations.pushItemsBulk(sources, targets, itemPaths);
-        
+
         expect(results[0][0].success).toBe(false);
         expect(results[0][0].error).toBe('Bulk error');
       });
@@ -324,7 +324,7 @@ describe('ContextOperations', () => {
     describe('synchronizeBidirectional', () => {
       it('should synchronize contexts bidirectionally', () => {
         const result = ContextOperations.synchronizeBidirectional(
-          sourceContext, 
+          sourceContext,
           targetContext,
           {
             context1Priority: ['data.testItem1'],
@@ -332,7 +332,7 @@ describe('ContextOperations', () => {
             excludePaths: ['data.temp']
           }
         );
-        
+
         expect(result.success).toBe(true);
         expect(result.context1ToContext2).toBeDefined();
         expect(result.context2ToContext1).toBeDefined();
@@ -349,10 +349,10 @@ describe('ContextOperations', () => {
         });
 
         const result = ContextOperations.synchronizeBidirectional(
-          sourceContext, 
+          sourceContext,
           targetContext
         );
-        
+
         expect(result.success).toBe(false);
       });
     });
@@ -361,14 +361,14 @@ describe('ContextOperations', () => {
       it('should consolidate multiple contexts successfully', () => {
         const sources = [sourceContext, context2, context3];
         const result = ContextOperations.consolidateContexts(
-          sources, 
+          sources,
           targetContext,
           {
             priorities: { 0: 'high', 1: 'medium', 2: 'low' },
             excludePaths: ['data.temp']
           }
         );
-        
+
         expect(result.success).toBe(true);
         expect(result.results).toHaveLength(3);
         expect(result.totalItemsProcessed).toBe(15); // 5 * 3
@@ -379,13 +379,13 @@ describe('ContextOperations', () => {
       it('should sort sources by priority', () => {
         const sources = [sourceContext, context2, context3];
         const result = ContextOperations.consolidateContexts(
-          sources, 
+          sources,
           targetContext,
           {
             priorities: { 2: 'high', 0: 'low', 1: 'medium' }
           }
         );
-        
+
         expect(result.success).toBe(true);
         expect(result.results).toHaveLength(3);
         // Verify that sources were processed (order might be changed due to priority)
@@ -402,7 +402,7 @@ describe('ContextOperations', () => {
 
         const sources = [sourceContext];
         const result = ContextOperations.consolidateContexts(sources, targetContext);
-        
+
         expect(result.success).toBe(false);
         expect(result.results[0].success).toBe(false);
         expect(result.results[0].error).toBe('Consolidation error');
@@ -424,7 +424,7 @@ describe('ContextOperations', () => {
     it('should handle contexts with no data', () => {
       const emptySource = new Context();
       const emptyTarget = new Context();
-      
+
       const result = ContextOperations.pushContext(emptySource, emptyTarget);
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
@@ -432,10 +432,10 @@ describe('ContextOperations', () => {
 
     it('should handle single item in arrays', () => {
       const results = ContextOperations.pushFromMultipleSources(
-        [sourceContext], 
+        [sourceContext],
         targetContext
       );
-      
+
       expect(results).toHaveLength(1);
       expect(results[0].success).toBe(true);
     });
@@ -443,11 +443,11 @@ describe('ContextOperations', () => {
     it('should handle custom merge strategies', () => {
       const customStrategy = 'customStrategy';
       const result = ContextOperations.pushContext(
-        sourceContext, 
-        targetContext, 
+        sourceContext,
+        targetContext,
         customStrategy
       );
-      
+
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
     });
@@ -455,10 +455,10 @@ describe('ContextOperations', () => {
     it('should handle complex consolidation scenarios', () => {
       const manySources = Array.from({ length: 5 }, () => new Context());
       const result = ContextOperations.consolidateContexts(
-        manySources, 
+        manySources,
         targetContext
       );
-      
+
       expect(result.success).toBe(true);
       expect(result.consolidatedSources).toBe(5);
     });
@@ -467,15 +467,15 @@ describe('ContextOperations', () => {
   describe('Integration with ItemFilter', () => {
     it('should use ItemFilter in synchronization', () => {
       const { ItemFilter } = require('./contextMerger.js');
-      
+
       ContextOperations.synchronizeBidirectional(
-        sourceContext, 
+        sourceContext,
         targetContext,
         {
           excludePaths: ['data.temp']
         }
       );
-      
+
       expect(ItemFilter.and).toHaveBeenCalled();
       expect(ItemFilter.blockOnly).toHaveBeenCalledWith(['data.temp']);
       expect(ItemFilter.or).toHaveBeenCalled();
@@ -483,15 +483,15 @@ describe('ContextOperations', () => {
 
     it('should use ItemFilter in consolidation', () => {
       const { ItemFilter } = require('./contextMerger.js');
-      
+
       ContextOperations.consolidateContexts(
-        [sourceContext], 
+        [sourceContext],
         targetContext,
         {
           excludePaths: ['data.cache']
         }
       );
-      
+
       expect(ItemFilter.blockOnly).toHaveBeenCalledWith(['data.cache']);
     });
   });
@@ -502,13 +502,13 @@ describe('ContextOperations', () => {
       const playerContext1 = new Context();
       const playerContext2 = new Context();
       const serverContext = new Context();
-      
+
       playerContext1.data.setItem('inventory', ['sword', 'potion']);
       playerContext1.data.setItem('level', 15);
-      
+
       playerContext2.data.setItem('inventory', ['bow', 'arrow']);
       playerContext2.data.setItem('level', 12);
-      
+
       const result = ContextOperations.consolidateContexts(
         [playerContext1, playerContext2],
         serverContext,
@@ -516,7 +516,7 @@ describe('ContextOperations', () => {
           priorities: { 0: 'high', 1: 'medium' }
         }
       );
-      
+
       expect(result.success).toBe(true);
       expect(result.consolidatedSources).toBe(2);
     });
@@ -524,13 +524,13 @@ describe('ContextOperations', () => {
     it('should handle configuration synchronization', () => {
       const clientConfig = new Context();
       const serverConfig = new Context();
-      
+
       clientConfig.settings.setItem('theme', 'dark');
       clientConfig.settings.setItem('language', 'en');
-      
+
       serverConfig.settings.setItem('maxPlayers', 10);
       serverConfig.settings.setItem('difficulty', 'normal');
-      
+
       const result = ContextOperations.synchronizeBidirectional(
         clientConfig,
         serverConfig,
@@ -539,7 +539,7 @@ describe('ContextOperations', () => {
           context2Priority: ['settings.maxPlayers', 'settings.difficulty']
         }
       );
-      
+
       expect(result.success).toBe(true);
       expect(result.totalItemsProcessed).toBeGreaterThan(0);
     });

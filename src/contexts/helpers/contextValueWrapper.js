@@ -14,15 +14,36 @@ import { ContextContainer } from './contextContainer.js';
  */
 class ContextValueWrapper {
   /**
-   * Validates the wrapAs option.
+   * Normalizes the wrapAs value to handle case inconsistency.
+   * @private
+   * @param {string} wrapAs - The wrapAs option to normalize.
+   * @returns {string} The normalized wrapAs value.
+   */
+  static _normalizeWrapAsValue(wrapAs) {
+    if (typeof wrapAs !== 'string') return wrapAs;
+
+    const normalized = wrapAs.toLowerCase();
+    if (normalized === 'contextitem') return 'ContextItem';
+    if (normalized === 'contextcontainer') return 'ContextContainer';
+
+    return wrapAs; // Return original if no match found
+  }
+
+  /**
+   * Validates the wrapAs option and returns the normalized value.
    * @private
    * @param {string} wrapAs - The wrapAs option to validate.
+   * @returns {string} The normalized wrapAs value.
    * @throws {TypeError} If wrapAs is not valid.
    */
   static _validateWrapOptions(wrapAs) {
-    if (wrapAs !== "ContextItem" && wrapAs !== "ContextContainer") {
-      throw new TypeError(`Invalid value for wrapAs: ${wrapAs}. Must be "ContextItem" or "ContextContainer".`);
+    const normalizedWrapAs = this._normalizeWrapAsValue(wrapAs);
+
+    if (normalizedWrapAs !== "ContextItem" && normalizedWrapAs !== "ContextContainer") {
+      throw new TypeError(`Invalid value for wrapAs: ${wrapAs}. Must be "ContextItem" or "ContextContainer" (case-insensitive).`);
     }
+
+    return normalizedWrapAs;
   }
 
   /**
@@ -113,7 +134,14 @@ class ContextValueWrapper {
       defaultItemRecordAccessForMetadata: false,
     }
   } = {}) {
-    this._validateWrapOptions(wrapAs);
+    // DEBUG: Add logging for schema specifically
+    if (rawValue && typeof rawValue === 'object' && 'version' in rawValue && 'type' in rawValue) {
+      console.log('DEBUG ContextValueWrapper.wrap: rawValue=', rawValue);
+      console.log('DEBUG ContextValueWrapper.wrap: wrapAs=', wrapAs);
+      console.log('DEBUG ContextValueWrapper.wrap: is rawValue frozen?', Object.isFrozen(rawValue));
+    }
+
+    const normalizedWrapAs = this._validateWrapOptions(wrapAs);
 
     const existingInstance = this._handleExistingInstance(rawValue);
     if (existingInstance) return existingInstance;
@@ -122,8 +150,18 @@ class ContextValueWrapper {
     if (primitiveResult !== undefined) return primitiveResult;
 
     const newInstanceOptions = { recordAccess, recordAccessForMetadata };
-    return this._createNewInstance(rawValue, wrapAs, metadata, newInstanceOptions, containerOptions);
+    const result = this._createNewInstance(rawValue, normalizedWrapAs, metadata, newInstanceOptions, containerOptions);
+
+    // DEBUG: Add logging for schema specifically
+    if (rawValue && typeof rawValue === 'object' && 'version' in rawValue && 'type' in rawValue) {
+      console.log('DEBUG ContextValueWrapper.wrap: result type=', result.constructor.name);
+      console.log('DEBUG ContextValueWrapper.wrap: result.value=', result.value);
+      console.log('DEBUG ContextValueWrapper.wrap: is result.value frozen?', Object.isFrozen(result.value));
+    }
+
+    return result;
   }
 }
 
 export { ContextValueWrapper };
+export default ContextValueWrapper;

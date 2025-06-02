@@ -1,5 +1,5 @@
 import Context, { DEFAULT_INITIALIZATION_PARAMS } from './context.js';
-import { ContextContainer } from './helpers/contextContainer.js';
+import ContextContainer from './helpers/contextContainer.js';
 import ContextMerger from './helpers/contextMerger.js';
 import ContextSync from './helpers/contextSync.js';
 import ContextOperations from './helpers/contextOperations.js';
@@ -155,9 +155,29 @@ describe('Context', () => {
       it('should freeze schema, constants, and manifest items', () => {
         const context = new Context();
 
-        expect(Object.isFrozen(context.schema.value)).toBe(true);
-        expect(Object.isFrozen(context.constants.value)).toBe(true);
-        expect(Object.isFrozen(context.manifest.value)).toBe(true);
+        expect(context.schema.isFrozen()).toBe(true);
+        expect(context.constants.isFrozen()).toBe(true);
+        expect(context.manifest.isFrozen()).toBe(true);
+      });
+
+      it('should not freeze mutable containers by default', () => {
+        const context = new Context();
+
+        expect(context.flags.isFrozen()).toBe(false);
+        expect(context.state.isFrozen()).toBe(false);
+        expect(context.data.isFrozen()).toBe(false);
+        expect(context.settings.isFrozen()).toBe(false);
+      });
+
+      it('should freeze naming convention container and its items', () => {
+        const context = new Context();
+
+        expect(context.namingConvention.isFrozen()).toBe(true);
+
+        // Check that naming convention items are also frozen
+        for (const [key, item] of context.namingConvention.entries()) {
+          expect(item.isFrozen()).toBe(true);
+        }
       });
 
       it('should initialize empty state container', () => {
@@ -304,6 +324,35 @@ describe('Context', () => {
         );
 
         consoleSpy.mockRestore();
+      });
+
+      it('should handle frozen items with ignoreFrozen option', () => {
+        // Try to modify a frozen item (schema)
+        expect(() => {
+          context.setItem('schema', { newValue: 'test' });
+        }).toThrow();
+
+        // Should work with ignoreFrozen option
+        expect(() => {
+          context.setItem('schema', { newValue: 'test' }, { ignoreFrozen: true });
+        }).not.toThrow();
+      });
+
+      it('should respect frozen state in nested items', () => {
+        // Create a nested structure and freeze part of it
+        context.setItem('data.player.stats', { level: 1 });
+        const playerStatsItem = context.getWrappedItem('data.player.stats');
+        playerStatsItem.freeze();
+
+        // Should throw when trying to modify frozen nested item
+        expect(() => {
+          context.setItem('data.player.stats', { level: 2 });
+        }).toThrow();
+
+        // Should work with ignoreFrozen
+        expect(() => {
+          context.setItem('data.player.stats', { level: 2 }, { ignoreFrozen: true });
+        }).not.toThrow();
       });
     });
 

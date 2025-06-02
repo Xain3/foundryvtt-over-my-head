@@ -1,32 +1,49 @@
 /**
  * @file contextItem.js
  * @description This file contains the ContextItem class for managing a data item with metadata and timestamps.
- * @path /src/context/helpers/contextItem.js
+ * @path /src/contexts/helpers/contextItem.js
  * @date 23 May 2025
  */
 
+/**
+ * @class ContextItem
+ * @classdesc Represents a data item with metadata, timestamps, and access tracking capabilities.
+ *            Provides functionality to track when the item was created, modified, and accessed.
+ *            Supports freezing to prevent modifications and configurable access recording.
+ * @property {*} #value - The private value stored in the item
+ * @property {Date} #createdAt - The private creation timestamp
+ * @property {Date} #modifiedAt - The private last modification timestamp  
+ * @property {Date} #lastAccessedAt - The private last access timestamp
+ * @property {object} #metadata - The private metadata object
+ * @property {boolean} #frozen - The private frozen state flag
+ * @property {boolean} recordAccess - Whether to record access to the item's value
+ * @property {boolean} recordAccessForMetadata - Whether to record access to the item's metadata
+ */
 class ContextItem {
   #value;
   #createdAt;
   #modifiedAt;
   #lastAccessedAt;
   #metadata;
+  #frozen;
 
   /**
    * Creates an instance of ContextItem.
    * @param {*} initialValue - The initial value of the item.
    * @param {object} [metadata={}] - Optional metadata for the item.
-   * @param {object} [options={}] - Options for access recording.
+   * @param {object} [options={}] - Options for the item behavior.
+   * @param {boolean} [options.frozen=false] - If true, the item starts in a frozen state and cannot be modified.
    * @param {boolean} [options.recordAccess=true] - If true, records access to the item's value.
    * @param {boolean} [options.recordAccessForMetadata=false] - If true, records access to the item's metadata.
    */
-  constructor(initialValue, metadata = {}, { recordAccess = true, recordAccessForMetadata = false } = {}) {
+  constructor(initialValue, metadata = {}, {frozen = false, recordAccess = true, recordAccessForMetadata = false } = {}) {
     const now = new Date();
     this.#value = initialValue;
     this.#metadata = metadata;
     this.#createdAt = now;
     this.#modifiedAt = now;
     this.#lastAccessedAt = now;
+    this.#frozen = frozen;
     this.recordAccess = recordAccess;
     this.recordAccessForMetadata = recordAccessForMetadata;
   }
@@ -67,6 +84,9 @@ class ContextItem {
    * @param {*} newValue - The new value to set.
    */
   set value(newValue) {
+    if (this.#frozen) {
+      throw new Error("Cannot modify a frozen ContextItem.");
+    }
     this.#value = newValue;
     this._updateModificationTimestamps();
   }
@@ -107,10 +127,15 @@ class ContextItem {
 
   /**
    * Sets or updates metadata for the item.
+   * Updates the modifiedAt and lastAccessedAt timestamps.
    * @param {object} newMetadata - The metadata object to set or merge.
    * @param {boolean} [merge=true] - If true, merges with existing metadata; otherwise, replaces it.
+   * @throws {Error} If the item is frozen and cannot be modified.
    */
   setMetadata(newMetadata, merge = true) {
+    if (this.#frozen) {
+      throw new Error("Cannot modify metadata of a frozen ContextItem.");
+    }
     if (merge) {
       this.#metadata = { ...this.#metadata, ...newMetadata };
     } else {
@@ -120,7 +145,30 @@ class ContextItem {
   }
 
   /**
-   * Changes the behaviour of the item regarding access recording.
+   * Freezes the item, preventing any further modifications to its value or metadata.
+   * Once frozen, the item cannot be unfrozen unless explicitly calling unfreeze().
+   */
+  freeze() {
+    this.#frozen = true;
+  }
+  
+  /**
+   * Unfreezes the item, allowing modifications to its value and metadata.
+   */
+  unfreeze() {
+    this.#frozen = false;
+  }
+  
+  /**
+   * Checks if the item is currently frozen.
+   * @returns {boolean} True if the item is frozen, false otherwise.
+   */
+  isFrozen() {
+    return this.#frozen;
+  }
+
+  /**
+   * Changes the behavior of the item regarding access recording.
    * @param {object} [options={}] - Options for access recording.
    * @param {boolean} [options.recordAccess=true] - If true, records access to the item's value.
    * @param {boolean} [options.recordAccessForMetadata=false] - If true, records access to the item's metadata.
@@ -132,15 +180,18 @@ class ContextItem {
 
   /**
    * Reinitializes the context item with new values and resets all timestamps and metadata.
+   * Resets the frozen state and access recording options.
    * @param {*} initialValue - The new initial value for the context item.
    * @param {object} [metadata={}] - Optional metadata object to associate with the item.
-   * @param {object} [options={}] - Configuration options for access recording.
+   * @param {object} [options={}] - Configuration options for the reinitialized item.
+   * @param {boolean} [options.frozen=false] - Whether the reinitialized item should start in a frozen state.
    * @param {boolean} [options.recordAccess=true] - Whether to record access to this item's value.
    * @param {boolean} [options.recordAccessForMetadata=false] - Whether to record access to this item's metadata.
    */
-  reinitialize(initialValue, metadata = {}, { recordAccess = true, recordAccessForMetadata = false } = {}) {
+  reinitialize(initialValue, metadata = {}, { frozen = false, recordAccess = true, recordAccessForMetadata = false } = {}) {
     this.#value = initialValue;
     this.#metadata = metadata;
+    this.#frozen = frozen;
     this.recordAccess = recordAccess;
     this.recordAccessForMetadata = recordAccessForMetadata;
 
@@ -150,6 +201,10 @@ class ContextItem {
     this.#lastAccessedAt = now;
   }
 
+  /**
+   * Clears the item by reinitializing it with undefined value and empty metadata.
+   * Resets all timestamps and unfreezes the item.
+   */
   clear() {
     this.reinitialize(undefined, {});
   }

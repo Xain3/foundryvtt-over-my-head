@@ -6,7 +6,7 @@
 
 import yaml from 'js-yaml';
 import _ from 'lodash';
-import { resolvePath } from '@helpers/resolvePath';
+import PathUtils from '../../helpers/pathUtils.js';
 
 /**
  * A utility class for parsing and processing constants from YAML input.
@@ -15,7 +15,7 @@ class ConstantsParser {
   /**
    * Parses a YAML string of constants, performs a deep copy, and processes the context configuration.
    *
-   * Loads the YAML string, deeply clones the resulting object, and optionally parses the `context.rootMap` 
+   * Loads the YAML string, deeply clones the resulting object, and optionally parses the `context.rootMap`
    * property to create a root map function.
    *
    * @param {string} constants - The YAML string containing the constants to parse.
@@ -65,7 +65,7 @@ class ConstantsParser {
           rootMap[key] = module;
         } else {
           // Dynamically resolve the path
-          rootMap[key] = resolvePath(globalNamespace, value);
+          rootMap[key] = PathUtils.resolvePath(globalNamespace, value);
         }
       }
 

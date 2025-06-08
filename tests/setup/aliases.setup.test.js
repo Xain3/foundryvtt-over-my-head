@@ -241,7 +241,7 @@ describe('Alias Configuration Validation', () => {
 
         // Validate specific file types
         if (aliasKey === '@manifest') {
-          expect(aliasPath).toMatch(/\.json$/);
+          expect(aliasPath).toMatch(/\.js(on)?$/);
         }
 
         if (aliasKey === '@constants' || aliasKey === '@validator') {

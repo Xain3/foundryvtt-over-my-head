@@ -103,8 +103,8 @@ describe('MockRoll', () => {
     it('should handle complex formula', () => {
       const complexRoll = new MockRoll('2d10+1d4+5');
       expect(complexRoll.formula).toBe('2d10+1d4+5');
-      expect(complexRoll.total).toBeGreaterThanOrEqual(1);
-      expect(complexRoll.total).toBeLessThanOrEqual(21);
+      expect(complexRoll.total).toBeGreaterThanOrEqual(8);
+      expect(complexRoll.total).toBeLessThanOrEqual(29);
     });
 
     it('should work with evaluation and rendering', async () => {

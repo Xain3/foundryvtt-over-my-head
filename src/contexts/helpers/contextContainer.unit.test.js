@@ -1,919 +1,737 @@
 /**
  * @file contextContainer.unit.test.js
- * @description This file contains tests for the ContextContainer class.
- * @path src/context/helpers/contextContainer.unit.test.js
+ * @description Unit tests for the ContextContainer class.
+ * @path src/contexts/helpers/contextContainer.unit.test.js
  */
 
 import { ContextContainer } from './contextContainer.js';
 import { ContextItem } from './contextItem.js';
+import { ContextValueWrapper } from './contextValueWrapper.js';
+import { ContextItemSetter } from './contextItemSetter.js';
+import { Validator } from '../../utils/static/validator.js';
+import PathUtils from '../../helpers/pathUtils.js';
 
-// Mock ContextValueWrapper to avoid circular dependency issues
-jest.mock('./contextValueWrapper.js', () => ({
-  ContextValueWrapper: {
-    createItem: jest.fn((value, key, metadata) => {
-      const { ContextItem } = jest.requireActual('./contextItem.js');
-      return new ContextItem(value, { key, ...metadata });
-    }),
-    createContainer: jest.fn((items, metadata) => {
-      const { ContextContainer } = jest.requireActual('./contextContainer.js');
-      return new ContextContainer(items, metadata);
-    })
-  }
-}));
+jest.mock('./contextItem.js');
+jest.mock('./contextValueWrapper.js');
+jest.mock('./contextItemSetter.js');
+jest.mock('../../utils/static/validator.js');
+jest.mock('../../helpers/pathUtils.js');
 
 describe('ContextContainer', () => {
-  let container;
-  let metadata;
+  let mockContainerItemInstance;
+  let MOCK_DATE;
+  let dateNowSpy;
 
   beforeEach(() => {
-    metadata = { type: 'container', source: 'test' };
-    container = new ContextContainer({}, metadata);
+    jest.clearAllMocks();
+
+    MOCK_DATE = new Date('2024-01-01T00:00:00.000Z');
+    dateNowSpy = jest.spyOn(global, 'Date').mockImplementation(() => MOCK_DATE);
+
+    mockContainerItemInstance = {
+      value: undefined,
+      metadata: {},
+      createdAt: MOCK_DATE,
+      modifiedAt: MOCK_DATE,
+      lastAccessedAt: MOCK_DATE,
+      recordAccess: true,
+      recordAccessForMetadata: false,
+      _updateAccessTimestamp: jest.fn(),
+      _updateModificationTimestamps: jest.fn(),
+      freeze: jest.fn(),
+      unfreeze: jest.fn(),
+      isFrozen: jest.fn().mockReturnValue(false),
+      setMetadata: jest.fn(),
+      changeAccessRecord: jest.fn(),
+      reinitialize: jest.fn(),
+      clear: jest.fn(),
+    };
+
+    ContextItem.mockImplementation((initialValue, metadata, options) => {
+      // Create new instance for each call to avoid sharing state
+      const instance = { ...mockContainerItemInstance };
+      if (options) {
+        instance.recordAccess = options.recordAccess !== undefined ? options.recordAccess : instance.recordAccess;
+        instance.recordAccessForMetadata = options.recordAccessForMetadata !== undefined ? options.recordAccessForMetadata : instance.recordAccessForMetadata;
+      }
+      instance.metadata = metadata || {};
+      
+      // Define value property properly
+      Object.defineProperty(instance, 'value', {
+        get: jest.fn(() => initialValue),
+        set: jest.fn((newValue) => { initialValue = newValue; }),
+        configurable: true
+      });
+      
+      return instance;
+    });
+
+    Validator.isPlainObject.mockImplementation(v => typeof v === 'object' && v !== null && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype);
+    Validator.isReservedKey.mockReturnValue(false); // Default: not reserved
+
+    PathUtils.extractKeyComponents.mockImplementation((path, options) => {
+      const parts = path.split('.');
+      const firstKey = parts[0];
+      if (options && typeof options.validateFirstKey === 'function') {
+        options.validateFirstKey(firstKey);
+      }
+      return {
+        firstKey,
+        remainingPath: parts.slice(1).join('.'),
+        parts: options && options.returnParts ? parts : undefined,
+      };
+    });
+    PathUtils.getNestedObjectValue.mockReturnValue(undefined);
+
+    ContextItemSetter.setItem.mockImplementation((key, rawValue, containerInstance, itemOptionsOverrides) => {
+      // This mock is primarily for verifying calls.
+      // For state setup in tests, use containerInstance._setManagedItem directly.
+      return containerInstance;
+    });
+
+    ContextValueWrapper.wrap.mockImplementation((value, options) => {
+      const item = new ContextItem(value, options.metadata, {
+        frozen: options.frozen,
+        recordAccess: options.recordAccess,
+        recordAccessForMetadata: options.recordAccessForMetadata,
+      });
+      if (options.wrapAs === 'ContextContainer') {
+        // Return a basic mock container for _createNestedContainer
+        const mockNestedContainer = new ContextContainer(value); // Will use mocked ContextItem
+        jest.spyOn(mockNestedContainer, 'setItem');
+        jest.spyOn(mockNestedContainer, 'getItem');
+        jest.spyOn(mockNestedContainer, 'hasItem');
+        jest.spyOn(mockNestedContainer, 'getWrappedItem');
+        return mockNestedContainer;
+      }
+      return item; // Returns a mocked ContextItem
+    });
+  });
+
+  afterEach(() => {
+    dateNowSpy.mockRestore();
   });
 
   describe('constructor', () => {
-    it('should create an empty container with default options', () => {
-      const emptyContainer = new ContextContainer();
-      expect(emptyContainer.size).toBe(0);
-      expect(emptyContainer.metadata).toEqual({});
+    it('should initialize with default values', () => {
+      const container = new ContextContainer();
+      expect(ContextItem).toHaveBeenCalledWith(undefined, {}, { recordAccess: true, recordAccessForMetadata: false });
+      expect(container.size).toBe(0);
+      expect(ContextItemSetter.setItem).not.toHaveBeenCalled();
     });
 
-    it('should create a container with metadata', () => {
-      expect(container.metadata).toEqual(metadata);
+    it('should initialize with initialItemsOrValue as a plain object', () => {
+      const initialItems = { item1: 'value1', item2: 123 };
+      const container = new ContextContainer(initialItems);
+      expect(ContextItemSetter.setItem).toHaveBeenCalledTimes(2);
+      expect(ContextItemSetter.setItem).toHaveBeenCalledWith('item1', 'value1', container, expect.objectContaining({ wrapAs: "ContextItem" }));
+      expect(ContextItemSetter.setItem).toHaveBeenCalledWith('item2', 123, container, expect.objectContaining({ wrapAs: "ContextItem" }));
     });
 
-    it('should populate container from object', () => {
-      const initialItems = { name: 'test', age: 25 };
-      const populatedContainer = new ContextContainer(initialItems);
-
-      expect(populatedContainer.size).toBe(2);
-      expect(populatedContainer.getValue('name')).toBe('test');
-      expect(populatedContainer.getValue('age')).toBe(25);
+    it('should initialize with initialItemsOrValue as a single non-plain object value', () => {
+      const initialValue = 'singleValue';
+      const container = new ContextContainer(initialValue);
+      expect(ContextItemSetter.setItem).toHaveBeenCalledTimes(1);
+      expect(ContextItemSetter.setItem).toHaveBeenCalledWith('default', initialValue, container, expect.objectContaining({ wrapAs: "ContextItem" }));
     });
 
-    it('should create default item for non-object value', () => {
-      const singleValueContainer = new ContextContainer('test value');
-
-      expect(singleValueContainer.size).toBe(1);
-      expect(singleValueContainer.getValue('default')).toBe('test value');
-    });
-
-    it('should set default item options', () => {
-      const customContainer = new ContextContainer({}, {}, {
+    it('should pass container options to internal ContextItem and set default item options', () => {
+      const metadata = { info: 'test container' };
+      const options = {
+        recordAccess: false,
+        recordAccessForMetadata: true,
         defaultItemWrapPrimitives: false,
         defaultItemWrapAs: "ContextContainer",
         defaultItemRecordAccess: false,
-        defaultItemRecordAccessForMetadata: true
-      });
+        defaultItemRecordAccessForMetadata: true,
+      };
+      const container = new ContextContainer({}, metadata, options);
+      expect(ContextItem).toHaveBeenCalledWith(undefined, metadata, { recordAccess: false, recordAccessForMetadata: true });
+      const defaultOpts = container._getDefaultItemOptions();
+      expect(defaultOpts.wrapPrimitives).toBe(false);
+      expect(defaultOpts.wrapAs).toBe("ContextContainer");
+      expect(defaultOpts.recordAccess).toBe(false);
+      expect(defaultOpts.recordAccessForMetadata).toBe(true);
+    });
 
-      const item = customContainer.setItem('test', 'value').getWrappedItem('test');
-      expect(item.recordAccess).toBe(false);
-      expect(item.recordAccessForMetadata).toBe(true);
+    it('should handle undefined initialItemsOrValue by not calling setItem', () => {
+      const container = new ContextContainer(undefined);
+      expect(ContextItemSetter.setItem).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('delegated ContextItem properties and methods', () => {
+    let container;
+    let mockInternalItem;
+
+    beforeEach(() => {
+      container = new ContextContainer();
+      // Get the internal ContextItem instance created by the constructor
+      mockInternalItem = ContextItem.mock.results[0].value;
+    });
+
+    it('should delegate metadata getter', () => {
+      mockInternalItem.metadata = { test: 'value' };
+      expect(container.metadata).toEqual({ test: 'value' });
+    });
+
+    it('should delegate metadata setter', () => {
+      container.metadata = { new: 'metadata' };
+      expect(mockInternalItem.metadata).toEqual({ new: 'metadata' });
+    });
+
+    it('should delegate createdAt getter', () => {
+      expect(container.createdAt).toBe(MOCK_DATE);
+    });
+
+    it('should delegate modifiedAt getter', () => {
+      expect(container.modifiedAt).toBe(MOCK_DATE);
+    });
+
+    it('should delegate lastAccessedAt getter', () => {
+      expect(container.lastAccessedAt).toBe(MOCK_DATE);
+    });
+
+    it('should delegate recordAccess getter and setter', () => {
+      expect(container.recordAccess).toBe(true);
+      container.recordAccess = false;
+      expect(mockInternalItem.recordAccess).toBe(false);
+    });
+
+    it('should delegate recordAccessForMetadata getter and setter', () => {
+      expect(container.recordAccessForMetadata).toBe(false);
+      container.recordAccessForMetadata = true;
+      expect(mockInternalItem.recordAccessForMetadata).toBe(true);
+    });
+
+    it('should delegate _updateAccessTimestamp', () => {
+      container._updateAccessTimestamp();
+      expect(mockInternalItem._updateAccessTimestamp).toHaveBeenCalled();
+    });
+
+    it('should delegate _updateModificationTimestamps', () => {
+      container._updateModificationTimestamps();
+      expect(mockInternalItem._updateModificationTimestamps).toHaveBeenCalled();
+    });
+
+    it('should delegate freeze method', () => {
+      container.freeze();
+      expect(mockInternalItem.freeze).toHaveBeenCalled();
+    });
+
+    it('should delegate unfreeze method', () => {
+      container.unfreeze();
+      expect(mockInternalItem.unfreeze).toHaveBeenCalled();
+    });
+
+    it('should delegate isFrozen method', () => {
+      mockInternalItem.isFrozen.mockReturnValue(true);
+      expect(container.isFrozen()).toBe(true);
+      expect(mockInternalItem.isFrozen).toHaveBeenCalled();
+    });
+
+    it('should delegate setMetadata method', () => {
+      const newMetadata = { updated: 'metadata' };
+      container.setMetadata(newMetadata);
+      expect(mockInternalItem.setMetadata).toHaveBeenCalledWith(newMetadata);
+    });
+
+    it('should delegate changeAccessRecord method', () => {
+      container.changeAccessRecord(false, true);
+      expect(mockInternalItem.changeAccessRecord).toHaveBeenCalledWith(false, true);
+    });
+  });
+
+  describe('_isPlainObject', () => {
+    it('should call Validator.isPlainObject', () => {
+      const container = new ContextContainer();
+      const obj = {};
+      container._isPlainObject(obj);
+      expect(Validator.isPlainObject).toHaveBeenCalledWith(obj);
+    });
+  });
+
+  describe('_extractKeyComponents', () => {
+    it('should call PathUtils.extractKeyComponents and validate first key', () => {
+      const container = new ContextContainer();
+      // Mock the global isReservedKey function instead of the private method
+      Validator.isReservedKey.mockReturnValue(false);
+      const path = 'a.b.c';
+      container._extractKeyComponents(path);
+      expect(PathUtils.extractKeyComponents).toHaveBeenCalledWith(path, expect.objectContaining({
+        validateFirstKey: expect.any(Function)
+      }));
+      // Verify the validator was called for validation
+      expect(Validator.isReservedKey).toHaveBeenCalled();
+    });
+
+    it('should throw TypeError if first key is reserved during extraction', () => {
+      const container = new ContextContainer();
+      // Mock the global isReservedKey function to return true for reserved keys
+      Validator.isReservedKey.mockReturnValue(true);
+      PathUtils.extractKeyComponents.mockImplementationOnce((path, opts) => {
+        opts.validateFirstKey('value'); // Simulate call with reserved key
+        return { firstKey: 'value', remainingPath: '' };
+      });
+      expect(() => container._extractKeyComponents('value.b')).toThrow(TypeError);
+    });
+  });
+
+  describe('_createNestedContainer', () => {
+    it('should create and return a new nested container if one does not exist', () => {
+      const container = new ContextContainer();
+      const mockNewNestedContainer = new ContextContainer(); // This will use mocked ContextItem
+      ContextValueWrapper.wrap.mockReturnValue(mockNewNestedContainer);
+
+      const nested = container._createNestedContainer('nestedKey');
+      expect(ContextValueWrapper.wrap).toHaveBeenCalledWith({}, expect.objectContaining({ wrapAs: 'ContextContainer' }));
+      expect(nested).toBe(mockNewNestedContainer);
+      expect(container._getManagedItem('nestedKey')).toBe(mockNewNestedContainer);
+    });
+
+    it('should return an existing container if it is a ContextContainer', () => {
+      const container = new ContextContainer();
+      const existingNestedContainer = new ContextContainer();
+      jest.spyOn(existingNestedContainer, 'setItem'); // Ensure it's a "valid" container
+      container._setManagedItem('existingKey', existingNestedContainer);
+
+      const nested = container._createNestedContainer('existingKey');
+      expect(ContextValueWrapper.wrap).not.toHaveBeenCalled();
+      expect(nested).toBe(existingNestedContainer);
+    });
+
+    it('should throw TypeError if existing item is not a valid container', () => {
+      const container = new ContextContainer();
+      const nonContainerItem = new ContextItem('not a container');
+      nonContainerItem.setItem = undefined; // Make it not duck-type as container
+      container._setManagedItem('invalidKey', nonContainerItem);
+      expect(() => container._createNestedContainer('invalidKey')).toThrow(TypeError);
+    });
+  });
+
+  describe('_setNestedItem', () => {
+    it('should call setItem on the nested container and update modification timestamps', () => {
+      const container = new ContextContainer();
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      const mockNestedContainer = new ContextContainer();
+      jest.spyOn(mockNestedContainer, 'setItem');
+      const itemOptions = { frozen: true };
+
+      container._setNestedItem(mockNestedContainer, 'path.to.value', 123, itemOptions);
+      expect(mockNestedContainer.setItem).toHaveBeenCalledWith('path.to.value', 123, itemOptions);
+      expect(mockInternalItem._updateModificationTimestamps).toHaveBeenCalled();
     });
   });
 
   describe('setItem', () => {
-    it('should set an item with a string key', () => {
-      container.setItem('testKey', 'testValue');
-      expect(container.getValue('testKey')).toBe('testValue');
-    });
-
-    it('should return the container for chaining', () => {
-      const result = container.setItem('key', 'value');
-      expect(result).toBe(container);
-    });
-
-    it('should throw error for non-string key', () => {
-      expect(() => container.setItem(123, 'value')).toThrow(TypeError);
-      expect(() => container.setItem(null, 'value')).toThrow(TypeError);
-      expect(() => container.setItem(undefined, 'value')).toThrow(TypeError);
-    });
-
-    it('should throw error for empty string key', () => {
-      expect(() => container.setItem('', 'value')).toThrow(TypeError);
-    });
-
-    it('should throw error for reserved keys', () => {
-      expect(() => container.setItem('value', 'test')).toThrow(TypeError);
-      expect(() => container.setItem('metadata', 'test')).toThrow(TypeError);
-      expect(() => container.setItem('size', 'test')).toThrow(TypeError);
-    });
-
-    it('should update modification timestamps', () => {
-      const originalModified = container.modifiedAt;
-
-      setTimeout(() => {
-        container.setItem('test', 'value');
-        expect(container.modifiedAt.getTime()).toBeGreaterThan(originalModified.getTime());
-      }, 10);
-    });
-
-    it('should override item-specific options', () => {
-      container.setItem('test', 'value', {
-        recordAccess: false,
-        metadata: { custom: 'data' }
-      });
-
-      const item = container.getWrappedItem('test');
-      expect(item.recordAccess).toBe(false);
-      expect(item.metadata.custom).toBe('data');
-    });
-  });
-
-  describe('getItem', () => {
-    beforeEach(() => {
-      container.setItem('test', 'value');
-    });
-
-    it('should return the managed item', () => {
-      const item = container.getWrappedItem('test');
-      expect(item).toBeInstanceOf(ContextItem);
-      expect(item.value).toBe('value');
-    });
-
-    it('should return undefined for non-existent key', () => {
-      expect(container.getItem('nonexistent')).toBeUndefined();
-    });
-
-    it('should update container access timestamp when recordAccess is true', () => {
-      const originalLastAccessed = container.lastAccessedAt;
-
-      setTimeout(() => {
-        container.getItem('test');
-        expect(container.lastAccessedAt.getTime()).toBeGreaterThan(originalLastAccessed.getTime());
-      }, 10);
-    });
-
-    it('should not update access timestamp when recordAccess is false', () => {
-      const noAccessContainer = new ContextContainer({}, {}, { recordAccess: false });
-      noAccessContainer.setItem('test', 'value');
-      const originalLastAccessed = noAccessContainer.lastAccessedAt;
-
-      setTimeout(() => {
-        noAccessContainer.getItem('test');
-        expect(noAccessContainer.lastAccessedAt).toBe(originalLastAccessed);
-      }, 10);
-    });
-  });
-
-  describe('getValue', () => {
-    beforeEach(() => {
-      container.setItem('test', 'value');
-    });
-
-    it('should return the unwrapped value', () => {
-      expect(container.getValue('test')).toBe('value');
-    });
-
-    it('should return undefined for non-existent key', () => {
-      expect(container.getValue('nonexistent')).toBeUndefined();
-    });
-
-    it('should update both container and item access timestamps', () => {
-      const originalContainerAccess = container.lastAccessedAt;
-      const item = container.getWrappedItem('test');
-      const originalItemAccess = item.lastAccessedAt;
-
-      setTimeout(() => {
-        container.getValue('test');
-        expect(container.lastAccessedAt.getTime()).toBeGreaterThan(originalContainerAccess.getTime());
-        expect(item.lastAccessedAt.getTime()).toBeGreaterThan(originalItemAccess.getTime());
-      }, 10);
-    });
-  });
-
-  describe('removeItem', () => {
-    beforeEach(() => {
-      container.setItem('test', 'value');
-    });
-
-    it('should remove an existing item', () => {
-      const result = container.removeItem('test');
-      expect(result).toBe(true);
-      expect(container.hasItem('test')).toBe(false);
-    });
-
-    it('should return false for non-existent item', () => {
-      const result = container.removeItem('nonexistent');
-      expect(result).toBe(false);
-    });
-
-    it('should update modification timestamps when item is removed', () => {
-      const originalModified = container.modifiedAt;
-
-      setTimeout(() => {
-        container.removeItem('test');
-        expect(container.modifiedAt.getTime()).toBeGreaterThan(originalModified.getTime());
-      }, 10);
-    });
-
-    it('should not update timestamps when no item is removed', () => {
-      const originalModified = container.modifiedAt;
-
-      setTimeout(() => {
-        container.removeItem('nonexistent');
-        expect(container.modifiedAt).toBe(originalModified);
-      }, 10);
+    it('should delegate to ContextItemSetter.setItem', () => {
+      const container = new ContextContainer();
+      const key = 'testKey';
+      const value = 'testValue';
+      const options = { frozen: true };
+      container.setItem(key, value, options);
+      expect(ContextItemSetter.setItem).toHaveBeenCalledWith(key, value, container, options);
     });
   });
 
   describe('hasItem', () => {
-    beforeEach(() => {
-      container.setItem('test', 'value');
+    it('should return true for an existing top-level item', () => {
+      const container = new ContextContainer();
+      container._setManagedItem('foo', new ContextItem('bar'));
+      expect(container.hasItem('foo')).toBe(true);
     });
 
-    it('should return true for existing item', () => {
-      expect(container.hasItem('test')).toBe(true);
+    it('should return false for a non-existent top-level item', () => {
+      const container = new ContextContainer();
+      expect(container.hasItem('bar')).toBe(false);
     });
 
-    it('should return false for non-existent item', () => {
-      expect(container.hasItem('nonexistent')).toBe(false);
+    it('should return true for an existing nested item', () => {
+      const container = new ContextContainer();
+      const nestedContainer = new ContextContainer();
+      container._setManagedItem('parent', nestedContainer);
+      jest.spyOn(nestedContainer, 'hasItem').mockReturnValue(true);
+      PathUtils.extractKeyComponents.mockReturnValue({ firstKey: 'parent', remainingPath: 'child' });
+
+      expect(container.hasItem('parent.child')).toBe(true);
+      expect(nestedContainer.hasItem).toHaveBeenCalledWith('child');
     });
 
-    it('should update access timestamp when recordAccess is true', () => {
-      const originalLastAccessed = container.lastAccessedAt;
+    it('should return false if nested path firstKey does not exist or is not a container', () => {
+      const container = new ContextContainer();
+      container._setManagedItem('parentNotContainer', new ContextItem({}));
+      PathUtils.extractKeyComponents.mockImplementation((path) => {
+        if (path === 'nonExistent.child') return { firstKey: 'nonExistent', remainingPath: 'child' };
+        if (path === 'parentNotContainer.child') return { firstKey: 'parentNotContainer', remainingPath: 'child' };
+        return { firstKey: path, remainingPath: ''};
+      });
+      expect(container.hasItem('nonExistent.child')).toBe(false);
+      expect(container.hasItem('parentNotContainer.child')).toBe(false);
+    });
 
-      setTimeout(() => {
-        container.hasItem('test');
-        expect(container.lastAccessedAt.getTime()).toBeGreaterThan(originalLastAccessed.getTime());
-      }, 10);
+    it('should return false for invalid key types', () => {
+      const container = new ContextContainer();
+      expect(container.hasItem(null)).toBe(false);
+      expect(container.hasItem('')).toBe(false);
+      expect(container.hasItem(123)).toBe(false);
+    });
+
+    it('should throw TypeError if path contains a reserved key', () => {
+      const container = new ContextContainer();
+      Validator.isReservedKey.mockImplementation((key) => key === 'value');
+      PathUtils.extractKeyComponents.mockImplementationOnce((path, opts) => {
+         // Simulate the validation call for 'value.prop'
+        if (path === 'value.prop') opts.validateFirstKey('value');
+        return { firstKey: 'value', remainingPath: 'prop' };
+      });
+      expect(() => container.hasItem('value.prop')).toThrow(TypeError);
+    });
+  });
+
+  describe('getItem', () => {
+    it('should return the unwrapped value of a top-level item and update access timestamp', () => {
+      const container = new ContextContainer({}, {}, { recordAccess: true });
+      const mockInternalItem = ContextItem.mock.results[0].value; // Get container's internal item
+      const mockItem = new ContextItem('testValue');
+      // Manually set the value property on the mock
+      Object.defineProperty(mockItem, 'value', {
+        get: jest.fn(() => 'testValue'),
+        configurable: true
+      });
+      container._setManagedItem('foo', mockItem);
+
+      expect(container.getItem('foo')).toBe('testValue');
+      expect(mockInternalItem._updateAccessTimestamp).toHaveBeenCalledTimes(1); // For container access
+    });
+
+    it('should return undefined for a non-existent item', () => {
+      const container = new ContextContainer();
+      expect(container.getItem('nonExistent')).toBeUndefined();
+    });
+
+    it('should handle nested item access via #handleNestedAccess', () => {
+      const container = new ContextContainer({}, {}, { recordAccess: true });
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      const nestedContainer = new ContextContainer();
+      container._setManagedItem('parent', nestedContainer);
+      jest.spyOn(nestedContainer, 'getItem').mockReturnValue('nestedValue');
+      PathUtils.extractKeyComponents.mockReturnValue({ firstKey: 'parent', remainingPath: 'child', parts: ['parent', 'child'] });
+
+      expect(container.getItem('parent.child')).toBe('nestedValue');
+      expect(nestedContainer.getItem).toHaveBeenCalledWith('child');
+      expect(mockInternalItem._updateAccessTimestamp).toHaveBeenCalledTimes(1); // For container access to 'parent'
+    });
+
+    it('should return undefined for invalid key type', () => {
+      const container = new ContextContainer();
+      expect(container.getItem(123)).toBeUndefined();
+    });
+  });
+
+  describe('#handleNestedAccess (tested via getItem)', () => {
+    it('should correctly access value from nested ContextContainer', () => {
+        const container = new ContextContainer({}, {}, { recordAccess: true });
+        const mockInternalItem = ContextItem.mock.results[0].value;
+        const childContainer = new ContextContainer();
+        jest.spyOn(childContainer, 'getItem').mockReturnValue('deepValue');
+        container._setManagedItem('parent', childContainer);
+
+        PathUtils.extractKeyComponents.mockReturnValueOnce({ firstKey: 'parent', remainingPath: 'child.grandchild', parts: ['parent', 'child', 'grandchild'] });
+
+        container.getItem('parent.child.grandchild');
+        expect(childContainer.getItem).toHaveBeenCalledWith('child.grandchild');
+        expect(mockInternalItem._updateAccessTimestamp).toHaveBeenCalled();
+    });
+
+    it('should correctly access value from nested object within a ContextItem', () => {
+        const container = new ContextContainer({}, {}, { recordAccess: true });
+        const mockInternalItem = ContextItem.mock.results[0].value;
+        const itemWithValueObject = new ContextItem({ child: { grandchild: 'deepValue' } });
+        container._setManagedItem('parent', itemWithValueObject);
+
+        PathUtils.extractKeyComponents.mockReturnValueOnce({ firstKey: 'parent', remainingPath: 'child.grandchild', parts: ['parent', 'child', 'grandchild'] });
+        PathUtils.getNestedObjectValue.mockReturnValueOnce('deepValue');
+
+        expect(container.getItem('parent.child.grandchild')).toBe('deepValue');
+        expect(PathUtils.getNestedObjectValue).toHaveBeenCalledWith({ child: { grandchild: 'deepValue' } }, ['parent', 'child', 'grandchild'], { startIndex: 1 });
+        expect(mockInternalItem._updateAccessTimestamp).toHaveBeenCalled();
+    });
+
+    it('should return undefined if path is not found in nested structures', () => {
+        const container = new ContextContainer();
+        const childContainer = new ContextContainer();
+        jest.spyOn(childContainer, 'getItem').mockReturnValue(undefined);
+        container._setManagedItem('parent', childContainer);
+        PathUtils.extractKeyComponents.mockReturnValueOnce({ firstKey: 'parent', remainingPath: 'nonexistent', parts: ['parent', 'nonexistent'] });
+        expect(container.getItem('parent.nonexistent')).toBeUndefined();
+    });
+
+    it('should throw TypeError if first key in path is reserved', () => {
+      const container = new ContextContainer();
+      Validator.isReservedKey.mockImplementation(key => key === 'value');
+      PathUtils.extractKeyComponents.mockImplementationOnce((path, opts) => {
+        if (path === 'value.prop') opts.validateFirstKey('value'); // Simulate validation
+        return { firstKey: 'value', remainingPath: 'prop', parts: ['value', 'prop'] };
+      });
+      expect(() => container.getItem('value.prop')).toThrow(TypeError);
+    });
+  });
+
+
+  describe('getValue', () => {
+    it('should call getItem and update item access timestamp if applicable', () => {
+      const container = new ContextContainer();
+      const mockItem = new ContextItem('val');
+      mockItem.recordAccess = true;
+      mockItem._updateAccessTimestamp = jest.fn();
+      container._setManagedItem('test', mockItem);
+
+      jest.spyOn(container, 'getItem').mockReturnValue('val');
+
+      expect(container.getValue('test')).toBe('val');
+      expect(container.getItem).toHaveBeenCalledWith('test');
+      expect(mockItem._updateAccessTimestamp).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not update item access timestamp if item does not record access', () => {
+      const container = new ContextContainer();
+      const mockItem = new ContextItem('val');
+      mockItem.recordAccess = false;
+      mockItem._updateAccessTimestamp = jest.fn();
+      container._setManagedItem('test', mockItem);
+      jest.spyOn(container, 'getItem').mockReturnValue('val');
+
+      container.getValue('test');
+      expect(mockItem._updateAccessTimestamp).not.toHaveBeenCalled();
+    });
+
+    it('should not attempt to update item access timestamp for nested gets (handled by nested container/item)', () => {
+      const container = new ContextContainer();
+      jest.spyOn(container, 'getItem').mockReturnValue('nestedVal');
+      PathUtils.extractKeyComponents.mockReturnValue({ firstKey: 'a', remainingPath: 'b', parts: ['a', 'b'] });
+
+      container.getValue('a.b');
+      const topLevelItem = container._getManagedItem('a.b');
+      expect(topLevelItem).toBeUndefined();
+    });
+  });
+
+
+  describe('getWrappedItem', () => {
+    it('should return the wrapped item and update container access timestamp', () => {
+      const container = new ContextContainer({}, {}, { recordAccess: true });
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      const mockWrappedItem = new ContextItem('val');
+      container._setManagedItem('foo', mockWrappedItem);
+
+      expect(container.getWrappedItem('foo')).toBe(mockWrappedItem);
+      expect(mockInternalItem._updateAccessTimestamp).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle nested wrapped item access', () => {
+      const container = new ContextContainer({}, {}, { recordAccess: true });
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      const nestedContainer = new ContextContainer();
+      const mockDeepWrappedItem = new ContextItem('deepVal');
+      container._setManagedItem('parent', nestedContainer);
+      jest.spyOn(nestedContainer, 'getWrappedItem').mockReturnValue(mockDeepWrappedItem);
+      PathUtils.extractKeyComponents.mockReturnValue({ firstKey: 'parent', remainingPath: 'child' });
+
+      expect(container.getWrappedItem('parent.child')).toBe(mockDeepWrappedItem);
+      expect(nestedContainer.getWrappedItem).toHaveBeenCalledWith('child');
+      expect(mockInternalItem._updateAccessTimestamp).toHaveBeenCalledTimes(1); // For 'parent' access
+    });
+
+    it('should return undefined if item not found or nested path invalid', () => {
+      const container = new ContextContainer();
+      expect(container.getWrappedItem('nonExistent')).toBeUndefined();
+
+      const nestedContainer = new ContextContainer();
+      container._setManagedItem('parent', nestedContainer);
+      jest.spyOn(nestedContainer, 'getWrappedItem').mockReturnValue(undefined);
+      PathUtils.extractKeyComponents.mockReturnValue({ firstKey: 'parent', remainingPath: 'nonExistentChild' });
+      expect(container.getWrappedItem('parent.nonExistentChild')).toBeUndefined();
+    });
+
+     it('should return undefined for invalid key type', () => {
+      const container = new ContextContainer();
+      expect(container.getWrappedItem(null)).toBeUndefined();
+    });
+  });
+
+  describe('removeItem', () => {
+    it('should remove an item and update modification timestamps', () => {
+      const container = new ContextContainer();
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      container._setManagedItem('foo', new ContextItem('bar'));
+      expect(container.removeItem('foo')).toBe(true);
+      expect(container.hasItem('foo')).toBe(false);
+      expect(mockInternalItem._updateModificationTimestamps).toHaveBeenCalled();
+    });
+
+    it('should return false if item does not exist and not update timestamps', () => {
+      const container = new ContextContainer();
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      expect(container.removeItem('nonExistent')).toBe(false);
+      expect(mockInternalItem._updateModificationTimestamps).not.toHaveBeenCalled();
     });
   });
 
   describe('clearItems', () => {
-    beforeEach(() => {
-      container.setItem('test1', 'value1');
-      container.setItem('test2', 'value2');
-    });
-
-    it('should remove all items', () => {
+    it('should clear all items and update modification timestamps if items existed', () => {
+      const container = new ContextContainer();
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      container._setManagedItem('foo', new ContextItem('bar'));
+      container._setManagedItem('baz', new ContextItem('qux'));
       container.clearItems();
       expect(container.size).toBe(0);
-      expect(container.hasItem('test1')).toBe(false);
-      expect(container.hasItem('test2')).toBe(false);
+      expect(mockInternalItem._updateModificationTimestamps).toHaveBeenCalled();
     });
 
-    it('should update modification timestamps when items exist', () => {
-      const originalModified = container.modifiedAt;
-
-      setTimeout(() => {
-        container.clearItems();
-        expect(container.modifiedAt.getTime()).toBeGreaterThan(originalModified.getTime());
-      }, 10);
-    });
-
-    it('should not update timestamps when container is already empty', () => {
-      const emptyContainer = new ContextContainer();
-      const originalModified = emptyContainer.modifiedAt;
-
-      setTimeout(() => {
-        emptyContainer.clearItems();
-        expect(emptyContainer.modifiedAt).toBe(originalModified);
-      }, 10);
-    });
-  });
-
-  describe('size getter', () => {
-    it('should return 0 for empty container', () => {
+    it('should not update modification timestamps if no items existed', () => {
+      const container = new ContextContainer();
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      container.clearItems();
       expect(container.size).toBe(0);
-    });
-
-    it('should return correct size with items', () => {
-      container.setItem('test1', 'value1');
-      container.setItem('test2', 'value2');
-      expect(container.size).toBe(2);
-    });
-
-    it('should update access timestamp when recordAccess is true', () => {
-      const originalLastAccessed = container.lastAccessedAt;
-
-      setTimeout(() => {
-        container.size;
-        expect(container.lastAccessedAt.getTime()).toBeGreaterThan(originalLastAccessed.getTime());
-      }, 10);
+      expect(mockInternalItem._updateModificationTimestamps).not.toHaveBeenCalled();
     });
   });
 
-  describe('iterators', () => {
+  describe('Iterators (keys, items, entries)', () => {
+    let container;
+    let mockInternalItem;
+
     beforeEach(() => {
-      container.setItem('key1', 'value1');
-      container.setItem('key2', 'value2');
+      container = new ContextContainer({}, {}, { recordAccess: true });
+      mockInternalItem = ContextItem.mock.results[0].value;
+      container._setManagedItem('a', new ContextItem(1));
+      container._setManagedItem('b', new ContextItem(2));
     });
 
-    describe('keys', () => {
-      it('should return iterator of keys', () => {
-        const keys = Array.from(container.keys());
-        expect(keys).toEqual(['key1', 'key2']);
-      });
-
-      it('should update access timestamp', () => {
-        const originalLastAccessed = container.lastAccessedAt;
-
-        setTimeout(() => {
-          container.keys();
-          expect(container.lastAccessedAt.getTime()).toBeGreaterThan(originalLastAccessed.getTime());
-        }, 10);
-      });
+    it('keys() should return an iterator for keys and update access timestamp', () => {
+      const keys = Array.from(container.keys());
+      expect(keys).toEqual(['a', 'b']);
+      expect(mockInternalItem._updateAccessTimestamp).toHaveBeenCalled();
     });
 
-    describe('items', () => {
-      it('should return iterator of managed items', () => {
-        const items = Array.from(container.items());
-        expect(items).toHaveLength(2);
-        expect(items[0]).toBeInstanceOf(ContextItem);
-        expect(items[1]).toBeInstanceOf(ContextItem);
-      });
-
-      it('should update access timestamp', () => {
-        const originalLastAccessed = container.lastAccessedAt;
-
-        setTimeout(() => {
-          container.items();
-          expect(container.lastAccessedAt.getTime()).toBeGreaterThan(originalLastAccessed.getTime());
-        }, 10);
-      });
+    it('items() should return an iterator for items and update access timestamp', () => {
+      const items = Array.from(container.items());
+      expect(items.length).toBe(2);
+      // The items are mocked ContextItem instances, so check they are objects with expected structure
+      expect(items[0]).toHaveProperty('value');
+      expect(items[0]).toHaveProperty('metadata');
+      expect(mockInternalItem._updateAccessTimestamp).toHaveBeenCalled();
     });
 
-    describe('entries', () => {
-      it('should return iterator of [key, item] pairs', () => {
-        const entries = Array.from(container.entries());
-        expect(entries).toHaveLength(2);
-        expect(entries[0][0]).toBe('key1');
-        expect(entries[0][1]).toBeInstanceOf(ContextItem);
-        expect(entries[1][0]).toBe('key2');
-        expect(entries[1][1]).toBeInstanceOf(ContextItem);
-      });
-
-      it('should update access timestamp', () => {
-        const originalLastAccessed = container.lastAccessedAt;
-
-        setTimeout(() => {
-          container.entries();
-          expect(container.lastAccessedAt.getTime()).toBeGreaterThan(originalLastAccessed.getTime());
-        }, 10);
-      });
+    it('entries() should return an iterator for entries and update access timestamp', () => {
+      const entries = Array.from(container.entries());
+      expect(entries.length).toBe(2);
+      expect(entries[0][0]).toBe('a');
+      // The entries contain mocked ContextItem instances
+      expect(entries[0][1]).toHaveProperty('value');
+      expect(entries[0][1]).toHaveProperty('metadata');
+      expect(mockInternalItem._updateAccessTimestamp).toHaveBeenCalled();
     });
   });
 
-  describe('value getter', () => {
-    beforeEach(() => {
-      container.setItem('name', 'John');
-      container.setItem('age', 30);
-    });
-
-    it('should return plain object with unwrapped values', () => {
-      const value = container.value;
-      expect(value).toEqual({ name: 'John', age: 30 });
-    });
-
-    it('should update container access timestamp', () => {
-      const originalLastAccessed = container.lastAccessedAt;
-
-      setTimeout(() => {
-        container.value;
-        expect(container.lastAccessedAt.getTime()).toBeGreaterThan(originalLastAccessed.getTime());
-      }, 10);
-    });
-
-    it('should update item access timestamps', () => {
-      const nameItem = container.getItem('name');
-      const ageItem = container.getItem('age');
-      const originalNameAccess = nameItem.lastAccessedAt;
-      const originalAgeAccess = ageItem.lastAccessedAt;
-
-      setTimeout(() => {
-        container.value;
-        expect(nameItem.lastAccessedAt.getTime()).toBeGreaterThan(originalNameAccess.getTime());
-        expect(ageItem.lastAccessedAt.getTime()).toBeGreaterThan(originalAgeAccess.getTime());
-      }, 10);
+  describe('size (getter)', () => {
+    it('should return the number of items and update access timestamp', () => {
+      const container = new ContextContainer({}, {}, { recordAccess: true });
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      container._setManagedItem('a', new ContextItem(1));
+      expect(container.size).toBe(1);
+      expect(mockInternalItem._updateAccessTimestamp).toHaveBeenCalled();
     });
   });
 
-  describe('value setter', () => {
-    beforeEach(() => {
-      container.setItem('old1', 'value1');
-      container.setItem('old2', 'value2');
+  describe('value (getter)', () => {
+    it('should return a plain object of unwrapped values and update access timestamp', () => {
+      const container = new ContextContainer({}, {}, { recordAccess: true });
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      const item1 = new ContextItem(10);
+      Object.defineProperty(item1, 'value', {
+        get: jest.fn(() => 10),
+        configurable: true
+      });
+      const item2 = new ContextItem({ nested: 20 });
+      Object.defineProperty(item2, 'value', {
+        get: jest.fn(() => ({ nested: 20 })),
+        configurable: true
+      });
+      container._setManagedItem('a', item1);
+      container._setManagedItem('b', item2);
+
+      expect(container.value).toEqual({ a: 10, b: { nested: 20 } });
+      expect(mockInternalItem._updateAccessTimestamp).toHaveBeenCalled();
+    });
+  });
+
+  describe('value (setter)', () => {
+    it('should clear existing items and set new items from object, then update timestamps', () => {
+      const container = new ContextContainer();
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      container._setManagedItem('old', new ContextItem('oldValue'));
+      jest.spyOn(container, 'clearItems');
+      jest.spyOn(container, 'setItem').mockReturnValue(container);
+
+      const newItems = { a: 1, b: 'two' };
+      container.value = newItems;
+
+      expect(container.clearItems).toHaveBeenCalled();
+      expect(container.setItem).toHaveBeenCalledWith('a', 1);
+      expect(container.setItem).toHaveBeenCalledWith('b', 'two');
+      expect(mockInternalItem._updateModificationTimestamps).toHaveBeenCalled();
     });
 
-    it('should replace all items with new object properties', () => {
-      container.value = { new1: 'newValue1', new2: 'newValue2' };
-
-      expect(container.size).toBe(2);
-      expect(container.getValue('new1')).toBe('newValue1');
-      expect(container.getValue('new2')).toBe('newValue2');
-      expect(container.hasItem('old1')).toBe(false);
-      expect(container.hasItem('old2')).toBe(false);
-    });
-
-    it('should handle empty object', () => {
-      container.value = {};
-      expect(container.size).toBe(0);
-    });
-
-    it('should throw error for non-object values', () => {
-      expect(() => container.value = 'string').toThrow(TypeError);
-      expect(() => container.value = 123).toThrow(TypeError);
-      expect(() => container.value = null).toThrow(TypeError);
-    });
-
-    it('should update modification timestamps', () => {
-      const originalModified = container.modifiedAt;
-
-      setTimeout(() => {
-        container.value = { new: 'value' };
-        expect(container.modifiedAt.getTime()).toBeGreaterThan(originalModified.getTime());
-      }, 10);
+    it('should throw TypeError if new value is not an object', () => {
+      const container = new ContextContainer();
+      expect(() => { container.value = null; }).toThrow(TypeError);
+      expect(() => { container.value = 'string'; }).toThrow(TypeError);
     });
   });
 
   describe('reinitialize', () => {
-    beforeEach(() => {
-      container.setItem('test', 'value');
-      container.setMetadata({ old: 'metadata' });
+    it('should call internal item reinitialize, update options, clear and repopulate items', () => {
+      const container = new ContextContainer({ old: 'val' }, { oldMeta: true }, { recordAccess: false });
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      jest.spyOn(container, 'setItem').mockReturnThis();
+
+      const newInitialItems = { item1: 'value1' };
+      const newMetadata = { newMeta: true };
+      const newOptions = {
+        recordAccess: true, recordAccessForMetadata: true,
+        defaultItemWrapPrimitives: false, defaultItemWrapAs: "ContextContainer",
+        defaultItemRecordAccess: false, defaultItemRecordAccessForMetadata: true,
+      };
+
+      container.reinitialize(newInitialItems, newMetadata, newOptions);
+
+      expect(mockInternalItem.reinitialize).toHaveBeenCalledWith(undefined, newMetadata, { recordAccess: true, recordAccessForMetadata: true });
+
+      const defaultOpts = container._getDefaultItemOptions();
+      expect(defaultOpts.wrapPrimitives).toBe(false);
+      expect(defaultOpts.wrapAs).toBe("ContextContainer");
+
+      expect(container.setItem).toHaveBeenCalledWith('item1', 'value1');
     });
 
-    it('should clear items and reset metadata', () => {
-      container.reinitialize({}, { new: 'metadata' });
-
-      expect(container.size).toBe(0);
-      expect(container.metadata).toEqual({ new: 'metadata' });
-    });
-
-    it('should repopulate with new items from object', () => {
-      container.reinitialize({ name: 'John', age: 30 });
-
-      expect(container.size).toBe(2);
-      expect(container.getValue('name')).toBe('John');
-      expect(container.getValue('age')).toBe(30);
-    });
-
-    it('should create default item for non-object value', () => {
-      container.reinitialize('single value');
-
-      expect(container.size).toBe(1);
-      expect(container.getValue('default')).toBe('single value');
-    });
-
-    it('should update container options', () => {
-      container.reinitialize({}, {}, {
-        recordAccess: false,
-        defaultItemRecordAccess: false
-      });
-
-      expect(container.recordAccess).toBe(false);
-
-      const item = container.setItem('test', 'value').getWrappedItem('test');
-      expect(item.recordAccess).toBe(false);
-    });
-
-    it('should reset timestamps', () => {
-      const originalCreated = container.createdAt;
-      const originalModified = container.modifiedAt;
-
-      setTimeout(() => {
-        container.reinitialize();
-        expect(container.createdAt.getTime()).toBeGreaterThan(originalCreated.getTime());
-        expect(container.modifiedAt.getTime()).toBeGreaterThan(originalModified.getTime());
-      }, 10);
+     it('should reinitialize with a single non-plain object value', () => {
+      const container = new ContextContainer();
+      jest.spyOn(container, 'setItem').mockReturnThis();
+      container.reinitialize('single');
+      expect(container.setItem).toHaveBeenCalledWith('default', 'single');
     });
   });
 
-  describe('inheritance from ContextItem', () => {
-    it('should have ContextItem properties', () => {
-      expect(container.createdAt).toBeInstanceOf(Date);
-      expect(container.modifiedAt).toBeInstanceOf(Date);
-      expect(container.lastAccessedAt).toBeInstanceOf(Date);
-    });
-
-    it('should support metadata operations', () => {
-      container.setMetadata({ test: 'data' });
-      expect(container.metadata.test).toBe('data');
-    });
-
-    it('should support access recording options', () => {
-      container.changeAccessRecord({ recordAccess: false });
-      expect(container.recordAccess).toBe(false);
-    });
-  });
-
-  describe('nested containers', () => {
-    beforeEach(() => {
-      // Reset the mock to use actual ContextContainer for nested containers
-      jest.clearAllMocks();
-      ContextValueWrapper.wrap.mockImplementation((value, options) => {
-        const { ContextContainer } = jest.requireActual('./contextContainer.js');
-
-        if (options?.wrapAs === 'ContextContainer' && value instanceof ContextContainer) {
-          return value;
-        }
-
-        const { ContextItem } = jest.requireActual('./contextItem.js');
-        return new ContextItem(value, options?.metadata || {}, {
-          recordAccess: options?.recordAccess ?? true,
-          recordAccessForMetadata: options?.recordAccessForMetadata ?? false
-        });
-      });
-    });
-
-    it('should handle ContextContainer as item value', () => {
-      const nestedContainer = new ContextContainer({ nested: 'value' });
-      container.setItem('container', nestedContainer, { wrapAs: 'ContextContainer' });
-
-      const retrieved = container.getWrappedItem('container');
-      expect(retrieved).toBeInstanceOf(ContextContainer);
-      expect(retrieved.getValue('nested')).toBe('value');
-    });
-  });
-
-  describe('Protected Methods', () => {
-    describe('_isPlainObject', () => {
-      it('should return true for plain objects', () => {
-        expect(container._isPlainObject({})).toBe(true);
-        expect(container._isPlainObject({ key: 'value' })).toBe(true);
-        expect(container._isPlainObject({ nested: { object: true } })).toBe(true);
-      });
-
-      it('should return false for arrays', () => {
-        expect(container._isPlainObject([])).toBe(false);
-        expect(container._isPlainObject([1, 2, 3])).toBe(false);
-      });
-
-      it('should return false for null', () => {
-        expect(container._isPlainObject(null)).toBe(false);
-      });
-
-      it('should return false for primitive values', () => {
-        expect(container._isPlainObject('string')).toBe(false);
-        expect(container._isPlainObject(123)).toBe(false);
-        expect(container._isPlainObject(true)).toBe(false);
-        expect(container._isPlainObject(undefined)).toBe(false);
-      });
-
-      it('should return false for ContextItem instances', () => {
-        const contextItem = new ContextItem('value');
-        expect(container._isPlainObject(contextItem)).toBe(false);
-      });
-
-      it('should return false for ContextContainer instances', () => {
-        const contextContainer = new ContextContainer();
-        expect(container._isPlainObject(contextContainer)).toBe(false);
-      });
-    });
-
-    describe('_isReservedKey', () => {
-      it('should return true for known reserved property names', () => {
-        expect(container._isReservedKey('value')).toBe(true);
-        expect(container._isReservedKey('metadata')).toBe(true);
-        expect(container._isReservedKey('createdAt')).toBe(true);
-        expect(container._isReservedKey('modifiedAt')).toBe(true);
-        expect(container._isReservedKey('lastAccessedAt')).toBe(true);
-        expect(container._isReservedKey('size')).toBe(true);
-      });
-
-      it('should return true for ContextItem method names', () => {
-        expect(container._isReservedKey('setValue')).toBe(true);
-        expect(container._isReservedKey('setMetadata')).toBe(true);
-        expect(container._isReservedKey('reinitialize')).toBe(true);
-        expect(container._isReservedKey('clear')).toBe(true);
-      });
-
-      it('should return true for ContextContainer method names', () => {
-        expect(container._isReservedKey('setItem')).toBe(true);
-        expect(container._isReservedKey('getItem')).toBe(true);
-        expect(container._isReservedKey('getValue')).toBe(true);
-        expect(container._isReservedKey('removeItem')).toBe(true);
-        expect(container._isReservedKey('hasItem')).toBe(true);
-        expect(container._isReservedKey('clearItems')).toBe(true);
-        expect(container._isReservedKey('keys')).toBe(true);
-        expect(container._isReservedKey('items')).toBe(true);
-        expect(container._isReservedKey('entries')).toBe(true);
-      });
-
-      it('should return false for non-reserved keys', () => {
-        expect(container._isReservedKey('customKey')).toBe(false);
-        expect(container._isReservedKey('user')).toBe(false);
-        expect(container._isReservedKey('data')).toBe(false);
-        expect(container._isReservedKey('config')).toBe(false);
-      });
-
-      it('should handle edge case keys', () => {
-        expect(container._isReservedKey('constructor')).toBe(true);
-        expect(container._isReservedKey('prototype')).toBe(false); // Not in our reserved set
-        expect(container._isReservedKey('__proto__')).toBe(false);
-      });
-    });
-
-    describe('_extractKeyComponents', () => {
-      it('should extract first key and remaining path for dot notation', () => {
-        const result = container._extractKeyComponents('player.stats.level');
-        expect(result).toEqual({
-          firstKey: 'player',
-          remainingPath: 'stats.level'
-        });
-      });
-
-      it('should handle single level paths', () => {
-        const result = container._extractKeyComponents('player.name');
-        expect(result).toEqual({
-          firstKey: 'player',
-          remainingPath: 'name'
-        });
-      });
-
-      it('should handle deeply nested paths', () => {
-        const result = container._extractKeyComponents('a.b.c.d.e.f');
-        expect(result).toEqual({
-          firstKey: 'a',
-          remainingPath: 'b.c.d.e.f'
-        });
-      });
-
-      it('should throw error if first key is reserved', () => {
-        expect(() => container._extractKeyComponents('value.nested')).toThrow(TypeError);
-        expect(() => container._extractKeyComponents('metadata.type')).toThrow(TypeError);
-        expect(() => container._extractKeyComponents('size.length')).toThrow(TypeError);
-      });
-
-      it('should handle empty path components', () => {
-        const result = container._extractKeyComponents('player.');
-        expect(result).toEqual({
-          firstKey: 'player',
-          remainingPath: ''
-        });
-      });
-    });
-
-    describe('_createNestedContainer', () => {
-      beforeEach(() => {
-        // Reset mock to handle ContextContainer creation
-        jest.clearAllMocks();
-        ContextValueWrapper.wrap.mockImplementation((value, options) => {
-          if (options?.wrapAs === 'ContextContainer') {
-            return new ContextContainer(value, options?.metadata || {}, {
-              recordAccess: options?.recordAccess ?? true,
-              recordAccessForMetadata: options?.recordAccessForMetadata ?? false
-            });
-          }
-          return new ContextItem(value, options?.metadata || {}, {
-            recordAccess: options?.recordAccess ?? true,
-            recordAccessForMetadata: options?.recordAccessForMetadata ?? false
-          });
-        });
-      });
-
-      it('should create new container if key does not exist', () => {
-        const result = container._createNestedContainer('player');
-        expect(result).toBeInstanceOf(ContextContainer);
-        expect(container.hasItem('player')).toBe(true);
-      });
-
-      it('should return existing container if key already exists', () => {
-        const existingContainer = new ContextContainer({ nested: 'value' });
-        container.setItem('player', existingContainer, { wrapAs: 'ContextContainer' });
-
-        const result = container._createNestedContainer('player');
-        expect(result).toBe(container.getWrappedItem('player'));
-        expect(result.getValue('nested')).toBe('value');
-      });
-
-      it('should throw error if existing item is not a ContextContainer', () => {
-        container.setItem('player', 'string value');
-
-        expect(() => container._createNestedContainer('player')).toThrow(TypeError);
-        expect(() => container._createNestedContainer('player')).toThrow(/Cannot set nested value on non-container item/);
-      });
-
-      it('should use default item options for new containers', () => {
-        const customContainer = new ContextContainer({}, {}, {
-          defaultItemRecordAccess: false,
-          defaultItemWrapAs: 'ContextContainer'
-        });
-
-        const result = customContainer._createNestedContainer('newContainer');
-        expect(result.recordAccess).toBe(false);
-      });
-    });
-
-    describe('_setNestedItem', () => {
-      let nestedContainer;
-
-      beforeEach(() => {
-        // Reset mock to handle ContextContainer creation
-        jest.clearAllMocks();
-        ContextValueWrapper.wrap.mockImplementation((value, options) => {
-          if (options?.wrapAs === 'ContextContainer') {
-            return new ContextContainer(value, options?.metadata || {}, {
-              recordAccess: options?.recordAccess ?? true,
-              recordAccessForMetadata: options?.recordAccessForMetadata ?? false
-            });
-          }
-          return new ContextItem(value, options?.metadata || {}, {
-            recordAccess: options?.recordAccess ?? true,
-            recordAccessForMetadata: options?.recordAccessForMetadata ?? false
-          });
-        });
-
-        nestedContainer = new ContextContainer();
-      });
-
-      it('should set item in nested container', () => {
-        const result = container._setNestedItem(nestedContainer, 'stats.level', 10, {});
-
-        expect(result).toBe(container);
-        expect(nestedContainer.getValue('stats.level')).toBe(10);
-      });
-
-      it('should update container modification timestamps', () => {
-        const originalModified = container.modifiedAt;
-
-        setTimeout(() => {
-          container._setNestedItem(nestedContainer, 'test', 'value', {});
-          expect(container.modifiedAt.getTime()).toBeGreaterThan(originalModified.getTime());
-        }, 10);
-      });
-
-      it('should pass through item options to nested container', () => {
-        const customOptions = {
-          metadata: { nested: 'metadata' },
-          recordAccess: false
-        };
-
-        container._setNestedItem(nestedContainer, 'test', 'value', customOptions);
-
-        const item = nestedContainer.getWrappedItem('test');
-        expect(item.metadata.nested).toBe('metadata');
-        expect(item.recordAccess).toBe(false);
-      });
-
-      it('should handle deeply nested paths', () => {
-        container._setNestedItem(nestedContainer, 'a.b.c.d', 'deep value', {});
-        expect(nestedContainer.getValue('a.b.c.d')).toBe('deep value');
-      });
-    });
-  });
-
-  describe('Dot Notation Support', () => {
-    beforeEach(() => {
-      // Reset mock to handle ContextContainer creation properly
-      jest.clearAllMocks();
-      ContextValueWrapper.wrap.mockImplementation((value, options) => {
-        if (options?.wrapAs === 'ContextContainer') {
-          return new ContextContainer(value, options?.metadata || {}, {
-            recordAccess: options?.recordAccess ?? true,
-            recordAccessForMetadata: options?.recordAccessForMetadata ?? false
-          });
-        }
-        return new ContextItem(value, options?.metadata || {}, {
-          recordAccess: options?.recordAccess ?? true,
-          recordAccessForMetadata: options?.recordAccessForMetadata ?? false
-        });
-      });
-    });
-
-    describe('setItem with dot notation', () => {
-      it('should create nested containers for dot notation paths', () => {
-        container.setItem('player.stats.level', 10);
-
-        expect(container.getValue('player.stats.level')).toBe(10);
-        expect(container.getWrappedItem('player')).toBeInstanceOf(ContextContainer);
-        expect(container.getWrappedItem('player').getWrappedItem('stats')).toBeInstanceOf(ContextContainer);
-      });
-
-      it('should work with multiple nested levels', () => {
-        container.setItem('game.player.character.stats.strength', 15);
-        container.setItem('game.player.character.stats.dexterity', 12);
-
-        expect(container.getValue('game.player.character.stats.strength')).toBe(15);
-        expect(container.getValue('game.player.character.stats.dexterity')).toBe(12);
-      });
-
-      it('should throw error when trying to nest under non-container', () => {
-        container.setItem('player', 'string value');
-
-        expect(() => container.setItem('player.stats.level', 10)).toThrow(TypeError);
-        expect(() => container.setItem('player.stats.level', 10)).toThrow(/Cannot set nested value on non-container item/);
-      });
-
-      it('should work with existing nested containers', () => {
-        container.setItem('player.name', 'Alice');
-        container.setItem('player.level', 5);
-
-        expect(container.getValue('player.name')).toBe('Alice');
-        expect(container.getValue('player.level')).toBe(5);
-
-        const playerContainer = container.getWrappedItem('player');
-        expect(playerContainer.size).toBe(2);
-      });
-    });
-
-    describe('getItem with dot notation', () => {
-      beforeEach(() => {
-        container.setItem('player.stats.level', 10);
-        container.setItem('player.name', 'Alice');
-        container.setItem('config.debug', true);
-      });
-
-      it('should retrieve nested values using dot notation', () => {
-        expect(container.getItem('player.stats.level')).toBe(10);
-        expect(container.getItem('player.name')).toBe('Alice');
-        expect(container.getItem('config.debug')).toBe(true);
-      });
-
-      it('should return undefined for non-existent nested paths', () => {
-        expect(container.getItem('player.stats.nonexistent')).toBeUndefined();
-        expect(container.getItem('nonexistent.path')).toBeUndefined();
-        expect(container.getItem('player.nonexistent.deep')).toBeUndefined();
-      });
-
-      it('should handle access to nested object properties in ContextItems', () => {
-        // Set a ContextItem with an object value
-        container.setItem('data', { user: { name: 'Bob', age: 30 } });
-
-        expect(container.getItem('data.user.name')).toBe('Bob');
-        expect(container.getItem('data.user.age')).toBe(30);
-        expect(container.getItem('data.user.nonexistent')).toBeUndefined();
-      });
-
-      it('should update access timestamps for containers in path', () => {
-        const originalContainerAccess = container.lastAccessedAt;
-        const playerContainer = container.getWrappedItem('player');
-        const originalPlayerAccess = playerContainer.lastAccessedAt;
-
-        setTimeout(() => {
-          container.getItem('player.name');
-          expect(container.lastAccessedAt.getTime()).toBeGreaterThan(originalContainerAccess.getTime());
-          expect(playerContainer.lastAccessedAt.getTime()).toBeGreaterThan(originalPlayerAccess.getTime());
-        }, 10);
-      });
-    });
-
-    describe('getWrappedItem with dot notation', () => {
-      beforeEach(() => {
-        container.setItem('player.stats.level', 10);
-        container.setItem('player.name', 'Alice');
-      });
-
-      it('should retrieve nested wrapped items using dot notation', () => {
-        const levelItem = container.getWrappedItem('player.stats.level');
-        expect(levelItem).toBeInstanceOf(ContextItem);
-        expect(levelItem.value).toBe(10);
-
-        const nameItem = container.getWrappedItem('player.name');
-        expect(nameItem).toBeInstanceOf(ContextItem);
-        expect(nameItem.value).toBe('Alice');
-      });
-
-      it('should return nested containers', () => {
-        const playerContainer = container.getWrappedItem('player');
-        expect(playerContainer).toBeInstanceOf(ContextContainer);
-
-        const statsContainer = container.getWrappedItem('player.stats');
-        expect(statsContainer).toBeInstanceOf(ContextContainer);
-      });
-
-      it('should return undefined for non-existent nested paths', () => {
-        expect(container.getWrappedItem('player.stats.nonexistent')).toBeUndefined();
-        expect(container.getWrappedItem('nonexistent.path')).toBeUndefined();
-      });
-    });
-
-    describe('Complex dot notation scenarios', () => {
-      it('should handle mixed container and item access patterns', () => {
-        // Create a complex nested structure
-        container.setItem('app.config.database.host', 'localhost');
-        container.setItem('app.config.database.port', 5432);
-        container.setItem('app.config.debug', true);
-        container.setItem('app.users.admin', { name: 'Admin', role: 'administrator' });
-
-        // Verify structure
-        expect(container.getValue('app.config.database.host')).toBe('localhost');
-        expect(container.getValue('app.config.database.port')).toBe(5432);
-        expect(container.getValue('app.config.debug')).toBe(true);
-        expect(container.getValue('app.users.admin.name')).toBe('Admin');
-        expect(container.getValue('app.users.admin.role')).toBe('administrator');
-
-        // Verify container structure
-        expect(container.getWrappedItem('app')).toBeInstanceOf(ContextContainer);
-        expect(container.getWrappedItem('app.config')).toBeInstanceOf(ContextContainer);
-        expect(container.getWrappedItem('app.config.database')).toBeInstanceOf(ContextContainer);
-        expect(container.getWrappedItem('app.users')).toBeInstanceOf(ContextContainer);
-      });
-
-      it('should maintain proper isolation between nested paths', () => {
-        container.setItem('a.b.c', 'value1');
-        container.setItem('a.b.d', 'value2');
-        container.setItem('a.e.f', 'value3');
-
-        expect(container.getValue('a.b.c')).toBe('value1');
-        expect(container.getValue('a.b.d')).toBe('value2');
-        expect(container.getValue('a.e.f')).toBe('value3');
-
-        // Verify containers don't interfere with each other
-        const bContainer = container.getWrappedItem('a.b');
-        const eContainer = container.getWrappedItem('a.e');
-
-        expect(bContainer.size).toBe(2);
-        expect(eContainer.size).toBe(1);
-      });
+  describe('clear', () => {
+    it('should call clearItems and internal item clear', () => {
+      const container = new ContextContainer();
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      jest.spyOn(container, 'clearItems').mockImplementation();
+
+      container.clear();
+      expect(container.clearItems).toHaveBeenCalled();
+      expect(mockInternalItem.clear).toHaveBeenCalled();
     });
   });
 });

@@ -10,19 +10,43 @@ import { ContextItemSetter } from './contextItemSetter.js';
 import { Validator } from '../../utils/static/validator.js';
 import PathUtils from '../../helpers/pathUtils.js';
 
+const RESERVED_KEYS = [
+  'value', 'metadata', 'createdAt', 'modifiedAt', 'lastAccessedAt', 'size'
+];
+
 /**
  * @class ContextContainer
  * @classdesc Represents a container that manages a collection of named ContextItems or nested ContextContainers.
- *            Extends ContextItem, inheriting metadata and timestamp features.
- * @extends ContextItem
+ *            Uses composition with ContextItem for metadata and timestamp features.
  * @property {object} value - A plain object representation of all managed items, with their unwrapped values. Setting this clears and repopulates items.
  * @property {number} size - The number of items in the container.
+ * @property {object} metadata - Metadata for the container itself (delegated to internal ContextItem).
+ * @property {Date} createdAt - Creation timestamp (delegated to internal ContextItem).
+ * @property {Date} modifiedAt - Last modification timestamp (delegated to internal ContextItem).
+ * @property {Date} lastAccessedAt - Last access timestamp (delegated to internal ContextItem).
+ * @property {boolean} recordAccess - Whether to record access to the container (delegated to internal ContextItem).
+ * @property {boolean} recordAccessForMetadata - Whether to record metadata access (delegated to internal ContextItem).
  * @property {object} #defaultItemOptions - Default options for items added to this container.
  * @property {Map<string, ContextItem|ContextContainer>} #managedItems - Internal storage for managed items.
+ * @property {ContextItem} #containerItem - Internal ContextItem for container metadata and timestamps.
+ *
+ * @example
+ * // Basic usage
+ * const container = new ContextContainer({ player: { name: 'John', level: 5 } });
+ * console.log(container.getItem('player.name')); // 'John'
+ *
+ * @example
+ * // With options
+ * const container = new ContextContainer(
+ *   { score: 100 },
+ *   { gameMode: 'hard' },
+ *   { defaultItemRecordAccess: false }
+ * );
  */
-class ContextContainer extends ContextItem {
+class ContextContainer {
   #managedItems;
   #defaultItemOptions;
+  #containerItem;
 
   /**
    * Creates an instance of ContextContainer.
@@ -49,8 +73,7 @@ class ContextContainer extends ContextItem {
       defaultItemRecordAccessForMetadata = false,
     } = {}
   ) {
-    super(undefined, metadata, { recordAccess, recordAccessForMetadata });
-
+    this.#containerItem = new ContextItem(undefined, metadata, { recordAccess, recordAccessForMetadata });
     this.#managedItems = new Map();
     this.#defaultItemOptions = {
       wrapPrimitives: defaultItemWrapPrimitives,
@@ -81,6 +104,143 @@ class ContextContainer extends ContextItem {
     }
   }
 
+  // Delegation properties for ContextItem functionality
+  /**
+   * Gets the metadata object for the container.
+   * @returns {object} The metadata object.
+   * @example
+   * const container = new ContextContainer({}, { gameMode: 'easy' });
+   * console.log(container.metadata); // { gameMode: 'easy' }
+   */
+  get metadata() {
+    return this.#containerItem.metadata;
+  }
+
+  /**
+   * Sets the metadata object for the container.
+   * @param {object} value - The new metadata object.
+   * @example
+   * container.metadata = { gameMode: 'hard', difficulty: 8 };
+   */
+  set metadata(value) {
+    this.#containerItem.metadata = value;
+  }
+
+  /**
+   * Gets the creation timestamp of the container.
+   * @returns {Date} The creation timestamp.
+   */
+  get createdAt() {
+    return this.#containerItem.createdAt;
+  }
+
+  /**
+   * Gets the last modification timestamp of the container.
+   * @returns {Date} The last modification timestamp.
+   */
+  get modifiedAt() {
+    return this.#containerItem.modifiedAt;
+  }
+
+  /**
+   * Gets the last access timestamp of the container.
+   * @returns {Date} The last access timestamp.
+   */
+  get lastAccessedAt() {
+    return this.#containerItem.lastAccessedAt;
+  }
+
+  /**
+   * Gets whether access to the container is being recorded.
+   * @returns {boolean} True if access recording is enabled.
+   */
+  get recordAccess() {
+    return this.#containerItem.recordAccess;
+  }
+
+  /**
+   * Sets whether access to the container should be recorded.
+   * @param {boolean} value - Whether to record access.
+   */
+  set recordAccess(value) {
+    this.#containerItem.recordAccess = value;
+  }
+
+  /**
+   * Gets whether metadata access is being recorded.
+   * @returns {boolean} True if metadata access recording is enabled.
+   */
+  get recordAccessForMetadata() {
+    return this.#containerItem.recordAccessForMetadata;
+  }
+
+  /**
+   * Sets whether metadata access should be recorded.
+   * @param {boolean} value - Whether to record metadata access.
+   */
+  set recordAccessForMetadata(value) {
+    this.#containerItem.recordAccessForMetadata = value;
+  }
+
+  // Delegate timestamp update methods
+  _updateAccessTimestamp() {
+    this.#containerItem._updateAccessTimestamp();
+  }
+
+  _updateModificationTimestamps() {
+    this.#containerItem._updateModificationTimestamps();
+  }
+
+  /**
+   * Freezes the container, preventing further modifications.
+   * @returns {ContextContainer} The instance for chaining.
+   * @example
+   * container.freeze();
+   * // container.setItem('newKey', 'value'); // Would throw an error
+   */
+  freeze() {
+    return this.#containerItem.freeze();
+  }
+
+  /**
+   * Unfreezes the container, allowing modifications again.
+   * @returns {ContextContainer} The instance for chaining.
+   */
+  unfreeze() {
+    return this.#containerItem.unfreeze();
+  }
+
+  /**
+   * Checks if the container is currently frozen.
+   * @returns {boolean} True if the container is frozen.
+   */
+  isFrozen() {
+    return this.#containerItem.isFrozen();
+  }
+
+  /**
+   * Sets the metadata for the container.
+   * @param {object} metadata - The metadata object to set.
+   * @returns {ContextContainer} The instance for chaining.
+   * @example
+   * container.setMetadata({ version: '1.0', author: 'John' });
+   */
+  setMetadata(metadata) {
+    return this.#containerItem.setMetadata(metadata);
+  }
+
+  /**
+   * Changes the access recording settings for the container.
+   * @param {boolean} recordAccess - Whether to record access to the container.
+   * @param {boolean} recordAccessForMetadata - Whether to record metadata access.
+   * @returns {ContextContainer} The instance for chaining.
+   * @example
+   * container.changeAccessRecord(false, true);
+   */
+  changeAccessRecord(recordAccess, recordAccessForMetadata) {
+    return this.#containerItem.changeAccessRecord(recordAccess, recordAccessForMetadata);
+  }
+
   /**
    * Checks if a value is a plain object.
    * @protected
@@ -89,16 +249,6 @@ class ContextContainer extends ContextItem {
    */
   _isPlainObject(value) {
     return Validator.isPlainObject(value);
-  }
-
-  /**
-   * Checks if a key is reserved.
-   * @protected
-   * @param {string} key - The key to check.
-   * @returns {boolean} True if the key is reserved, false otherwise.
-   */
-  _isReservedKey(key) {
-    return this.#isReservedKey(key);
   }
 
   /**
@@ -117,6 +267,10 @@ class ContextContainer extends ContextItem {
     });
   }
 
+  _isReservedKey(key) {
+    return this.#isReservedKey(key)
+  }
+
   /**
    * Creates or returns a nested container for a given key.
    * @protected
@@ -133,11 +287,41 @@ class ContextContainer extends ContextItem {
       this.#managedItems.set(key, container);
     }
 
-    if (!(container instanceof ContextContainer)) {
+    // Use duck typing to check if it's a container (has setItem method)
+    if (!container || typeof container.setItem !== 'function') {
       throw new TypeError(`Cannot set nested value on non-container item at key "${key}"`);
     }
 
     return container;
+  }
+
+  /**
+   * Gets a managed item by key.
+   * @protected
+   * @param {string} key - The key of the item to get.
+   * @returns {ContextItem|ContextContainer|undefined} The managed item or undefined if not found.
+   */
+  _getManagedItem(key) {
+    return this.#managedItems.get(key);
+  }
+
+  /**
+   * Sets a managed item by key.
+   * @protected
+   * @param {string} key - The key of the item to set.
+   * @param {ContextItem|ContextContainer} item - The item to set.
+   */
+  _setManagedItem(key, item) {
+    this.#managedItems.set(key, item);
+  }
+
+  /**
+   * Gets the default item options.
+   * @protected
+   * @returns {object} The default item options.
+   */
+  _getDefaultItemOptions() {
+    return this.#defaultItemOptions;
   }
 
   /**
@@ -165,7 +349,7 @@ class ContextContainer extends ContextItem {
   #isReservedKey(key) {
     return Validator.isReservedKey(key, {
       classPrototypes: [ContextItem, ContextContainer],
-      additionalReservedKeys: ['value', 'metadata', 'createdAt', 'modifiedAt', 'lastAccessedAt', 'size'],
+      additionalReservedKeys: RESERVED_KEYS,
       instance: this
     });
   }
@@ -229,6 +413,10 @@ class ContextContainer extends ContextItem {
    * Supports dot-notation path traversal for nested items (e.g., 'player.stats.level').
    * @param {string} key - The key of the item to check. Can use dot notation for nested access.
    * @returns {boolean} True if the item exists, false otherwise.
+   * @example
+   * container.setItem('player.stats.level', 5);
+   * console.log(container.hasItem('player.stats.level')); // true
+   * console.log(container.hasItem('player.stats.mana')); // false
    */
   hasItem(key) {
     if (typeof key !== 'string' || key.length === 0) {
@@ -257,9 +445,37 @@ class ContextContainer extends ContextItem {
   /**
    * Retrieves the unwrapped value of a managed item.
    * Supports dot-notation path traversal for nested items (e.g., 'player.stats.level').
+   * @param {string} key - The key of the item to retrieve. Can use dot notation for nested access.
+   * @returns {*} The unwrapped value, or undefined if not found.
+   * @example
+   * container.setItem('player.name', 'John');
+   * console.log(container.getItem('player.name')); // 'John'
+   * console.log(container.getItem('nonexistent')); // undefined
+   */
+  getItem(key) {
+    if (typeof key !== 'string') {
+      return undefined;
+    }
+
+    // Handle dot notation for nested access
+    if (key.includes('.')) {
+      return this.#handleNestedAccess(key);
+    }
+
+    const item = this.#managedItems.get(key);
+    if (item && this.recordAccess) this._updateAccessTimestamp();
+    return item ? item.value : undefined;
+  }
+
+  /**
+   * Retrieves the unwrapped value of a managed item.
+   * Supports dot-notation path traversal for nested items (e.g., 'player.stats.level').
    * This is an alias for getItem() that updates both container and item access timestamps.
    * @param {string} key - The key of the item to retrieve. Can use dot notation for nested access.
    * @returns {*} The unwrapped value, or undefined if not found.
+   * @example
+   * container.setItem('score', 100);
+   * console.log(container.getValue('score')); // 100 (and updates access timestamp)
    */
   getValue(key) {
     const result = this.getItem(key);
@@ -279,6 +495,9 @@ class ContextContainer extends ContextItem {
    * Accessing an item updates the container's lastAccessedAt timestamp if its recordAccess is true.
    * @param {string} key - The key of the item to retrieve. Can use dot notation for nested access.
    * @returns {ContextItem|ContextContainer|undefined} The wrapped item, or undefined if not found.
+   * @example
+   * const wrappedItem = container.getWrappedItem('player');
+   * console.log(wrappedItem.metadata); // Access metadata of the wrapped item
    */
   getWrappedItem(key) {
     if (typeof key !== 'string') {
@@ -315,6 +534,10 @@ class ContextContainer extends ContextItem {
    * Removes an item from the container.
    * @param {string} key - The key of the item to remove.
    * @returns {boolean} True if an item was removed, false otherwise.
+   * @example
+   * container.setItem('temp', 'value');
+   * console.log(container.removeItem('temp')); // true
+   * console.log(container.removeItem('temp')); // false (already removed)
    */
   removeItem(key) {
     const deleted = this.#managedItems.delete(key);
@@ -325,6 +548,9 @@ class ContextContainer extends ContextItem {
   /**
    * Clears all managed items from the container.
    * Updates container's modification timestamps if items were present.
+   * @example
+   * container.clearItems();
+   * console.log(container.size); // 0
    */
   clearItems() {
     if (this.#managedItems.size > 0) {
@@ -336,7 +562,11 @@ class ContextContainer extends ContextItem {
   /**
    * Gets an iterator for the keys of the managed items.
    * Updates container's access timestamp if its recordAccess is true.
-   * @returns {IterableIterator<string>}
+   * @returns {IterableIterator<string>} Iterator for the keys.
+   * @example
+   * for (const key of container.keys()) {
+   *   console.log(key);
+   * }
    */
   keys() {
     if (this.recordAccess) this._updateAccessTimestamp();
@@ -346,7 +576,11 @@ class ContextContainer extends ContextItem {
   /**
    * Gets an iterator for the managed items (ContextItem/ContextContainer instances).
    * Updates container's access timestamp if its recordAccess is true.
-   * @returns {IterableIterator<ContextItem|ContextContainer>}
+   * @returns {IterableIterator<ContextItem|ContextContainer>} Iterator for the wrapped items.
+   * @example
+   * for (const item of container.items()) {
+   *   console.log(item.value);
+   * }
    */
   items() {
     if (this.recordAccess) this._updateAccessTimestamp();
@@ -356,7 +590,11 @@ class ContextContainer extends ContextItem {
   /**
    * Gets an iterator for the [key, managedItem] pairs.
    * Updates container's access timestamp if its recordAccess is true.
-   * @returns {IterableIterator<[string, ContextItem|ContextContainer]>}
+   * @returns {IterableIterator<[string, ContextItem|ContextContainer]>} Iterator for key-item pairs.
+   * @example
+   * for (const [key, item] of container.entries()) {
+   *   console.log(`${key}: ${item.value}`);
+   * }
    */
   entries() {
     if (this.recordAccess) this._updateAccessTimestamp();
@@ -367,6 +605,8 @@ class ContextContainer extends ContextItem {
    * Gets the number of items in the container.
    * Updates container's access timestamp if its recordAccess is true.
    * @type {number}
+   * @example
+   * console.log(container.size); // 3
    */
   get size() {
     if (this.recordAccess) this._updateAccessTimestamp();
@@ -377,7 +617,9 @@ class ContextContainer extends ContextItem {
    * Gets a plain object representation of all managed items, with their unwrapped values.
    * Accessing this property updates the container's lastAccessedAt timestamp if its recordAccess is true.
    * @type {object}
-   * @override
+   * @example
+   * const allValues = container.value;
+   * console.log(allValues); // { player: { name: 'John' }, score: 100 }
    */
   get value() {
     if (this.recordAccess) this._updateAccessTimestamp();
@@ -395,7 +637,9 @@ class ContextContainer extends ContextItem {
    * Updates the container's modifiedAt and lastAccessedAt timestamps.
    * @param {object} newItemsObject - An object whose properties will become the new managed items.
    * @throws {TypeError} If newItemsObject is not a non-null object.
-   * @override
+   * @example
+   * container.value = { newPlayer: { name: 'Jane' }, newScore: 200 };
+   * console.log(container.getItem('newPlayer.name')); // 'Jane'
    */
   set value(newItemsObject) {
     if (typeof newItemsObject !== 'object' || newItemsObject === null) {
@@ -410,12 +654,17 @@ class ContextContainer extends ContextItem {
 
   /**
    * Reinitializes the ContextContainer.
-   * Clears all managed items, resets container's metadata and timestamps (via super.reinitialize).
+   * Clears all managed items, resets container's metadata and timestamps.
    * Updates default item options and repopulates items if initialItemsOrValue is provided.
    * @param {object|*} [initialItemsOrValue={}] - Same as constructor's initialItemsOrValue.
    * @param {object} [metadata={}] - New metadata for the container itself.
    * @param {object} [options={}] - New options for the container and default options for its items (same structure as constructor options).
-   * @override
+   * @example
+   * container.reinitialize(
+   *   { resetData: 'value' },
+   *   { version: '2.0' },
+   *   { defaultItemRecordAccess: false }
+   * );
    */
   reinitialize(
     initialItemsOrValue = {},
@@ -424,7 +673,7 @@ class ContextContainer extends ContextItem {
   ) {
     const containerRecordAccess = options.recordAccess !== undefined ? options.recordAccess : this.recordAccess;
     const containerRecordAccessForMetadata = options.recordAccessForMetadata !== undefined ? options.recordAccessForMetadata : this.recordAccessForMetadata;
-    super.reinitialize(undefined, metadata, { recordAccess: containerRecordAccess, recordAccessForMetadata: containerRecordAccessForMetadata });
+    this.#containerItem.reinitialize(undefined, metadata, { recordAccess: containerRecordAccess, recordAccessForMetadata: containerRecordAccessForMetadata });
 
     this.#defaultItemOptions.wrapPrimitives = options.defaultItemWrapPrimitives !== undefined ? options.defaultItemWrapPrimitives : this.#defaultItemOptions.wrapPrimitives;
     this.#defaultItemOptions.wrapAs = options.defaultItemWrapAs || this.#defaultItemOptions.wrapAs;
@@ -446,11 +695,14 @@ class ContextContainer extends ContextItem {
 
   /**
    * Clears the container and resets its metadata and timestamps.
-   * @override
+   * @example
+   * container.clear();
+   * console.log(container.size); // 0
+   * console.log(container.metadata); // {}
    */
   clear() {
     this.clearItems();
-    super.clear();
+    this.#containerItem.clear();
   }
 }
 

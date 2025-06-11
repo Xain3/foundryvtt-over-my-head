@@ -6,6 +6,7 @@
 
 import { ContextItem } from './contextItem.js';
 import { ContextValueWrapper } from './contextValueWrapper.js';
+import { ContextItemSetter } from './contextItemSetter.js';
 import { Validator } from '../../utils/static/validator.js';
 import PathUtils from '../../helpers/pathUtils.js';
 
@@ -61,10 +62,21 @@ class ContextContainer extends ContextItem {
     if (initialItemsOrValue !== undefined) {
       if (Validator.isPlainObject(initialItemsOrValue)) {
         for (const [key, value] of Object.entries(initialItemsOrValue)) {
-          this.setItem(key, value);
+          ContextItemSetter.setItem(key, value, this, {
+            wrapPrimitives: this.#defaultItemOptions.wrapPrimitives,
+            wrapAs: this.#defaultItemOptions.wrapAs,
+            recordAccess: this.#defaultItemOptions.recordAccess,
+            recordAccessForMetadata: this.#defaultItemOptions.recordAccessForMetadata
+          });
         }
       } else {
-        this.setItem('default', initialItemsOrValue);
+        // If initialItemsOrValue is not a plain object, treat it as a single value under the key "default"
+        ContextItemSetter.setItem('default', initialItemsOrValue, this, {
+          wrapPrimitives: this.#defaultItemOptions.wrapPrimitives,
+          wrapAs: this.#defaultItemOptions.wrapAs,
+          recordAccess: this.#defaultItemOptions.recordAccess,
+          recordAccessForMetadata: this.#defaultItemOptions.recordAccessForMetadata
+        });
       }
     }
   }
@@ -209,64 +221,7 @@ class ContextContainer extends ContextItem {
    * @throws {Error} If attempting to modify a frozen item and ignoreFrozen is false.
    */
   setItem(key, rawValue, itemOptionsOverrides = {}) {
-    if (typeof key !== 'string' || key.length === 0) {
-      throw new TypeError('Item key must be a non-empty string.');
-    }
-
-    // Handle dot notation for nested setting
-    if (key.includes('.')) {
-      const { firstKey, remainingPath } = PathUtils.extractKeyComponents(key, {
-        validateFirstKey: (firstKey) => {
-          if (this.#isReservedKey(firstKey)) {
-            throw new TypeError(`Key "${firstKey}" is reserved and cannot be used for an item.`);
-          }
-        }
-      });
-
-      // Get or create the nested container
-      let container = this.#managedItems.get(firstKey);
-      if (!container) {
-        container = ContextValueWrapper.wrap({}, {
-          ...this.#defaultItemOptions,
-          wrapAs: 'ContextContainer'
-        });
-        this.#managedItems.set(firstKey, container);
-      }
-
-      if (!(container instanceof ContextContainer)) {
-        throw new TypeError(`Cannot set nested value on non-container item at key "${firstKey}"`);
-      }
-
-      container.setItem(remainingPath, rawValue, itemOptionsOverrides);
-      this._updateModificationTimestamps();
-      return this;
-    }
-
-    // Simple key setting (no dot notation)
-    if (this.#isReservedKey(key)) {
-      throw new TypeError(`Key "${key}" is reserved and cannot be used for an item.`);
-    }
-
-    // Check if we're trying to overwrite a frozen item
-    const existingItem = this.#managedItems.get(key);
-    const ignoreFrozen = itemOptionsOverrides.ignoreFrozen || false;
-
-    if (existingItem && existingItem.isFrozen && existingItem.isFrozen() && !ignoreFrozen) {
-      throw new Error(`Cannot overwrite frozen item at key "${key}". Use ignoreFrozen option to force overwrite.`);
-    }
-
-    const itemSpecificMetadata = itemOptionsOverrides.metadata || {};
-    const itemOptionsForWrapper = {
-      ...this.#defaultItemOptions,
-      ...itemOptionsOverrides,
-      metadata: itemSpecificMetadata,
-    };
-    itemOptionsForWrapper.wrapAs = itemOptionsForWrapper.wrapAs || this.#defaultItemOptions.wrapAs;
-
-    const wrappedValue = ContextValueWrapper.wrap(rawValue, itemOptionsForWrapper);
-    this.#managedItems.set(key, wrappedValue);
-    this._updateModificationTimestamps();
-    return this;
+    return ContextItemSetter.setItem(key, rawValue, this, itemOptionsOverrides);
   }
 
   /**

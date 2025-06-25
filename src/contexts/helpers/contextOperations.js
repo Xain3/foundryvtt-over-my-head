@@ -1,6 +1,6 @@
 /**
  * @file contextOperations.js
- * @description Enhanced context operations using ContextMerger with support for bulk operations and multiple sources/targets.
+ * @description Bulk and multi-context operations using ContextMerger. Focuses on operations involving multiple sources/targets.
  * @path /src/contexts/helpers/contextOperations.js
  */
 
@@ -8,28 +8,46 @@ import ContextMerger, { ItemFilter } from './contextMerger.js';
 
 /**
  * @class ContextOperations
- * @description Provides high-level operations for context management including bulk operations,
- * multi-source/target operations, and sophisticated merge strategies using ContextMerger.
+ * @description Provides bulk operations and multi-source/target operations for context management.
+ * For single-context operations, use ContextMerger or Context.merge() directly.
  */
 class ContextOperations {
 
+
   /**
-   * Pushes context data from source to target using ContextMerger.
-   * @param {Context} source - Source context to push from.
-   * @param {Context} target - Target context to push to.
-   * @param {string} [strategy='mergeNewerWins'] - Merge strategy to use.
-   * @param {object} [options={}] - Additional merge options.
-   * @returns {object} Merge result with statistics and changes.
-   *
-   * @example
-   * const result = ContextOperations.pushContext(sourceContext, targetContext, 'mergeSourcePriority');
+   * Pushes specific items from source to target using path filtering.
+   * Convenience method for ContextMerger.merge with allowOnly filter.
    */
-  static pushContext(source, target, strategy = 'mergeNewerWins', options = {}) {
+  static pushItems(source, target, itemPaths, strategy = 'mergeNewerWins', options = {}) {
     if (!source || !target) {
       throw new Error('Source and target contexts must be provided');
     }
+    if (!Array.isArray(itemPaths) || itemPaths.length === 0) {
+      throw new Error('Item paths must be a non-empty array');
+    }
 
-    return ContextMerger.merge(source, target, strategy, options);
+    return ContextMerger.merge(source, target, strategy, {
+      ...options,
+      allowOnly: itemPaths
+    });
+  }
+
+  /**
+   * Pulls specific items from source to target using path filtering.
+   * Convenience method for ContextMerger.merge with swapped parameters and allowOnly filter.
+   */
+  static pullItems(source, target, itemPaths, strategy = 'mergeNewerWins', options = {}) {
+    if (!source || !target) {
+      throw new Error('Source and target contexts must be provided');
+    }
+    if (!Array.isArray(itemPaths) || itemPaths.length === 0) {
+      throw new Error('Item paths must be a non-empty array');
+    }
+
+    return ContextMerger.merge(target, source, strategy, {
+      ...options,
+      allowOnly: itemPaths
+    });
   }
 
   /**
@@ -115,36 +133,6 @@ class ContextOperations {
   }
 
   /**
-   * Pushes specific items from source to target using path filtering.
-   * @param {Context} source - Source context to push from.
-   * @param {Context} target - Target context to push to.
-   * @param {string[]} itemPaths - Array of item paths to push.
-   * @param {string} [strategy='mergeNewerWins'] - Merge strategy to use.
-   * @param {object} [options={}] - Additional merge options.
-   * @returns {object} Merge result with statistics and changes.
-   *
-   * @example
-   * const result = ContextOperations.pushItems(
-   *   sourceContext,
-   *   targetContext,
-   *   ['data.playerStats', 'settings.volume']
-   * );
-   */
-  static pushItems(source, target, itemPaths, strategy = 'mergeNewerWins', options = {}) {
-    if (!source || !target) {
-      throw new Error('Source and target contexts must be provided');
-    }
-    if (!Array.isArray(itemPaths) || itemPaths.length === 0) {
-      throw new Error('Item paths must be a non-empty array');
-    }
-
-    return ContextMerger.merge(source, target, strategy, {
-      ...options,
-      allowOnly: itemPaths
-    });
-  }
-
-  /**
    * Pushes multiple specific items from multiple sources to multiple targets.
    * @param {Context[]} sources - Array of source contexts.
    * @param {Context[]} targets - Array of target contexts.
@@ -193,57 +181,6 @@ class ContextOperations {
           };
         }
       });
-    });
-  }
-
-  /**
-   * Pulls context data from source to target (reverse push).
-   * @param {Context} source - Source context to pull from.
-   * @param {Context} target - Target context to pull to.
-   * @param {string} [strategy='mergeNewerWins'] - Merge strategy to use.
-   * @param {object} [options={}] - Additional merge options.
-   * @returns {object} Merge result with statistics and changes.
-   *
-   * @example
-   * const result = ContextOperations.pullContext(sourceContext, targetContext, 'mergeTargetPriority');
-   */
-  static pullContext(source, target, strategy = 'mergeNewerWins', options = {}) {
-    if (!source || !target) {
-      throw new Error('Source and target contexts must be provided');
-    }
-
-    // Pull is just a push with source and target swapped
-    return ContextMerger.merge(target, source, strategy, options);
-  }
-
-  /**
-   * Pulls specific items from source to target using path filtering.
-   * @param {Context} source - Source context to pull from.
-   * @param {Context} target - Target context to pull to.
-   * @param {string[]} itemPaths - Array of item paths to pull.
-   * @param {string} [strategy='mergeNewerWins'] - Merge strategy to use.
-   * @param {object} [options={}] - Additional merge options.
-   * @returns {object} Merge result with statistics and changes.
-   *
-   * @example
-   * const result = ContextOperations.pullItems(
-   *   sourceContext,
-   *   targetContext,
-   *   ['data.inventory', 'settings.preferences']
-   * );
-   */
-  static pullItems(source, target, itemPaths, strategy = 'mergeNewerWins', options = {}) {
-    if (!source || !target) {
-      throw new Error('Source and target contexts must be provided');
-    }
-    if (!Array.isArray(itemPaths) || itemPaths.length === 0) {
-      throw new Error('Item paths must be a non-empty array');
-    }
-
-    // Pull is just mergeOnly with source and target swapped
-    return ContextMerger.merge(target, source, strategy, {
-      ...options,
-      allowOnly: itemPaths
     });
   }
 

@@ -55,14 +55,14 @@ describe('ContextContainer', () => {
         instance.recordAccessForMetadata = options.recordAccessForMetadata !== undefined ? options.recordAccessForMetadata : instance.recordAccessForMetadata;
       }
       instance.metadata = metadata || {};
-      
+
       // Define value property properly
       Object.defineProperty(instance, 'value', {
         get: jest.fn(() => initialValue),
         set: jest.fn((newValue) => { initialValue = newValue; }),
         configurable: true
       });
-      
+
       return instance;
     });
 
@@ -117,6 +117,7 @@ describe('ContextContainer', () => {
       const container = new ContextContainer();
       expect(ContextItem).toHaveBeenCalledWith(undefined, {}, { recordAccess: true, recordAccessForMetadata: false });
       expect(container.size).toBe(0);
+      expect(container.isContextContainer).toBe(true);
       expect(ContextItemSetter.setItem).not.toHaveBeenCalled();
     });
 
@@ -470,7 +471,7 @@ describe('ContextContainer', () => {
       const container = new ContextContainer();
       Validator.isReservedKey.mockImplementation(key => key === 'value');
       PathUtils.extractKeyComponents.mockImplementationOnce((path, opts) => {
-        if (path === 'value.prop') opts.validateFirstKey('value'); // Simulate validation
+        if (path === 'value.prop') opts.validateFirstKey('value');
         return { firstKey: 'value', remainingPath: 'prop', parts: ['value', 'prop'] };
       });
       expect(() => container.getItem('value.prop')).toThrow(TypeError);
@@ -732,6 +733,25 @@ describe('ContextContainer', () => {
       container.clear();
       expect(container.clearItems).toHaveBeenCalled();
       expect(mockInternalItem.clear).toHaveBeenCalled();
+    });
+  });
+
+  describe('isContextContainer getter', () => {
+    it('should return true for duck typing purposes', () => {
+      const container = new ContextContainer();
+      expect(container.isContextContainer).toBe(true);
+    });
+
+    it('should be read-only (attempting to set should not change the value)', () => {
+      const container = new ContextContainer();
+      // Attempt to override the getter (should not work due to private property)
+      expect(() => { container.isContextContainer = false; }).toThrow(TypeError);
+    });
+
+    it('should enable duck typing identification', () => {
+      const container = new ContextContainer();
+      const isContainer = container.isContextContainer === true;
+      expect(isContainer).toBe(true);
     });
   });
 });

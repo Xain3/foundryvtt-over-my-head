@@ -29,6 +29,7 @@ const RESERVED_KEYS = [
  * @property {object} #defaultItemOptions - Default options for items added to this container.
  * @property {Map<string, ContextItem|ContextContainer>} #managedItems - Internal storage for managed items.
  * @property {ContextItem} #containerItem - Internal ContextItem for container metadata and timestamps.
+ * @property {boolean} #isContextContainer - Indicates if this instance is a ContextContainer (for duck typing).
  *
  * @example
  * // Basic usage
@@ -47,6 +48,7 @@ class ContextContainer {
   #managedItems;
   #defaultItemOptions;
   #containerItem;
+  #isContextContainer;
 
   /**
    * Creates an instance of ContextContainer.
@@ -73,6 +75,7 @@ class ContextContainer {
       defaultItemRecordAccessForMetadata = false,
     } = {}
   ) {
+    this.#isContextContainer = true;
     this.#containerItem = new ContextItem(undefined, metadata, { recordAccess, recordAccessForMetadata });
     this.#managedItems = new Map();
     this.#defaultItemOptions = {
@@ -102,6 +105,17 @@ class ContextContainer {
         });
       }
     }
+  }
+
+  /**
+   * Gets whether this instance is a ContextContainer (for duck typing).
+   * @returns {boolean} Always returns true for ContextContainer instances.
+   * @example
+   * const container = new ContextContainer();
+   * console.log(container.isContextContainer); // true
+   */
+  get isContextContainer() {
+    return this.#isContextContainer;
   }
 
   // Delegation properties for ContextItem functionality

@@ -65,6 +65,11 @@ describe('ContextItem', () => {
       const item = new ContextItem('test', {}, { frozen: true });
       expect(item.isFrozen()).toBe(true);
     });
+
+    it('should set isContextItem flag to true', () => {
+      const item = new ContextItem('test');
+      expect(item.isContextItem).toBe(true);
+    });
   });
 
   describe('value getter', () => {
@@ -416,6 +421,25 @@ describe('ContextItem', () => {
       contextItem.freeze();
       contextItem.changeAccessRecord({ recordAccess: false, recordAccessForMetadata: true });
       expect(contextItem.isFrozen()).toBe(true);
+    });
+  });
+
+  describe('isContextItem getter', () => {
+    it('should return true for duck typing purposes', () => {
+      const item = new ContextItem('test');
+      expect(item.isContextItem).toBe(true);
+    });
+
+    it('should be read-only (attempting to set should not change the value)', () => {
+      const item = new ContextItem('test');
+      // Attempt to override the getter (should not work due to private property)
+      expect(() => { item.isContextItem = false; }).toThrow(TypeError);
+    });
+
+    it('should enable duck typing identification', () => {
+      const item = new ContextItem('test');
+      const isItem = item.isContextItem === true;
+      expect(isItem).toBe(true);
     });
   });
 });

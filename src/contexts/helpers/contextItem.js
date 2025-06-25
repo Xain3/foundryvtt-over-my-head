@@ -12,12 +12,13 @@
  *            Supports freezing to prevent modifications and configurable access recording.
  * @property {*} #value - The private value stored in the item
  * @property {Date} #createdAt - The private creation timestamp
- * @property {Date} #modifiedAt - The private last modification timestamp  
+ * @property {Date} #modifiedAt - The private last modification timestamp
  * @property {Date} #lastAccessedAt - The private last access timestamp
  * @property {object} #metadata - The private metadata object
  * @property {boolean} #frozen - The private frozen state flag
  * @property {boolean} recordAccess - Whether to record access to the item's value
  * @property {boolean} recordAccessForMetadata - Whether to record access to the item's metadata
+ * @property {boolean} #isContextItem - The private flag indicating this is a ContextItem instance
  */
 class ContextItem {
   #value;
@@ -26,6 +27,7 @@ class ContextItem {
   #lastAccessedAt;
   #metadata;
   #frozen;
+  #isContextItem;
 
   /**
    * Creates an instance of ContextItem.
@@ -37,6 +39,7 @@ class ContextItem {
    * @param {boolean} [options.recordAccessForMetadata=false] - If true, records access to the item's metadata.
    */
   constructor(initialValue, metadata = {}, {frozen = false, recordAccess = true, recordAccessForMetadata = false } = {}) {
+    this.#isContextItem = true;
     const now = new Date();
     this.#value = initialValue;
     this.#metadata = metadata;
@@ -126,6 +129,17 @@ class ContextItem {
   }
 
   /**
+   * Gets whether this instance is a ContextItem (for duck typing).
+   * @returns {boolean} Always returns true for ContextItem instances.
+   * @example
+   * const item = new ContextItem('value');
+   * console.log(item.isContextItem); // true
+   */
+  get isContextItem() {
+    return this.#isContextItem;
+  }
+
+  /**
    * Sets or updates metadata for the item.
    * Updates the modifiedAt and lastAccessedAt timestamps.
    * @param {object} newMetadata - The metadata object to set or merge.
@@ -151,14 +165,14 @@ class ContextItem {
   freeze() {
     this.#frozen = true;
   }
-  
+
   /**
    * Unfreezes the item, allowing modifications to its value and metadata.
    */
   unfreeze() {
     this.#frozen = false;
   }
-  
+
   /**
    * Checks if the item is currently frozen.
    * @returns {boolean} True if the item is frozen, false otherwise.

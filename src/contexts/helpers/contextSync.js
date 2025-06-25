@@ -348,53 +348,14 @@ class ContextSync {
 
   /**
    * Automatically determines the best synchronization operation based on timestamp comparison.
-   * For Context instances, delegates to ContextMerger with 'mergeNewerWins' strategy.
+   * Delegates to ContextAutoSync for implementation.
    * @param {Context|ContextContainer|ContextItem} source - The source context object.
    * @param {Context|ContextContainer|ContextItem} target - The target context object.
    * @param {object} [options={}] - Options for automatic sync determination.
    * @returns {object} Automatic synchronization result.
    */
-  static autoSync(source, target, options = {}) {
-    const {
-      compareBy = 'modifiedAt',
-      deepSync = true,
-      preserveMetadata = true
-    } = options;
-
-    // For Context instances, delegate to ContextMerger
-    if (source instanceof Context && target instanceof Context) {
-      return ContextMerger.merge(source, target, 'mergeNewerWins', {
-        compareBy,
-        preserveMetadata,
-        createMissing: deepSync
-      });
-    }
-
-    const operation = ContextSync.#determineAutoSyncOperation(source, target, { compareBy });
-    return ContextSync.sync(source, target, operation, { deepSync, compareBy, preserveMetadata });
-  }
-
-  /**
-   * @private
-   * Determines the appropriate sync operation based on comparison.
-   * @param {ContextContainer|ContextItem} source - The source object.
-   * @param {ContextContainer|ContextItem} target - The target object.
-   * @param {object} options - Comparison options.
-   * @returns {string} The determined operation.
-   */
-  static #determineAutoSyncOperation(source, target, { compareBy }) {
-    const comparison = ContextSync.compare(source, target, { compareBy });
-
-    switch (comparison.result) {
-      case ContextSync.COMPARISON_RESULTS.SOURCE_NEWER:
-        return ContextSync.SYNC_OPERATIONS.UPDATE_TARGET_TO_SOURCE;
-      case ContextSync.COMPARISON_RESULTS.TARGET_NEWER:
-        return ContextSync.SYNC_OPERATIONS.UPDATE_SOURCE_TO_TARGET;
-      case ContextSync.COMPARISON_RESULTS.TARGET_MISSING:
-        return ContextSync.SYNC_OPERATIONS.UPDATE_TARGET_TO_SOURCE;
-      default:
-        return ContextSync.SYNC_OPERATIONS.NO_ACTION;
-    }
+  static async autoSync(source, target, options = {}) {
+    return ContextAutoSync.autoSync(source, target, options);
   }
 
   /**

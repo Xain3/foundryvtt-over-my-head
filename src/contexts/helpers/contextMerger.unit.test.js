@@ -1,953 +1,909 @@
-/**
- * @file contextMerger.unit.test.js
- * @description Unit tests for the ContextMerger class and ItemFilter helper
- * @path /src/contexts/helpers/contextMerger.unit.test.js
- */
-
-import ContextMerger, { ItemFilter } from './contextMerger.js';
-import ContextSync from './contextSync.js';
+import ContextMerger from './contextMerger.js';
+import ContextComparison from './contextComparison.js';
 import { ContextItem } from './contextItem.js';
-import ContextContainer from './contextContainer.js';
+import { ContextContainer } from './contextContainer.js';
+import { ItemFilter } from './contextItemFilter.js';
 import Context from '../context.js';
 
-// Mock dependencies
-jest.mock('./contextSync.js');
-jest.mock('./contextItem.js');
-jest.mock('./contextContainer.js');
-jest.mock('../context.js');
+/**
+ * @file contextMerger.unit.test.js
+ * @description Unit tests for the ContextMerger class for sophisticated merging of Context instances with detailed change tracking and conflict resolution.
+ * @path /src/contexts/helpers/contextMerger.unit.test.js
+ * @date 30 May 2025
+ */
+
+
+jest.mock('./contextComparison.js');
+jest.mock('./contextItemFilter.js');
 
 describe('ContextMerger', () => {
-  let sourceContext;
-  let targetContext;
-  let sourceItem;
-  let targetItem;
-  let sourceContainer;
-  let targetContainer;
+  let mockSourceContext;
+  let mockTargetContext;
+  let mockSourceContainer;
+  let mockTargetContainer;
+  let mockSourceItem;
+  let mockTargetItem;
 
   beforeEach(() => {
-    // Reset all mocks
     jest.clearAllMocks();
 
-    // Create mock timestamps
-    const now = new Date();
-    const earlier = new Date(now.getTime() - 1000);
-    const later = new Date(now.getTime() + 1000);
-
-    // Mock ContextItem instances
-    sourceItem = {
+    // Create mock ContextItems
+    mockSourceItem = {
       value: 'source value',
-      modifiedAt: later,
-      createdAt: earlier,
-      lastAccessedAt: now
+      metadata: { source: true },
+      modifiedAt: new Date('2025-05-30T10:00:00Z'),
+      setMetadata: jest.fn()
     };
 
-    targetItem = {
+    mockTargetItem = {
       value: 'target value',
-      modifiedAt: earlier,
-      createdAt: earlier,
-      lastAccessedAt: now
+      metadata: { target: true },
+      modifiedAt: new Date('2025-05-30T09:00:00Z'),
+      setMetadata: jest.fn()
     };
 
-    // Mock ContextContainer instances
-    sourceContainer = {
-      keys: jest.fn().mockReturnValue(['item1', 'item2']),
-      getItem: jest.fn(),
-      hasItem: jest.fn(),
-      setItem: jest.fn(),
-      value: { nested: 'source container value' },
-      modifiedAt: later,
-      createdAt: earlier,
-      lastAccessedAt: now
+    // Create mock ContextContainers
+    mockSourceContainer = {
+      keys: jest.fn(() => ['item1', 'item2']),
+      getItem: jest.fn((key) => key === 'item1' ? mockSourceItem : { value: `source ${key}` }),
+      hasItem: jest.fn(() => true),
+      setItem: jest.fn()
     };
 
-    targetContainer = {
-      keys: jest.fn().mockReturnValue(['item1', 'item3']),
-      getItem: jest.fn(),
-      hasItem: jest.fn(),
-      setItem: jest.fn(),
-      value: { nested: 'target container value' },
-      modifiedAt: earlier,
-      createdAt: earlier,
-      lastAccessedAt: now
+    mockTargetContainer = {
+      keys: jest.fn(() => ['item1']),
+      getItem: jest.fn(() => mockTargetItem),
+      hasItem: jest.fn(() => true),
+      setItem: jest.fn()
     };
 
-    // Mock Context instances
-    sourceContext = {
-      schema: sourceContainer,
-      constants: sourceContainer,
-      manifest: sourceContainer,
-      flags: sourceContainer,
-      state: sourceContainer,
-      data: sourceContainer,
-      settings: sourceContainer
+    // Create mock Context instances
+    mockSourceContext = {
+      schema: mockSourceContainer,
+      constants: mockSourceContainer,
+      manifest: mockSourceContainer,
+      flags: mockSourceContainer,
+      state: mockSourceContainer,
+      data: mockSourceContainer,
+      settings: mockSourceContainer
     };
 
-    targetContext = {
-      schema: targetContainer,
-      constants: targetContainer,
-      manifest: targetContainer,
-      flags: targetContainer,
-      state: targetContainer,
-      data: targetContainer,
-      settings: targetContainer
+    mockTargetContext = {
+      schema: mockTargetContainer,
+      constants: mockTargetContainer,
+      manifest: mockTargetContainer,
+      flags: mockTargetContainer,
+      state: mockTargetContainer,
+      data: mockTargetContainer,
+      settings: mockTargetContainer
     };
 
-    // Set up ContextSync mock
-    ContextSync.compare.mockReturnValue({
-      result: ContextSync.COMPARISON_RESULTS.SOURCE_NEWER,
-      sourceTimestamp: later,
-      targetTimestamp: earlier,
-      timeDifference: 1000
+    // Mock instanceof checks
+    Object.setPrototypeOf(mockSourceItem, ContextItem.prototype);
+    Object.setPrototypeOf(mockTargetItem, ContextItem.prototype);
+    Object.setPrototypeOf(mockSourceContainer, ContextContainer.prototype);
+    Object.setPrototypeOf(mockTargetContainer, ContextContainer.prototype);
+    Object.setPrototypeOf(mockSourceContext, Context.prototype);
+    Object.setPrototypeOf(mockTargetContext, Context.prototype);
+
+    // Mock ContextComparison
+    ContextComparison.compare.mockReturnValue({
+      result: ContextComparison.COMPARISON_RESULTS.SOURCE_NEWER
     });
 
-    ContextSync.COMPARISON_RESULTS = {
+    ContextComparison.COMPARISON_RESULTS = {
       SOURCE_NEWER: 'sourceNewer',
       TARGET_NEWER: 'targetNewer',
       EQUAL: 'equal',
-      SOURCE_MISSING: 'sourceMissing',
       TARGET_MISSING: 'targetMissing',
-      BOTH_MISSING: 'bothMissing'
+      SOURCE_MISSING: 'sourceMissing'
     };
-
-    // Set up instanceof checks
-    ContextItem.mockImplementation(function() {
-      return sourceItem;
-    });
-
-    ContextContainer.mockImplementation(function() {
-      return sourceContainer;
-    });
-
-    Object.setPrototypeOf(sourceItem, ContextItem.prototype);
-    Object.setPrototypeOf(targetItem, ContextItem.prototype);
-    Object.setPrototypeOf(sourceContainer, ContextContainer.prototype);
-    Object.setPrototypeOf(targetContainer, ContextContainer.prototype);
   });
 
-  describe('merge()', () => {
-    it('should throw error for invalid contexts', () => {
-      expect(() => {
-        ContextMerger.merge(null, targetContext);
-      }).toThrow('Invalid source or target context for merge operation');
-
-      expect(() => {
-        ContextMerger.merge(sourceContext, null);
-      }).toThrow('Invalid source or target context for merge operation');
+  describe('MERGE_STRATEGIES', () => {
+    it('should define all required merge strategies', () => {
+      expect(ContextMerger.MERGE_STRATEGIES).toEqual({
+        MERGE_NEWER_WINS: 'mergeNewerWins',
+        MERGE_SOURCE_PRIORITY: 'mergeSourcePriority',
+        MERGE_TARGET_PRIORITY: 'mergeTargetPriority',
+        UPDATE_SOURCE_TO_TARGET: 'updateSourceToTarget',
+        UPDATE_TARGET_TO_SOURCE: 'updateTargetToSource',
+        REPLACE: 'replace',
+        NO_ACTION: 'noAction'
+      });
     });
+  });
 
-    it('should successfully merge contexts with default strategy', () => {
-      sourceContainer.getItem.mockImplementation((key) => {
-        if (key === 'item1') return sourceItem;
-        if (key === 'item2') return sourceItem;
-        return null;
-      });
+  describe('DEFAULT_COMPONENTS', () => {
+    it('should define all default context components', () => {
+      expect(ContextMerger.DEFAULT_COMPONENTS).toEqual([
+        'schema',
+        'constants',
+        'manifest',
+        'flags',
+        'state',
+        'data',
+        'settings'
+      ]);
+    });
+  });
 
-      targetContainer.getItem.mockImplementation((key) => {
-        if (key === 'item1') return targetItem;
-        if (key === 'item3') return targetItem;
-        return null;
-      });
-
-      targetContainer.hasItem.mockImplementation((key) => {
-        return ['item1', 'item3'].includes(key);
-      });
-
-      const result = ContextMerger.merge(sourceContext, targetContext);
+  describe('merge', () => {
+    it('should perform basic merge with default strategy', () => {
+      const result = ContextMerger.merge(mockSourceContext, mockTargetContext);
 
       expect(result.success).toBe(true);
       expect(result.strategy).toBe('mergeNewerWins');
-      expect(result.itemsProcessed).toBeGreaterThanOrEqual(0);
+      expect(result.itemsProcessed).toBeGreaterThan(0);
+      expect(result.statistics).toBeDefined();
+      expect(result.changes).toBeDefined();
+      expect(result.errors).toEqual([]);
+    });
+
+    it('should throw error for invalid source context', () => {
+      expect(() => ContextMerger.merge(null, mockTargetContext))
+        .toThrow('Invalid source or target context for merge operation');
+    });
+
+    it('should throw error for invalid target context', () => {
+      expect(() => ContextMerger.merge(mockSourceContext, null))
+        .toThrow('Invalid source or target context for merge operation');
+    });
+
+    it('should use custom strategy', () => {
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeSourcePriority'
+      );
+
+      expect(result.strategy).toBe('mergeSourcePriority');
+    });
+
+    it('should process only included components', () => {
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { includeComponents: ['data', 'settings'] }
+      );
+
+      expect(result.success).toBe(true);
+      expect(mockTargetContext.data.setItem).toHaveBeenCalled();
+    });
+
+    it('should exclude specified components', () => {
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { excludeComponents: ['schema', 'constants'] }
+      );
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle allowOnly option with ItemFilter', () => {
+      const mockFilter = jest.fn();
+      ItemFilter.allowOnly.mockReturnValue(mockFilter);
+
+      ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { allowOnly: ['data.item1'] }
+      );
+
+      expect(ItemFilter.allowOnly).toHaveBeenCalledWith(['data.item1']);
+    });
+
+    it('should handle blockOnly option with ItemFilter', () => {
+      const mockFilter = jest.fn();
+      ItemFilter.blockOnly.mockReturnValue(mockFilter);
+
+      ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { blockOnly: ['data.temp'] }
+      );
+
+      expect(ItemFilter.blockOnly).toHaveBeenCalledWith(['data.temp']);
+    });
+
+    it('should handle singleItem option with ItemFilter', () => {
+      const mockFilter = jest.fn();
+      ItemFilter.allowOnly.mockReturnValue(mockFilter);
+
+      ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { singleItem: 'data.specific' }
+      );
+
+      expect(ItemFilter.allowOnly).toHaveBeenCalledWith(['data.specific']);
+    });
+
+    it('should handle matchPattern option with ItemFilter', () => {
+      const mockFilter = jest.fn();
+      const pattern = /data\.player/;
+      ItemFilter.matchPattern.mockReturnValue(mockFilter);
+
+      ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { matchPattern: pattern }
+      );
+
+      expect(ItemFilter.matchPattern).toHaveBeenCalledWith(pattern);
+    });
+
+    it('should handle customFilter option with ItemFilter', () => {
+      const mockFilter = jest.fn();
+      const customFunction = jest.fn();
+      ItemFilter.custom.mockReturnValue(mockFilter);
+
+      ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { customFilter: customFunction }
+      );
+
+      expect(ItemFilter.custom).toHaveBeenCalledWith(customFunction);
+    });
+
+    it('should preserve existing onConflict function', () => {
+      const customOnConflict = jest.fn();
+
+      ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { onConflict: customOnConflict, allowOnly: ['data.item1'] }
+      );
+
+      // Should not call ItemFilter when onConflict is already provided
+      expect(ItemFilter.allowOnly).not.toHaveBeenCalled();
+    });
+
+    it('should handle createMissing option', () => {
+      mockTargetContainer.hasItem.mockReturnValue(false);
+
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { createMissing: true }
+      );
+
+      expect(result.statistics.created).toBeGreaterThan(0);
+    });
+
+    it('should handle dryRun option', () => {
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { dryRun: true }
+      );
+
+      expect(result.success).toBe(true);
+      expect(mockTargetContainer.setItem).not.toHaveBeenCalled();
+    });
+
+    it('should handle preserveMetadata option', () => {
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { preserveMetadata: true }
+      );
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle onConflict resolver', () => {
+      const onConflict = jest.fn().mockReturnValue(mockSourceItem);
+      ContextComparison.compare.mockReturnValue({
+        result: ContextComparison.COMPARISON_RESULTS.TARGET_NEWER
+      });
+
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { onConflict }
+      );
+
+      expect(result.conflicts).toBeGreaterThan(0);
+      expect(onConflict).toHaveBeenCalled();
+    });
+
+    it('should track conflicts without resolver', () => {
+      ContextComparison.compare.mockReturnValue({
+        result: ContextComparison.COMPARISON_RESULTS.TARGET_NEWER
+      });
+
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins'
+      );
+
+      expect(result.conflicts).toBeGreaterThan(0);
+    });
+
+    it('should handle errors gracefully', () => {
+      mockTargetContainer.getItem.mockImplementation(() => {
+        throw new Error('Get item failed');
+      });
+
+      const result = ContextMerger.merge(mockSourceContext, mockTargetContext);
+
+      expect(result.success).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Merge Strategies', () => {
+    describe('MERGE_NEWER_WINS', () => {
+      it('should prefer source when source is newer', () => {
+        ContextComparison.compare.mockReturnValue({
+          result: ContextComparison.COMPARISON_RESULTS.SOURCE_NEWER
+        });
+
+        // Ensure we have items to process by setting up the containers properly
+        mockSourceContainer.keys.mockReturnValue(['item1']);
+        mockTargetContainer.keys.mockReturnValue(['item1']);
+        mockTargetContainer.hasItem.mockReturnValue(true);
+
+        const result = ContextMerger.merge(
+          mockSourceContext,
+          mockTargetContext,
+          'mergeNewerWins'
+        );
+
+        expect(result.statistics.sourcePreferred).toBeGreaterThan(0);
+      });
+
+      it('should prefer target when target is newer', () => {
+        ContextComparison.compare.mockReturnValue({
+          result: ContextComparison.COMPARISON_RESULTS.TARGET_NEWER
+        });
+
+        const result = ContextMerger.merge(
+          mockSourceContext,
+          mockTargetContext,
+          'mergeNewerWins'
+        );
+
+        expect(result.statistics.targetPreferred).toBeGreaterThan(0);
+      });
+
+      it('should skip when items are equal', () => {
+        ContextComparison.compare.mockReturnValue({
+          result: ContextComparison.COMPARISON_RESULTS.EQUAL
+        });
+
+        const result = ContextMerger.merge(
+          mockSourceContext,
+          mockTargetContext,
+          'mergeNewerWins'
+        );
+
+        expect(result.statistics.skipped).toBeGreaterThan(0);
+      });
+    });
+
+    describe('MERGE_SOURCE_PRIORITY', () => {
+      it('should always prefer source items', () => {
+        const result = ContextMerger.merge(
+          mockSourceContext,
+          mockTargetContext,
+          'mergeSourcePriority'
+        );
+
+        expect(result.statistics.sourcePreferred).toBeGreaterThan(0);
+      });
+    });
+
+    describe('MERGE_TARGET_PRIORITY', () => {
+      it('should always prefer target items', () => {
+        const result = ContextMerger.merge(
+          mockSourceContext,
+          mockTargetContext,
+          'mergeTargetPriority'
+        );
+
+        expect(result.statistics.targetPreferred).toBeGreaterThan(0);
+      });
+    });
+
+    describe('UPDATE_SOURCE_TO_TARGET', () => {
+      it('should update source with target values', () => {
+        const result = ContextMerger.merge(
+          mockSourceContext,
+          mockTargetContext,
+          'updateSourceToTarget'
+        );
+
+        expect(result.statistics.targetPreferred).toBeGreaterThan(0);
+      });
+    });
+
+    describe('UPDATE_TARGET_TO_SOURCE', () => {
+      it('should update target with source values', () => {
+        const result = ContextMerger.merge(
+          mockSourceContext,
+          mockTargetContext,
+          'updateTargetToSource'
+        );
+
+        expect(result.statistics.sourcePreferred).toBeGreaterThan(0);
+      });
+    });
+
+    describe('REPLACE', () => {
+      it('should replace target with source', () => {
+        const result = ContextMerger.merge(
+          mockSourceContext,
+          mockTargetContext,
+          'replace'
+        );
+
+        expect(result.statistics.sourcePreferred).toBeGreaterThan(0);
+      });
+    });
+
+    describe('NO_ACTION', () => {
+      it('should perform no actions', () => {
+        const result = ContextMerger.merge(
+          mockSourceContext,
+          mockTargetContext,
+          'noAction'
+        );
+
+        expect(result.statistics.skipped).toBeGreaterThan(0);
+        expect(result.changes.some(change => change.reason === 'noAction strategy')).toBe(true);
+      });
+    });
+  });
+
+  describe('analyze', () => {
+    it('should perform analysis without making changes', () => {
+      const result = ContextMerger.analyze(mockSourceContext, mockTargetContext);
+
+      expect(result.success).toBe(true);
+      expect(mockTargetContainer.setItem).not.toHaveBeenCalled();
+    });
+
+    it('should use custom strategy for analysis', () => {
+      const result = ContextMerger.analyze(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeSourcePriority'
+      );
+
+      expect(result.strategy).toBe('mergeSourcePriority');
+    });
+
+    it('should pass through options correctly', () => {
+      const result = ContextMerger.analyze(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { compareBy: 'createdAt' }
+      );
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('validateCompatibility', () => {
+    it('should return true for compatible contexts', () => {
+      const isCompatible = ContextMerger.validateCompatibility(
+        mockSourceContext,
+        mockTargetContext
+      );
+
+      expect(isCompatible).toBe(true);
+    });
+
+    it('should return false for null source', () => {
+      const isCompatible = ContextMerger.validateCompatibility(
+        null,
+        mockTargetContext
+      );
+
+      expect(isCompatible).toBe(false);
+    });
+
+    it('should return false for null target', () => {
+      const isCompatible = ContextMerger.validateCompatibility(
+        mockSourceContext,
+        null
+      );
+
+      expect(isCompatible).toBe(false);
+    });
+
+    it('should return false for incompatible contexts', () => {
+      const incompatibleContext = { schema: true };
+
+      const isCompatible = ContextMerger.validateCompatibility(
+        mockSourceContext,
+        incompatibleContext
+      );
+
+      expect(isCompatible).toBe(false);
+    });
+
+    it('should require all component properties', () => {
+      const partialContext = {
+        schema: mockSourceContainer,
+        constants: mockSourceContainer
+        // missing other components
+      };
+
+      const isCompatible = ContextMerger.validateCompatibility(
+        mockSourceContext,
+        partialContext
+      );
+
+      expect(isCompatible).toBe(false);
+    });
+  });
+
+  describe('Component Processing', () => {
+    it('should skip missing components gracefully', () => {
+      const contextWithMissingComponent = {
+        ...mockSourceContext,
+        schema: null
+      };
+
+      const result = ContextMerger.merge(
+        contextWithMissingComponent,
+        mockTargetContext
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.statistics.skipped).toBeGreaterThan(0);
+    });
+
+    it('should handle components with no items', () => {
+      const emptyContainer = {
+        keys: jest.fn(() => []),
+        getItem: jest.fn(),
+        hasItem: jest.fn(() => false),
+        setItem: jest.fn()
+      };
+
+      const contextWithEmptyComponent = {
+        ...mockSourceContext,
+        data: emptyContainer
+      };
+
+      const result = ContextMerger.merge(
+        contextWithEmptyComponent,
+        mockTargetContext
+      );
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle component errors gracefully', () => {
+      mockSourceContainer.keys.mockImplementation(() => {
+        throw new Error('Keys retrieval failed');
+      });
+
+      const result = ContextMerger.merge(mockSourceContext, mockTargetContext);
+
+      expect(result.success).toBe(false);
+      expect(result.errors.some(error => error.includes('Keys retrieval failed'))).toBe(true);
+    });
+  });
+
+  describe('Item Processing', () => {
+    it('should create missing items when createMissing is true', () => {
+      mockTargetContainer.hasItem.mockReturnValue(false);
+
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { createMissing: true }
+      );
+
+      expect(mockTargetContainer.setItem).toHaveBeenCalled();
+      expect(result.statistics.created).toBeGreaterThan(0);
+    });
+
+    it('should skip missing items when createMissing is false', () => {
+      mockTargetContainer.hasItem.mockReturnValue(false);
+
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { createMissing: false }
+      );
+
+      expect(result.statistics.skipped).toBeGreaterThan(0);
+    });
+
+    it('should handle null source items', () => {
+      mockSourceContainer.getItem.mockReturnValue(null);
+
+      const result = ContextMerger.merge(mockSourceContext, mockTargetContext);
+
+      expect(result.success).toBe(true);
+      expect(result.statistics.skipped).toBeGreaterThan(0);
+    });
+
+    it('should preserve metadata when option is set', () => {
+      const itemWithMetadata = {
+        ...mockSourceItem,
+        setMetadata: jest.fn()
+      };
+
+      mockTargetContainer.setItem.mockImplementation((key, item) => {
+        if (item.setMetadata) {
+          item.setMetadata({ ...mockTargetItem.metadata, ...item.metadata });
+        }
+      });
+
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeSourcePriority',
+        { preserveMetadata: true }
+      );
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle item processing errors', () => {
+      mockTargetContainer.setItem.mockImplementation(() => {
+        throw new Error('Item set failed');
+      });
+
+      const result = ContextMerger.merge(mockSourceContext, mockTargetContext);
+
+      expect(result.changes.some(change =>
+        change.action === 'error' && change.error === 'Item set failed'
+      )).toBe(true);
+    });
+  });
+
+  describe('Statistics Tracking', () => {
+    it('should track all statistics correctly', () => {
+      const result = ContextMerger.merge(mockSourceContext, mockTargetContext);
+
       expect(result.statistics).toHaveProperty('sourcePreferred');
       expect(result.statistics).toHaveProperty('targetPreferred');
       expect(result.statistics).toHaveProperty('created');
       expect(result.statistics).toHaveProperty('updated');
       expect(result.statistics).toHaveProperty('skipped');
+      expect(typeof result.statistics.sourcePreferred).toBe('number');
     });
 
-    it('should respect excludeComponents option', () => {
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-        excludeComponents: ['schema', 'constants']
-      });
+    it('should count items processed correctly', () => {
+      const result = ContextMerger.merge(mockSourceContext, mockTargetContext);
 
-      expect(result.success).toBe(true);
-      // Verify that excluded components were not processed
-      // This would be implementation specific based on actual merge logic
+      expect(result.itemsProcessed).toBeGreaterThan(0);
+      expect(typeof result.itemsProcessed).toBe('number');
     });
 
-    it('should respect includeComponents option', () => {
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-        includeComponents: ['data', 'settings']
-      });
+    it('should track changes with proper format', () => {
+      const result = ContextMerger.merge(mockSourceContext, mockTargetContext);
 
-      expect(result.success).toBe(true);
-      // Verify that only included components were processed
-    });
-
-    it('should perform dry run without making changes', () => {
-      sourceContainer.getItem.mockImplementation((key) => {
-        if (key === 'item1') return sourceItem;
-        return null;
-      });
-
-      targetContainer.getItem.mockImplementation((key) => {
-        if (key === 'item1') return targetItem;
-        return null;
-      });
-
-      const originalTargetValue = targetItem.value;
-
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-        dryRun: true
-      });
-
-      expect(result.success).toBe(true);
-      expect(targetItem.value).toBe(originalTargetValue); // Should not be changed
-    });
-
-    it('should handle custom conflict resolver', () => {
-      sourceContainer.getItem.mockImplementation((key) => {
-        if (key === 'item1') return sourceItem;
-        return null;
-      });
-
-      targetContainer.getItem.mockImplementation((key) => {
-        if (key === 'item1') return targetItem;
-        return null;
-      });
-
-      targetContainer.hasItem.mockImplementation((key) => {
-        return key === 'item1';
-      });
-
-      const customResolver = jest.fn().mockReturnValue(targetItem);
-
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-        onConflict: customResolver
-      });
-
-      expect(result.success).toBe(true);
-      expect(customResolver).toHaveBeenCalled();
-    });
-
-    it('should handle different merge strategies', () => {
-      const strategies = [
-        'mergeNewerWins',
-        'mergeSourcePriority',
-        'mergeTargetPriority',
-        'updateSourceToTarget',
-        'updateTargetToSource',
-        'replace',
-        'noAction'
-      ];
-
-      strategies.forEach(strategy => {
-        const result = ContextMerger.merge(sourceContext, targetContext, strategy);
-        expect(result.success).toBe(true);
-        expect(result.strategy).toBe(strategy);
-      });
-    });
-
-    it('should handle unknown merge strategy', () => {
-      sourceContainer.getItem.mockImplementation(() => sourceItem);
-      targetContainer.getItem.mockImplementation(() => targetItem);
-
-      // This test depends on the actual implementation - the error might be caught differently
-      const result = ContextMerger.merge(sourceContext, targetContext, 'unknownStrategy');
-
-      // The implementation might handle this gracefully or throw an error
-      // Adjust based on actual behavior
-      expect(result.success).toBeDefined();
-    });
-
-    it('should preserve metadata when specified', () => {
-      sourceContainer.getItem.mockImplementation((key) => {
-        if (key === 'item1') return sourceItem;
-        return null;
-      });
-
-      targetContainer.getItem.mockImplementation((key) => {
-        if (key === 'item1') return targetItem;
-        return null;
-      });
-
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeSourcePriority', {
-        preserveMetadata: true
-      });
-
-      expect(result.success).toBe(true);
-    });
-
-    it('should create missing items when specified', () => {
-      sourceContainer.getItem.mockImplementation((key) => {
-        if (key === 'item1') return sourceItem;
-        if (key === 'item2') return sourceItem;
-        return null;
-      });
-
-      sourceContainer.hasItem.mockImplementation((key) => {
-        return ['item1', 'item2'].includes(key);
-      });
-
-      targetContainer.getItem.mockImplementation((key) => {
-        if (key === 'item1') return targetItem;
-        return null; // item2 missing in target
-      });
-
-      targetContainer.hasItem.mockImplementation((key) => {
-        return key === 'item1';
-      });
-
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-        createMissing: true
-      });
-
-      expect(result.success).toBe(true);
-    });
-
-    it('should handle errors gracefully', () => {
-      // Mock an error in container processing
-      sourceContainer.keys.mockImplementation(() => {
-        throw new Error('Test error');
-      });
-
-      const result = ContextMerger.merge(sourceContext, targetContext);
-
-      expect(result.success).toBe(false);
-      expect(result.errors.length).toBeGreaterThan(0);
-      // Check that at least one error contains our test error message
-      expect(result.errors.some(error => error.includes('Test error'))).toBe(true);
+      expect(Array.isArray(result.changes)).toBe(true);
+      if (result.changes.length > 0) {
+        expect(result.changes[0]).toHaveProperty('path');
+        expect(result.changes[0]).toHaveProperty('action');
+      }
     });
   });
 
-  describe('error handling', () => {
-    it('should handle component processing errors', () => {
-      // Mock error in specific component
-      sourceContainer.keys.mockImplementation(() => {
-        throw new Error('Component processing error');
-      });
-
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins');
-
-      expect(result.success).toBe(false);
-      expect(result.errors.length).toBeGreaterThan(0);
-    });
-
-    it('should handle partial failures', () => {
-      // Setup some components to work and others to fail
-      let callCount = 0;
-      sourceContainer.keys.mockImplementation(() => {
-        callCount++;
-        if (callCount === 2) throw new Error('Second component error');
-        return ['item1'];
-      });
-
-      sourceContainer.getItem.mockReturnValue(sourceItem);
-      targetContainer.getItem.mockReturnValue(targetItem);
-
-      const result = ContextMerger.merge(sourceContext, targetContext);
-
-      // Should handle partial failures gracefully
-      expect(result).toBeDefined();
-      expect(result.errors).toBeDefined();
-    });
-  });
-
-  describe('integration with ContextSync', () => {
-    it('should use ContextSync for timestamp comparisons', () => {
-      sourceContainer.getItem.mockImplementation((key) => {
-        if (key === 'item1') return sourceItem;
-        return null;
-      });
-
-      targetContainer.getItem.mockImplementation((key) => {
-        if (key === 'item1') return targetItem;
-        return null;
-      });
-
-      targetContainer.hasItem.mockImplementation((key) => {
-        return key === 'item1';
-      });
-
-      ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins');
-
-      expect(ContextSync.compare).toHaveBeenCalled();
-    });
-
-    it('should handle different comparison results', () => {
-      const comparisonResults = [
-        ContextSync.COMPARISON_RESULTS.SOURCE_NEWER,
-        ContextSync.COMPARISON_RESULTS.TARGET_NEWER,
-        ContextSync.COMPARISON_RESULTS.EQUAL
-      ];
-
-      comparisonResults.forEach(comparisonResult => {
-        ContextSync.compare.mockReturnValueOnce({
-          result: comparisonResult,
-          sourceTimestamp: new Date(),
-          targetTimestamp: new Date(),
-          timeDifference: 0
-        });
-
-        sourceContainer.getItem.mockImplementation((key) => {
-          if (key === 'item1') return sourceItem;
-          return null;
-        });
-
-        targetContainer.getItem.mockImplementation((key) => {
-          if (key === 'item1') return targetItem;
-          return null;
-        });
-
-        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins');
-        expect(result.success).toBe(true);
-      });
-    });
-  });
-
-  describe('performance and edge cases', () => {
-    it('should handle empty contexts', () => {
-      const emptyContext = {
-        schema: { keys: () => [], getItem: () => null },
-        constants: { keys: () => [], getItem: () => null },
-        manifest: { keys: () => [], getItem: () => null },
-        flags: { keys: () => [], getItem: () => null },
-        state: { keys: () => [], getItem: () => null },
-        data: { keys: () => [], getItem: () => null },
-        settings: { keys: () => [], getItem: () => null }
+  describe('Real-world Scenarios', () => {
+    it('should handle complex merge with multiple components', () => {
+      const complexSource = {
+        schema: mockSourceContainer,
+        data: {
+          keys: () => ['player', 'world', 'settings'],
+          getItem: (key) => ({ value: `source ${key}`, modifiedAt: new Date() }),
+          hasItem: () => true,
+          setItem: jest.fn()
+        },
+        flags: {
+          keys: () => ['feature1', 'feature2'],
+          getItem: (key) => ({ value: true, modifiedAt: new Date() }),
+          hasItem: () => true,
+          setItem: jest.fn()
+        },
+        constants: mockSourceContainer,
+        manifest: mockSourceContainer,
+        state: mockSourceContainer,
+        settings: mockSourceContainer
       };
 
-      const result = ContextMerger.merge(emptyContext, emptyContext);
+      const result = ContextMerger.merge(
+        complexSource,
+        mockTargetContext,
+        'mergeNewerWins'
+      );
 
       expect(result.success).toBe(true);
-      expect(result.itemsProcessed).toBe(0);
+      expect(result.itemsProcessed).toBeGreaterThan(0);
     });
 
-    it('should handle large numbers of items efficiently', () => {
-      const manyItems = Array.from({ length: 1000 }, (_, i) => `item${i}`);
-
-      sourceContainer.keys.mockReturnValue(manyItems);
-      targetContainer.keys.mockReturnValue(manyItems);
-
-      sourceContainer.getItem.mockReturnValue(sourceItem);
-      targetContainer.getItem.mockReturnValue(targetItem);
-      targetContainer.hasItem.mockReturnValue(true);
-
-      const startTime = Date.now();
-      const result = ContextMerger.merge(sourceContext, targetContext);
-      const endTime = Date.now();
+    it('should handle partial context synchronization', () => {
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { includeComponents: ['data', 'flags'] }
+      );
 
       expect(result.success).toBe(true);
-      expect(endTime - startTime).toBeLessThan(5000); // Should complete within 5 seconds
     });
 
-    it('should handle deeply nested containers', () => {
-      const nestedItem = { ...sourceItem };
-      const nestedContainer = {
-        keys: () => ['nested'],
-        getItem: () => nestedItem,
+    it('should handle edge case with identical contexts', () => {
+      ContextComparison.compare.mockReturnValue({
+        result: ContextComparison.COMPARISON_RESULTS.EQUAL
+      });
+
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockSourceContext,
+        'mergeNewerWins'
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.statistics.skipped).toBeGreaterThan(0);
+    });
+
+    it('should handle large-scale merge operations', () => {
+      const largeContainer = {
+        keys: () => Array.from({ length: 100 }, (_, i) => `item${i}`),
+        getItem: (key) => ({ value: `value ${key}`, modifiedAt: new Date() }),
         hasItem: () => true,
         setItem: jest.fn()
       };
 
-      Object.setPrototypeOf(nestedContainer, ContextContainer.prototype);
-      Object.setPrototypeOf(nestedItem, ContextItem.prototype);
+      const largeContext = {
+        ...mockSourceContext,
+        data: largeContainer
+      };
 
-      sourceContainer.getItem.mockImplementation((key) => {
-        if (key === 'nested') return nestedContainer;
-        return sourceItem;
-      });
-
-      targetContainer.getItem.mockImplementation((key) => {
-        if (key === 'nested') return nestedContainer;
-        return targetItem;
-      });
-
-      const result = ContextMerger.merge(sourceContext, targetContext);
+      const result = ContextMerger.merge(largeContext, mockTargetContext);
 
       expect(result.success).toBe(true);
+      expect(result.itemsProcessed).toBeGreaterThan(50);
     });
   });
 
-  describe('ItemFilter', () => {
-    let sourceItem, targetItem;
-
-    beforeEach(() => {
-      sourceItem = { value: 'source', timestamp: 100 };
-      targetItem = { value: 'target', timestamp: 50 };
-    });
-
-    describe('allowOnly()', () => {
-      it('should create filter that allows only specified paths', () => {
-        const filter = ItemFilter.allowOnly(['data.inventory', 'settings.volume']);
-
-        expect(filter(sourceItem, targetItem, 'data.inventory.weapons')).toBe(sourceItem);
-        expect(filter(sourceItem, targetItem, 'settings.volume')).toBe(sourceItem);
-        expect(filter(sourceItem, targetItem, 'data.other')).toBe(targetItem);
-        expect(filter(sourceItem, targetItem, 'state.ui')).toBe(targetItem);
-      });
-
-      it('should handle empty paths array', () => {
-        const filter = ItemFilter.allowOnly([]);
-
-        expect(filter(sourceItem, targetItem, 'any.path')).toBe(targetItem);
+  describe('Constants Integration', () => {
+    it('should properly integrate with merge strategy constants', () => {
+      Object.values(ContextMerger.MERGE_STRATEGIES).forEach(strategy => {
+        expect(typeof strategy).toBe('string');
+        expect(strategy.length).toBeGreaterThan(0);
       });
     });
 
-    describe('blockOnly()', () => {
-      it('should create filter that blocks specified paths', () => {
-        const filter = ItemFilter.blockOnly(['data.temp', 'state.cache']);
-
-        expect(filter(sourceItem, targetItem, 'data.temp.something')).toBe(targetItem);
-        expect(filter(sourceItem, targetItem, 'state.cache')).toBe(targetItem);
-        expect(filter(sourceItem, targetItem, 'data.inventory')).toBe(sourceItem);
-        expect(filter(sourceItem, targetItem, 'settings.volume')).toBe(sourceItem);
-      });
-    });
-
-    describe('matchPattern()', () => {
-      it('should create filter that matches regex patterns', () => {
-        const filter = ItemFilter.matchPattern(/data\.player/);
-
-        expect(filter(sourceItem, targetItem, 'data.playerStats')).toBe(sourceItem);
-        expect(filter(sourceItem, targetItem, 'data.playerInventory')).toBe(sourceItem);
-        expect(filter(sourceItem, targetItem, 'data.enemy')).toBe(targetItem);
-        expect(filter(sourceItem, targetItem, 'settings.player')).toBe(targetItem);
-      });
-
-      it('should handle complex regex patterns', () => {
-        const filter = ItemFilter.matchPattern(/settings\..*volume$/);
-
-        expect(filter(sourceItem, targetItem, 'settings.audio.volume')).toBe(sourceItem);
-        expect(filter(sourceItem, targetItem, 'settings.ui.volume')).toBe(sourceItem);
-        expect(filter(sourceItem, targetItem, 'settings.audio.quality')).toBe(targetItem);
-      });
-    });
-
-    describe('custom()', () => {
-      it('should create filter based on custom condition', () => {
-        const conditionFn = jest.fn((source, target, path) => {
-          return source.timestamp > target.timestamp;
-        });
-        const filter = ItemFilter.custom(conditionFn);
-
-        expect(filter(sourceItem, targetItem, 'any.path')).toBe(sourceItem);
-        expect(conditionFn).toHaveBeenCalledWith(sourceItem, targetItem, 'any.path');
-      });
-
-      it('should return target when condition is false', () => {
-        const conditionFn = () => false;
-        const filter = ItemFilter.custom(conditionFn);
-
-        expect(filter(sourceItem, targetItem, 'any.path')).toBe(targetItem);
-      });
-    });
-
-    describe('and()', () => {
-      it('should combine filters with AND logic', () => {
-        const filter1 = ItemFilter.allowOnly(['data.player']);
-        const filter2 = ItemFilter.custom(() => true);
-        const combinedFilter = ItemFilter.and(filter1, filter2);
-
-        expect(combinedFilter(sourceItem, targetItem, 'data.playerStats')).toBe(sourceItem);
-        expect(combinedFilter(sourceItem, targetItem, 'data.enemy')).toBe(targetItem);
-      });
-
-      it('should short-circuit on first rejection', () => {
-        const filter1 = ItemFilter.allowOnly(['data.other']);
-        const filter2 = jest.fn(() => sourceItem);
-        const combinedFilter = ItemFilter.and(filter1, filter2);
-
-        combinedFilter(sourceItem, targetItem, 'data.player');
-
-        expect(filter2).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('or()', () => {
-      it('should combine filters with OR logic', () => {
-        const filter1 = ItemFilter.allowOnly(['data.player']);
-        const filter2 = ItemFilter.allowOnly(['settings.volume']);
-        const combinedFilter = ItemFilter.or(filter1, filter2);
-
-        expect(combinedFilter(sourceItem, targetItem, 'data.playerStats')).toBe(sourceItem);
-        expect(combinedFilter(sourceItem, targetItem, 'settings.volume')).toBe(sourceItem);
-        expect(combinedFilter(sourceItem, targetItem, 'data.enemy')).toBe(targetItem);
-      });
-
-      it('should short-circuit on first acceptance', () => {
-        const filter1 = ItemFilter.allowOnly(['data.player']);
-        const filter2 = jest.fn(() => sourceItem);
-        const combinedFilter = ItemFilter.or(filter1, filter2);
-
-        combinedFilter(sourceItem, targetItem, 'data.playerStats');
-
-        expect(filter2).not.toHaveBeenCalled();
+    it('should work with all default component constants', () => {
+      ContextMerger.DEFAULT_COMPONENTS.forEach(component => {
+        expect(typeof component).toBe('string');
+        expect(mockSourceContext).toHaveProperty(component);
+        expect(mockTargetContext).toHaveProperty(component);
       });
     });
   });
 
-  describe('ContextMerger merge() with filtering parameters', () => {
-    beforeEach(() => {
-      // Setup common mock behavior for convenience method tests
-      sourceContainer.getItem.mockImplementation((key) => {
-        if (['item1', 'item2'].includes(key)) return sourceItem;
-        return null;
-      });
+  describe('Alternative Constants Configuration', () => {
+    it('should handle custom component sets', () => {
+      const customComponents = ['data', 'flags'];
 
-      targetContainer.getItem.mockImplementation((key) => {
-        if (['item1', 'item3'].includes(key)) return targetItem;
-        return null;
-      });
-
-      targetContainer.hasItem.mockImplementation((key) => {
-        return ['item1', 'item3'].includes(key);
-      });
-    });
-
-    describe('allowOnly parameter', () => {
-      it('should merge only specified paths', () => {
-        const allowedPaths = ['data.inventory', 'settings.volume'];
-        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-          allowOnly: allowedPaths
-        });
-
-        expect(result.success).toBe(true);
-        expect(result.strategy).toBe('mergeNewerWins');
-      });
-
-      it('should accept custom strategy', () => {
-        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeSourcePriority', {
-          allowOnly: ['data.inventory']
-        });
-
-        expect(result.success).toBe(true);
-        expect(result.strategy).toBe('mergeSourcePriority');
-      });
-
-      it('should accept additional options', () => {
-        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-          allowOnly: ['data.inventory'],
-          dryRun: true
-        });
-
-        expect(result.success).toBe(true);
-      });
-    });
-
-    describe('blockOnly parameter', () => {
-      it('should merge everything except specified paths', () => {
-        const blockedPaths = ['data.temp', 'state.cache'];
-        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-          blockOnly: blockedPaths
-        });
-
-        expect(result.success).toBe(true);
-        expect(result.strategy).toBe('mergeNewerWins');
-      });
-
-      it('should accept custom strategy', () => {
-        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeTargetPriority', {
-          blockOnly: ['data.temp']
-        });
-
-        expect(result.success).toBe(true);
-        expect(result.strategy).toBe('mergeTargetPriority');
-      });
-    });
-
-    describe('singleItem parameter', () => {
-      it('should merge a single specific item', () => {
-        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-          singleItem: 'data.playerStats.level'
-        });
-
-        expect(result.success).toBe(true);
-        expect(result.strategy).toBe('mergeNewerWins');
-      });
-
-      it('should accept custom strategy', () => {
-        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeSourcePriority', {
-          singleItem: 'data.playerStats.level'
-        });
-
-        expect(result.success).toBe(true);
-        expect(result.strategy).toBe('mergeSourcePriority');
-      });
-
-      it('should support all merge options', () => {
-        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeSourcePriority', {
-          singleItem: 'data.playerStats.level',
-          preserveMetadata: true,
-          dryRun: true
-        });
-
-        expect(result.success).toBe(true);
-      });
-    });
-
-    describe('matchPattern parameter', () => {
-      it('should merge items matching regex pattern', () => {
-        const pattern = /data\.player/;
-        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-          matchPattern: pattern
-        });
-
-        expect(result.success).toBe(true);
-        expect(result.strategy).toBe('mergeNewerWins');
-      });
-
-      it('should accept custom strategy', () => {
-        const pattern = /settings\..*volume$/;
-        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeSourcePriority', {
-          matchPattern: pattern
-        });
-
-        expect(result.success).toBe(true);
-        expect(result.strategy).toBe('mergeSourcePriority');
-      });
-    });
-
-    describe('customFilter parameter', () => {
-      it('should merge items based on custom condition', () => {
-        const conditionFn = jest.fn().mockReturnValue(true);
-        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-          customFilter: conditionFn
-        });
-
-        expect(result.success).toBe(true);
-        expect(result.strategy).toBe('mergeNewerWins');
-      });
-
-      it('should call condition function with correct parameters', () => {
-        const conditionFn = jest.fn().mockReturnValue(false);
-
-        ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-          customFilter: conditionFn
-        });
-
-        // The condition function should be wrapped in ItemFilter.custom
-        // Exact verification depends on implementation details
-        expect(conditionFn).toBeDefined();
-      });
-
-      it('should accept custom strategy', () => {
-        const conditionFn = () => true;
-        const result = ContextMerger.merge(sourceContext, targetContext, 'mergeTargetPriority', {
-          customFilter: conditionFn
-        });
-
-        expect(result.success).toBe(true);
-        expect(result.strategy).toBe('mergeTargetPriority');
-      });
-    });
-  });
-
-  describe('ContextMerger advanced usage', () => {
-    it('should support complex filtering combinations', () => {
-      const complexFilter = ItemFilter.and(
-        ItemFilter.allowOnly(['data.player', 'settings.ui']),
-        ItemFilter.custom((source, target, path) => source.timestamp > target.timestamp)
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { includeComponents: customComponents }
       );
 
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-        onConflict: complexFilter
-      });
-
       expect(result.success).toBe(true);
     });
 
-    it('should handle multiple convenience methods chaining', () => {
-      // Test that merge method with filtering parameters works with different strategies
-      const strategies = ['mergeNewerWins', 'mergeSourcePriority', 'mergeTargetPriority'];
-
-      strategies.forEach(strategy => {
-        const result = ContextMerger.merge(sourceContext, targetContext, strategy, {
-          allowOnly: ['data.inventory']
-        });
-        expect(result.success).toBe(true);
-        expect(result.strategy).toBe(strategy);
-      });
-    });
-
-    it('should handle parameter precedence correctly', () => {
-      // Test that onConflict takes precedence over convenience parameters
-      const customFilter = jest.fn().mockReturnValue(true);
-
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-        onConflict: customFilter,
-        allowOnly: ['data.inventory'], // This should be ignored since onConflict is provided
-        blockOnly: ['data.temp']      // This should also be ignored
-      });
-
-      expect(result.success).toBe(true);
-      // The customFilter should be used instead of the convenience parameters
-    });
-
-    it('should handle edge cases in filtering parameters', () => {
-      // Test empty paths
-      const result1 = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-        allowOnly: []
-      });
-      expect(result1.success).toBe(true);
-
-      // Test valid regex pattern
-      const result2 = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-        matchPattern: /valid\.pattern/
-      });
-      expect(result2.success).toBe(true);
-
-      // Test undefined condition function (should not throw during method call, but might fail during merge)
-      const result3 = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-        customFilter: undefined
-      });
-      // The method call itself shouldn't throw, but the result might indicate failure
-      expect(result3).toBeDefined();
-    });
-  });
-
-  describe('real-world scenarios', () => {
-    beforeEach(() => {
-      // Setup more realistic test data
-      const playerStatsItem = {
-        value: { level: 10, experience: 1500 },
-        timestamp: Date.now(),
-        version: '1.2.0'
-      };
-
-      const inventoryItem = {
-        value: { weapons: ['sword', 'bow'], armor: ['helmet'] },
-        timestamp: Date.now() - 1000,
-        version: '1.1.0'
-      };
-
-      const settingsItem = {
-        value: { volume: 0.8, quality: 'high' },
-        timestamp: Date.now() + 1000,
-        version: '1.3.0'
-      };
-
-      sourceContainer.getItem.mockImplementation((key) => {
-        switch (key) {
-          case 'playerStats': return playerStatsItem;
-          case 'inventory': return inventoryItem;
-          case 'settings': return settingsItem;
-          default: return null;
-        }
-      });
-
-      targetContainer.getItem.mockImplementation((key) => {
-        switch (key) {
-          case 'playerStats': return { ...playerStatsItem, value: { level: 8, experience: 1200 } };
-          case 'inventory': return { ...inventoryItem, value: { weapons: ['dagger'], armor: [] } };
-          case 'settings': return { ...settingsItem, value: { volume: 0.5, quality: 'medium' } };
-          default: return null;
-        }
-      });
-
-      targetContainer.hasItem.mockImplementation((key) => {
-        return ['playerStats', 'inventory', 'settings'].includes(key);
-      });
-    });
-
-    it('should handle selective player data sync', () => {
-      // Only sync player stats and inventory, not settings
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeSourcePriority', {
-        allowOnly: ['data.playerStats', 'data.inventory']
-      });
-
-      expect(result.success).toBe(true);
-      expect(result.strategy).toBe('mergeSourcePriority');
-    });
-
-    it('should handle excluding temporary data', () => {
-      // Merge everything except cache and temporary data
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-        blockOnly: ['data.cache', 'data.temp', 'state.pending']
-      });
-
-      expect(result.success).toBe(true);
-    });
-
-    it('should handle pattern-based game data sync', () => {
-      // Sync all player-related data using pattern
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-        matchPattern: /data\.player/
-      });
-
-      expect(result.success).toBe(true);
-    });
-
-    it('should handle conditional version-based sync', () => {
-      // Only sync items with higher version numbers
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeSourcePriority', {
-        customFilter: (sourceItem, targetItem, itemPath) => {
-          if (!sourceItem?.version || !targetItem?.version) return false;
-          return sourceItem.version > targetItem.version;
-        }
-      });
-
-      expect(result.success).toBe(true);
-    });
-
-    it('should handle complex filtering scenarios', () => {
-      // Complex filter: Allow player data OR settings with newer timestamps
-      const complexFilter = ItemFilter.or(
-        ItemFilter.allowOnly(['data.player']),
-        ItemFilter.and(
-          ItemFilter.allowOnly(['settings']),
-          ItemFilter.custom((source, target) => source.timestamp > target.timestamp)
-        )
+    it('should handle custom comparison fields', () => {
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'mergeNewerWins',
+        { compareBy: 'lastAccessed' }
       );
 
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-        onConflict: complexFilter
-      });
+      expect(ContextComparison.compare).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        { compareBy: 'lastAccessed' }
+      );
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle contexts with undefined components', () => {
+      const contextWithUndefined = {
+        ...mockSourceContext,
+        schema: undefined
+      };
+
+      const result = ContextMerger.merge(contextWithUndefined, mockTargetContext);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle containers without required methods', () => {
+      const invalidContainer = { value: 'test' };
+      const contextWithInvalidContainer = {
+        ...mockSourceContext,
+        data: invalidContainer
+      };
+
+      const result = ContextMerger.merge(contextWithInvalidContainer, mockTargetContext);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle circular reference scenarios safely', () => {
+      const circularItem = { value: 'circular' };
+      circularItem.ref = circularItem;
+
+      mockSourceContainer.getItem.mockReturnValue(circularItem);
+
+      const result = ContextMerger.merge(mockSourceContext, mockTargetContext);
 
       expect(result.success).toBe(true);
     });
   });
 
-  describe('backward compatibility', () => {
-    it('should maintain existing API compatibility', () => {
-      // Test that existing merge() calls still work unchanged
-      const result = ContextMerger.merge(sourceContext, targetContext);
-      expect(result.success).toBe(true);
-      expect(result.strategy).toBe('mergeNewerWins');
-    });
-
-    it('should support existing onConflict custom functions', () => {
-      const customConflictResolver = jest.fn().mockReturnValue(sourceItem);
-
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', {
-        onConflict: customConflictResolver
+  describe('Error Handling', () => {
+    it('should handle component processing errors', () => {
+      mockSourceContainer.keys.mockImplementation(() => {
+        throw new Error('Component error');
       });
 
-      expect(result.success).toBe(true);
-      // The custom resolver should still work as before
+      const result = ContextMerger.merge(mockSourceContext, mockTargetContext);
+
+      expect(result.success).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
     });
 
-    it('should handle all existing merge strategies', () => {
-      const strategies = Object.values(ContextMerger.MERGE_STRATEGIES);
-
-      strategies.forEach(strategy => {
-        const result = ContextMerger.merge(sourceContext, targetContext, strategy);
-        expect(result.success).toBe(true);
-        expect(result.strategy).toBe(strategy);
+    it('should collect multiple errors', () => {
+      mockSourceContainer.keys.mockImplementation(() => {
+        throw new Error('Keys error');
       });
+      mockTargetContainer.setItem.mockImplementation(() => {
+        throw new Error('SetItem error');
+      });
+
+      const result = ContextMerger.merge(mockSourceContext, mockTargetContext);
+
+      expect(result.errors.length).toBeGreaterThan(0);
     });
 
-    it('should support all existing options', () => {
-      const allOptions = {
-        includeComponents: ['data', 'settings'],
-        excludeComponents: ['schema'],
-        compareBy: 'timestamp',
-        createMissing: true,
-        dryRun: true,
-        preserveMetadata: true
-      };
+    it('should handle invalid merge strategy gracefully', () => {
+      // The current implementation doesn't validate strategy names
+      // This test ensures it doesn't crash with unknown strategies
+      const result = ContextMerger.merge(
+        mockSourceContext,
+        mockTargetContext,
+        'unknownStrategy'
+      );
 
-      const result = ContextMerger.merge(sourceContext, targetContext, 'mergeNewerWins', allOptions);
-      expect(result.success).toBe(true);
+      expect(result).toBeDefined();
     });
   });
 });

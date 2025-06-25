@@ -5,7 +5,7 @@
  * @date 30 May 2025
  */
 
-import ContextSync from './contextSync.js';
+import ContextComparison from './contextComparison.js';
 import { ContextItem } from './contextItem.js';
 import { ContextContainer } from './contextContainer.js';
 import { ItemFilter } from './contextItemFilter.js';
@@ -14,6 +14,15 @@ import { ItemFilter } from './contextItemFilter.js';
  * @class ContextMerger
  * @description Provides sophisticated merge capabilities for Context instances with granular control,
  * detailed statistics, and advanced conflict resolution options.
+ *
+ * Available merge strategies include:
+ * - `mergeNewerWins`: Newer items from the target context overwrite source items.
+ * - `mergeSourcePriority`: Source items take precedence over target items.
+ * - `mergeTargetPriority`: Target items take precedence over source items.
+ * - `updateSourceToTarget`: Updates source items with target values.
+ * - `updateTargetToSource`: Updates target items with source values.
+ * - `replace`: Completely replaces source items with target items.
+ * - `noAction`: No changes are made, used for validation or dry runs.
  *
  * @example
  * // Basic merge with newer items winning
@@ -263,10 +272,10 @@ class ContextMerger {
 
     switch (strategy) {
       case ContextMerger.MERGE_STRATEGIES.MERGE_NEWER_WINS:
-        if (comparison.result === ContextSync.COMPARISON_RESULTS.SOURCE_NEWER) {
+        if (comparison.result === ContextComparison.COMPARISON_RESULTS.SOURCE_NEWER) {
           chosenItem = sourceItem;
           actionTaken = 'sourcePreferred';
-        } else if (comparison.result === ContextSync.COMPARISON_RESULTS.TARGET_NEWER) {
+        } else if (comparison.result === ContextComparison.COMPARISON_RESULTS.TARGET_NEWER) {
           chosenItem = targetItem;
           actionTaken = 'targetPreferred';
         }
@@ -307,14 +316,14 @@ class ContextMerger {
     let actionTaken = chosenItem === targetItem ? 'targetPreferred' : 'sourcePreferred';
 
     // Handle conflicts
-    if (chosenItem && onConflict && comparison.result !== ContextSync.COMPARISON_RESULTS.EQUAL) {
+    if (chosenItem && onConflict && comparison.result !== ContextComparison.COMPARISON_RESULTS.EQUAL) {
       result.conflicts++;
       const resolverResult = onConflict(chosenItem === targetItem ? targetItem : chosenItem, targetItem, itemPath);
       if (resolverResult) {
         chosenItem = resolverResult;
         actionTaken = resolverResult === chosenItem ? 'sourcePreferred' : 'targetPreferred';
       }
-    } else if (chosenItem && comparison.result !== ContextSync.COMPARISON_RESULTS.EQUAL) {
+    } else if (chosenItem && comparison.result !== ContextComparison.COMPARISON_RESULTS.EQUAL) {
       result.conflicts++;
     }
 
@@ -322,6 +331,7 @@ class ContextMerger {
     if (chosenItem && !dryRun && chosenItem !== targetItem && targetComponent?.setItem) {
       ContextMerger.#setItemWithMetadata(chosenItem, targetItem, targetComponent, itemKey, preserveMetadata);
 
+      result.statistics[actionTaken]++;
       result.statistics.updated++;
       result.changes.push({
         path: itemPath,
@@ -519,7 +529,7 @@ class ContextMerger {
    * @returns {object} Updated result.
    */
   static #handleExistingItems(sourceItem, targetItem, targetComponent, itemKey, itemPath, strategy, options, result) {
-    const comparison = ContextSync.compare(sourceItem, targetItem, { compareBy: options.compareBy });
+    const comparison = ContextComparison.compare(sourceItem, targetItem, { compareBy: options.compareBy });
     const { chosenItem, actionTaken } = ContextMerger.#determineItemChoice(sourceItem, targetItem, strategy, comparison);
 
     if (chosenItem) {

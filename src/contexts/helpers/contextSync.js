@@ -205,64 +205,7 @@ class ContextSync {
    * @returns {object} Comparison result with details.
    */
   static compare(source, target, { compareBy = 'modifiedAt' } = {}) {
-    if (!source && !target) {
-      return {
-        result: ContextSync.COMPARISON_RESULTS.BOTH_MISSING,
-        sourceTimestamp: null,
-        targetTimestamp: null,
-        timeDifference: 0
-      };
-    }
-
-    if (!source) {
-      return {
-        result: ContextSync.COMPARISON_RESULTS.SOURCE_MISSING,
-        sourceTimestamp: null,
-        targetTimestamp: target[compareBy],
-        timeDifference: null
-      };
-    }
-
-    if (!target) {
-      return {
-        result: ContextSync.COMPARISON_RESULTS.TARGET_MISSING,
-        sourceTimestamp: source[compareBy],
-        targetTimestamp: null,
-        timeDifference: null
-      };
-    }
-
-    return ContextSync.#compareTimestamps(source, target, compareBy);
-  }
-
-  /**
-   * @private
-   * Compares timestamps between two objects.
-   * @param {object} source - Source object with timestamp.
-   * @param {object} target - Target object with timestamp.
-   * @param {string} compareBy - Timestamp property to compare.
-   * @returns {object} Comparison result.
-   */
-  static #compareTimestamps(source, target, compareBy) {
-    const sourceTimestamp = source[compareBy];
-    const targetTimestamp = target[compareBy];
-    const timeDifference = sourceTimestamp.getTime() - targetTimestamp.getTime();
-
-    let result;
-    if (timeDifference > 0) {
-      result = ContextSync.COMPARISON_RESULTS.SOURCE_NEWER;
-    } else if (timeDifference < 0) {
-      result = ContextSync.COMPARISON_RESULTS.TARGET_NEWER;
-    } else {
-      result = ContextSync.COMPARISON_RESULTS.EQUAL;
-    }
-
-    return {
-      result,
-      sourceTimestamp,
-      targetTimestamp,
-      timeDifference
-    };
+    return ContextComparison.compare(source, target, { compareBy });
   }
 
   /**

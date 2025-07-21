@@ -38,6 +38,8 @@ This comment block should be placed at the top of the file, before any other cod
 - Properties should be documented in the class JSDoc comment or in the class or constructor’s main JSDoc block
 - JSDoc for classes inheriting from another class should include the parent class name and indicate the inherited methods and properties that are used or overridden within the class.
 - Write JSDoc comments for all functions, including parameters (using `@param`) and return (using `@returns`) types.
+- For exported classes, functions, and variables, use `@export` to indicate that they are part of the public API.
+- For exported class, include the public API in the JSDoc comment block.
 
   #### Conditional Statements ####
 - For simple flag checks, use a single line if statement (for example `if (flag) doSomething();`). Single-line if statements should not be used for complex conditions, or for long variable names.

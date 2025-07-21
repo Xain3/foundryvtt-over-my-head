@@ -2,13 +2,17 @@
  * @file validator.js
  * @description This file contains a static Validator class with utility methods for type checking and validation.
  * @path src/utils/static/validator.js
+ * @date July 21, 2025
  */
+
+import dayjs from 'dayjs';
 
 /**
  * Static utility class for validating data types and values.
  * Provides methods for checking primitive types, objects, arrays, and performing validation with error throwing.
  *
  * @class Validator
+ * @export
  */
 class Validator {
   /**
@@ -136,6 +140,23 @@ class Validator {
     if (Validator.isArray(value)) return value.length === 0;
     if (Validator.isObject(value)) return Object.keys(value).length === 0;
     return false;
+  }
+
+  static isBoolean(value) {
+    return typeof value === 'boolean';
+  }
+
+  /**
+   * Checks if a value is a a primitive type (string, number, boolean, null, or undefined).
+   * @param {*} value - The value to check.
+   * @returns {boolean} True if value is a primitive type, false otherwise.
+   */
+  static isPrimitive(value) {
+    return typeof value === 'string' ||
+          typeof value === 'number' ||
+          typeof value === 'boolean' ||
+          Validator.isNull(value) ||
+          !Validator.isDefined(value);
   }
 
   /**
@@ -288,6 +309,31 @@ class Validator {
       throw new Error(`${name} cannot be in the future.`);
     }
   }
+
+  /**
+   * Validates that the provided value is a valid Date object or a valid date string.
+   *
+   * @param {*} value - The value to validate as a date.
+   * @param {string} [name='Date'] - The name of the parameter being validated, used in error messages.
+   * @throws {TypeError} If the value is not a valid Date object or a valid date string.
+   * @throws {Error} If the value is a Date object but is invalid (e.g., `new Date('invalid')`).
+   */
+  static validateDate(value, name = 'Date') {
+    let dateToCheck = value;
+
+    // If it's not a Date object, check if dayjs can validate it
+    if (!(value instanceof Date)) {
+      if (!dayjs(value).isValid()) {
+        throw new TypeError("date must be a valid Date object");
+      }
+      // Convert valid date string to Date object for further validation
+      dateToCheck = new Date(value);
+    }
+
+    if (isNaN(dateToCheck.getTime())) {
+      throw new Error(`${name} must be a valid date. Received: ${value}`);
+    }
+  };
 
   /**
    * Validates the structure of an arguments object.

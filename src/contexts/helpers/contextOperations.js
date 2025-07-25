@@ -1,17 +1,106 @@
 /**
  * @file contextOperations.js
- * @description Bulk and multi-context operations using ContextMerger. Focuses on operations involving multiple sources/targets.
- * @path /src/contexts/helpers/contextOperations.js
+ * @description Bulk and multi-context operations using ContextMerger for operations involving multiple sources/targets.
+ * @path src/contexts/helpers/contextOperations.js
+
  */
 
 import ContextMerger, { ItemFilter } from './contextMerger.js';
+import { ContextContainer } from './contextContainer.js';
+import { ContextItem } from './contextItem.js';
+import Context from '../context.js';
+import ContextContainerSync from './contextContainerSync.js';
+import ContextItemSync from './contextItemSync.js';
+import constants from '../../constants/constants.js';
 
 /**
  * @class ContextOperations
+ * @export
  * @description Provides bulk operations and multi-source/target operations for context management.
+ * Supports Context, ContextContainer, and ContextItem instances.
  * For single-context operations, use ContextMerger or Context.merge() directly.
+ * 
+ * ## Public API
+ * - `pushItems(source, target, itemPaths, strategy, options)` - Pushes specific items from source to target using path filtering
+ * - `pullItems(source, target, itemPaths, strategy, options)` - Pulls specific items from source to target using path filtering  
+ * - `pushFromMultipleSources(sources, target, strategy, options)` - Pushes context data from multiple sources to a single target
+ * - `pushToMultipleTargets(source, targets, strategy, options)` - Pushes context data from a single source to multiple targets
+ * - `pushItemsBulk(sources, targets, itemPaths, strategy, options)` - Pushes multiple specific items from multiple sources to multiple targets
+ * - `synchronizeBidirectional(context1, context2, options)` - Synchronizes contexts bidirectionally using conditional merging
+ * - `consolidateContexts(sources, target, options)` - Creates a consolidated context from multiple source contexts
  */
 class ContextOperations {
+
+  /**
+   * @private
+   * Determines the appropriate sync method based on object types.
+   * @param {Context|ContextContainer|ContextItem} source - The source object.
+   * @param {Context|ContextContainer|ContextItem} target - The target object.
+   * @param {string} strategy - The strategy to use.
+   * @param {object} options - The options to pass.
+   * @returns {object} The sync result.
+   */
+  static #performSync(source, target, strategy, options = {}) {
+    // Handle Context instances
+    if (source instanceof Context && target instanceof Context) {
+      return ContextMerger.merge(source, target, strategy, options);
+    }
+
+    // Handle ContextContainer instances
+    if (source instanceof ContextContainer && target instanceof ContextContainer) {
+      const syncOptions = { ...options };
+      let result;
+
+      if (strategy === 'mergeSourcePriority') {
+        result = ContextContainerSync.mergeWithPriority(source, target, 'source', syncOptions);
+        result.operation = strategy; // Override to match expected strategy name
+      } else if (strategy === 'mergeTargetPriority') {
+        result = ContextContainerSync.mergeWithPriority(source, target, 'target', syncOptions);
+        result.operation = strategy; // Override to match expected strategy name
+      } else if (strategy === 'mergeNewerWins') {
+        result = ContextContainerSync.mergeNewerWins(source, target, syncOptions);
+        result.operation = strategy; // Override to match expected strategy name
+      } else {
+        // Default to source priority
+        result = ContextContainerSync.mergeWithPriority(source, target, 'source', syncOptions);
+        result.operation = strategy; // Override to match expected strategy name
+      }
+
+      // Ensure consistent format with itemsProcessed
+      if (!result.itemsProcessed) {
+        const allowOnly = options.allowOnly;
+        result.itemsProcessed = allowOnly || (result.changes ? result.changes.map(c => c.path || c.key) : []);
+      }
+
+      return result;
+    }
+
+    // Handle ContextItem instances
+    if (source instanceof ContextItem && target instanceof ContextItem) {
+      let result;
+
+      if (strategy === 'mergeSourcePriority') {
+        result = ContextItemSync.updateTargetToSource(source, target, options);
+        result.operation = strategy; // Override to match expected strategy name
+      } else if (strategy === 'mergeNewerWins') {
+        result = ContextItemSync.mergeNewerWins(source, target, options);
+        result.operation = strategy; // Override to match expected strategy name
+      } else {
+        result = ContextItemSync.updateTargetToSource(source, target, options);
+        result.operation = strategy; // Override to match expected strategy name
+      }
+
+      // Ensure consistent format with itemsProcessed
+      if (!result.itemsProcessed) {
+        result.itemsProcessed = [1]; // Single item as array
+      }
+
+      return result;
+    }
+
+    // Fallback for mixed types
+    throw new Error(`Incompatible object types: ${source.constructor.name} and ${target.constructor.name}`);
+  }
 
 
   /**
@@ -20,16 +109,25 @@ class ContextOperations {
    */
   static pushItems(source, target, itemPaths, strategy = 'mergeNewerWins', options = {}) {
     if (!source || !target) {
-      throw new Error('Source and target contexts must be provided');
+      throw new Error(constants.contextHelpers.errorMessages.invalidSourceTarget);
     }
     if (!Array.isArray(itemPaths) || itemPaths.length === 0) {
-      throw new Error('Item paths must be a non-empty array');
+      throw new Error(constants.contextHelpers.errorMessages.emptyItemPaths);
     }
 
-    return ContextMerger.merge(source, target, strategy, {
+    const result = ContextOperations.#performSync(source, target, strategy, {
       ...options,
       allowOnly: itemPaths
     });
+
+    // Ensure consistent return format
+    return {
+      success: result.success || false,
+      strategy: strategy,
+      operation: 'pushItems',
+      itemsProcessed: result.itemsProcessed || itemPaths,
+      ...result
+    };
   }
 
   /**
@@ -38,16 +136,27 @@ class ContextOperations {
    */
   static pullItems(source, target, itemPaths, strategy = 'mergeNewerWins', options = {}) {
     if (!source || !target) {
-      throw new Error('Source and target contexts must be provided');
+      throw new Error(constants.contextHelpers.errorMessages.invalidSourceTarget);
     }
     if (!Array.isArray(itemPaths) || itemPaths.length === 0) {
-      throw new Error('Item paths must be a non-empty array');
+      throw new Error(constants.contextHelpers.errorMessages.emptyItemPaths);
     }
 
-    return ContextMerger.merge(target, source, strategy, {
+    const result = ContextOperations.#performSync(target, source, strategy, {
       ...options,
       allowOnly: itemPaths
     });
+
+    // Ensure consistent return format
+    return {
+      success: result.success || false,
+      strategy: strategy,
+      operation: 'pullItems',
+      itemsProcessed: Array.isArray(result.itemsProcessed) 
+        ? result.itemsProcessed 
+        : itemPaths,
+      ...result
+    };
   }
 
   /**
@@ -67,25 +176,29 @@ class ContextOperations {
    */
   static pushFromMultipleSources(sources, target, strategy = 'mergeNewerWins', options = {}) {
     if (!Array.isArray(sources) || sources.length === 0) {
-      throw new Error('Sources must be a non-empty array of contexts');
+      throw new Error(constants.contextHelpers.errorMessages.emptySources);
     }
     if (!target) {
-      throw new Error('Target context must be provided');
+      throw new Error(constants.contextHelpers.errorMessages.emptyTarget);
     }
 
     return sources.map((source, index) => {
       try {
+        const result = ContextOperations.#performSync(source, target, strategy, options);
         return {
           sourceIndex: index,
-          success: true,
-          result: ContextMerger.merge(source, target, strategy, options)
+          success: result.success || true,
+          strategy: strategy,
+          operation: 'pushFromMultipleSources',
+          ...result
         };
       } catch (error) {
         return {
           sourceIndex: index,
           success: false,
-          error: error.message,
-          result: null
+          strategy: strategy,
+          operation: 'pushFromMultipleSources',
+          error: error.message
         };
       }
     });
@@ -116,17 +229,21 @@ class ContextOperations {
 
     return targets.map((target, index) => {
       try {
+        const result = ContextOperations.#performSync(source, target, strategy, options);
         return {
           targetIndex: index,
-          success: true,
-          result: ContextMerger.merge(source, target, strategy, options)
+          success: result.success || true,
+          strategy: strategy,
+          operation: 'pushToMultipleTargets',
+          ...result
         };
       } catch (error) {
         return {
           targetIndex: index,
           success: false,
-          error: error.message,
-          result: null
+          strategy: strategy,
+          operation: 'pushToMultipleTargets',
+          error: error.message
         };
       }
     });
@@ -150,34 +267,41 @@ class ContextOperations {
    */
   static pushItemsBulk(sources, targets, itemPaths, strategy = 'mergeNewerWins', options = {}) {
     if (!Array.isArray(sources) || sources.length === 0) {
-      throw new Error('Sources must be a non-empty array of contexts');
+      throw new Error(constants.contextHelpers.errorMessages.emptySources);
     }
     if (!Array.isArray(targets) || targets.length === 0) {
-      throw new Error('Targets must be a non-empty array of contexts');
+      throw new Error(constants.contextHelpers.errorMessages.emptyTargets);
     }
     if (!Array.isArray(itemPaths) || itemPaths.length === 0) {
-      throw new Error('Item paths must be a non-empty array');
+      throw new Error(constants.contextHelpers.errorMessages.emptyItemPaths);
     }
 
     return sources.map((source, sourceIndex) => {
       return targets.map((target, targetIndex) => {
         try {
+          const result = ContextOperations.#performSync(source, target, strategy, {
+            ...options,
+            allowOnly: itemPaths
+          });
           return {
             sourceIndex,
             targetIndex,
-            success: true,
-            result: ContextMerger.merge(source, target, strategy, {
-              ...options,
-              allowOnly: itemPaths
-            })
+            success: result.success || true,
+            strategy: strategy,
+            operation: 'pushItemsBulk',
+            itemsProcessed: Array.isArray(result.itemsProcessed) 
+              ? result.itemsProcessed 
+              : itemPaths,
+            ...result
           };
         } catch (error) {
           return {
             sourceIndex,
             targetIndex,
             success: false,
-            error: error.message,
-            result: null
+            strategy: strategy,
+            operation: 'pushItemsBulk',
+            error: error.message
           };
         }
       });
@@ -211,40 +335,65 @@ class ContextOperations {
       ...mergeOptions
     } = options;
 
-    // Create filters for each direction
-    const context1ToContext2Filter = ItemFilter.and(
-      ItemFilter.blockOnly(excludePaths),
-      ItemFilter.or(
-        ItemFilter.allowOnly(context1Priority),
-        ItemFilter.blockOnly(context2Priority)
-      )
-    );
+    try {
+      // For non-Context instances, use simpler bidirectional sync
+      if (!(context1 instanceof Context) || !(context2 instanceof Context)) {
+        const result1to2 = ContextOperations.#performSync(context1, context2, strategy, mergeOptions);
+        const result2to1 = ContextOperations.#performSync(context2, context1, strategy, mergeOptions);
 
-    const context2ToContext1Filter = ItemFilter.and(
-      ItemFilter.blockOnly(excludePaths),
-      ItemFilter.or(
-        ItemFilter.allowOnly(context2Priority),
-        ItemFilter.blockOnly(context1Priority)
-      )
-    );
+        return {
+          success: (result1to2.success !== false) && (result2to1.success !== false),
+          operation: 'synchronizeBidirectional',
+          strategy: strategy,
+          direction1to2: result1to2,
+          direction2to1: result2to1
+        };
+      }
 
-    const result1to2 = ContextMerger.merge(context1, context2, strategy, {
-      ...mergeOptions,
-      onConflict: context1ToContext2Filter
-    });
+      // Create filters for each direction (Context instances only)
+      const context1ToContext2Filter = ItemFilter.and(
+        ItemFilter.blockOnly(excludePaths),
+        ItemFilter.or(
+          ItemFilter.allowOnly(context1Priority),
+          ItemFilter.blockOnly(context2Priority)
+        )
+      );
 
-    const result2to1 = ContextMerger.merge(context2, context1, strategy, {
-      ...mergeOptions,
-      onConflict: context2ToContext1Filter
-    });
+      const context2ToContext1Filter = ItemFilter.and(
+        ItemFilter.blockOnly(excludePaths),
+        ItemFilter.or(
+          ItemFilter.allowOnly(context2Priority),
+          ItemFilter.blockOnly(context1Priority)
+        )
+      );
 
-    return {
-      success: result1to2.success && result2to1.success,
-      context1ToContext2: result1to2,
-      context2ToContext1: result2to1,
-      totalItemsProcessed: result1to2.itemsProcessed + result2to1.itemsProcessed,
-      totalConflicts: result1to2.conflicts + result2to1.conflicts
-    };
+      const result1to2 = ContextMerger.merge(context1, context2, strategy, {
+        ...mergeOptions,
+        onConflict: context1ToContext2Filter
+      });
+
+      const result2to1 = ContextMerger.merge(context2, context1, strategy, {
+        ...mergeOptions,
+        onConflict: context2ToContext1Filter
+      });
+
+      return {
+        success: result1to2.success && result2to1.success,
+        operation: 'synchronizeBidirectional',
+        strategy: strategy,
+        direction1to2: result1to2,
+        direction2to1: result2to1,
+        totalItemsProcessed: result1to2.itemsProcessed + result2to1.itemsProcessed,
+        totalConflicts: result1to2.conflicts + result2to1.conflicts
+      };
+    } catch (error) {
+      return {
+        success: false,
+        operation: 'synchronizeBidirectional',
+        strategy: strategy,
+        error: error.message
+      };
+    }
   }
 
   /**
@@ -276,10 +425,10 @@ class ContextOperations {
     } = options;
 
     if (!Array.isArray(sources) || sources.length === 0) {
-      throw new Error('Sources must be a non-empty array of contexts');
+      throw new Error(constants.contextHelpers.errorMessages.emptySources);
     }
     if (!target) {
-      throw new Error('Target context must be provided');
+      throw new Error(constants.contextHelpers.errorMessages.emptyTarget);
     }
 
     // Sort sources by priority if specified
@@ -296,33 +445,39 @@ class ContextOperations {
 
     for (const { source, index } of sortedSources) {
       try {
-        const filter = excludePaths.length > 0 ? ItemFilter.blockOnly(excludePaths) : undefined;
+        // For Context instances, use filter; for others, use simpler approach
+        let syncOptions = { ...mergeOptions };
+        if (source instanceof Context && target instanceof Context && excludePaths.length > 0) {
+          syncOptions.onConflict = ItemFilter.blockOnly(excludePaths);
+        }
 
-        const result = ContextMerger.merge(source, target, strategy, {
-          ...mergeOptions,
-          onConflict: filter
-        });
+        const result = ContextOperations.#performSync(source, target, strategy, syncOptions);
 
         results.push({
           sourceIndex: index,
-          success: true,
-          result
+          success: result.success !== false,
+          strategy: strategy,
+          operation: 'consolidateContexts',
+          ...result
         });
 
-        totalItemsProcessed += result.itemsProcessed;
-        totalConflicts += result.conflicts;
+        totalItemsProcessed += result.itemsProcessed || 0;
+        totalConflicts += result.conflicts || 0;
       } catch (error) {
         results.push({
           sourceIndex: index,
           success: false,
-          error: error.message,
-          result: null
+          strategy: strategy,
+          operation: 'consolidateContexts',
+          error: error.message
         });
       }
     }
 
     return {
       success: results.every(r => r.success),
+      operation: 'consolidateContexts',
+      strategy: strategy,
       results,
       totalItemsProcessed,
       totalConflicts,

@@ -10,7 +10,7 @@
 
   #### Code Style ####
 - Prefer 2-space indentation over tabs.
-- Prepend the file with a comment block that includes the file name, and creation date, in the format:
+- Prepend the file with a comment block that includes the file name, description, and path, in the format:
   ```javascript
   /**
   * @file the file name

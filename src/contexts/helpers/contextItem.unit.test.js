@@ -1,4 +1,5 @@
 import { ContextItem } from './contextItem.js';
+import { Validator } from '@/utils/static/validator.js';
 
 /**
  * @file contextItem.unit.test.js
@@ -440,6 +441,194 @@ describe('ContextItem', () => {
       const item = new ContextItem('test');
       const isItem = item.isContextItem === true;
       expect(isItem).toBe(true);
+    });
+  });
+
+  describe('_updateAccessTimestamp', () => {
+    it('should set lastAccessedAt to provided date', () => {
+      const item = new ContextItem('test');
+      const customDate = new Date('2025-01-01T12:00:00.000Z');
+      item._updateAccessTimestamp(customDate);
+      expect(item.lastAccessedAt.getTime()).toBe(customDate.getTime());
+    });
+
+    it('should set lastAccessedAt to current date if no date provided', () => {
+      const item = new ContextItem('test');
+      const before = new Date();
+      item._updateAccessTimestamp();
+      const after = new Date();
+      expect(item.lastAccessedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(item.lastAccessedAt.getTime()).toBeLessThanOrEqual(after.getTime());
+    });
+
+    it('should throw error for non-Date object that fails dayjs validation', () => {
+      const item = new ContextItem('test');
+      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation(() => {
+        throw new TypeError("date must be a valid Date object");
+      });
+
+      expect(() => item._updateAccessTimestamp('invalid-date')).toThrow('date must be a valid Date object');
+
+      mockValidator.mockRestore();
+    });
+
+    it('should throw error for invalid Date object (NaN getTime)', () => {
+      const item = new ContextItem('test');
+      const invalidDate = new Date('invalid');
+      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation(() => {
+        throw new TypeError("date must be a valid Date object");
+      });
+
+      expect(() => item._updateAccessTimestamp(invalidDate)).toThrow('date must be a valid Date object');
+
+      mockValidator.mockRestore();
+    });
+
+    it('should handle valid Date object without calling validator', () => {
+      const item = new ContextItem('test');
+      const validDate = new Date('2025-01-01T12:00:00.000Z');
+      const mockValidator = jest.spyOn(Validator, 'validateDate');
+
+      item._updateAccessTimestamp(validDate);
+      expect(item.lastAccessedAt.getTime()).toBe(validDate.getTime());
+      expect(mockValidator).not.toHaveBeenCalled();
+
+      mockValidator.mockRestore();
+    });
+
+    it('should handle string date that passes validator validation', () => {
+      const item = new ContextItem('test');
+      const dateString = '2025-01-01';
+      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation(() => {
+        // Validator passes, no throw
+      });
+
+      // This should not throw since validator validation passes
+      expect(() => item._updateAccessTimestamp(dateString)).not.toThrow();
+      expect(mockValidator).toHaveBeenCalledWith(dateString);
+
+      mockValidator.mockRestore();
+    });
+
+    it('should handle null input as default (use current date)', () => {
+      const item = new ContextItem('test');
+      const originalLastAccessed = item.lastAccessedAt;
+
+      // null should be treated as default, creating new Date
+      setTimeout(() => {
+        item._updateAccessTimestamp(null);
+        expect(item.lastAccessedAt.getTime()).toBeGreaterThan(originalLastAccessed.getTime());
+      }, 10);
+    });
+  });
+
+  describe('_updateModificationTimestamps', () => {
+    it('should set modifiedAt and lastAccessedAt to provided date', () => {
+      const item = new ContextItem('test');
+      const customDate = new Date('2025-01-01T12:00:00.000Z');
+      item._updateModificationTimestamps(customDate);
+      expect(item.modifiedAt.getTime()).toBe(customDate.getTime());
+      expect(item.lastAccessedAt.getTime()).toBe(customDate.getTime());
+    });
+
+    it('should set modifiedAt and lastAccessedAt to current date if no date provided', () => {
+      const item = new ContextItem('test');
+      const before = new Date();
+      item._updateModificationTimestamps();
+      const after = new Date();
+      expect(item.modifiedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(item.modifiedAt.getTime()).toBeLessThanOrEqual(after.getTime());
+      expect(item.lastAccessedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(item.lastAccessedAt.getTime()).toBeLessThanOrEqual(after.getTime());
+    });
+
+    it('should throw error for non-Date object that fails dayjs validation', () => {
+      const item = new ContextItem('test');
+      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation(() => {
+        throw new TypeError("date must be a valid Date object");
+      });
+
+      expect(() => item._updateModificationTimestamps('invalid-date')).toThrow('date must be a valid Date object');
+
+      mockValidator.mockRestore();
+    });
+
+    it('should throw error for invalid Date object (NaN getTime)', () => {
+      const item = new ContextItem('test');
+      const invalidDate = new Date('invalid');
+      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation(() => {
+        throw new TypeError("date must be a valid Date object");
+      });
+
+      expect(() => item._updateModificationTimestamps(invalidDate)).toThrow('date must be a valid Date object');
+
+      mockValidator.mockRestore();
+    });
+
+    it('should handle valid Date object without calling validator', () => {
+      const item = new ContextItem('test');
+      const validDate = new Date('2025-01-01T12:00:00.000Z');
+      const mockValidator = jest.spyOn(Validator, 'validateDate');
+
+      item._updateModificationTimestamps(validDate);
+      expect(item.modifiedAt.getTime()).toBe(validDate.getTime());
+      expect(item.lastAccessedAt.getTime()).toBe(validDate.getTime());
+      expect(mockValidator).not.toHaveBeenCalled();
+
+      mockValidator.mockRestore();
+    });
+
+    it('should handle string date that passes validator validation', () => {
+      const item = new ContextItem('test');
+      const dateString = '2025-01-01';
+      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation(() => {
+        // Validator passes, no throw
+      });
+
+      // This should not throw since validator validation passes
+      expect(() => item._updateModificationTimestamps(dateString)).not.toThrow();
+      expect(mockValidator).toHaveBeenCalledWith(dateString);
+
+      mockValidator.mockRestore();
+    });
+
+    it('should handle null input as default (use current date)', () => {
+      const item = new ContextItem('test');
+      const originalModified = item.modifiedAt;
+      const originalLastAccessed = item.lastAccessedAt;
+
+      // null should be treated as default, creating new Date
+      setTimeout(() => {
+        item._updateModificationTimestamps(null);
+        expect(item.modifiedAt.getTime()).toBeGreaterThan(originalModified.getTime());
+        expect(item.lastAccessedAt.getTime()).toBeGreaterThan(originalLastAccessed.getTime());
+      }, 10);
+    });
+
+    it('should handle string input that fails validator validation', () => {
+      const item = new ContextItem('test');
+
+      // Test with a string value that should trigger validation
+      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation((value) => {
+        throw new TypeError("date must be a valid Date object");
+      });
+
+      expect(() => item._updateModificationTimestamps('invalid-date')).toThrow('date must be a valid Date object');
+      expect(mockValidator).toHaveBeenCalledWith('invalid-date');
+
+      mockValidator.mockRestore();
+    });
+
+    it('should handle number input that fails validator validation', () => {
+      const item = new ContextItem('test');
+      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation(() => {
+        throw new TypeError("date must be a valid Date object");
+      });
+
+      expect(() => item._updateModificationTimestamps(123456789)).toThrow('date must be a valid Date object');
+      expect(mockValidator).toHaveBeenCalledWith(123456789);
+
+      mockValidator.mockRestore();
     });
   });
 });

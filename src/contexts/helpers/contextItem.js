@@ -1,15 +1,34 @@
 /**
  * @file contextItem.js
- * @description This file contains the ContextItem class for managing a data item with metadata and timestamps.
- * @path /src/contexts/helpers/contextItem.js
- * @date 23 May 2025
+ * @description Represents a data item with value, metadata, and timestamps, supporting immutability patterns.
+ * @path src/contexts/helpers/contextItem.js
+
  */
+
+import { Validator } from "@/utils/static/validator";
 
 /**
  * @class ContextItem
- * @classdesc Represents a data item with metadata, timestamps, and access tracking capabilities.
- *            Provides functionality to track when the item was created, modified, and accessed.
- *            Supports freezing to prevent modifications and configurable access recording.
+ * @description Represents a data item with value, metadata, and timestamps, supporting immutability patterns.
+ * @export
+ *
+ * Public API:
+ * - constructor(value, metadata, options) - Creates a new ContextItem with value, metadata, and options
+ * - get value() - Gets the current value, optionally recording access
+ * - set value(newValue) - Sets a new value and updates timestamps
+ * - get createdAt() - Gets the creation timestamp
+ * - get modifiedAt() - Gets the last modification timestamp
+ * - get lastAccessedAt() - Gets the last access timestamp
+ * - get metadata() - Gets the metadata object, optionally recording access
+ * - setMetadata(metadata, merge) - Sets or merges metadata and updates timestamps
+ * - freeze() - Makes the item immutable
+ * - unfreeze() - Makes the item mutable again
+ * - isFrozen() - Checks if the item is frozen
+ * - changeAccessRecord(options) - Changes access recording settings
+ * - reinitialize(value, metadata, options) - Reinitializes the item with new data
+ * - clear() - Clears the item and resets to default state
+ * - get isContextItem() - Returns true for duck typing identification
+ *
  * @property {*} #value - The private value stored in the item
  * @property {Date} #createdAt - The private creation timestamp
  * @property {Date} #modifiedAt - The private last modification timestamp
@@ -28,6 +47,39 @@ class ContextItem {
   #metadata;
   #frozen;
   #isContextItem;
+
+  /**
+   * @protected
+   * Updates the lastAccessedAt timestamp.
+   * Typically called internally when the item's value or metadata is accessed.
+   * @param {Date} [date=null] - The date to set as lastAccessedAt. Defaults to current date/time.
+   */
+  _updateAccessTimestamp(date = null) {
+    if (date === null) date = new Date();
+    // Validate the date before setting it
+    if (!(date instanceof Date) || (date instanceof Date && isNaN(date.getTime()))) {
+      // Let the validator throw the appropriate error
+      Validator.validateDate(date);
+    }
+    this.#lastAccessedAt = date;
+  }
+
+  /**
+   * @protected
+   * Updates the modifiedAt and lastAccessedAt timestamps.
+   * Typically called internally when the item's value or metadata is changed.
+   * @param {Date} [date=null] - The date to set as modifiedAt and lastAccessedAt. Defaults to current date/time.
+   */
+  _updateModificationTimestamps(date = null) {
+    if (date === null) date = new Date();
+    // Validate the date before setting it
+    if (!(date instanceof Date) || (date instanceof Date && isNaN(date.getTime()))) {
+      // Let the validator throw the appropriate error
+      Validator.validateDate(date);
+    }
+    this.#modifiedAt = date;
+    this.#lastAccessedAt = date;
+  }
 
   /**
    * Creates an instance of ContextItem.
@@ -49,26 +101,6 @@ class ContextItem {
     this.#frozen = frozen;
     this.recordAccess = recordAccess;
     this.recordAccessForMetadata = recordAccessForMetadata;
-  }
-
-  /**
-   * @protected
-   * Updates the lastAccessedAt timestamp.
-   * Typically called internally when the item's value or metadata is accessed.
-   */
-  _updateAccessTimestamp() {
-    this.#lastAccessedAt = new Date();
-  }
-
-  /**
-   * @protected
-   * Updates the modifiedAt and lastAccessedAt timestamps.
-   * Typically called internally when the item's value or metadata is changed.
-   */
-  _updateModificationTimestamps() {
-    const now = new Date();
-    this.#modifiedAt = now;
-    this.#lastAccessedAt = now;
   }
 
   /**

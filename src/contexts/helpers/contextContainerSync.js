@@ -1,7 +1,8 @@
 /**
  * @file contextContainerSync.js
  * @description This file contains the ContextContainerSync class for synchronizing ContextContainer instances.
- * @path /src/contexts/helpers/contextContainerSync.js
+ * @path src/contexts/helpers/contextContainerSync.js
+
  */
 
 import ContextComparison from './contextComparison.js';
@@ -11,21 +12,45 @@ import ContextContainerSyncEngine from './contextContainerSyncEngine.js';
  * @class ContextContainerSync
  * @classdesc Provides synchronization capabilities for {@link ContextContainer} instances.
  * Uses {@link ContextContainerSyncEngine} for complex recursive synchronization.
+ * @export
+ *
+ * Public API:
+ * - updateSourceToMatchTarget(source, target, options) - Updates the source container to match the target
+ * - updateTargetToMatchSource(source, target, options) - Updates the target container to match the source
+ * - mergeNewerWins(source, target, options) - Merges containers, preferring the one with the newer timestamp
+ * - mergeWithPriority(source, target, priority, options) - Merges containers, preferring the specified priority ('source' or 'target')
+ * - updateSourceToTarget(source, target, options) - Alias for updateTargetToMatchSource for compatibility
+ * - updateTargetToSource(source, target, options) - Alias for updateSourceToMatchTarget for compatibility
  *
  * @example
  * // Synchronize two containers deeply, including metadata
  * ContextContainerSync.updateTargetToMatchSource(sourceContainer, targetContainer, { deepSync: true, syncMetadata: true });
  *
- * @property {Function} updateSourceToMatchTarget - Updates the source container to match the target.
- * @property {Function} updateTargetToMatchSource - Updates the target container to match the source.
- * @property {Function} mergeNewerWins - Merges containers, preferring the one with the newer timestamp.
- * @property {Function} mergeWithPriority - Merges containers, preferring the specified priority ('source' or 'target').
+ * @example
+ * // Merge containers with the newer one taking precedence
+ * ContextContainerSync.mergeNewerWins(sourceContainer, targetContainer, { compareBy: 'modifiedAt' });
+ *
  * @private
- * @property {Function} #syncContainerItems - Delegates synchronization to the ContextContainerSyncEngine.
+ * @property {Function} #syncContainerItems - Delegates synchronization to the ContextContainerSyncEngine
  */
 class ContextContainerSync {
   /**
+   * @private
+   * Delegates synchronization to the ContextContainerSyncEngine.
+   * @param {ContextContainer} container1 - First container.
+   * @param {ContextContainer} container2 - Second container.
+   * @param {string} direction - Sync direction ('sourceToTarget' or 'targetToSource').
+   * @param {object} options - Sync options.
+   * @param {boolean} options.syncMetadata - Whether to sync metadata.
+   */
+  static #syncContainerItems(container1, container2, direction, { syncMetadata }) {
+    const syncEngine = new ContextContainerSyncEngine({ syncMetadata });
+    syncEngine.sync(container1, container2, direction);
+  }
+
+  /**
    * Updates source container with target's data.
+   * @export
    * @param {ContextContainer} source - The source container.
    * @param {ContextContainer} target - The target container.
    * @param {object} options - Update options.
@@ -45,11 +70,17 @@ class ContextContainerSync {
       changes.push({ type: 'containerValue', to: target.value });
     }
 
-    return { success: true, message: 'Source container updated to match target', changes };
+    return {
+      success: true,
+      message: 'Source container updated to match target',
+      changes,
+      operation: 'updateSourceToMatchTarget'
+    };
   }
 
   /**
    * Updates target container with source's data.
+   * @export
    * @param {ContextContainer} source - The source container.
    * @param {ContextContainer} target - The target container.
    * @param {object} options - Update options.
@@ -69,11 +100,17 @@ class ContextContainerSync {
       changes.push({ type: 'containerValue', to: source.value });
     }
 
-    return { success: true, message: 'Target container updated to match source', changes };
+    return {
+      success: true,
+      message: 'Target container updated to match source',
+      changes,
+      operation: 'updateTargetToMatchSource'
+    };
   }
 
   /**
    * Merges containers with newer timestamps taking precedence.
+   * @export
    * @param {ContextContainer} source - The source container.
    * @param {ContextContainer} target - The target container.
    * @param {object} options - Merge options.
@@ -87,18 +124,24 @@ class ContextContainerSync {
     const comparison = ContextComparison.compare(source, target, { compareBy });
 
     if (comparison.result === ContextComparison.COMPARISON_RESULTS.SOURCE_NEWER) {
-      return ContextContainerSync.updateTargetToMatchSource(source, target, { deepSync, syncMetadata });
+      const result = ContextContainerSync.updateTargetToMatchSource(source, target, { deepSync, syncMetadata });
+      return { ...result, operation: 'mergeNewerWins' };
     }
-
     if (comparison.result === ContextComparison.COMPARISON_RESULTS.TARGET_NEWER) {
-      return ContextContainerSync.updateSourceToMatchTarget(source, target, { deepSync, syncMetadata });
+      const result = ContextContainerSync.updateSourceToMatchTarget(source, target, { deepSync, syncMetadata });
+      return { ...result, operation: 'mergeNewerWins' };
     }
-
-    return { success: true, message: 'Containers are equal, no merge needed', changes: [] };
+    return {
+      success: true,
+      message: 'Containers are equal, no merge needed',
+      changes: [],
+      operation: 'mergeNewerWins'
+    };
   }
 
   /**
    * Merges containers with specified priority.
+   * @export
    * @param {ContextContainer} source - The source container.
    * @param {ContextContainer} target - The target container.
    * @param {string} priority - The priority ('source' or 'target').
@@ -111,23 +154,37 @@ class ContextContainerSync {
     const { deepSync = true, syncMetadata = true } = options;
 
     if (priority === 'source') {
-      return ContextContainerSync.updateTargetToMatchSource(source, target, { deepSync, syncMetadata });
+      const result = ContextContainerSync.updateTargetToMatchSource(source, target, { deepSync, syncMetadata });
+      return { ...result, operation: 'mergeWithPriority' };
     }
-    return ContextContainerSync.updateSourceToMatchTarget(source, target, { deepSync, syncMetadata });
+    const result = ContextContainerSync.updateSourceToMatchTarget(source, target, { deepSync, syncMetadata });
+    return { ...result, operation: 'mergeWithPriority' };
   }
 
   /**
-   * @private
-   * Delegates synchronization to the ContextContainerSyncEngine.
-   * @param {ContextContainer} container1 - First container.
-   * @param {ContextContainer} container2 - Second container.
-   * @param {string} direction - Sync direction ('sourceToTarget' or 'targetToSource').
-   * @param {object} options - Sync options.
-   * @param {boolean} options.syncMetadata - Whether to sync metadata.
+   * Alias for updateTargetToMatchSource for compatibility with ContextLegacySync.
+   * @export
+   * @param {ContextContainer} source - The source container.
+   * @param {ContextContainer} target - The target container.
+   * @param {object} options - Update options.
+   * @returns {object} Update result.
    */
-  static #syncContainerItems(container1, container2, direction, { syncMetadata }) {
-    const syncEngine = new ContextContainerSyncEngine({ syncMetadata });
-    syncEngine.sync(container1, container2, direction);
+  static updateSourceToTarget(source, target, options = {}) {
+    const result = ContextContainerSync.updateTargetToMatchSource(source, target, options);
+    return { ...result, operation: 'updateSourceToTarget' };
+  }
+
+  /**
+   * Alias for updateSourceToMatchTarget for compatibility with ContextLegacySync.
+   * @export
+   * @param {ContextContainer} source - The source container.
+   * @param {ContextContainer} target - The target container.
+   * @param {object} options - Update options.
+   * @returns {object} Update result.
+   */
+  static updateTargetToSource(source, target, options = {}) {
+    const result = ContextContainerSync.updateSourceToMatchTarget(source, target, options);
+    return { ...result, operation: 'updateTargetToSource' };
   }
 }
 

@@ -1,17 +1,23 @@
+/**
+ * @file contextContainerSyncEngine.unit.test.js
+ * @description Test file for the ContextContainerSyncEngine class functionality.
+ * @path src/contexts/helpers/contextContainerSyncEngine.unit.test.js
+
+ */
+
 import ContextContainerSyncEngine from './contextContainerSyncEngine.js';
 import { ContextContainer } from './contextContainer.js';
 import ContextItemSync from './contextItemSync.js';
-
-/**
- * @file contextContainerSyncEngine.test.js
- * @description Test file for the ContextContainerSyncEngine class functionality.
- * @path src/contexts/helpers/contextContainerSyncEngine.test.js
- */
-
+import { Validator } from '../../utils/static/validator.js';
+import _ from 'lodash';
 
 // Mock dependencies
 jest.mock('./contextContainer.js');
 jest.mock('./contextItemSync.js');
+jest.mock('lodash', () => ({
+  merge: jest.fn(),
+  cloneDeep: jest.fn()
+}));
 
 describe('ContextContainerSyncEngine', () => {
   let engine;
@@ -111,16 +117,31 @@ describe('ContextContainerSyncEngine', () => {
     it('should initialize with default options', () => {
       engine = new ContextContainerSyncEngine();
       expect(engine.syncMetadata).toBe(false);
+      expect(engine.strictTypeChecking).toBe(false);
     });
 
     it('should initialize with custom syncMetadata option', () => {
       engine = new ContextContainerSyncEngine({ syncMetadata: true });
       expect(engine.syncMetadata).toBe(true);
+      expect(engine.strictTypeChecking).toBe(false);
+    });
+
+    it('should initialize with custom strictTypeChecking option', () => {
+      engine = new ContextContainerSyncEngine({ strictTypeChecking: true });
+      expect(engine.syncMetadata).toBe(false);
+      expect(engine.strictTypeChecking).toBe(true);
+    });
+
+    it('should initialize with both custom options', () => {
+      engine = new ContextContainerSyncEngine({ syncMetadata: true, strictTypeChecking: true });
+      expect(engine.syncMetadata).toBe(true);
+      expect(engine.strictTypeChecking).toBe(true);
     });
 
     it('should handle empty options object', () => {
       engine = new ContextContainerSyncEngine({});
       expect(engine.syncMetadata).toBe(false);
+      expect(engine.strictTypeChecking).toBe(false);
     });
   });
 
@@ -132,12 +153,12 @@ describe('ContextContainerSyncEngine', () => {
 
     it('should sync sourceToTarget direction correctly', () => {
       engine.sync(mockSourceContainer, mockTargetContainer, 'sourceToTarget');
-      expect(engine._syncContainer).toHaveBeenCalledWith(mockTargetContainer, mockSourceContainer);
+      expect(engine._syncContainer).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer);
     });
 
     it('should sync targetToSource direction correctly', () => {
       engine.sync(mockSourceContainer, mockTargetContainer, 'targetToSource');
-      expect(engine._syncContainer).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer);
+      expect(engine._syncContainer).toHaveBeenCalledWith(mockTargetContainer, mockSourceContainer);
     });
 
     it('should handle container1 and container2 parameters correctly', () => {
@@ -145,7 +166,7 @@ describe('ContextContainerSyncEngine', () => {
       const container2 = mockTargetContainer;
 
       engine.sync(container1, container2, 'sourceToTarget');
-      expect(engine._syncContainer).toHaveBeenCalledWith(container2, container1);
+      expect(engine._syncContainer).toHaveBeenCalledWith(container1, container2);
     });
   });
 
@@ -157,7 +178,7 @@ describe('ContextContainerSyncEngine', () => {
     });
 
     it('should iterate through all source container keys', () => {
-      engine._syncContainer(mockTargetContainer, mockSourceContainer);
+      engine._syncContainer(mockSourceContainer, mockTargetContainer);
       expect(mockSourceContainer.keys).toHaveBeenCalled();
       expect(mockSourceContainer.getItem).toHaveBeenCalledWith('item1');
       expect(mockSourceContainer.getItem).toHaveBeenCalledWith('item2');
@@ -165,20 +186,20 @@ describe('ContextContainerSyncEngine', () => {
     });
 
     it('should update existing items in target container', () => {
-      engine._syncContainer(mockTargetContainer, mockSourceContainer);
+      engine._syncContainer(mockSourceContainer, mockTargetContainer);
       expect(mockTargetContainer.hasItem).toHaveBeenCalledWith('item1');
       expect(engine._updateItem).toHaveBeenCalledWith(mockSourceItem, mockTargetItem);
     });
 
     it('should add new items to target container', () => {
-      engine._syncContainer(mockTargetContainer, mockSourceContainer);
+      engine._syncContainer(mockSourceContainer, mockTargetContainer);
       expect(engine._addItem).toHaveBeenCalledWith('item2', mockSourceItem, mockTargetContainer);
       expect(engine._addItem).toHaveBeenCalledWith('nestedContainer', mockNestedContainer, mockTargetContainer);
     });
 
     it('should skip null items', () => {
       mockSourceContainer.getItem.mockReturnValue(null);
-      engine._syncContainer(mockTargetContainer, mockSourceContainer);
+      engine._syncContainer(mockSourceContainer, mockTargetContainer);
       expect(engine._updateItem).not.toHaveBeenCalled();
       expect(engine._addItem).not.toHaveBeenCalled();
     });
@@ -244,7 +265,7 @@ describe('ContextContainerSyncEngine', () => {
       // Create self-reference
       selfReferencingContainer.getItem.mockReturnValue(selfReferencingContainer);
 
-      engine._syncContainer(mockTargetContainer, selfReferencingContainer);
+      engine._syncContainer(selfReferencingContainer, mockTargetContainer);
 
       expect(consoleSpy).toHaveBeenCalledWith('Self-reference detected for key "self", skipping to prevent infinite recursion');
 
@@ -291,34 +312,192 @@ describe('ContextContainerSyncEngine', () => {
       const targetContainer = { ...mockTargetContainer, isContextItem: false };
 
       engine._updateItem(sourceContainer, targetContainer);
-      expect(engine._syncContainer).toHaveBeenCalledWith(targetContainer, sourceContainer);
+      expect(engine._syncContainer).toHaveBeenCalledWith(sourceContainer, targetContainer);
     });
 
-    it('should handle mixed type updates with syncMetadata', () => {
-      const mixedTarget = { value: 'old value', setMetadata: jest.fn() };
+    describe('strict type checking', () => {
+      beforeEach(() => {
+        engine = new ContextContainerSyncEngine({ strictTypeChecking: true });
+      });
 
-      engine._updateItem(mockSourceItem, mixedTarget);
-      expect(mixedTarget.value).toBe('source value');
-      expect(mixedTarget.setMetadata).toHaveBeenCalledWith(mockSourceItem.metadata, false);
+      it('should throw error when both items are non-Context types in strict mode', () => {
+        const sourceValue = 'string value';
+        const targetValue = 'another string';
+
+        expect(() => {
+          engine._updateItem(sourceValue, targetValue);
+        }).toThrow(TypeError);
+        expect(() => {
+          engine._updateItem(sourceValue, targetValue);
+        }).toThrow(/Strict type checking enabled/);
+      });
+
+      it('should not throw when at least one item is a Context type in strict mode', () => {
+        expect(() => {
+          engine._updateItem(mockSourceItem, 'string');
+        }).not.toThrow();
+
+        expect(() => {
+          engine._updateItem('string', mockTargetItem);
+        }).not.toThrow();
+      });
+
+      it('should handle Context types normally in strict mode', () => {
+        engine._updateItem(mockSourceItem, mockTargetItem);
+        expect(ContextItemSync.updateTargetToMatchSource).toHaveBeenCalled();
+      });
     });
 
-    it('should handle mixed type updates without syncMetadata', () => {
-      engine = new ContextContainerSyncEngine({ syncMetadata: false });
-      const mixedTarget = { value: 'old value', setMetadata: jest.fn() };
+    describe('plain object synchronization', () => {
+      beforeEach(() => {
+        engine = new ContextContainerSyncEngine();
+        jest.spyOn(engine, '_syncPlainObjects');
+        _.cloneDeep.mockReturnValue({ nested: { value: 'cloned' } });
+      });
 
-      engine._updateItem(mockSourceItem, mixedTarget);
-      expect(mixedTarget.value).toBe('source value');
-      expect(mixedTarget.setMetadata).not.toHaveBeenCalled();
+      it('should handle plain object to plain object sync', () => {
+        const sourceObj = { a: 1, nested: { value: 'test' } };
+        const targetObj = { b: 2, nested: { other: 'data' } };
+
+        engine._updateItem(sourceObj, targetObj);
+        expect(engine._syncPlainObjects).toHaveBeenCalledWith(sourceObj, targetObj);
+      });
+
+      it('should call lodash merge for plain object sync', () => {
+        const sourceObj = { a: 1 };
+        const targetObj = { b: 2 };
+
+        engine._updateItem(sourceObj, targetObj);
+        expect(_.cloneDeep).toHaveBeenCalledWith(sourceObj);
+        expect(_.merge).toHaveBeenCalledWith(targetObj, { nested: { value: 'cloned' } });
+      });
+
+      it('should not sync plain objects when one is not a plain object', () => {
+        const sourceObj = { a: 1 };
+        const targetArray = [1, 2, 3];
+
+        jest.spyOn(engine, '_syncPlainObjects');
+        engine._updateItem(sourceObj, targetArray);
+        expect(engine._syncPlainObjects).not.toHaveBeenCalled();
+      });
     });
 
-    it('should handle items without setMetadata method', () => {
-      engine = new ContextContainerSyncEngine({ syncMetadata: true });
-      const mixedTarget = { value: 'old value' };
+    describe('primitive value synchronization', () => {
+      beforeEach(() => {
+        engine = new ContextContainerSyncEngine();
+        jest.spyOn(engine, '_syncPrimitiveValues');
+        jest.spyOn(console, 'debug').mockImplementation(() => {});
+      });
 
-      expect(() => {
+      afterEach(() => {
+        console.debug.mockRestore();
+      });
+
+      it('should handle string to string sync', () => {
+        const sourceValue = 'source string';
+        const targetValue = 'target string';
+
+        engine._updateItem(sourceValue, targetValue);
+        expect(engine._syncPrimitiveValues).toHaveBeenCalledWith(sourceValue, targetValue);
+      });
+
+      it('should handle number to number sync', () => {
+        const sourceValue = 42;
+        const targetValue = 24;
+
+        engine._updateItem(sourceValue, targetValue);
+        expect(engine._syncPrimitiveValues).toHaveBeenCalledWith(sourceValue, targetValue);
+      });
+
+      it('should handle boolean to boolean sync', () => {
+        const sourceValue = true;
+        const targetValue = false;
+
+        engine._updateItem(sourceValue, targetValue);
+        expect(engine._syncPrimitiveValues).toHaveBeenCalledWith(sourceValue, targetValue);
+      });
+
+      it('should handle null to null sync', () => {
+        const sourceValue = null;
+        const targetValue = null;
+
+        engine._updateItem(sourceValue, targetValue);
+        expect(engine._syncPrimitiveValues).toHaveBeenCalledWith(sourceValue, targetValue);
+      });
+
+      it('should handle undefined to undefined sync', () => {
+        const sourceValue = undefined;
+        const targetValue = undefined;
+
+        engine._updateItem(sourceValue, targetValue);
+        expect(engine._syncPrimitiveValues).toHaveBeenCalledWith(sourceValue, targetValue);
+      });
+
+      it('should log debug message in _syncPrimitiveValues', () => {
+        engine._updateItem('source', 'target');
+        expect(console.debug).toHaveBeenCalledWith('Syncing primitive values: target -> source');
+      });
+
+      it('should not sync primitives when types differ', () => {
+        const sourceValue = 'string';
+        const targetValue = 42;
+
+        jest.spyOn(engine, '_syncPrimitiveValues');
+        engine._updateItem(sourceValue, targetValue);
+        // When types differ, both are primitives but different types, so it should still call _syncPrimitiveValues
+        // This is because both are primitives, even if they're different types
+        expect(engine._syncPrimitiveValues).toHaveBeenCalledWith(sourceValue, targetValue);
+      });
+    });
+
+    describe('mixed type updates (fallback)', () => {
+      beforeEach(() => {
+        engine = new ContextContainerSyncEngine({ syncMetadata: true });
+      });
+
+      it('should handle mixed type updates with syncMetadata', () => {
+        const mixedTarget = { value: 'old value', setMetadata: jest.fn() };
+
         engine._updateItem(mockSourceItem, mixedTarget);
-      }).not.toThrow();
-      expect(mixedTarget.value).toBe('source value');
+        expect(mixedTarget.value).toBe('source value');
+        expect(mixedTarget.setMetadata).toHaveBeenCalledWith(mockSourceItem.metadata, false);
+      });
+
+      it('should handle mixed type updates without syncMetadata', () => {
+        engine = new ContextContainerSyncEngine({ syncMetadata: false });
+        const mixedTarget = { value: 'old value', setMetadata: jest.fn() };
+
+        engine._updateItem(mockSourceItem, mixedTarget);
+        expect(mixedTarget.value).toBe('source value');
+        expect(mixedTarget.setMetadata).not.toHaveBeenCalled();
+      });
+
+      it('should handle items without setMetadata method', () => {
+        engine = new ContextContainerSyncEngine({ syncMetadata: true });
+        const mixedTarget = { value: 'old value' };
+
+        expect(() => {
+          engine._updateItem(mockSourceItem, mixedTarget);
+        }).not.toThrow();
+        expect(mixedTarget.value).toBe('source value');
+      });
+
+      it('should handle fallback when setMetadata fails', () => {
+        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const mixedTarget = {
+          value: 'old value',
+          setMetadata: jest.fn(() => { throw new Error('setMetadata failed'); })
+        };
+
+        // Make the object non-extensible so that setting .metadata will also fail
+        Object.preventExtensions(mixedTarget);
+
+        engine._updateItem(mockSourceItem, mixedTarget);
+        expect(mixedTarget.value).toBe('source value');
+        expect(consoleSpy).toHaveBeenCalledWith('Failed to set metadata on target item:', expect.any(Error));
+
+        consoleSpy.mockRestore();
+      });
     });
   });
 
@@ -392,6 +571,109 @@ describe('ContextContainerSyncEngine', () => {
     });
   });
 
+  describe('helper methods', () => {
+    beforeEach(() => {
+      engine = new ContextContainerSyncEngine();
+    });
+
+    describe('_isPlainObject (delegated to Validator.isPlainObject)', () => {
+      it('should return true for plain objects', () => {
+        expect(Validator.isPlainObject({})).toBe(true);
+        expect(Validator.isPlainObject({ a: 1, b: 2 })).toBe(true);
+        expect(Validator.isPlainObject(Object.create(null))).toBe(true); // No prototype - still a plain object
+        expect(Validator.isPlainObject(Object.create(Object.prototype))).toBe(true);
+      });
+
+      it('should return false for non-plain objects', () => {
+        expect(Validator.isPlainObject([])).toBe(false);
+        expect(Validator.isPlainObject(null)).toBe(false);
+        expect(Validator.isPlainObject(new Date())).toBe(false);
+        expect(Validator.isPlainObject(new Map())).toBe(false);
+        expect(Validator.isPlainObject('string')).toBe(false);
+        expect(Validator.isPlainObject(42)).toBe(false);
+        expect(Validator.isPlainObject(true)).toBe(false);
+        expect(Validator.isPlainObject(function() {})).toBe(false);
+      });
+    });
+
+    describe('_isPrimitive', () => {
+      it('should return true for primitive values', () => {
+        expect(engine._isPrimitive('string')).toBe(true);
+        expect(engine._isPrimitive('')).toBe(true);
+        expect(engine._isPrimitive(42)).toBe(true);
+        expect(engine._isPrimitive(0)).toBe(true);
+        expect(engine._isPrimitive(-1)).toBe(true);
+        expect(engine._isPrimitive(3.14)).toBe(true);
+        expect(engine._isPrimitive(true)).toBe(true);
+        expect(engine._isPrimitive(false)).toBe(true);
+        expect(engine._isPrimitive(null)).toBe(true);
+        expect(engine._isPrimitive(undefined)).toBe(true);
+      });
+
+      it('should return false for non-primitive values', () => {
+        expect(engine._isPrimitive({})).toBe(false);
+        expect(engine._isPrimitive([])).toBe(false);
+        expect(engine._isPrimitive(new Date())).toBe(false);
+        expect(engine._isPrimitive(function() {})).toBe(false);
+        expect(engine._isPrimitive(Symbol('test'))).toBe(false);
+        expect(engine._isPrimitive(new Map())).toBe(false);
+      });
+    });
+
+    describe('_syncPlainObjects', () => {
+      beforeEach(() => {
+        _.cloneDeep.mockImplementation(obj => JSON.parse(JSON.stringify(obj))); // Simple deep clone mock
+        _.merge.mockImplementation((target, source) => Object.assign(target, source));
+      });
+
+      it('should perform deep merge of plain objects', () => {
+        const sourceObj = { a: 1, nested: { value: 'test' } };
+        const targetObj = { b: 2, nested: { other: 'data' } };
+
+        engine._syncPlainObjects(sourceObj, targetObj);
+
+        expect(_.cloneDeep).toHaveBeenCalledWith(sourceObj);
+        expect(_.merge).toHaveBeenCalledWith(targetObj, sourceObj);
+      });
+
+      it('should handle empty objects', () => {
+        const sourceObj = {};
+        const targetObj = { existing: 'value' };
+
+        engine._syncPlainObjects(sourceObj, targetObj);
+
+        expect(_.cloneDeep).toHaveBeenCalledWith(sourceObj);
+        expect(_.merge).toHaveBeenCalledWith(targetObj, sourceObj);
+      });
+    });
+
+    describe('_syncPrimitiveValues', () => {
+      beforeEach(() => {
+        jest.spyOn(console, 'debug').mockImplementation(() => {});
+      });
+
+      afterEach(() => {
+        console.debug.mockRestore();
+      });
+
+      it('should log debug message for primitive sync', () => {
+        engine._syncPrimitiveValues('source', 'target');
+        expect(console.debug).toHaveBeenCalledWith('Syncing primitive values: target -> source');
+      });
+
+      it('should handle different primitive types', () => {
+        engine._syncPrimitiveValues(42, 24);
+        expect(console.debug).toHaveBeenCalledWith('Syncing primitive values: 24 -> 42');
+
+        engine._syncPrimitiveValues(true, false);
+        expect(console.debug).toHaveBeenCalledWith('Syncing primitive values: false -> true');
+
+        engine._syncPrimitiveValues(null, undefined);
+        expect(console.debug).toHaveBeenCalledWith('Syncing primitive values: undefined -> null');
+      });
+    });
+  });
+
   describe('edge cases', () => {
     beforeEach(() => {
       engine = new ContextContainerSyncEngine();
@@ -401,14 +683,36 @@ describe('ContextContainerSyncEngine', () => {
       jest.spyOn(engine, '_syncContainer').mockImplementation(() => {});
 
       engine.sync(mockSourceContainer, mockTargetContainer, undefined);
-      expect(engine._syncContainer).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer);
+      expect(engine._syncContainer).toHaveBeenCalledWith(mockTargetContainer, mockSourceContainer);
     });
 
     it('should handle invalid direction', () => {
       jest.spyOn(engine, '_syncContainer').mockImplementation(() => {});
 
       engine.sync(mockSourceContainer, mockTargetContainer, 'invalidDirection');
-      expect(engine._syncContainer).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer);
+      expect(engine._syncContainer).toHaveBeenCalledWith(mockTargetContainer, mockSourceContainer);
+    });
+
+    it('should handle complex type combinations', () => {
+      engine = new ContextContainerSyncEngine({ syncMetadata: true });
+
+      // Test array to object (should fall back to mixed type handling)
+      const sourceArray = [1, 2, 3];
+      const targetObj = { value: 'old', setMetadata: jest.fn() };
+
+      expect(() => {
+        engine._updateItem(sourceArray, targetObj);
+      }).not.toThrow();
+      expect(targetObj.value).toEqual([1, 2, 3]);
+    });
+
+    it('should handle Date objects (should fall back to mixed type handling)', () => {
+      engine = new ContextContainerSyncEngine();
+      const sourceDate = new Date('2024-01-01');
+      const targetObj = { value: 'old' };
+
+      engine._updateItem(sourceDate, targetObj);
+      expect(targetObj.value).toEqual(sourceDate);
     });
   });
 });

@@ -1,8 +1,8 @@
 /**
  * @file contextSync.js
  * @description This file contains the ContextSync class for synchronizing Context instances, ContextContainers, and ContextItems based on timestamps.
- * @path /src/contexts/helpers/contextSync.js
- * @date 29 May 2025
+ * @path src/contexts/helpers/contextSync.js
+
  */
 
 import { ContextItem } from './contextItem.js';
@@ -10,28 +10,32 @@ import { ContextContainer } from './contextContainer.js';
 import Context from '../context.js';
 import ContextComparison from './contextComparison.js';
 import ContextAutoSync from './contextAutoSync.js';
-import ContextItemSync from './contextItemSync.js';
-import ContextContainerSync from './contextContainerSync.js';
+import ContextLegacySync from './contextLegacySync.js';
+import constants from '../../constants/constants.js';
 
 /**
  * @class ContextSync
+ * @export
  * @description Facade class that provides synchronization capabilities for Context instances and their components.
- * Delegates to specialized sync classes (ContextItemSync, ContextContainerSync) based on object type.
+ * Delegates to specialized sync classes based on object type.
  * For Context instances, delegates to ContextMerger for sophisticated handling.
+ * For legacy ContextContainer and ContextItem operations, delegates to ContextLegacySync.
+ *
+ * ## Public API
+ * - `SYNC_OPERATIONS` - Static enum of synchronization operation types
+ * - `COMPARISON_RESULTS` - Static enum of comparison results for timestamps
+ * - `compare(source, target, options)` - Compares two context objects and determines their temporal relationship
+ * - `sync(source, target, operation, options)` - Synchronizes two context objects based on the specified operation
+ * - `syncSafe(source, target, operation, options)` - Safely synchronizes two context objects with error handling
+ * - `autoSync(source, target, options)` - Automatically determines the best synchronization operation based on timestamp comparison
+ * - `validateCompatibility(source, target)` - Validates that objects are compatible for synchronization
  */
 class ContextSync {
   /**
    * @enum {string}
    * @description Synchronization operation types.
    */
-  static SYNC_OPERATIONS = {
-    UPDATE_SOURCE_TO_TARGET: 'updateSourceToTarget',
-    UPDATE_TARGET_TO_SOURCE: 'updateTargetToSource',
-    MERGE_NEWER_WINS: 'mergeNewerWins',
-    MERGE_SOURCE_PRIORITY: 'mergeSourcePriority',
-    MERGE_TARGET_PRIORITY: 'mergeTargetPriority',
-    NO_ACTION: 'noAction'
-  };
+  static SYNC_OPERATIONS = ContextLegacySync.SYNC_OPERATIONS;
 
   /**
    * @enum {string}
@@ -49,88 +53,12 @@ class ContextSync {
     if (obj instanceof Context) return 'Context';
     if (obj instanceof ContextContainer) return 'ContextContainer';
     if (obj instanceof ContextItem) return 'ContextItem';
-    console.warn('Unknown object type for synchronization:', obj
-      , 'Expected Context, ContextContainer, or ContextItem but got:', obj.constructor.name
-      , 'Returning "Unknown" type.'
+    console.warn(
+      'Unknown object type for synchronization:', obj,
+      'Expected Context, ContextContainer, or ContextItem but got:', obj.constructor.name,
+      'Returning "Unknown" type.'
     );
     return 'Unknown';
-  }
-
-  /**
-   * @private
-   * Gets the appropriate sync class for the given object type.
-   * @param {Context|ContextContainer|ContextItem} obj - The object to get sync class for.
-   * @returns {object} The appropriate sync class.
-   */
-  static #getSyncClass(obj) {
-    if (obj instanceof ContextItem) return ContextItemSync;
-    if (obj instanceof ContextContainer) return ContextContainerSync;
-    return null;
-  }
-
-  /**
-   * @private
-   * Updates source object with target's data using appropriate sync class.
-   * @param {Context|ContextContainer|ContextItem} source - The source object.
-   * @param {Context|ContextContainer|ContextItem} target - The target object.
-   * @param {object} options - Update options.
-   * @returns {object} Update result.
-   */
-  static #updateSourceToTarget(source, target, options) {
-    const syncClass = ContextSync.#getSyncClass(source);
-    if (syncClass) {
-      return syncClass.updateSourceToTarget(source, target, options);
-    }
-    throw new Error(`Unsupported object type for synchronization: ${source.constructor.name}`);
-  }
-
-  /**
-   * @private
-   * Updates target object with source's data using appropriate sync class.
-   * @param {Context|ContextContainer|ContextItem} source - The source object.
-   * @param {Context|ContextContainer|ContextItem} target - The target object.
-   * @param {object} options - Update options.
-   * @returns {object} Update result.
-   */
-  static #updateTargetToSource(source, target, options) {
-    const syncClass = ContextSync.#getSyncClass(source);
-    if (syncClass) {
-      return syncClass.updateTargetToSource(source, target, options);
-    }
-    throw new Error(`Unsupported object type for synchronization: ${source.constructor.name}`);
-  }
-
-  /**
-   * @private
-   * Merges objects with newer timestamps taking precedence using appropriate sync class.
-   * @param {Context|ContextContainer|ContextItem} source - The source object.
-   * @param {Context|ContextContainer|ContextItem} target - The target object.
-   * @param {object} options - Merge options.
-   * @returns {object} Merge result.
-   */
-  static #mergeNewerWins(source, target, options) {
-    const syncClass = ContextSync.#getSyncClass(source);
-    if (syncClass) {
-      return syncClass.mergeNewerWins(source, target, options);
-    }
-    throw new Error(`Unsupported object type for synchronization: ${source.constructor.name}`);
-  }
-
-  /**
-   * @private
-   * Merges objects with specified priority using appropriate sync class.
-   * @param {Context|ContextContainer|ContextItem} source - The source object.
-   * @param {Context|ContextContainer|ContextItem} target - The target object.
-   * @param {string} priority - The priority ('source' or 'target').
-   * @param {object} options - Merge options.
-   * @returns {object} Merge result.
-   */
-  static #mergeWithPriority(source, target, priority, options) {
-    const syncClass = ContextSync.#getSyncClass(source);
-    if (syncClass) {
-      return syncClass.mergeWithPriority(source, target, priority, options);
-    }
-    throw new Error(`Unsupported object type for synchronization: ${source.constructor.name}`);
   }
 
   /**
@@ -148,6 +76,7 @@ class ContextSync {
   /**
    * Synchronizes two context objects based on the specified operation.
    * For Context instances, delegates to ContextMerger for sophisticated handling.
+   * For ContextContainer and ContextItem instances, delegates to ContextLegacySync.
    * @param {Context|ContextContainer|ContextItem} source - The source context object.
    * @param {Context|ContextContainer|ContextItem} target - The target context object.
    * @param {string} operation - The synchronization operation to perform.
@@ -177,48 +106,92 @@ class ContextSync {
       });
     }
 
-    return ContextSync.#performLegacySync(source, target, operation, options);
+    // For ContextContainer and ContextItem instances, delegate to ContextLegacySync
+    if (
+      (source instanceof ContextContainer || source instanceof ContextItem) &&
+      (target instanceof ContextContainer || target instanceof ContextItem)
+    ) {
+      return ContextLegacySync.performLegacySync(source, target, operation, options);
+    }
+
+    throw new Error(constants.contextHelpers.errorMessages.unsupportedObjectTypes);
   }
 
   /**
-   * @private
-   * Performs legacy sync operations for non-Context instances using specialized sync classes.
-   * @param {ContextContainer|ContextItem} source - The source object.
-   * @param {ContextContainer|ContextItem} target - The target object.
-   * @param {string} operation - The sync operation.
-   * @param {object} options - Sync options.
-   * @returns {object} Sync result.
+   * Safely synchronizes two context objects with error handling.
+   * @param {Context|ContextContainer|ContextItem} source - The source context object.
+   * @param {Context|ContextContainer|ContextItem} target - The target context object.
+   * @param {string} operation - The synchronization operation to perform.
+   * @param {object} [options={}] - Synchronization options.
+   * @returns {object} Synchronization result with error handling.
    */
-  static #performLegacySync(source, target, operation, options) {
-    const comparison = ContextSync.compare(source, target, { compareBy: options.compareBy });
+  static async syncSafe(source, target, operation, options = {}) {
+    const warnings = [];
 
-    switch (operation) {
-      case ContextSync.SYNC_OPERATIONS.UPDATE_SOURCE_TO_TARGET:
-        return ContextSync.#updateSourceToTarget(source, target, options);
-
-      case ContextSync.SYNC_OPERATIONS.UPDATE_TARGET_TO_SOURCE:
-        return ContextSync.#updateTargetToSource(source, target, options);
-
-      case ContextSync.SYNC_OPERATIONS.MERGE_NEWER_WINS:
-        return ContextSync.#mergeNewerWins(source, target, options);
-
-      case ContextSync.SYNC_OPERATIONS.MERGE_SOURCE_PRIORITY:
-        return ContextSync.#mergeWithPriority(source, target, 'source', options);
-
-      case ContextSync.SYNC_OPERATIONS.MERGE_TARGET_PRIORITY:
-        return ContextSync.#mergeWithPriority(source, target, 'target', options);
-
-      case ContextSync.SYNC_OPERATIONS.NO_ACTION:
+    try {
+      // Handle null/undefined inputs
+      if (!source && !target) {
         return {
           success: true,
-          message: 'No synchronization performed',
           operation,
-          comparison,
+          warnings: ['Both source and target are null/undefined'],
           changes: []
         };
+      }
 
-      default:
-        throw new Error(`Unknown synchronization operation: ${operation}`);
+      if (!source) {
+        warnings.push('Source is null/undefined');
+        return {
+          success: true,
+          operation,
+          warnings,
+          changes: []
+        };
+      }
+
+      if (!target) {
+        warnings.push('Target is null/undefined');
+        return {
+          success: true,
+          operation,
+          warnings,
+          changes: []
+        };
+      }
+
+      // Validate compatibility
+      if (!ContextSync.validateCompatibility(source, target)) {
+        return {
+          success: false,
+          operation,
+          error: constants.contextHelpers.errorMessages.incompatibleTypes,
+          warnings
+        };
+      }
+
+      // Validate operation
+      if (!Object.values(ContextSync.SYNC_OPERATIONS).includes(operation)) {
+        return {
+          success: false,
+          operation,
+          error: `Invalid sync operation: ${operation}`,
+          warnings
+        };
+      }
+
+      const result = await ContextSync.sync(source, target, operation, options);
+      if (warnings.length > 0) {
+        result.warnings = [...(result.warnings || []), ...warnings];
+      }
+      return result;
+
+    } catch (error) {
+      return {
+        success: false,
+        operation,
+        error: error.message,
+        warnings
+      };
     }
   }
 
@@ -246,7 +219,18 @@ class ContextSync {
     const sourceType = ContextSync.#getObjectType(source);
     const targetType = ContextSync.#getObjectType(target);
 
-    return sourceType === targetType;
+    // Context instances can sync with other Context instances
+    if (sourceType === 'Context' && targetType === 'Context') return true;
+
+    // ContextContainer and ContextItem instances use legacy sync
+    if (
+      (sourceType === 'ContextContainer' || sourceType === 'ContextItem') &&
+      (targetType === 'ContextContainer' || targetType === 'ContextItem')
+    ) {
+      return ContextLegacySync.validateCompatibility(source, target);
+    }
+
+    return false;
   }
 }
 

@@ -1,18 +1,25 @@
 /**
  * @file contextAutoSync.js
  * @description This file contains the ContextAutoSync class for automatic synchronization (WIP).
- * @path /src/contexts/helpers/contextAutoSync.js
+ * @path src/contexts/helpers/contextAutoSync.js
+
  */
 
 /**
  * @class ContextAutoSync
- * @description Work in progress class for automatic context synchronization.
+ * @classdesc Work in progress class for automatic context synchronization.
  * This class is a placeholder for future auto sync functionality.
+ * @export
+ *
+ * Public API:
+ * - autoSync(source, target, options) - Placeholder method for automatic synchronization
+ * - determineStrategy(source, target, options) - Placeholder method for determining auto sync strategy
  */
 class ContextAutoSync {
   /**
    * Placeholder method for automatic synchronization.
    * Currently returns a no-op result.
+   * @export
    * @param {Context|ContextContainer|ContextItem} source - The source context object.
    * @param {Context|ContextContainer|ContextItem} target - The target context object.
    * @param {object} [options={}] - Auto sync options.
@@ -25,7 +32,7 @@ class ContextAutoSync {
     // - User preference handling
     // - History-based decision making
     // - Machine learning for sync pattern recognition
-    
+
     return {
       success: true,
       message: 'Auto sync is not yet implemented - no action taken',
@@ -37,6 +44,7 @@ class ContextAutoSync {
 
   /**
    * Placeholder method for determining auto sync strategy.
+   * @export
    * @param {Context|ContextContainer|ContextItem} source - The source object.
    * @param {Context|ContextContainer|ContextItem} target - The target object.
    * @param {object} options - Strategy options.

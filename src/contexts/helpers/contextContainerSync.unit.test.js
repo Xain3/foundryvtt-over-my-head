@@ -1,12 +1,13 @@
+/**
+ * @file contextContainerSync.unit.test.js
+ * @description Unit tests for the ContextContainerSync class.
+ * @path src/contexts/helpers/contextContainerSync.unit.test.js
+
+ */
+
 import ContextContainerSync from './contextContainerSync.js';
 import ContextContainerSyncEngine from './contextContainerSyncEngine.js';
 import ContextComparison from './contextComparison.js';
-
-/**
- * @file contextContainerSync.test.js
- * @description Test file for the ContextContainerSync class functionality.
- * @path src/contexts/helpers/contextContainerSync.test.js
- */
 
 // Mock dependencies
 jest.mock('./contextContainer.js');
@@ -60,6 +61,7 @@ describe('ContextContainerSync', () => {
       expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'sourceToTarget');
       expect(result.success).toBe(true);
       expect(result.changes).toEqual([{ type: 'containerSync', direction: 'sourceToTarget' }]);
+      expect(result.operation).toBe('updateSourceToMatchTarget');
     });
 
     it('should perform shallow sync when deepSync is false', () => {
@@ -69,13 +71,15 @@ describe('ContextContainerSync', () => {
       expect(mockSourceContainer.value).toBe('target container');
       expect(result.success).toBe(true);
       expect(result.changes).toEqual([{ type: 'containerValue', to: 'target container' }]);
+      expect(result.operation).toBe('updateSourceToMatchTarget');
     });
 
     it('should pass syncMetadata option to the engine', () => {
-      ContextContainerSync.updateSourceToMatchTarget(mockSourceContainer, mockTargetContainer, { syncMetadata: false });
+      const result = ContextContainerSync.updateSourceToMatchTarget(mockSourceContainer, mockTargetContainer, { syncMetadata: false });
 
       expect(ContextContainerSyncEngine).toHaveBeenCalledWith({ syncMetadata: false });
       expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'sourceToTarget');
+      expect(result.operation).toBe('updateSourceToMatchTarget');
     });
   });
 
@@ -87,6 +91,7 @@ describe('ContextContainerSync', () => {
       expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'targetToSource');
       expect(result.success).toBe(true);
       expect(result.changes).toEqual([{ type: 'containerSync', direction: 'targetToSource' }]);
+      expect(result.operation).toBe('updateTargetToMatchSource');
     });
 
     it('should perform shallow sync when deepSync is false', () => {
@@ -96,6 +101,7 @@ describe('ContextContainerSync', () => {
       expect(mockTargetContainer.value).toBe('source container');
       expect(result.success).toBe(true);
       expect(result.changes).toEqual([{ type: 'containerValue', to: 'source container' }]);
+      expect(result.operation).toBe('updateTargetToMatchSource');
     });
   });
 
@@ -110,18 +116,20 @@ describe('ContextContainerSync', () => {
 
     it('should update target when source is newer', () => {
       ContextComparison.compare.mockReturnValue({ result: ContextComparison.COMPARISON_RESULTS.SOURCE_NEWER });
-      ContextContainerSync.mergeNewerWins(mockSourceContainer, mockTargetContainer);
+      const result = ContextContainerSync.mergeNewerWins(mockSourceContainer, mockTargetContainer);
 
       expect(ContextContainerSyncEngine).toHaveBeenCalledWith({ syncMetadata: true });
       expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'targetToSource');
+      expect(result.operation).toBe('mergeNewerWins');
     });
 
     it('should update source when target is newer', () => {
       ContextComparison.compare.mockReturnValue({ result: ContextComparison.COMPARISON_RESULTS.TARGET_NEWER });
-      ContextContainerSync.mergeNewerWins(mockSourceContainer, mockTargetContainer);
+      const result = ContextContainerSync.mergeNewerWins(mockSourceContainer, mockTargetContainer);
 
       expect(ContextContainerSyncEngine).toHaveBeenCalledWith({ syncMetadata: true });
       expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'sourceToTarget');
+      expect(result.operation).toBe('mergeNewerWins');
     });
 
     it('should do nothing when containers are equal', () => {
@@ -130,22 +138,39 @@ describe('ContextContainerSync', () => {
 
       expect(mockSync).not.toHaveBeenCalled();
       expect(result.message).toBe('Containers are equal, no merge needed');
+      expect(result.operation).toBe('mergeNewerWins');
     });
   });
 
   describe('mergeWithPriority', () => {
     it('should update target when priority is source', () => {
-      ContextContainerSync.mergeWithPriority(mockSourceContainer, mockTargetContainer, 'source');
+      const result = ContextContainerSync.mergeWithPriority(mockSourceContainer, mockTargetContainer, 'source');
 
       expect(ContextContainerSyncEngine).toHaveBeenCalledWith({ syncMetadata: true });
       expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'targetToSource');
+      expect(result.operation).toBe('mergeWithPriority');
     });
 
     it('should update source when priority is target', () => {
-      ContextContainerSync.mergeWithPriority(mockSourceContainer, mockTargetContainer, 'target');
+      const result = ContextContainerSync.mergeWithPriority(mockSourceContainer, mockTargetContainer, 'target');
 
       expect(ContextContainerSyncEngine).toHaveBeenCalledWith({ syncMetadata: true });
       expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'sourceToTarget');
+      expect(result.operation).toBe('mergeWithPriority');
+    });
+  });
+
+  describe('alias methods', () => {
+    it('should alias updateSourceToTarget to updateTargetToMatchSource', () => {
+      const result = ContextContainerSync.updateSourceToTarget(mockSourceContainer, mockTargetContainer);
+      const expected = ContextContainerSync.updateTargetToMatchSource(mockSourceContainer, mockTargetContainer);
+      expect(result).toEqual({ ...expected, operation: 'updateSourceToTarget' });
+    });
+
+    it('should alias updateTargetToSource to updateSourceToMatchTarget', () => {
+      const result = ContextContainerSync.updateTargetToSource(mockSourceContainer, mockTargetContainer);
+      const expected = ContextContainerSync.updateSourceToMatchTarget(mockSourceContainer, mockTargetContainer);
+      expect(result).toEqual({ ...expected, operation: 'updateTargetToSource' });
     });
   });
 });

@@ -1,12 +1,13 @@
+/**
+ * @file contextItemSync.unit.test.js
+ * @description Unit tests for the ContextItemSync class functionality.
+ * @path src/contexts/helpers/contextItemSync.unit.test.js
+
+ */
+
 import { ContextItemSync } from './contextItemSync.js';
 import { ContextItem } from './contextItem.js';
 import ContextComparison from './contextComparison.js';
-
-/**
- * @file contextItemSync.test.js
- * @description Test file for the ContextItemSync class functionality.
- * @path src/contexts/helpers/contextItemSync.test.js
- */
 
 
 // Mock the dependencies
@@ -55,6 +56,7 @@ describe('ContextItemSync', () => {
       expect(mockTarget.value).toBe('source value');
       expect(result.success).toBe(true);
       expect(result.message).toBe('target item updated to match source');
+      expect(result.operation).toBe('updateTargetToMatchSource');
       expect(result.changes).toHaveLength(2);
       expect(result.changes[0].type).toBe('value');
       expect(result.changes[0].from).toBe('target value');
@@ -97,6 +99,7 @@ describe('ContextItemSync', () => {
       expect(mockSource.value).toBe('target value');
       expect(result.success).toBe(true);
       expect(result.message).toBe('source item updated to match target');
+      expect(result.operation).toBe('updateSourceToMatchTarget');
       expect(result.changes).toHaveLength(2);
       expect(result.changes[0].type).toBe('value');
       expect(result.changes[0].from).toBe('source value');
@@ -126,15 +129,15 @@ describe('ContextItemSync', () => {
   describe('mergeNewerWins', () => {
     beforeEach(() => {
       ContextComparison.COMPARISON_RESULTS = {
-        SOURCE_NEWER: 'source_newer',
-        TARGET_NEWER: 'target_newer',
+        CONTAINER_A_NEWER: 'containerANewer',
+        CONTAINER_B_NEWER: 'containerBNewer',
         EQUAL: 'equal'
       };
     });
 
     it('should update target when source is newer', () => {
       ContextComparison.compare.mockReturnValue({
-        result: ContextComparison.COMPARISON_RESULTS.SOURCE_NEWER
+        result: ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER
       });
 
       const result = ContextItemSync.mergeNewerWins(mockSource, mockTarget);
@@ -142,11 +145,12 @@ describe('ContextItemSync', () => {
       expect(mockTarget.value).toBe('source value');
       expect(result.success).toBe(true);
       expect(result.message).toBe('target item updated to match source');
+      expect(result.operation).toBe('mergeNewerWins');
     });
 
     it('should update source when target is newer', () => {
       ContextComparison.compare.mockReturnValue({
-        result: ContextComparison.COMPARISON_RESULTS.TARGET_NEWER
+        result: ContextComparison.COMPARISON_RESULTS.CONTAINER_B_NEWER
       });
 
       const result = ContextItemSync.mergeNewerWins(mockSource, mockTarget);
@@ -154,6 +158,7 @@ describe('ContextItemSync', () => {
       expect(mockSource.value).toBe('target value');
       expect(result.success).toBe(true);
       expect(result.message).toBe('source item updated to match target');
+      expect(result.operation).toBe('mergeNewerWins');
     });
 
     it('should not update when items are equal', () => {
@@ -167,6 +172,7 @@ describe('ContextItemSync', () => {
       expect(mockTarget.value).toBe('target value');
       expect(result.success).toBe(true);
       expect(result.message).toBe('Items are equal, no merge needed');
+      expect(result.operation).toBe('mergeNewerWins');
       expect(result.changes).toEqual([]);
     });
 
@@ -192,7 +198,7 @@ describe('ContextItemSync', () => {
 
     it('should pass syncMetadata option to update methods', () => {
       ContextComparison.compare.mockReturnValue({
-        result: ContextComparison.COMPARISON_RESULTS.SOURCE_NEWER
+        result: ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER
       });
 
       ContextItemSync.mergeNewerWins(mockSource, mockTarget, { syncMetadata: false });
@@ -208,6 +214,7 @@ describe('ContextItemSync', () => {
       expect(mockTarget.value).toBe('source value');
       expect(result.success).toBe(true);
       expect(result.message).toBe('target item updated to match source');
+      expect(result.operation).toBe('mergeWithPriority');
     });
 
     it('should update source when priority is target', () => {
@@ -216,6 +223,7 @@ describe('ContextItemSync', () => {
       expect(mockSource.value).toBe('target value');
       expect(result.success).toBe(true);
       expect(result.message).toBe('source item updated to match target');
+      expect(result.operation).toBe('mergeWithPriority');
     });
 
     it('should handle invalid priority', () => {
@@ -225,6 +233,7 @@ describe('ContextItemSync', () => {
       expect(mockTarget.value).toBe('target value');
       expect(result.success).toBe(false);
       expect(result.message).toBe('Invalid priority: "invalid". Must be \'source\' or \'target\'.');
+      expect(result.operation).toBe('mergeWithPriority');
       expect(result.changes).toEqual([]);
     });
 
@@ -255,6 +264,7 @@ describe('ContextItemSync', () => {
 
       expect(mockTarget.value).toBeNull();
       expect(result.success).toBe(true);
+      expect(result.operation).toBe('updateTargetToMatchSource');
     });
 
     it('should handle undefined values', () => {
@@ -264,6 +274,7 @@ describe('ContextItemSync', () => {
 
       expect(mockTarget.value).toBeUndefined();
       expect(result.success).toBe(true);
+      expect(result.operation).toBe('updateTargetToMatchSource');
     });
 
     it('should handle empty object values', () => {
@@ -273,6 +284,7 @@ describe('ContextItemSync', () => {
 
       expect(mockTarget.value).toEqual({});
       expect(result.success).toBe(true);
+      expect(result.operation).toBe('updateTargetToMatchSource');
     });
 
     it('should handle array values', () => {
@@ -283,6 +295,7 @@ describe('ContextItemSync', () => {
       expect(mockTarget.value).toEqual([1, 2, 3]);
       expect(mockTarget.value).not.toBe(mockSource.value); // Should be deep cloned
       expect(result.success).toBe(true);
+      expect(result.operation).toBe('updateTargetToMatchSource');
     });
 
     it('should handle items with missing metadata', () => {
@@ -292,6 +305,41 @@ describe('ContextItemSync', () => {
 
       expect(mockTarget.setMetadata).toHaveBeenCalledWith(undefined, false);
       expect(result.success).toBe(true);
+      expect(result.operation).toBe('updateTargetToMatchSource');
+    });
+  });
+
+  describe('alias methods', () => {
+    it('should have an alias for updateTargetToMatchSource', () => {
+      const result = ContextItemSync.updateDestinationToMatchOrigin(mockSource, mockTarget);
+
+      expect(result.success).toBe(true);
+      expect(result.operation).toBe('updateDestinationToMatchOrigin');
+      expect(mockTarget.value).toBe('source value');
+    });
+
+    it('should have an alias for updateSourceToMatchTarget', () => {
+      const result = ContextItemSync.updateOriginToMatchDestination(mockSource, mockTarget);
+
+      expect(result.success).toBe(true);
+      expect(result.operation).toBe('updateOriginToMatchDestination');
+      expect(mockSource.value).toBe('target value');
+    });
+
+    it('should have an alias for updateSourceToTarget', () => {
+      const result = ContextItemSync.updateSourceToTarget(mockSource, mockTarget);
+
+      expect(result.success).toBe(true);
+      expect(result.operation).toBe('updateSourceToTarget');
+      expect(mockTarget.value).toBe('source value');
+    });
+
+    it('should have an alias for updateTargetToSource', () => {
+      const result = ContextItemSync.updateTargetToSource(mockSource, mockTarget);
+
+      expect(result.success).toBe(true);
+      expect(result.operation).toBe('updateTargetToSource');
+      expect(mockSource.value).toBe('target value');
     });
   });
 });

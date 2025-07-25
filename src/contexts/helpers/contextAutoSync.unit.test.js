@@ -1,13 +1,14 @@
+/**
+ * @file contextAutoSync.unit.test.js
+ * @description Unit tests for the ContextAutoSync class for automatic context synchronization functionality.
+ * @path src/contexts/helpers/contextAutoSync.unit.test.js
+
+ */
+
 import ContextAutoSync from './contextAutoSync.js';
 import Context from '../context.js';
 import { ContextContainer } from './contextContainer.js';
 import { ContextItem } from './contextItem.js';
-
-/**
- * @file contextAutoSync.unit.test.js
- * @description Unit tests for the ContextAutoSync class for automatic context synchronization functionality.
- * @path /src/contexts/helpers/contextAutoSync.unit.test.js
- */
 
 
 describe('ContextAutoSync', () => {

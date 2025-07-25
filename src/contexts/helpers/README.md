@@ -6,11 +6,107 @@ This directory contains helper classes and utilities that support the context ma
 
 The helpers are organized into several functional categories:
 
+- **Entry Point**: [`ContextHelpers`](#contexthelpers)
 - **Core Data Management**: [`ContextItem`](#contextitem), [`ContextContainer`](#contextcontainer), [`ContextValueWrapper`](#contextvaluewrapper)
-- **Synchronization**: [`ContextSync`](#contextsync), [`ContextItemSync`](#contextitemsync), [`ContextContainerSync`](#contextcontainersync), [`ContextContainerSyncEngine`](#contextcontainersyncengine), [`ContextAutoSync`](#contextautosync)
+- **Synchronization**: [`ContextSync`](#contextsync), [`ContextItemSync`](#contextitemsync), [`ContextContainerSync`](#contextcontainersync), [`ContextContainerSyncEngine`](#contextcontainersyncengine), [`ContextAutoSync`](#contextautosync), [`ContextLegacySync`](#contextlegacysync)
 - **Merging & Operations**: [`ContextMerger`](#contextmerger), [`ContextOperations`](#contextoperations)
 - **Filtering & Utilities**: [`ItemFilter`](#itemfilter), [`ContextItemFilter`](#contextitemfilter), [`ContextItemSetter`](#contextitemsetter), [`ContextComparison`](#contextcomparison)
 - **Validation**: [`RootMapValidator`](#rootmapvalidator)
+
+## Entry Point
+
+### ContextHelpers
+
+**File**: contextHelpers.js
+**Dependencies**: All helper classes
+**Exports**: `ContextHelpers` (class)
+
+Centralized entry point for all context helper classes and methods. This class provides access to all helper functionality through a single import, reducing the need for multiple imports when using helpers from outside the helpers folder.
+
+#### Public API
+
+````javascript
+// All helper classes exposed as static properties
+ContextHelpers.Item
+ContextHelpers.Container
+ContextHelpers.ValueWrapper
+ContextHelpers.ItemSetter
+ContextHelpers.Sync
+ContextHelpers.ItemSync
+ContextHelpers.ContainerSync
+ContextHelpers.ContainerSyncEngine
+ContextHelpers.AutoSync
+ContextHelpers.LegacySync
+ContextHelpers.Merger
+ContextHelpers.Operations
+ContextHelpers.Filter
+ContextHelpers.Comparison
+ContextHelpers.Validator
+
+// Convenience methods for common operations
+ContextHelpers.sync(source, target, operation, options)
+ContextHelpers.syncSafe(source, target, operation, options)
+ContextHelpers.autoSync(source, target, options)
+ContextHelpers.merge(source, target, strategy, options)
+ContextHelpers.compare(source, target, options)
+ContextHelpers.wrap(value, options)
+
+// Constants and enums
+ContextHelpers.SYNC_OPERATIONS
+ContextHelpers.COMPARISON_RESULTS
+ContextHelpers.MERGE_STRATEGIES
+
+````
+
+#### Example Usage
+
+````javascript
+// Instead of multiple imports:
+// import { ContextItem } from './helpers/contextItem.js';
+// import ContextSync from './helpers/contextSync.js';
+// import ContextMerger from './helpers/contextMerger.js';
+
+// Use single import:
+import ContextHelpers from './helpers/contextHelpers.js';
+
+// Access classes
+const item = new ContextHelpers.Item('value');
+const result = ContextHelpers.sync(source, target, 'mergeNewerWins');
+const merged = ContextHelpers.merge(source, target);
+
+// Use constants
+const operation = ContextHelpers.SYNC_OPERATIONS.MERGE_NEWER_WINS;
+````
+
+**Note**: For usage within the helpers folder, continue to use direct imports for better dependency management and to avoid circular dependencies.
+
+### ContextHelpers File Structure
+
+The new file structure now includes:
+
+```
+contextHelpers.js
+contextHelpers.unit.test.js
+```
+
+### Real-world Usage Example
+
+Before ContextHelpers, context.js had multiple imports:
+
+```javascript
+import ContextContainer from './helpers/contextContainer.js';
+import ContextMerger from './helpers/contextMerger.js';
+import ContextSync from './helpers/contextSync.js';
+import ContextOperations from './helpers/contextOperations.js';
+```
+
+With ContextHelpers, this simplifies to:
+
+```javascript
+import ContextHelpers from './helpers/contextHelpers.js';
+
+// Then use: ContextHelpers.Container, ContextHelpers.Merger, etc.
+```
 
 ## Core Data Management
 
@@ -121,11 +217,7 @@ Static utility class for wrapping raw values into ContextItem or ContextContaine
 ````javascript
 // Static Methods
 ContextValueWrapper.wrap(value, options = {})
-// Options: wrapAs, wrapPrimitives, recordAccess, recordAccessForMetadata, frozen, metadata
-
-ContextValueWrapper.wrapAsContextItem(value, options = {})
-ContextValueWrapper.wrapAsContextContainer(value, options = {})
-ContextValueWrapper.unwrap(wrappedValue) // Extract raw value from wrapped instance
+// Options: wrapAs, wrapPrimitives, recordAccess, recordAccessForMetadata, frozen, metadata, containerOptions
 ````
 
 #### Example Usage
@@ -136,9 +228,6 @@ const wrapped = ContextValueWrapper.wrap('hello', {
   metadata: { type: 'greeting' }
 });
 console.log(wrapped instanceof ContextItem); // true
-
-const unwrapped = ContextValueWrapper.unwrap(wrapped);
-console.log(unwrapped); // 'hello'
 ````
 
 ## Synchronization
@@ -146,15 +235,15 @@ console.log(unwrapped); // 'hello'
 ### ContextSync
 
 **File**: contextSync.js
-**Dependencies**: `ContextItem`, `ContextContainer`, `Context`, `ContextComparison`, `ContextAutoSync`, `ContextItemSync`, `ContextContainerSync`
+**Dependencies**: `ContextItem`, `ContextContainer`, `Context`, `ContextComparison`, `ContextAutoSync`, `ContextLegacySync`
 **Exports**: `ContextSync` (class)
 
-Facade class providing synchronization capabilities for all context types. Delegates to specialized sync classes based on object type.
+Facade class providing synchronization capabilities for all context types. For Context instances, delegates to ContextMerger for sophisticated handling. For legacy ContextContainer and ContextItem operations, delegates to ContextLegacySync.
 
 #### Public API
 
 ````javascript
-// Static Constants
+// Static Constants (sourced from centralized constants.yaml)
 ContextSync.SYNC_OPERATIONS = {
   UPDATE_SOURCE_TO_TARGET: 'updateSourceToTarget',
   UPDATE_TARGET_TO_SOURCE: 'updateTargetToSource',
@@ -235,6 +324,44 @@ new ContextContainerSyncEngine(options = {})
 
 // Instance Methods
 .sync(container1, container2, direction)
+````
+
+### ContextLegacySync
+
+**File**: contextLegacySync.js
+**Dependencies**: `ContextItem`, `ContextContainer`, `ContextComparison`, `ContextItemSync`, `ContextContainerSync`
+**Exports**: `ContextLegacySync` (class)
+
+Handles legacy synchronization operations for ContextContainer and ContextItem instances. This class contains deprecated sync methods that will be replaced by newer implementations.
+
+#### Public API
+
+````javascript
+// Static Constants (sourced from centralized constants.yaml)
+ContextLegacySync.SYNC_OPERATIONS = {
+  UPDATE_SOURCE_TO_TARGET: 'updateSourceToTarget',
+  UPDATE_TARGET_TO_SOURCE: 'updateTargetToSource',
+  MERGE_NEWER_WINS: 'mergeNewerWins',
+  MERGE_SOURCE_PRIORITY: 'mergeSourcePriority',
+  MERGE_TARGET_PRIORITY: 'mergeTargetPriority',
+  NO_ACTION: 'noAction'
+}
+
+// Static Methods
+ContextLegacySync.performLegacySync(source, target, operation, options = {})
+ContextLegacySync.validateCompatibility(source, target)
+````
+
+#### Example Usage
+
+````javascript
+const result = ContextLegacySync.performLegacySync(
+  sourceContainer,
+  targetContainer,
+  ContextLegacySync.SYNC_OPERATIONS.MERGE_NEWER_WINS
+);
+console.log(result.success); // true/false
+console.log(result.changes); // Array of changes made
 ````
 
 ### ContextAutoSync
@@ -408,7 +535,7 @@ Comparison utilities for Context instances, ContextContainers, and ContextItems.
 #### Public API
 
 ````javascript
-// Static Constants
+// Static Constants (sourced from centralized constants.yaml)
 ContextComparison.COMPARISON_RESULTS = {
   SOURCE_NEWER: 'sourceNewer',
   TARGET_NEWER: 'targetNewer',
@@ -450,9 +577,45 @@ Validates root map configurations and initialization parameters.
 // Used internally for validating ContextRootMap initialization
 ````
 
+## Testing
+
+The helpers include comprehensive unit tests and integration tests:
+
+- **Unit Tests**: Each helper class has individual unit tests (`*.unit.test.js`) that test isolated functionality
+- **Integration Tests**: The `helpers.int.test.js` file tests the complete workflow between helpers
+
+### Integration Test Coverage
+
+The integration tests verify:
+
+- **ContextSync Facade**: Testing ContextSync as a unified interface for all synchronization operations
+- **ContextOperations → ContextMerger Workflow**: Complex merging operations with filtering and bulk operations
+- **Container Operations**: Deep nested synchronization and bidirectional sync
+- **Single Item Operations**: Item-level synchronization with metadata preservation
+- **Complex Filtering**: ItemFilter usage with pattern matching and combined filters
+- **Real-world Scenarios**: Player data sync, settings management, module configuration
+- **Performance Testing**: Large-scale operations and concurrent synchronization
+- **Error Handling**: Graceful handling of failures and edge cases
+
+### Running Tests
+
+````bash
+# Run all helper tests
+npm test helpers
+
+# Run only unit tests
+npm test helpers.unit
+
+# Run only integration tests
+npm test helpers.int
+````
+
 ## Dependencies Graph
 
 ```
+ContextHelpers (Entry Point)
+├── All helper classes (for external usage)
+
 ContextOperations
 ├── ContextMerger
 │   ├── ContextComparison
@@ -473,6 +636,12 @@ ContextSync
 ├── Context
 ├── ContextComparison
 ├── ContextAutoSync
+└── ContextLegacySync
+
+ContextLegacySync
+├── ContextItem
+├── ContextContainer
+├── ContextComparison
 ├── ContextItemSync
 └── ContextContainerSync
 
@@ -503,23 +672,34 @@ ContextValueWrapper
 ContextItemSetter
 ├── ContextValueWrapper
 └── PathUtils (helpers)
+
+ContextItem
+└── Validator (utils)
 ```
 
 ## Usage Patterns
 
+### External Usage (Recommended)
+Use `ContextHelpers` as a single entry point when importing from outside the helpers folder.
+
 ### Single Item Operations
+
 Use `ContextItem` directly or `ContextItemSync` for synchronization.
 
 ### Container Operations
+
 Use `ContextContainer` for collections, `ContextContainerSync` for synchronization.
 
 ### Complex Merging
+
 Use `ContextMerger` with `ItemFilter` for sophisticated merge operations.
 
 ### Bulk Operations
+
 Use `ContextOperations` for multi-source/target operations.
 
 ### High-Level Sync
+
 Use `ContextSync` as a facade for automatic delegation to appropriate sync classes.
 
 All helpers follow the established coding conventions with ES6 syntax, proper error handling, and comprehensive JSDoc documentation.

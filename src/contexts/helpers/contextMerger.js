@@ -1,17 +1,19 @@
 /**
  * @file contextMerger.js
  * @description This file contains the ContextMerger class for sophisticated merging of Context instances with detailed change tracking and conflict resolution.
- * @path /src/contexts/helpers/contextMerger.js
- * @date 30 May 2025
+ * @path src/contexts/helpers/contextMerger.js
+
  */
 
 import ContextComparison from './contextComparison.js';
 import { ContextItem } from './contextItem.js';
 import { ContextContainer } from './contextContainer.js';
 import { ItemFilter } from './contextItemFilter.js';
+import constants from '../../constants/constants.js';
 
 /**
  * @class ContextMerger
+ * @export
  * @description Provides sophisticated merge capabilities for Context instances with granular control,
  * detailed statistics, and advanced conflict resolution options.
  *
@@ -23,6 +25,13 @@ import { ItemFilter } from './contextItemFilter.js';
  * - `updateTargetToSource`: Updates target items with source values.
  * - `replace`: Completely replaces source items with target items.
  * - `noAction`: No changes are made, used for validation or dry runs.
+ * 
+ * ## Public API
+ * - `MERGE_STRATEGIES` - Static enum of available merge strategies
+ * - `DEFAULT_COMPONENTS` - Static array of default context component keys
+ * - `merge(source, target, strategy, options)` - Performs sophisticated merge of two Context instances
+ * - `analyze(source, target, strategy, options)` - Creates detailed summary of potential merge operations without executing
+ * - `validateCompatibility(source, target)` - Validates that contexts are compatible for merging
  *
  * @example
  * // Basic merge with newer items winning
@@ -64,29 +73,13 @@ class ContextMerger {
    * @enum {string}
    * @description Available merge strategies.
    */
-  static MERGE_STRATEGIES = {
-    MERGE_NEWER_WINS: 'mergeNewerWins',
-    MERGE_SOURCE_PRIORITY: 'mergeSourcePriority',
-    MERGE_TARGET_PRIORITY: 'mergeTargetPriority',
-    UPDATE_SOURCE_TO_TARGET: 'updateSourceToTarget',
-    UPDATE_TARGET_TO_SOURCE: 'updateTargetToSource',
-    REPLACE: 'replace',
-    NO_ACTION: 'noAction'
-  };
+  static MERGE_STRATEGIES = constants.contextHelpers.mergeStrategies;
 
   /**
    * @enum {string}
    * @description Default Context component keys that can be merged.
    */
-  static DEFAULT_COMPONENTS = [
-    'schema',
-    'constants',
-    'manifest',
-    'flags',
-    'state',
-    'data',
-    'settings'
-  ];
+  static DEFAULT_COMPONENTS = constants.contextHelpers.defaultComponents;
 
   /**
    * @private
@@ -98,7 +91,7 @@ class ContextMerger {
    */
   static #initializeMergeResult(source, target, strategy) {
     if (!source || !target) {
-      throw new Error('Invalid source or target context for merge operation');
+      throw new Error(constants.contextHelpers.errorMessages.invalidMergeContext);
     }
 
     return {
@@ -328,7 +321,12 @@ class ContextMerger {
     }
 
     // Apply the item
-    if (chosenItem && !dryRun && chosenItem !== targetItem && targetComponent?.setItem) {
+    if (
+      chosenItem &&
+      !dryRun &&
+      chosenItem !== targetItem &&
+      targetComponent?.setItem
+    ) {
       ContextMerger.#setItemWithMetadata(chosenItem, targetItem, targetComponent, itemKey, preserveMetadata);
 
       result.statistics[actionTaken]++;

@@ -1,7 +1,8 @@
 /**
  * @file contextItemFilter.js
- * @description This file contains the ItemFilter class for filtering capabilities in selective context merging.
- * @path /src/contexts/helpers/contextItemFilter.js
+ * @description Provides filtering capabilities for selective context merging operations.
+ * @path src/contexts/helpers/contextItemFilter.js
+
  */
 
 
@@ -10,6 +11,15 @@
  * @description Provides filtering capabilities for selective context merging operations.
  * This class offers static methods to create filter functions that can be used with ContextMerger
  * to control which items are included or excluded during merge operations.
+ * @export
+ * 
+ * Public API:
+ * - static allowOnly(allowedPaths) - Creates a filter that allows only specific item paths
+ * - static blockOnly(blockedPaths) - Creates a filter that blocks specific item paths  
+ * - static matchPattern(pattern) - Creates a filter that allows items matching a regular expression pattern
+ * - static custom(conditionFn) - Creates a filter based on custom condition function
+ * - static and(...filters) - Combines multiple filters with AND logic
+ * - static or(...filters) - Combines multiple filters with OR logic
  *
  * Available filtering operations:
  * - allowOnly: Include only items matching specific paths

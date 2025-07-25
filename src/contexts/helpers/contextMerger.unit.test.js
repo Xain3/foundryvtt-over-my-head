@@ -1,17 +1,16 @@
+/**
+ * @file contextMerger.unit.test.js
+ * @description Unit tests for the ContextMerger class functionality.
+ * @path src/contexts/helpers/contextMerger.unit.test.js
+
+ */
+
 import ContextMerger from './contextMerger.js';
 import ContextComparison from './contextComparison.js';
 import { ContextItem } from './contextItem.js';
 import { ContextContainer } from './contextContainer.js';
 import { ItemFilter } from './contextItemFilter.js';
 import Context from '../context.js';
-
-/**
- * @file contextMerger.unit.test.js
- * @description Unit tests for the ContextMerger class for sophisticated merging of Context instances with detailed change tracking and conflict resolution.
- * @path /src/contexts/helpers/contextMerger.unit.test.js
- * @date 30 May 2025
- */
-
 
 jest.mock('./contextComparison.js');
 jest.mock('./contextItemFilter.js');

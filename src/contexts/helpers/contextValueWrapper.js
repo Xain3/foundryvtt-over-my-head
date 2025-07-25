@@ -1,8 +1,8 @@
 /**
  * @file contextValueWrapper.js
  * @description This file contains the ContextValueWrapper class for wrapping values into ContextItem or ContextContainer instances.
- * @path /src/context/helpers/contextValueWrapper.js
- * @date 23 May 2025
+ * @path src/contexts/helpers/contextValueWrapper.js
+
  */
 
 import { ContextItem } from './contextItem.js';
@@ -11,6 +11,10 @@ import { ContextContainer } from './contextContainer.js';
 /**
  * @class ContextValueWrapper
  * @classdesc Provides static methods to wrap raw values into ContextItem or ContextContainer instances.
+ * @export
+ * 
+ * **Public API:**
+ * - `static wrap(rawValue, options)` - Wraps a value into a ContextItem or ContextContainer based on options
  */
 class ContextValueWrapper {
   /**
@@ -72,7 +76,7 @@ class ContextValueWrapper {
   static _handlePrimitiveValue(rawValue, wrapPrimitives) {
     if (!wrapPrimitives) {
       const type = typeof rawValue;
-      if (type !== 'object' && type !== 'function' || rawValue === null) {
+      if ((type !== 'object' && type !== 'function') || rawValue === null) {
         return rawValue; // Return primitive as-is
       }
       throw new TypeError('rawValue must be an instance of ContextItem or ContextContainer if wrapPrimitives is false and rawValue is not a primitive.');
@@ -134,13 +138,6 @@ class ContextValueWrapper {
       defaultItemRecordAccessForMetadata: false,
     }
   } = {}) {
-    // DEBUG: Add logging for schema specifically
-    if (rawValue && typeof rawValue === 'object' && 'version' in rawValue && 'type' in rawValue) {
-      console.log('DEBUG ContextValueWrapper.wrap: rawValue=', rawValue);
-      console.log('DEBUG ContextValueWrapper.wrap: wrapAs=', wrapAs);
-      console.log('DEBUG ContextValueWrapper.wrap: is rawValue frozen?', Object.isFrozen(rawValue));
-    }
-
     const normalizedWrapAs = this._validateWrapOptions(wrapAs);
 
     const existingInstance = this._handleExistingInstance(rawValue);
@@ -151,13 +148,6 @@ class ContextValueWrapper {
 
     const newInstanceOptions = { recordAccess, recordAccessForMetadata };
     const result = this._createNewInstance(rawValue, normalizedWrapAs, metadata, newInstanceOptions, containerOptions);
-
-    // DEBUG: Add logging for schema specifically
-    if (rawValue && typeof rawValue === 'object' && 'version' in rawValue && 'type' in rawValue) {
-      console.log('DEBUG ContextValueWrapper.wrap: result type=', result.constructor.name);
-      console.log('DEBUG ContextValueWrapper.wrap: result.value=', result.value);
-      console.log('DEBUG ContextValueWrapper.wrap: is result.value frozen?', Object.isFrozen(result.value));
-    }
 
     return result;
   }

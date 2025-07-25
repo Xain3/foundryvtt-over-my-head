@@ -10,6 +10,7 @@ import { ContextValueWrapper } from './contextValueWrapper.js';
 import { ContextItemSetter } from './contextItemSetter.js';
 import { Validator } from '../../utils/static/validator.js';
 import PathUtils from '../../helpers/pathUtils.js';
+import dayjs from 'dayjs';
 
 jest.mock('./contextItem.js');
 jest.mock('./contextValueWrapper.js');
@@ -554,7 +555,7 @@ describe('ContextContainer', () => {
       expect(container.getWrappedItem('parent.nonExistentChild')).toBeUndefined();
     });
 
-     it('should return undefined for invalid key type', () => {
+    it('should return undefined for invalid key type', () => {
       const container = new ContextContainer();
       expect(container.getWrappedItem(null)).toBeUndefined();
     });
@@ -716,7 +717,7 @@ describe('ContextContainer', () => {
       expect(container.setItem).toHaveBeenCalledWith('item1', 'value1');
     });
 
-     it('should reinitialize with a single non-plain object value', () => {
+    it('should reinitialize with a single non-plain object value', () => {
       const container = new ContextContainer();
       jest.spyOn(container, 'setItem').mockReturnThis();
       container.reinitialize('single');
@@ -752,6 +753,43 @@ describe('ContextContainer', () => {
       const container = new ContextContainer();
       const isContainer = container.isContextContainer === true;
       expect(isContainer).toBe(true);
+    });
+  });
+
+  describe('_updateAccessTimestamp', () => {
+    it('should call internal _updateAccessTimestamp with provided date', () => {
+      const container = new ContextContainer();
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      const customDate = new Date('2025-01-01T12:00:00.000Z');
+      container._updateAccessTimestamp(customDate);
+      expect(mockInternalItem._updateAccessTimestamp).toHaveBeenCalledWith(customDate);
+    });
+
+    it('should call internal _updateAccessTimestamp with default date if none provided', () => {
+      const container = new ContextContainer();
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      container._updateAccessTimestamp();
+      const calledWith = mockInternalItem._updateAccessTimestamp.mock.calls[0][0];
+      expect(dayjs(calledWith).isSame(MOCK_DATE)).toBe(true);
+    });
+  });
+
+  describe('_updateModificationTimestamps', () => {
+    it('should call internal _updateModificationTimestamps with provided date', () => {
+      const container = new ContextContainer();
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      const customDate = new Date('2025-01-01T12:00:00.000Z');
+      container._updateModificationTimestamps(customDate);
+      const calledWith = mockInternalItem._updateModificationTimestamps.mock.calls[0][0];
+      expect(dayjs(calledWith).isSame(customDate)).toBe(true);
+    });
+
+    it('should call internal _updateModificationTimestamps with default date if none provided', () => {
+      const container = new ContextContainer();
+      const mockInternalItem = ContextItem.mock.results[0].value;
+      container._updateModificationTimestamps();
+      const calledWith = mockInternalItem._updateModificationTimestamps.mock.calls[0][0];
+      expect(dayjs(calledWith).isSame(MOCK_DATE)).toBe(true);
     });
   });
 });

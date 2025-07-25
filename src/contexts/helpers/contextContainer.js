@@ -2,6 +2,7 @@
  * @file contextContainer.js
  * @description This file contains the ContextContainer class for managing collections of named ContextItems.
  * @path src/contexts/helpers/contextContainer.js
+
  */
 
 import { ContextItem } from './contextItem.js';
@@ -17,7 +18,28 @@ const RESERVED_KEYS = [
 /**
  * @class ContextContainer
  * @classdesc Represents a container that manages a collection of named ContextItems or nested ContextContainers.
- *            Uses composition with ContextItem for metadata and timestamp features.
+ * @export
+ *
+ * Public API:
+ * - constructor(initialItemsOrValue, metadata, options) - Creates a new ContextContainer instance
+ * - setItem(key, rawValue, itemOptionsOverrides) - Sets or updates an item in the container
+ * - hasItem(key) - Checks if an item exists in the container
+ * - getItem(key) - Retrieves the unwrapped value of a managed item
+ * - getValue(key) - Alias for getItem() that updates access timestamps
+ * - getWrappedItem(key) - Retrieves a managed item wrapper (ContextItem or ContextContainer instance)
+ * - removeItem(key) - Removes an item from the container
+ * - clearItems() - Clears all managed items from the container
+ * - keys() - Gets an iterator for the keys of the managed items
+ * - items() - Gets an iterator for the managed items
+ * - entries() - Gets an iterator for the [key, managedItem] pairs
+ * - freeze() - Freezes the container, preventing further modifications
+ * - unfreeze() - Unfreezes the container, allowing modifications again
+ * - isFrozen() - Checks if the container is currently frozen
+ * - setMetadata(metadata) - Sets the metadata for the container
+ * - changeAccessRecord(recordAccess, recordAccessForMetadata) - Changes the access recording settings
+ * - reinitialize(initialItemsOrValue, metadata, options) - Reinitializes the ContextContainer
+ * - clear() - Clears the container and resets its metadata and timestamps
+ *
  * @property {object} value - A plain object representation of all managed items, with their unwrapped values. Setting this clears and repopulates items.
  * @property {number} size - The number of items in the container.
  * @property {object} metadata - Metadata for the container itself (delegated to internal ContextItem).
@@ -26,6 +48,8 @@ const RESERVED_KEYS = [
  * @property {Date} lastAccessedAt - Last access timestamp (delegated to internal ContextItem).
  * @property {boolean} recordAccess - Whether to record access to the container (delegated to internal ContextItem).
  * @property {boolean} recordAccessForMetadata - Whether to record metadata access (delegated to internal ContextItem).
+ * @property {boolean} isContextContainer - Indicates if this instance is a ContextContainer (for duck typing).
+ * @private
  * @property {object} #defaultItemOptions - Default options for items added to this container.
  * @property {Map<string, ContextItem|ContextContainer>} #managedItems - Internal storage for managed items.
  * @property {ContextItem} #containerItem - Internal ContextItem for container metadata and timestamps.
@@ -35,19 +59,34 @@ const RESERVED_KEYS = [
  * // Basic usage
  * const container = new ContextContainer({ player: { name: 'John', level: 5 } });
  * console.log(container.getItem('player.name')); // 'John'
- *
- * @example
- * // With options
- * const container = new ContextContainer(
- *   { score: 100 },
- *   { gameMode: 'hard' },
- *   { defaultItemRecordAccess: false }
- * );
  */
 class ContextContainer {
+  /**
+   * Internal storage for managed items.
+   * @type {Map<string, ContextItem|ContextContainer>}
+   * @private
+   */
   #managedItems;
+
+  /**
+   * Default options for items added to this container.
+   * @type {object}
+   * @private
+   */
   #defaultItemOptions;
+
+  /**
+   * Internal ContextItem for container metadata and timestamps.
+   * @type {ContextItem}
+   * @private
+   */
   #containerItem;
+
+  /**
+   * Indicates if this instance is a ContextContainer (for duck typing).
+   * @type {boolean}
+   * @private
+   */
   #isContextContainer;
 
   /**
@@ -76,7 +115,7 @@ class ContextContainer {
     } = {}
   ) {
     this.#isContextContainer = true;
-    this.#containerItem = new ContextItem(undefined, metadata, { recordAccess, recordAccessForMetadata });
+    this.#containerItem = new ContextItem(undefined, metadata, { recordAccess, recordAccessForMetadata }); // Item to store metadata and timestamps
     this.#managedItems = new Map();
     this.#defaultItemOptions = {
       wrapPrimitives: defaultItemWrapPrimitives,
@@ -196,13 +235,34 @@ class ContextContainer {
     this.#containerItem.recordAccessForMetadata = value;
   }
 
-  // Delegate timestamp update methods
-  _updateAccessTimestamp() {
-    this.#containerItem._updateAccessTimestamp();
+  /**
+   * Updates the container's lastAccessedAt timestamp.
+   * @protected
+   * @param {Date} [date=null] - The date to set as lastAccessedAt. Defaults to current date/time.
+   */
+  _updateAccessTimestamp(date = null) {
+    if (!date) date = new Date();
+
+    this.#containerItem._updateAccessTimestamp(date);
   }
 
-  _updateModificationTimestamps() {
-    this.#containerItem._updateModificationTimestamps();
+  /**
+   * Updates the container's modifiedAt and lastAccessedAt timestamps.
+   * @protected
+   * @param {Date} [date=null] - The date to set as modifiedAt and lastAccessedAt. Defaults to current date/time.
+   */
+  _updateModificationTimestamps(date = null) {
+    if (!date) date = new Date();
+    this.#containerItem._updateModificationTimestamps(date);
+  }
+
+  /**
+   * For testing purposes only. Sets the internal container item.
+   * @param {ContextItem} item - The ContextItem to set.
+   * @protected
+   */
+  _setContainerItem(item) {
+    this.#containerItem = item;
   }
 
   /**
@@ -281,8 +341,14 @@ class ContextContainer {
     });
   }
 
+  /**
+   * Checks if a key is reserved.
+   * @protected
+   * @param {string} key - The key to check.
+   * @returns {boolean} True if the key is reserved, false otherwise.
+   */
   _isReservedKey(key) {
-    return this.#isReservedKey(key)
+    return this.#isReservedKey(key);
   }
 
   /**
@@ -290,6 +356,7 @@ class ContextContainer {
    * @protected
    * @param {string} key - The key for the nested container.
    * @returns {ContextContainer} The nested container.
+   * @throws {TypeError} If the item at key is not a container.
    */
   _createNestedContainer(key) {
     let container = this.#managedItems.get(key);

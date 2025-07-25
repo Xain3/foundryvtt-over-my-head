@@ -1,7 +1,8 @@
 /**
- * @file contextValueWrapper.test.js
+ * @file contextValueWrapper.unit.test.js
  * @description Unit tests for the ContextValueWrapper class.
- * @path src/context/helpers/contextValueWrapper.test.js
+ * @path src/contexts/helpers/contextValueWrapper.unit.test.js
+
  */
 
 import { ContextValueWrapper } from './contextValueWrapper.js';

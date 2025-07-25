@@ -1,11 +1,11 @@
-import ContextComparison from './contextComparison.js';
-
 /**
- * @file contextComparison.test.js
- * @description Test file for the ContextComparison class functionality.
- * @path src/contexts/helpers/contextComparison.test.js
- * @date 2025-06-18
+ * @file contextComparison.unit.test.js
+ * @description Comprehensive unit tests for the ContextComparison class functionality including enhanced timestamp format support and dayjs integration.
+ * @path src/contexts/helpers/contextComparison.unit.test.js
+
  */
+
+import ContextComparison from './contextComparison.js';
 
 describe('ContextComparison', () => {
   const mockDate1 = new Date('2024-01-01T00:00:00.000Z');
@@ -241,6 +241,112 @@ describe('ContextComparison', () => {
     });
   });
 
+  describe('timestamp type validation', () => {
+    it('should handle string timestamps correctly', () => {
+      const containerA = { modifiedAt: '2024-01-02T00:00:00.000Z' };
+      const containerB = { modifiedAt: '2024-01-01T00:00:00.000Z' };
+
+      const result = ContextComparison.compare(containerA, containerB);
+
+      expect(result.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER);
+      expect(result.containerATimestamp).toEqual(new Date('2024-01-02T00:00:00.000Z'));
+      expect(result.containerBTimestamp).toEqual(new Date('2024-01-01T00:00:00.000Z'));
+      expect(result.timeDifference).toBeGreaterThan(0);
+    });
+
+    it('should handle number timestamps correctly', () => {
+      const time1 = mockDate1.getTime();
+      const time2 = mockDate2.getTime();
+      const containerA = { modifiedAt: time2 };
+      const containerB = { modifiedAt: time1 };
+
+      const result = ContextComparison.compare(containerA, containerB);
+
+      expect(result.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER);
+      expect(result.containerATimestamp).toEqual(new Date(time2));
+      expect(result.containerBTimestamp).toEqual(new Date(time1));
+      expect(result.timeDifference).toBe(time2 - time1);
+    });
+
+    it('should handle mixed timestamp types (Date and string)', () => {
+      const containerA = { modifiedAt: mockDate1 };
+      const containerB = { modifiedAt: '2024-01-01T00:00:00.000Z' };
+
+      const result = ContextComparison.compare(containerA, containerB);
+
+      expect(result).toBeDefined();
+      expect(result.result).toBeDefined();
+      expect(result.timeDifference).toBeDefined();
+    });
+
+    it('should handle mixed timestamp types (Date and number)', () => {
+      const containerA = { modifiedAt: mockDate1 };
+      const containerB = { modifiedAt: mockDate1.getTime() };
+
+      const result = ContextComparison.compare(containerA, containerB);
+
+      expect(result).toBeDefined();
+      expect(result.result).toBe(ContextComparison.COMPARISON_RESULTS.EQUAL);
+      expect(result.timeDifference).toBe(0);
+    });
+
+    it('should handle mixed timestamp types (string and number)', () => {
+      const containerA = { modifiedAt: '2024-01-01T00:00:00.000Z' };
+      const containerB = { modifiedAt: mockDate1.getTime() };
+
+      const result = ContextComparison.compare(containerA, containerB);
+
+      expect(result).toBeDefined();
+      expect(result.result).toBeDefined();
+      expect(result.timeDifference).toBeDefined();
+    });
+
+    it('should throw error for unsupported timestamp types', () => {
+      const containerA = { modifiedAt: true };
+      const containerB = { modifiedAt: false };
+
+      expect(() => {
+        ContextComparison.compare(containerA, containerB);
+      }).toThrow('Invalid timestamp types or mixed types provided');
+    });
+
+    it('should throw error for invalid string dates that result in NaN', () => {
+      const containerA = { modifiedAt: 'invalid-date-string' };
+      const containerB = { modifiedAt: 'also-invalid' };
+
+      expect(() => {
+        ContextComparison.compare(containerA, containerB);
+      }).toThrow('Invalid timestamp values provided');
+    });
+
+    it('should throw error for NaN number timestamps', () => {
+      const containerA = { modifiedAt: NaN };
+      const containerB = { modifiedAt: NaN };
+
+      expect(() => {
+        ContextComparison.compare(containerA, containerB);
+      }).toThrow('Invalid timestamp values provided');
+    });
+
+    it('should throw error when one string timestamp is invalid', () => {
+      const containerA = { modifiedAt: '2024-01-01T00:00:00.000Z' };
+      const containerB = { modifiedAt: 'invalid-date' };
+
+      expect(() => {
+        ContextComparison.compare(containerA, containerB);
+      }).toThrow('Invalid timestamp values provided');
+    });
+
+    it('should throw error when one number timestamp is NaN', () => {
+      const containerA = { modifiedAt: mockDate1.getTime() };
+      const containerB = { modifiedAt: NaN };
+
+      expect(() => {
+        ContextComparison.compare(containerA, containerB);
+      }).toThrow('Invalid timestamp values provided');
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle objects with missing timestamp properties gracefully', () => {
       const containerA = {};
@@ -267,6 +373,147 @@ describe('ContextComparison', () => {
       expect(() => {
         ContextComparison.compare(containerA, containerB);
       }).toThrow();
+    });
+  });
+
+  describe('Enhanced Timestamp Format Support', () => {
+    describe('various timestamp formats', () => {
+      it('should handle GMT format timestamps like "Sun Jul 20 2025 10:17:49 GMT+0000 (Coordinated Universal Time)"', () => {
+        const containerA = { modifiedAt: 'Sun Jul 20 2025 10:17:49 GMT+0000 (Coordinated Universal Time)' };
+        const containerB = { modifiedAt: 'Sun Jul 20 2025 10:17:48 GMT+0000 (Coordinated Universal Time)' };
+
+        const result = ContextComparison.compare(containerA, containerB);
+
+        expect(result.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER);
+        expect(result.timeDifference).toBe(1000); // 1 second difference
+        expect(result.containerATimestamp).toBeInstanceOf(Date);
+        expect(result.containerBTimestamp).toBeInstanceOf(Date);
+      });
+
+      it('should handle ISO 8601 format timestamps', () => {
+        const containerA = { modifiedAt: '2025-07-20T10:17:49.000Z' };
+        const containerB = { modifiedAt: '2025-07-20T10:17:48.000Z' };
+
+        const result = ContextComparison.compare(containerA, containerB);
+
+        expect(result.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER);
+        expect(result.timeDifference).toBe(1000); // 1 second difference
+      });
+
+      it('should handle Unix timestamps (numbers)', () => {
+        const timestampA = 1721472469000; // July 20, 2025 10:17:49 UTC
+        const timestampB = 1721472468000; // July 20, 2025 10:17:48 UTC
+
+        const containerA = { modifiedAt: timestampA };
+        const containerB = { modifiedAt: timestampB };
+
+        const result = ContextComparison.compare(containerA, containerB);
+
+        expect(result.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER);
+        expect(result.timeDifference).toBe(1000); // 1 second difference
+      });
+
+      it('should handle Date objects', () => {
+        const dateA = new Date('2025-07-20T10:17:49.000Z');
+        const dateB = new Date('2025-07-20T10:17:48.000Z');
+
+        const containerA = { modifiedAt: dateA };
+        const containerB = { modifiedAt: dateB };
+
+        const result = ContextComparison.compare(containerA, containerB);
+
+        expect(result.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER);
+        expect(result.timeDifference).toBe(1000); // 1 second difference
+      });
+
+      it('should handle mixed timestamp types correctly', () => {
+        // Use a consistent base timestamp for both containers
+        const baseDate = new Date('2025-07-20T10:17:48.000Z');
+        const oneSecondLater = new Date('2025-07-20T10:17:49.000Z');
+
+        const containerA = { modifiedAt: oneSecondLater.toString() }; // This will be in GMT format
+        const containerB = { modifiedAt: baseDate.getTime() }; // Unix timestamp
+
+        const result = ContextComparison.compare(containerA, containerB);
+
+        expect(result.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER);
+        // We expect about 1 second difference, allowing for some parsing variation
+        expect(result.timeDifference).toBeGreaterThan(500);
+        expect(result.timeDifference).toBeLessThan(1500);
+      });
+
+      it('should handle US date format', () => {
+        const containerA = { modifiedAt: '07/20/2025 10:17:49' };
+        const containerB = { modifiedAt: '07/20/2025 10:17:48' };
+
+        const result = ContextComparison.compare(containerA, containerB);
+
+        expect(result.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER);
+        expect(result.timeDifference).toBeGreaterThan(0);
+      });
+
+      it('should handle common string date formats', () => {
+        const containerA = { modifiedAt: 'July 20, 2025 10:17:49' };
+        const containerB = { modifiedAt: 'July 20, 2025 10:17:48' };
+
+        const result = ContextComparison.compare(containerA, containerB);
+
+        expect(result.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER);
+        expect(result.timeDifference).toBeGreaterThan(0);
+      });
+    });
+
+    describe('edge cases with enhanced parsing', () => {
+      it('should handle timezone differences correctly', () => {
+        const containerA = { modifiedAt: 'Sun Jul 20 2025 10:17:49 GMT+0200 (Central European Time)' };
+        const containerB = { modifiedAt: 'Sun Jul 20 2025 10:17:49 GMT+0000 (Coordinated Universal Time)' };
+
+        const result = ContextComparison.compare(containerA, containerB);
+
+        // A should be 2 hours earlier than B when both are converted to UTC
+        expect(result.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_B_NEWER);
+        expect(result.timeDifference).toBe(-2 * 60 * 60 * 1000); // -2 hours in milliseconds
+      });
+
+      it('should still throw errors for completely invalid timestamps', () => {
+        const containerA = { modifiedAt: 'this-is-not-a-date-at-all' };
+        const containerB = { modifiedAt: '2025-07-20T10:17:49.000Z' };
+
+        expect(() => {
+          ContextComparison.compare(containerA, containerB);
+        }).toThrow('Invalid timestamp values provided');
+      });
+
+      it('should still throw errors for unsupported types', () => {
+        const containerA = { modifiedAt: true };
+        const containerB = { modifiedAt: [] };
+
+        expect(() => {
+          ContextComparison.compare(containerA, containerB);
+        }).toThrow('Invalid timestamp types or mixed types provided');
+      });
+    });
+
+    describe('precision and accuracy', () => {
+      it('should maintain millisecond precision', () => {
+        const containerA = { modifiedAt: '2025-07-20T10:17:49.123Z' };
+        const containerB = { modifiedAt: '2025-07-20T10:17:49.124Z' };
+
+        const result = ContextComparison.compare(containerA, containerB);
+
+        expect(result.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_B_NEWER);
+        expect(result.timeDifference).toBe(-1); // 1 millisecond difference
+      });
+
+      it('should handle very large timestamp differences', () => {
+        const containerA = { modifiedAt: '2025-07-20T10:17:49.000Z' };
+        const containerB = { modifiedAt: '1970-01-01T00:00:00.000Z' };
+
+        const result = ContextComparison.compare(containerA, containerB);
+
+        expect(result.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER);
+        expect(result.timeDifference).toBeGreaterThan(1000000000000); // Very large positive number
+      });
     });
   });
 });

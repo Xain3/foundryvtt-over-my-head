@@ -8,6 +8,7 @@ The helpers are organized into several functional categories:
 
 - **Entry Point**: [`ContextHelpers`](#contexthelpers)
 - **Core Data Management**: [`ContextItem`](#contextitem), [`ContextContainer`](#contextcontainer), [`ContextValueWrapper`](#contextvaluewrapper)
+- **Path Utilities**: [`ContextPathUtils`](#contextpathutils)
 - **Synchronization**: [`ContextSync`](#contextsync), [`ContextItemSync`](#contextitemsync), [`ContextContainerSync`](#contextcontainersync), [`ContextContainerSyncEngine`](#contextcontainersyncengine), [`ContextAutoSync`](#contextautosync), [`ContextLegacySync`](#contextlegacysync)
 - **Merging & Operations**: [`ContextMerger`](#contextmerger), [`ContextOperations`](#contextoperations)
 - **Filtering & Utilities**: [`ItemFilter`](#itemfilter), [`ContextItemFilter`](#contextitemfilter), [`ContextItemSetter`](#contextitemsetter), [`ContextComparison`](#contextcomparison)
@@ -30,6 +31,7 @@ Centralized entry point for all context helper classes and methods. This class p
 ContextHelpers.Item
 ContextHelpers.Container
 ContextHelpers.ValueWrapper
+ContextHelpers.PathUtils
 ContextHelpers.ItemSetter
 ContextHelpers.Sync
 ContextHelpers.ItemSync
@@ -50,6 +52,9 @@ ContextHelpers.autoSync(source, target, options)
 ContextHelpers.merge(source, target, strategy, options)
 ContextHelpers.compare(source, target, options)
 ContextHelpers.wrap(value, options)
+ContextHelpers.resolveMixedPath(rootObject, path)
+ContextHelpers.pathExists(rootObject, path)
+ContextHelpers.getValueFromMixedPath(rootObject, path)
 
 // Constants and enums
 ContextHelpers.SYNC_OPERATIONS
@@ -73,6 +78,10 @@ import ContextHelpers from './helpers/contextHelpers.js';
 const item = new ContextHelpers.Item('value');
 const result = ContextHelpers.sync(source, target, 'mergeNewerWins');
 const merged = ContextHelpers.merge(source, target);
+
+// Use path utilities
+const pathValue = ContextHelpers.getValueFromMixedPath(container, 'player.stats.level');
+const pathExists = ContextHelpers.pathExists(container, 'player.name');
 
 // Use constants
 const operation = ContextHelpers.SYNC_OPERATIONS.MERGE_NEWER_WINS;
@@ -230,6 +239,52 @@ const wrapped = ContextValueWrapper.wrap('hello', {
 console.log(wrapped instanceof ContextItem); // true
 ````
 
+## Path Utilities
+
+### ContextPathUtils
+
+**File**: contextPathUtils.js
+**Dependencies**: `PathUtils` (from `../../helpers/pathUtils.js`)
+**Exports**: `ContextPathUtils` (class)
+
+Context-aware path utilities that handle mixed ContextContainer/plain object structures. Provides specialized path resolution for contexts that may contain both ContextContainer instances and plain JavaScript objects in their hierarchy.
+
+#### Public API
+
+````javascript
+// Static Methods
+ContextPathUtils.resolveMixedPath(rootObject, path)
+ContextPathUtils.pathExistsInMixedStructure(rootObject, path)
+ContextPathUtils.getValueFromMixedPath(rootObject, path)
+````
+
+#### Example Usage
+
+````javascript
+// Navigate through mixed ContextContainer and plain object structures
+const container = new ContextContainer();
+container.setItem('player', { name: 'John', stats: { level: 5 } });
+
+// Resolve path through ContextContainer -> plain object -> plain object
+const result = ContextPathUtils.resolveMixedPath(container, 'player.stats.level');
+console.log(result.exists); // true
+console.log(result.value);  // 5
+
+// Check if path exists
+const exists = ContextPathUtils.pathExistsInMixedStructure(container, 'player.name');
+console.log(exists); // true
+
+// Get value directly
+const playerName = ContextPathUtils.getValueFromMixedPath(container, 'player.name');
+console.log(playerName); // 'John'
+````
+
+**Key Features**:
+- **Mixed Navigation**: Handles both ContextContainer (using `hasItem`/`getItem`) and plain objects (using property access)
+- **Strategy Pattern**: Uses the generic PathUtils with a context-aware navigation strategy
+- **SRP Compliance**: Separates context-specific logic from generic path utilities
+- **Full Path Information**: Returns complete resolution details including final container and key
+
 ## Synchronization
 
 ### ContextSync
@@ -385,7 +440,7 @@ ContextAutoSync.determineStrategy(source, target, options = {})
 ### ContextMerger
 
 **File**: contextMerger.js
-**Dependencies**: `ContextComparison`, `ContextItem`, `ContextContainer`, `ItemFilter`
+**Dependencies**: `ContextComparison`, `ContextItem`, `ContextContainer`, `ItemFilter`, `ContextPathUtils`
 **Exports**: `ContextMerger`, `ItemFilter` (classes)
 
 Sophisticated merging capabilities for Context instances with detailed change tracking and conflict resolution.
@@ -473,7 +528,7 @@ const result = ContextOperations.synchronizeBidirectional(context1, context2, {
 ### ItemFilter / ContextItemFilter
 
 **File**: contextItemFilter.js
-**Dependencies**: None
+**Dependencies**: `ContextPathUtils`
 **Exports**: `ItemFilter` (class)
 
 Filtering capabilities for selective context merging operations. Provides both simple path-based filtering and advanced custom logic filtering.
@@ -592,6 +647,7 @@ The comprehensive integration tests (`contextHelpers.int.test.js`) verify:
 - **ContextOperations → ContextMerger Workflow**: Complex merging operations with filtering and bulk operations
 - **Container Operations**: Deep nested synchronization and bidirectional sync
 - **Single Item Operations**: Item-level synchronization with metadata preservation
+- **Path Resolution**: ContextPathUtils integration for mixed ContextContainer/plain object navigation
 - **Advanced Filtering**: ItemFilter usage with allowOnly, blockOnly, excludePaths, and pattern matching
 - **Nested Container Integration**: Mixed type handling with ContextContainer and ContextItem nesting
 - **Real-world Scenarios**: Player data sync, settings management, module configuration

@@ -239,6 +239,89 @@ class PathUtils {
 
     return { firstKey, remainingPath };
   }
+
+  /**
+   * Default navigation strategy for plain objects.
+   * @private
+   */
+  static #defaultNavigationStrategy = {
+    navigate: (obj, key) => {
+      if (obj && typeof obj === 'object' && key in obj) {
+        return { success: true, value: obj[key] };
+      }
+      return { success: false };
+    },
+
+    getValue: (obj, key) => {
+      if (obj && typeof obj === 'object' && key in obj) {
+        return { exists: true, value: obj[key] };
+      }
+      return { exists: false, value: undefined };
+    }
+  };
+
+  /**
+   * Resolves a path through object structures using a configurable navigation strategy.
+   * This method provides flexibility to handle different object types (plain objects, ContextContainers, etc.)
+   * by accepting a strategy object that defines how to navigate and access values.
+   * @param {Object} rootObject - The root object to start navigation from
+   * @param {string} path - The dot-notation path to resolve
+   * @param {Object} [navigationStrategy=null] - Strategy object with navigate() and getValue() methods
+   * @returns {Object} Object with { exists: boolean, value: any, finalContainer: Object|null, finalKey: string|null }
+   */
+  static resolveMixedPath(rootObject, path, navigationStrategy = null) {
+    if (!rootObject || typeof path !== 'string' || path === '') {
+      return { exists: false, value: undefined, finalContainer: null, finalKey: null };
+    }
+
+    const parts = path.split('.');
+    let current = rootObject;
+
+    // Use provided strategy or default
+    const strategy = navigationStrategy || PathUtils.#defaultNavigationStrategy;
+
+    // Navigate through all path segments except the last one
+    for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i];
+      const result = strategy.navigate(current, part);
+
+      if (!result.success) {
+        return { exists: false, value: undefined, finalContainer: null, finalKey: null };
+      }
+      current = result.value;
+    }
+
+    // Handle the final key
+    const finalKey = parts[parts.length - 1];
+    const finalResult = strategy.getValue(current, finalKey);
+
+    return {
+      exists: finalResult.exists,
+      value: finalResult.value,
+      finalContainer: current,
+      finalKey: finalKey
+    };
+  }
+
+  /**
+   * Checks if a path exists in an object structure using the default navigation strategy.
+   * @param {Object} rootObject - The root object to start navigation from
+   * @param {string} path - The dot-notation path to check
+   * @returns {boolean} True if the path exists and can be resolved
+   */
+  static pathExistsInMixedStructure(rootObject, path) {
+    return PathUtils.resolveMixedPath(rootObject, path).exists;
+  }
+
+  /**
+   * Gets a value from an object structure using the default navigation strategy.
+   * @param {Object} rootObject - The root object to start navigation from
+   * @param {string} path - The dot-notation path to resolve
+   * @returns {*} The resolved value or undefined if path doesn't exist
+   */
+  static getValueFromMixedPath(rootObject, path) {
+    return PathUtils.resolveMixedPath(rootObject, path).value;
+  }
 }
 
 export default PathUtils;

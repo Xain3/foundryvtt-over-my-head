@@ -17,6 +17,7 @@ import ContextMerger, { ItemFilter } from './contextMerger.js';
 import ContextOperations from './contextOperations.js';
 import ContextComparison from './contextComparison.js';
 import { ContextItemSetter } from './contextItemSetter.js';
+import ContextPathUtils from './contextPathUtils.js';
 import RootMapValidator from './validators/rootMapValidator.js';
 
 /**
@@ -230,6 +231,16 @@ class ContextHelpers {
    */
   static Validator = RootMapValidator;
 
+  /**
+   * @static
+   * @description ContextPathUtils for context-aware path operations.
+   */
+  /**
+   * @static
+   * @description PathUtils for context-aware path operations.
+   */
+  static PathUtils = ContextPathUtils;
+
   // ===== Convenience Methods =====
 
   /**
@@ -298,6 +309,36 @@ class ContextHelpers {
    */
   static wrap(value, options = {}) {
     return ContextValueWrapper.wrap(value, options);
+  }
+
+  /**
+   * Convenience method for resolving mixed paths.
+   * @param {Object} rootObject - The root object to start navigation from.
+   * @param {string} path - The dot-notation path to resolve.
+   * @returns {Object} The resolution result.
+   */
+  static resolveMixedPath(rootObject, path) {
+    return ContextPathUtils.resolveMixedPath(rootObject, path);
+  }
+
+  /**
+   * Convenience method for checking if a path exists in mixed structures.
+   * @param {Object} rootObject - The root object to start navigation from.
+   * @param {string} path - The dot-notation path to check.
+   * @returns {boolean} True if the path exists.
+   */
+  static pathExists(rootObject, path) {
+    return ContextPathUtils.pathExistsInMixedStructure(rootObject, path);
+  }
+
+  /**
+   * Convenience method for getting values from mixed paths.
+   * @param {Object} rootObject - The root object to start navigation from.
+   * @param {string} path - The dot-notation path to resolve.
+   * @returns {*} The resolved value or undefined if path doesn't exist.
+   */
+  static getValueFromMixedPath(rootObject, path) {
+    return ContextPathUtils.getValueFromMixedPath(rootObject, path);
   }
 
   // ===== Constants and Enums =====

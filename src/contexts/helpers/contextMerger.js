@@ -10,7 +10,7 @@ import { ContextItem } from './contextItem.js';
 import { ContextContainer } from './contextContainer.js';
 import { ItemFilter } from './contextItemFilter.js';
 import constants from '../../constants/constants.js';
-import PathUtils from '../../helpers/pathUtils.js';
+import ContextPathUtils from './contextPathUtils.js';
 
 /**
  * @class ContextMerger
@@ -305,16 +305,16 @@ class ContextMerger {
         if (itemPath.startsWith(`${allowedPath}.`) || allowedPath.startsWith(`${itemPath}.`)) return true;
         
         // Structure-aware checking for complex nested paths
-        if (sourceComponent && PathUtils.pathExistsInMixedStructure(sourceComponent, allowedPath)) {
+        if (sourceComponent && ContextPathUtils.pathExistsInMixedStructure(sourceComponent, allowedPath)) {
           // Check if itemPath is under the allowed path structure
           if (itemPath.startsWith(allowedPath)) return true;
           
           // Check relative paths within the allowed structure
-          const resolvedPath = PathUtils.resolveMixedPath(sourceComponent, allowedPath);
+          const resolvedPath = ContextPathUtils.resolveMixedPath(sourceComponent, allowedPath);
           if (resolvedPath.exists && resolvedPath.value) {
             const relativePath = itemPath.replace(`${allowedPath}.`, '');
             if (relativePath !== itemPath) {
-              return PathUtils.pathExistsInMixedStructure(resolvedPath.value, relativePath);
+              return ContextPathUtils.pathExistsInMixedStructure(resolvedPath.value, relativePath);
             }
           }
         }
@@ -337,16 +337,16 @@ class ContextMerger {
         if (itemPath.startsWith(`${blockedPath}.`)) return true;
         
         // Structure-aware checking for complex nested paths
-        if (sourceComponent && PathUtils.pathExistsInMixedStructure(sourceComponent, blockedPath)) {
+        if (sourceComponent && ContextPathUtils.pathExistsInMixedStructure(sourceComponent, blockedPath)) {
           // Check if itemPath is under the blocked path structure
           if (itemPath.startsWith(blockedPath)) return true;
           
           // Check relative paths within the blocked structure
-          const resolvedPath = PathUtils.resolveMixedPath(sourceComponent, blockedPath);
+          const resolvedPath = ContextPathUtils.resolveMixedPath(sourceComponent, blockedPath);
           if (resolvedPath.exists && resolvedPath.value) {
             const relativePath = itemPath.replace(`${blockedPath}.`, '');
             if (relativePath !== itemPath) {
-              return PathUtils.pathExistsInMixedStructure(resolvedPath.value, relativePath);
+              return ContextPathUtils.pathExistsInMixedStructure(resolvedPath.value, relativePath);
             }
           }
         }
@@ -369,16 +369,16 @@ class ContextMerger {
         if (itemPath.startsWith(`${excludedPath}.`)) return true;
         
         // Structure-aware checking for complex nested paths
-        if (sourceComponent && PathUtils.pathExistsInMixedStructure(sourceComponent, excludedPath)) {
+        if (sourceComponent && ContextPathUtils.pathExistsInMixedStructure(sourceComponent, excludedPath)) {
           // Check if itemPath is under the excluded path structure
           if (itemPath.startsWith(excludedPath)) return true;
           
           // Check relative paths within the excluded structure
-          const resolvedPath = PathUtils.resolveMixedPath(sourceComponent, excludedPath);
+          const resolvedPath = ContextPathUtils.resolveMixedPath(sourceComponent, excludedPath);
           if (resolvedPath.exists && resolvedPath.value) {
             const relativePath = itemPath.replace(`${excludedPath}.`, '');
             if (relativePath !== itemPath) {
-              return PathUtils.pathExistsInMixedStructure(resolvedPath.value, relativePath);
+              return ContextPathUtils.pathExistsInMixedStructure(resolvedPath.value, relativePath);
             }
           }
         }

@@ -5,7 +5,8 @@
 
  */
 
-import PathUtils from '../../helpers/pathUtils.js';
+import ContextValueWrapper from './contextValueWrapper.js';
+import ContextPathUtils from './contextPathUtils.js';
 
 
 /**
@@ -84,16 +85,16 @@ class ItemFilter {
         if (itemPath.startsWith(`${allowedPath}.`)) return true;
         
         // Check if the path exists in the actual container structures
-        if (sourceContainer && PathUtils.pathExistsInMixedStructure(sourceContainer, allowedPath)) {
+        if (sourceContainer && ContextPathUtils.pathExistsInMixedStructure(sourceContainer, allowedPath)) {
           // If the allowed path is a prefix of our item path, allow it
           if (itemPath.startsWith(allowedPath)) return true;
           
           // Check if our path exists under the allowed path
           const relativePath = itemPath.replace(`${allowedPath}.`, '');
           if (relativePath !== itemPath) {
-            const resolvedAllowedPath = PathUtils.resolveMixedPath(sourceContainer, allowedPath);
+            const resolvedAllowedPath = ContextPathUtils.resolveMixedPath(sourceContainer, allowedPath);
             if (resolvedAllowedPath.exists && resolvedAllowedPath.value) {
-              return PathUtils.pathExistsInMixedStructure(resolvedAllowedPath.value, relativePath);
+              return ContextPathUtils.pathExistsInMixedStructure(resolvedAllowedPath.value, relativePath);
             }
           }
         }
@@ -123,16 +124,16 @@ class ItemFilter {
         if (itemPath.startsWith(`${blockedPath}.`)) return true;
         
         // Check if the path exists in the actual container structures
-        if (sourceContainer && PathUtils.pathExistsInMixedStructure(sourceContainer, blockedPath)) {
+        if (sourceContainer && ContextPathUtils.pathExistsInMixedStructure(sourceContainer, blockedPath)) {
           // If the blocked path is a prefix of our item path, block it
           if (itemPath.startsWith(blockedPath)) return true;
           
           // Check if our path exists under the blocked path
           const relativePath = itemPath.replace(`${blockedPath}.`, '');
           if (relativePath !== itemPath) {
-            const resolvedBlockedPath = PathUtils.resolveMixedPath(sourceContainer, blockedPath);
+            const resolvedBlockedPath = ContextPathUtils.resolveMixedPath(sourceContainer, blockedPath);
             if (resolvedBlockedPath.exists && resolvedBlockedPath.value) {
-              return PathUtils.pathExistsInMixedStructure(resolvedBlockedPath.value, relativePath);
+              return ContextPathUtils.pathExistsInMixedStructure(resolvedBlockedPath.value, relativePath);
             }
           }
         }

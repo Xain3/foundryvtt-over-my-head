@@ -1,7 +1,7 @@
 /**
- * @file helpers.simplified.int.test.js
+ * @file contextHelpers.smoke.int.test.js
  * @description Simplified integration tests for context helpers to verify their integration between each other
- * @path tests/integration/helpers.simplified.int.test.js
+ * @path tests/integration/contextHelpers.smoke.int.test.js
  */
 
 import { ContextContainer } from '../../src/contexts/helpers/contextContainer.js';

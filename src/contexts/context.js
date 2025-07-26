@@ -71,6 +71,7 @@ class Context extends ContextContainer {
     averagePullTime: 0,
     averagePushTime: 0
   };
+  #isContextObject = true;
 
   /**
    * @constructor
@@ -858,6 +859,16 @@ class Context extends ContextContainer {
   }
 
   // Property getters (maintain direct access style)
+
+  /**
+   * @type {boolean}
+   * @readonly
+   * @description Duck typing identifier for Context objects. Used by other classes to identify
+   * Context instances without requiring direct imports and avoiding circular dependencies.
+   */
+  get isContextObject() {
+    return this.#isContextObject;
+  }
 
   /**
    * @type {ContextContainer}

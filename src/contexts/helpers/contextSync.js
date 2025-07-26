@@ -7,7 +7,6 @@
 
 import { ContextItem } from './contextItem.js';
 import { ContextContainer } from './contextContainer.js';
-import Context from '../context.js';
 import ContextComparison from './contextComparison.js';
 import ContextAutoSync from './contextAutoSync.js';
 import ContextLegacySync from './contextLegacySync.js';
@@ -46,11 +45,11 @@ class ContextSync {
   /**
    * @private
    * Gets the type of a context object.
-   * @param {Context|ContextContainer|ContextItem} obj - The object to classify.
+   * @param {object} obj - The object to classify.
    * @returns {string} The type of the object.
    */
   static #getObjectType(obj) {
-    if (obj instanceof Context) return 'Context';
+    if (obj?.isContextObject === true) return 'Context';
     if (obj instanceof ContextContainer) return 'ContextContainer';
     if (obj instanceof ContextItem) return 'ContextItem';
     console.warn(
@@ -63,8 +62,8 @@ class ContextSync {
 
   /**
    * Compares two context objects and determines their temporal relationship.
-   * @param {Context|ContextContainer|ContextItem} source - The source context object.
-   * @param {Context|ContextContainer|ContextItem} target - The target context object.
+   * @param {object} source - The source context object.
+   * @param {object} target - The target context object.
    * @param {object} [options={}] - Comparison options.
    * @param {string} [options.compareBy='modifiedAt'] - Which timestamp to compare.
    * @returns {object} Comparison result with details.
@@ -77,8 +76,8 @@ class ContextSync {
    * Synchronizes two context objects based on the specified operation.
    * For Context instances, delegates to ContextMerger for sophisticated handling.
    * For ContextContainer and ContextItem instances, delegates to ContextLegacySync.
-   * @param {Context|ContextContainer|ContextItem} source - The source context object.
-   * @param {Context|ContextContainer|ContextItem} target - The target context object.
+   * @param {object} source - The source context object.
+   * @param {object} target - The target context object.
    * @param {string} operation - The synchronization operation to perform.
    * @param {object} [options={}] - Synchronization options.
    * @returns {object} Synchronization result with details.
@@ -97,7 +96,7 @@ class ContextSync {
     }
 
     // For Context instances, delegate to ContextMerger
-    if (source instanceof Context && target instanceof Context) {
+    if (source?.isContextObject === true && target?.isContextObject === true) {
       const { default: ContextMerger } = await import('./contextMerger.js');
       return ContextMerger.merge(source, target, operation, {
         compareBy,
@@ -119,8 +118,8 @@ class ContextSync {
 
   /**
    * Safely synchronizes two context objects with error handling.
-   * @param {Context|ContextContainer|ContextItem} source - The source context object.
-   * @param {Context|ContextContainer|ContextItem} target - The target context object.
+   * @param {object} source - The source context object.
+   * @param {object} target - The target context object.
    * @param {string} operation - The synchronization operation to perform.
    * @param {object} [options={}] - Synchronization options.
    * @returns {object} Synchronization result with error handling.
@@ -198,8 +197,8 @@ class ContextSync {
   /**
    * Automatically determines the best synchronization operation based on timestamp comparison.
    * Delegates to ContextAutoSync for implementation.
-   * @param {Context|ContextContainer|ContextItem} source - The source context object.
-   * @param {Context|ContextContainer|ContextItem} target - The target context object.
+   * @param {object} source - The source context object.
+   * @param {object} target - The target context object.
    * @param {object} [options={}] - Options for automatic sync determination.
    * @returns {object} Automatic synchronization result.
    */
@@ -209,8 +208,8 @@ class ContextSync {
 
   /**
    * Validates that objects are compatible for synchronization.
-   * @param {Context|ContextContainer|ContextItem} source - The source object.
-   * @param {Context|ContextContainer|ContextItem} target - The target object.
+   * @param {object} source - The source object.
+   * @param {object} target - The target object.
    * @returns {boolean} True if objects are compatible for sync.
    */
   static validateCompatibility(source, target) {

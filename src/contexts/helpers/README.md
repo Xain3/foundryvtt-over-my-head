@@ -46,9 +46,9 @@ ContextHelpers.Comparison
 ContextHelpers.Validator
 
 // Convenience methods for common operations
-ContextHelpers.sync(source, target, operation, options)
-ContextHelpers.syncSafe(source, target, operation, options)
-ContextHelpers.autoSync(source, target, options)
+ContextHelpers.sync(source, target, operation, options)         // async
+ContextHelpers.syncSafe(source, target, operation, options)     // async
+ContextHelpers.autoSync(source, target, options)               // async
 ContextHelpers.merge(source, target, strategy, options)
 ContextHelpers.compare(source, target, options)
 ContextHelpers.wrap(value, options)
@@ -76,7 +76,7 @@ import ContextHelpers from './helpers/contextHelpers.js';
 
 // Access classes
 const item = new ContextHelpers.Item('value');
-const result = ContextHelpers.sync(source, target, 'mergeNewerWins');
+const result = await ContextHelpers.sync(source, target, 'mergeNewerWins');
 const merged = ContextHelpers.merge(source, target);
 
 // Use path utilities
@@ -103,7 +103,7 @@ contextHelpers.unit.test.js
 Before ContextHelpers, context.js had multiple imports:
 
 ```javascript
-import ContextContainer from './helpers/contextContainer.js';
+import { ContextContainer } from './helpers/contextContainer.js';
 import ContextMerger from './helpers/contextMerger.js';
 import ContextSync from './helpers/contextSync.js';
 import ContextOperations from './helpers/contextOperations.js';
@@ -290,41 +290,76 @@ console.log(playerName); // 'John'
 ### ContextSync
 
 **File**: contextSync.js
-**Dependencies**: `ContextItem`, `ContextContainer`, `Context`, `ContextComparison`, `ContextAutoSync`, `ContextLegacySync`
+**Dependencies**: `ContextItem`, `ContextContainer`, `ContextComparison`, `ContextAutoSync`, `ContextLegacySync`, `constants`
 **Exports**: `ContextSync` (class)
 
-Facade class providing synchronization capabilities for all context types. For Context instances, delegates to ContextMerger for sophisticated handling. For legacy ContextContainer and ContextItem operations, delegates to ContextLegacySync.
+Facade class providing synchronization capabilities for all context types. Uses delegation pattern to route synchronization operations to specialized classes:
+- **Context instances**: Delegates to ContextMerger (dynamically imported) for sophisticated handling
+- **ContextContainer/ContextItem instances**: Delegates to ContextLegacySync for backward compatibility
+- **Type detection**: Uses `isContextObject` property for Context instances, `instanceof` for others
 
 #### Public API
 
 ````javascript
-// Static Constants (sourced from centralized constants.yaml)
-ContextSync.SYNC_OPERATIONS = {
-  UPDATE_SOURCE_TO_TARGET: 'updateSourceToTarget',
-  UPDATE_TARGET_TO_SOURCE: 'updateTargetToSource',
-  MERGE_NEWER_WINS: 'mergeNewerWins',
-  MERGE_SOURCE_PRIORITY: 'mergeSourcePriority',
-  MERGE_TARGET_PRIORITY: 'mergeTargetPriority',
-  NO_ACTION: 'noAction'
-}
+// Static Constants (delegated from specialized classes)
+ContextSync.SYNC_OPERATIONS = ContextLegacySync.SYNC_OPERATIONS
+ContextSync.COMPARISON_RESULTS = ContextComparison.COMPARISON_RESULTS
 
 // Static Methods
-ContextSync.sync(source, target, operation, options = {})
-ContextSync.syncSafe(source, target, operation, options = {})
 ContextSync.compare(source, target, options = {})
-ContextSync.autoSync(source, target, options = {})
+ContextSync.sync(source, target, operation, options = {})           // async
+ContextSync.syncSafe(source, target, operation, options = {})       // async
+ContextSync.autoSync(source, target, options = {})                  // async
+ContextSync.validateCompatibility(source, target)
+
+// Sync Options:
+// - deepSync: boolean = true - Deep synchronization for nested structures
+// - compareBy: string = 'modifiedAt' - Timestamp field for comparison
+// - preserveMetadata: boolean = true - Whether to preserve metadata
+// - autoSync: boolean = false - Use automatic sync operation detection
 ````
+
+#### Key Features
+
+- **Smart Delegation**: Automatically routes to appropriate sync implementation based on object type
+- **Async Operations**: Uses dynamic imports for ContextMerger to avoid circular dependencies
+- **Robust Error Handling**: `syncSafe` method provides comprehensive error handling with warnings
+- **Type Compatibility**: Validates object compatibility before synchronization
+- **Context Detection**: Uses `obj?.isContextObject === true` for Context instance detection
 
 #### Example Usage
 
 ````javascript
-const result = ContextSync.sync(
+// Basic synchronization
+const result = await ContextSync.sync(
   sourceContext,
   targetContext,
   ContextSync.SYNC_OPERATIONS.MERGE_NEWER_WINS
 );
 console.log(result.success); // true/false
 console.log(result.changes); // Array of changes made
+
+// Safe synchronization with error handling
+const safeResult = await ContextSync.syncSafe(
+  sourceContext,
+  targetContext,
+  'mergeNewerWins',
+  { deepSync: true, preserveMetadata: false }
+);
+console.log(safeResult.success); // true/false
+console.log(safeResult.warnings); // Array of warnings
+console.log(safeResult.error); // Error message if failed
+
+// Automatic sync detection
+const autoResult = await ContextSync.autoSync(sourceContext, targetContext, {
+  compareBy: 'modifiedAt'
+});
+
+// Compatibility validation
+const isCompatible = ContextSync.validateCompatibility(source, target);
+if (isCompatible) {
+  // Proceed with synchronization
+}
 ````
 
 ### ContextItemSync
@@ -699,10 +734,10 @@ ContextMerger
 ContextSync
 ├── ContextItem
 ├── ContextContainer
-├── Context
 ├── ContextComparison
 ├── ContextAutoSync
-└── ContextLegacySync
+├── ContextLegacySync
+└── constants
 
 ContextLegacySync
 ├── ContextItem

@@ -12,6 +12,8 @@ import { ContextContainer } from './contextContainer.js';
 import { ItemFilter } from './contextItemFilter.js';
 import Context from '../context.js';
 
+// Jest Mocks
+jest.mock('../context.js');
 jest.mock('./contextComparison.js');
 jest.mock('./contextItemFilter.js');
 
@@ -659,7 +661,7 @@ describe('ContextMerger', () => {
       );
 
       // Check that at least one setItem was called across all containers
-      const setItemCalled = Object.values(mockTargetContext).some(container => 
+      const setItemCalled = Object.values(mockTargetContext).some(container =>
         container && container.setItem && container.setItem.mock.calls.length > 0
       );
       expect(setItemCalled).toBe(true);

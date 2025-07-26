@@ -37,8 +37,10 @@ describe('ContextSync', () => {
     targetItem = new ContextItem('target', { meta: 2 });
     sourceContainer = new ContextContainer({ foo: 'bar' });
     targetContainer = new ContextContainer({ foo: 'baz' });
-    sourceContext = new Context();
-    targetContext = new Context();
+    
+    // Create mock Context objects with the isContextObject property
+    sourceContext = { isContextObject: true, constructor: { name: 'Context' } };
+    targetContext = { isContextObject: true, constructor: { name: 'Context' } };
 
     // Setup default mock behaviors
     ContextLegacySync.validateCompatibility.mockImplementation((source, target) => {

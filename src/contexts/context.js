@@ -7,7 +7,7 @@
 import manifest from '../constants/manifest.js';
 import constants from '../constants/constants.js';
 import Validator from '../utils/static/validator.js';
-import ContextContainer from './helpers/contextContainer.js';
+import { ContextContainer } from './helpers/contextContainer.js';
 import ContextMerger from './helpers/contextMerger.js';
 import ContextSync from './helpers/contextSync.js';
 import ContextOperations from './helpers/contextOperations.js';

@@ -9,7 +9,7 @@ module.exports = {
   transform: {
     '^.+\\.js$': 'babel-jest',
   },
-  roots: ['<rootDir>/src', '<rootDir>/tests'],
+  roots: ['<rootDir>/src'],
   // Enforce minimum coverage thresholds
   coverageThreshold: {
     global: {

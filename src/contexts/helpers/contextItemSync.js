@@ -39,14 +39,14 @@ class ContextItemSync {
     const changes = [];
     const oldValue = destination.value;
 
+    console.debug(`Updating ${names.destination} item value from ${oldValue} to ${origin.value}`);
     destination.value = cloneDeep(origin.value);
     changes.push({ type: 'value', from: oldValue, to: destination.value });
-    console.debug(`Updating ${names.destination} item value from ${oldValue} to ${origin.value}`);
 
     if (syncMetadata) {
+      console.debug('Preserving item metadata:', origin.metadata);
       destination.setMetadata(origin.metadata, false);
       changes.push({ type: 'metadata', to: destination.metadata });
-      console.debug('Preserving item metadata:', origin.metadata);
     }
 
     return { success: true, message: `${names.destination} item updated to match ${names.origin}`, changes, operation: 'updateDestinationToMatchOrigin' };

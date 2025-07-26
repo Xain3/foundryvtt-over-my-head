@@ -8,7 +8,6 @@
 import ContextMerger, { ItemFilter } from './contextMerger.js';
 import { ContextContainer } from './contextContainer.js';
 import { ContextItem } from './contextItem.js';
-import Context from '../context.js';
 import ContextContainerSync from './contextContainerSync.js';
 import ContextItemSync from './contextItemSync.js';
 import constants from '../../constants/constants.js';
@@ -17,12 +16,12 @@ import constants from '../../constants/constants.js';
  * @class ContextOperations
  * @export
  * @description Provides bulk operations and multi-source/target operations for context management.
- * Supports Context, ContextContainer, and ContextItem instances.
- * For single-context operations, use ContextMerger or Context.merge() directly.
- * 
+ * Supports ContextContainer and ContextItem instances.
+ * For single-context operations, use ContextMerger or ContextContainer.merge() directly.
+ *
  * ## Public API
  * - `pushItems(source, target, itemPaths, strategy, options)` - Pushes specific items from source to target using path filtering
- * - `pullItems(source, target, itemPaths, strategy, options)` - Pulls specific items from source to target using path filtering  
+ * - `pullItems(source, target, itemPaths, strategy, options)` - Pulls specific items from source to target using path filtering
  * - `pushFromMultipleSources(sources, target, strategy, options)` - Pushes context data from multiple sources to a single target
  * - `pushToMultipleTargets(source, targets, strategy, options)` - Pushes context data from a single source to multiple targets
  * - `pushItemsBulk(sources, targets, itemPaths, strategy, options)` - Pushes multiple specific items from multiple sources to multiple targets
@@ -34,18 +33,13 @@ class ContextOperations {
   /**
    * @private
    * Determines the appropriate sync method based on object types.
-   * @param {Context|ContextContainer|ContextItem} source - The source object.
-   * @param {Context|ContextContainer|ContextItem} target - The target object.
+   * @param {ContextContainer|ContextItem} source - The source object.
+   * @param {ContextContainer|ContextItem} target - The target object.
    * @param {string} strategy - The strategy to use.
    * @param {object} options - The options to pass.
    * @returns {object} The sync result.
    */
   static #performSync(source, target, strategy, options = {}) {
-    // Handle Context instances
-    if (source instanceof Context && target instanceof Context) {
-      return ContextMerger.merge(source, target, strategy, options);
-    }
-
     // Handle ContextContainer instances
     if (source instanceof ContextContainer && target instanceof ContextContainer) {
       const syncOptions = { ...options };
@@ -98,14 +92,58 @@ class ContextOperations {
       return result;
     }
 
-    // Fallback for mixed types
+    // Fallback for mixed types - use ContextMerger for filtering support
     throw new Error(`Incompatible object types: ${source.constructor.name} and ${target.constructor.name}`);
+  }
+
+  /**
+   * @private
+   * Applies filtering options and delegates to appropriate sync method.
+   * @param {ContextContainer|ContextItem|Object} source - The source object.
+   * @param {ContextContainer|ContextItem|Object} target - The target object.
+   * @param {string} strategy - The strategy to use.
+   * @param {object} options - The options to pass.
+   * @returns {object} The sync result.
+   */
+  static #performSyncWithFiltering(source, target, strategy, options = {}) {
+    const { allowOnly, blockOnly, excludePaths, ...otherOptions } = options;
+
+    // If we have any filtering options defined (even empty arrays), use ContextMerger
+    if (allowOnly !== undefined || blockOnly !== undefined || excludePaths !== undefined) {
+      // Use ContextMerger for filtering (handles empty arrays correctly)
+      const mergerOptions = { ...otherOptions };
+
+      if (allowOnly !== undefined) {
+        mergerOptions.allowOnly = allowOnly;
+      }
+
+      if (blockOnly !== undefined) {
+        mergerOptions.blockOnly = blockOnly;
+      }
+
+      if (excludePaths !== undefined) {
+        mergerOptions.excludePaths = excludePaths;
+      }
+
+      return ContextMerger.merge(source, target, strategy, mergerOptions);
+    }
+
+    // Use the standard sync methods for simple operations
+    return ContextOperations.#performSync(source, target, strategy, options);
   }
 
 
   /**
    * Pushes specific items from source to target using path filtering.
    * Convenience method for ContextMerger.merge with allowOnly filter.
+   * @param {ContextContainer|ContextItem} source - The source object.
+   * @param {ContextContainer|ContextItem} target - The target object.
+   * @param {string[]} itemPaths - Array of item paths to push.
+   * @param {string} [strategy='mergeNewerWins'] - Merge strategy to use.
+   * @param {object} [options={}] - Additional merge options.
+   * @param {string[]} [options.blockOnly] - Array of item paths to block.
+   * @param {string[]} [options.excludePaths] - Array of item paths to exclude.
+   * @returns {object} Push result with success status and processed items.
    */
   static pushItems(source, target, itemPaths, strategy = 'mergeNewerWins', options = {}) {
     if (!source || !target) {
@@ -115,24 +153,40 @@ class ContextOperations {
       throw new Error(constants.contextHelpers.errorMessages.emptyItemPaths);
     }
 
-    const result = ContextOperations.#performSync(source, target, strategy, {
+    const result = ContextOperations.#performSyncWithFiltering(source, target, strategy, {
       ...options,
       allowOnly: itemPaths
     });
 
     // Ensure consistent return format
-    return {
+    const baseResult = {
       success: result.success || false,
       strategy: strategy,
       operation: 'pushItems',
-      itemsProcessed: result.itemsProcessed || itemPaths,
-      ...result
+      ...result,
+      // Override operation after spreading result to ensure it's correct
+      operation: 'pushItems'
     };
+
+    // Ensure itemsProcessed is an array of paths, not a count
+    if (!Array.isArray(baseResult.itemsProcessed)) {
+      baseResult.itemsProcessed = itemPaths;
+    }
+
+    return baseResult;
   }
 
   /**
    * Pulls specific items from source to target using path filtering.
    * Convenience method for ContextMerger.merge with swapped parameters and allowOnly filter.
+   * @param {ContextContainer|ContextItem} source - The source object.
+   * @param {ContextContainer|ContextItem} target - The target object.
+   * @param {string[]} itemPaths - Array of item paths to pull.
+   * @param {string} [strategy='mergeNewerWins'] - Merge strategy to use.
+   * @param {object} [options={}] - Additional merge options.
+   * @param {string[]} [options.blockOnly] - Array of item paths to block.
+   * @param {string[]} [options.excludePaths] - Array of item paths to exclude.
+   * @returns {object} Pull result with success status and processed items.
    */
   static pullItems(source, target, itemPaths, strategy = 'mergeNewerWins', options = {}) {
     if (!source || !target) {
@@ -142,27 +196,31 @@ class ContextOperations {
       throw new Error(constants.contextHelpers.errorMessages.emptyItemPaths);
     }
 
-    const result = ContextOperations.#performSync(target, source, strategy, {
+    const result = ContextOperations.#performSyncWithFiltering(target, source, strategy, {
       ...options,
       allowOnly: itemPaths
     });
 
     // Ensure consistent return format
-    return {
+    const baseResult = {
       success: result.success || false,
       strategy: strategy,
       operation: 'pullItems',
-      itemsProcessed: Array.isArray(result.itemsProcessed) 
-        ? result.itemsProcessed 
-        : itemPaths,
-      ...result
+      ...result,
+      // Override operation after spreading result to ensure it's correct
+      operation: 'pullItems'
     };
-  }
 
-  /**
+    // Ensure itemsProcessed is an array of paths, not a count
+    if (!Array.isArray(baseResult.itemsProcessed)) {
+      baseResult.itemsProcessed = itemPaths;
+    }
+
+    return baseResult;
+  }  /**
    * Pushes context data from multiple sources to a single target.
-   * @param {Context[]} sources - Array of source contexts to push from.
-   * @param {Context} target - Target context to push to.
+   * @param {ContextContainer[]|ContextItem[]} sources - Array of source contexts to push from.
+   * @param {ContextContainer|ContextItem} target - Target context to push to.
    * @param {string} [strategy='mergeNewerWins'] - Merge strategy to use.
    * @param {object} [options={}] - Additional merge options.
    * @returns {object[]} Array of merge results for each source.
@@ -184,13 +242,15 @@ class ContextOperations {
 
     return sources.map((source, index) => {
       try {
-        const result = ContextOperations.#performSync(source, target, strategy, options);
+        const result = ContextOperations.#performSyncWithFiltering(source, target, strategy, options);
         return {
           sourceIndex: index,
           success: result.success || true,
           strategy: strategy,
           operation: 'pushFromMultipleSources',
-          ...result
+          ...result,
+          // Override operation after spreading result to ensure it's correct
+          operation: 'pushFromMultipleSources'
         };
       } catch (error) {
         return {
@@ -206,8 +266,8 @@ class ContextOperations {
 
   /**
    * Pushes context data from a single source to multiple targets.
-   * @param {Context} source - Source context to push from.
-   * @param {Context[]} targets - Array of target contexts to push to.
+   * @param {ContextContainer|ContextItem} source - Source context to push from.
+   * @param {ContextContainer[]|ContextItem[]} targets - Array of target contexts to push to.
    * @param {string} [strategy='mergeNewerWins'] - Merge strategy to use.
    * @param {object} [options={}] - Additional merge options.
    * @returns {object[]} Array of merge results for each target.
@@ -229,13 +289,15 @@ class ContextOperations {
 
     return targets.map((target, index) => {
       try {
-        const result = ContextOperations.#performSync(source, target, strategy, options);
+        const result = ContextOperations.#performSyncWithFiltering(source, target, strategy, options);
         return {
           targetIndex: index,
           success: result.success || true,
           strategy: strategy,
           operation: 'pushToMultipleTargets',
-          ...result
+          ...result,
+          // Override operation after spreading result to ensure it's correct
+          operation: 'pushToMultipleTargets'
         };
       } catch (error) {
         return {
@@ -251,8 +313,8 @@ class ContextOperations {
 
   /**
    * Pushes multiple specific items from multiple sources to multiple targets.
-   * @param {Context[]} sources - Array of source contexts.
-   * @param {Context[]} targets - Array of target contexts.
+   * @param {ContextContainer[]|ContextItem[]} sources - Array of source contexts.
+   * @param {ContextContainer[]|ContextItem[]} targets - Array of target contexts.
    * @param {string[]} itemPaths - Array of item paths to push.
    * @param {string} [strategy='mergeNewerWins'] - Merge strategy to use.
    * @param {object} [options={}] - Additional merge options.
@@ -279,21 +341,27 @@ class ContextOperations {
     return sources.map((source, sourceIndex) => {
       return targets.map((target, targetIndex) => {
         try {
-          const result = ContextOperations.#performSync(source, target, strategy, {
+          const result = ContextOperations.#performSyncWithFiltering(source, target, strategy, {
             ...options,
             allowOnly: itemPaths
           });
-          return {
+          const baseResult = {
             sourceIndex,
             targetIndex,
             success: result.success || true,
             strategy: strategy,
             operation: 'pushItemsBulk',
-            itemsProcessed: Array.isArray(result.itemsProcessed) 
-              ? result.itemsProcessed 
-              : itemPaths,
-            ...result
+            ...result,
+            // Override operation after spreading result to ensure it's correct
+            operation: 'pushItemsBulk'
           };
+
+          // Ensure itemsProcessed is an array of paths, not a count
+          if (!Array.isArray(baseResult.itemsProcessed)) {
+            baseResult.itemsProcessed = itemPaths;
+          }
+
+          return baseResult;
         } catch (error) {
           return {
             sourceIndex,
@@ -310,8 +378,8 @@ class ContextOperations {
 
   /**
    * Synchronizes contexts bidirectionally using conditional merging.
-   * @param {Context} context1 - First context.
-   * @param {Context} context2 - Second context.
+   * @param {ContextContainer|ContextItem} context1 - First context.
+   * @param {ContextContainer|ContextItem} context2 - Second context.
    * @param {object} [options={}] - Sync options.
    * @param {string} [options.strategy='mergeNewerWins'] - Default merge strategy.
    * @param {string[]} [options.context1Priority=[]] - Paths where context1 takes priority.
@@ -336,55 +404,16 @@ class ContextOperations {
     } = options;
 
     try {
-      // For non-Context instances, use simpler bidirectional sync
-      if (!(context1 instanceof Context) || !(context2 instanceof Context)) {
-        const result1to2 = ContextOperations.#performSync(context1, context2, strategy, mergeOptions);
-        const result2to1 = ContextOperations.#performSync(context2, context1, strategy, mergeOptions);
-
-        return {
-          success: (result1to2.success !== false) && (result2to1.success !== false),
-          operation: 'synchronizeBidirectional',
-          strategy: strategy,
-          direction1to2: result1to2,
-          direction2to1: result2to1
-        };
-      }
-
-      // Create filters for each direction (Context instances only)
-      const context1ToContext2Filter = ItemFilter.and(
-        ItemFilter.blockOnly(excludePaths),
-        ItemFilter.or(
-          ItemFilter.allowOnly(context1Priority),
-          ItemFilter.blockOnly(context2Priority)
-        )
-      );
-
-      const context2ToContext1Filter = ItemFilter.and(
-        ItemFilter.blockOnly(excludePaths),
-        ItemFilter.or(
-          ItemFilter.allowOnly(context2Priority),
-          ItemFilter.blockOnly(context1Priority)
-        )
-      );
-
-      const result1to2 = ContextMerger.merge(context1, context2, strategy, {
-        ...mergeOptions,
-        onConflict: context1ToContext2Filter
-      });
-
-      const result2to1 = ContextMerger.merge(context2, context1, strategy, {
-        ...mergeOptions,
-        onConflict: context2ToContext1Filter
-      });
+      // Simple bidirectional sync for ContextContainer and ContextItem instances
+      const result1to2 = ContextOperations.#performSyncWithFiltering(context1, context2, strategy, mergeOptions);
+      const result2to1 = ContextOperations.#performSyncWithFiltering(context2, context1, strategy, mergeOptions);
 
       return {
-        success: result1to2.success && result2to1.success,
+        success: (result1to2.success !== false) && (result2to1.success !== false),
         operation: 'synchronizeBidirectional',
         strategy: strategy,
         direction1to2: result1to2,
-        direction2to1: result2to1,
-        totalItemsProcessed: result1to2.itemsProcessed + result2to1.itemsProcessed,
-        totalConflicts: result1to2.conflicts + result2to1.conflicts
+        direction2to1: result2to1
       };
     } catch (error) {
       return {
@@ -398,8 +427,8 @@ class ContextOperations {
 
   /**
    * Creates a consolidated context from multiple source contexts.
-   * @param {Context[]} sources - Array of source contexts to consolidate.
-   * @param {Context} target - Target context to consolidate into.
+   * @param {ContextContainer[]|ContextItem[]} sources - Array of source contexts to consolidate.
+   * @param {ContextContainer|ContextItem} target - Target context to consolidate into.
    * @param {object} [options={}] - Consolidation options.
    * @param {string} [options.strategy='mergeNewerWins'] - Merge strategy to use.
    * @param {object} [options.priorities={}] - Priority mapping { sourceIndex: priority }.
@@ -420,7 +449,6 @@ class ContextOperations {
     const {
       strategy = 'mergeNewerWins',
       priorities = {},
-      excludePaths = [],
       ...mergeOptions
     } = options;
 
@@ -445,20 +473,16 @@ class ContextOperations {
 
     for (const { source, index } of sortedSources) {
       try {
-        // For Context instances, use filter; for others, use simpler approach
-        let syncOptions = { ...mergeOptions };
-        if (source instanceof Context && target instanceof Context && excludePaths.length > 0) {
-          syncOptions.onConflict = ItemFilter.blockOnly(excludePaths);
-        }
-
-        const result = ContextOperations.#performSync(source, target, strategy, syncOptions);
+        const result = ContextOperations.#performSyncWithFiltering(source, target, strategy, mergeOptions);
 
         results.push({
           sourceIndex: index,
           success: result.success !== false,
           strategy: strategy,
           operation: 'consolidateContexts',
-          ...result
+          ...result,
+          // Override operation after spreading result to ensure it's correct
+          operation: 'consolidateContexts'
         });
 
         totalItemsProcessed += result.itemsProcessed || 0;
@@ -476,6 +500,7 @@ class ContextOperations {
 
     return {
       success: results.every(r => r.success),
+      overallSuccess: results.every(r => r.success),
       operation: 'consolidateContexts',
       strategy: strategy,
       results,

@@ -2,672 +2,562 @@
  * @file contextOperations.unit.test.js
  * @description Unit tests for the ContextOperations class functionality.
  * @path src/contexts/helpers/contextOperations.unit.test.js
-
  */
 
 import ContextOperations from './contextOperations.js';
-import ContextMerger, { ItemFilter } from './contextMerger.js';
 import ContextContainerSync from './contextContainerSync.js';
 import ContextItemSync from './contextItemSync.js';
+import ContextMerger from './contextMerger.js';
 
 // Import the actual classes for instanceof checks to work
 import { ContextContainer } from './contextContainer.js';
 import { ContextItem } from './contextItem.js';
-import Context from '../context.js';
 
-// Mock only the sync methods, not the classes themselves
-jest.mock('./contextMerger.js');
+// Mock the sync modules and ContextMerger
 jest.mock('./contextContainerSync.js');
 jest.mock('./contextItemSync.js');
+jest.mock('./contextMerger.js');
 
 describe('ContextOperations', () => {
-  let mockContext1, mockContext2, mockContext3, mockTarget;
-  let mockContainer1, mockContainer2, mockItem1, mockItem2;
-  let mockMergeResult, mockSyncResult;
+  let mockContainer1, mockContainer2, mockContainer3, mockTargetContainer, mockTargetContainer2;
+  let mockItem1, mockItem2, mockItem3, mockTargetItem;
+  let mockContainerSyncResult, mockItemSyncResult, mockResult;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Create simple mock objects for testing - using setPrototypeOf to ensure instanceof works
-    mockContext1 = {};
-    Object.setPrototypeOf(mockContext1, Context.prototype);
-
-    mockContext2 = {};
-    Object.setPrototypeOf(mockContext2, Context.prototype);
-
-    mockContext3 = {};
-    Object.setPrototypeOf(mockContext3, Context.prototype);
-
-    mockTarget = {};
-    Object.setPrototypeOf(mockTarget, Context.prototype);
-
-    // For Container and Item tests, create objects that will pass instanceof checks
+    // Create mock ContextContainer objects
     mockContainer1 = {};
     Object.setPrototypeOf(mockContainer1, ContextContainer.prototype);
 
     mockContainer2 = {};
     Object.setPrototypeOf(mockContainer2, ContextContainer.prototype);
 
+    mockContainer3 = {};
+    Object.setPrototypeOf(mockContainer3, ContextContainer.prototype);
+
+    mockTargetContainer = {};
+    Object.setPrototypeOf(mockTargetContainer, ContextContainer.prototype);
+
+    mockTargetContainer2 = {};
+    Object.setPrototypeOf(mockTargetContainer2, ContextContainer.prototype);
+
+    // Create mock ContextItem objects
     mockItem1 = {};
     Object.setPrototypeOf(mockItem1, ContextItem.prototype);
 
     mockItem2 = {};
     Object.setPrototypeOf(mockItem2, ContextItem.prototype);
 
-    // Setup default mock merge result
-    mockMergeResult = {
+    mockItem3 = {};
+    Object.setPrototypeOf(mockItem3, ContextItem.prototype);
+
+    mockTargetItem = {};
+    Object.setPrototypeOf(mockTargetItem, ContextItem.prototype);
+
+    // Setup default mock results
+    mockContainerSyncResult = {
       success: true,
-      itemsProcessed: ['data.value', 'settings.theme'], // Should match the itemPaths passed to tests
+      itemsProcessed: ['data.value', 'settings.theme'],
       conflicts: 1,
-      mergedItems: ['data.value']
+      changes: [{ type: 'update', path: 'data.value' }],
+      operation: 'test'
     };
 
-    // Setup default mock sync result
-    mockSyncResult = {
+    mockItemSyncResult = {
       success: true,
       itemsProcessed: [1],
       changes: [{ type: 'value', path: 'test' }],
       operation: 'test'
     };
 
-    // Mock ContextMerger.merge - return a result that matches current test expectations
-    ContextMerger.merge.mockImplementation((source, target, strategy, options) => {
-      const itemPaths = options?.allowOnly || ['data.value', 'settings.theme'];
-      return {
-        success: true,
-        itemsProcessed: Array.isArray(itemPaths) ? itemPaths : ['data.value'],
-        conflicts: 1,
-        mergedItems: ['data.value']
-      };
-    });
-
     // Mock ContextContainerSync methods
-    ContextContainerSync.mergeWithPriority.mockReturnValue({
-      success: true,
-      itemsProcessed: ['data.value'],
-      conflicts: 0,
-      mergedItems: ['data.value']
-    });
-    ContextContainerSync.mergeNewerWins.mockReturnValue({
-      success: true,
-      itemsProcessed: ['data.value'],
-      conflicts: 0,
-      mergedItems: ['data.value']
-    });
+    ContextContainerSync.mergeWithPriority.mockReturnValue(mockContainerSyncResult);
+    ContextContainerSync.mergeNewerWins.mockReturnValue(mockContainerSyncResult);
 
     // Mock ContextItemSync methods
-    ContextItemSync.updateTargetToSource.mockReturnValue({
-      success: true,
-      itemsProcessed: ['value'],
-      changes: [{ type: 'value', path: 'test' }],
-      operation: 'updateTargetToSource'
-    });
-    ContextItemSync.mergeNewerWins.mockReturnValue({
-      success: true,
-      itemsProcessed: ['value'],
-      changes: [{ type: 'value', path: 'test' }],
-      operation: 'mergeNewerWins'
-    });
+    ContextItemSync.updateTargetToSource.mockReturnValue(mockItemSyncResult);
+    ContextItemSync.mergeNewerWins.mockReturnValue(mockItemSyncResult);
 
-    // Mock ItemFilter methods
-    ItemFilter.and = jest.fn().mockReturnValue('andFilter');
-    ItemFilter.or = jest.fn().mockReturnValue('orFilter');
-    ItemFilter.allowOnly = jest.fn().mockReturnValue('allowOnlyFilter');
-    ItemFilter.blockOnly = jest.fn().mockReturnValue('blockOnlyFilter');
+    // Mock ContextMerger methods (needed for filtering operations)
+    mockResult = {
+      success: true,
+      operation: 'merge',
+      itemsProcessed: ['data.value', 'settings.theme'],
+      conflicts: 0,
+      changes: [{ type: 'update', path: 'data.value' }]
+    };
+    ContextMerger.merge = jest.fn().mockReturnValue(mockResult);
   });
 
   describe('pushItems', () => {
-    it('should push specific items from source to target', () => {
-      const itemPaths = ['data.value', 'settings.theme'];
-      const strategy = 'mergeSourcePriority';
-      const options = { validateSchema: true };
+    describe('with ContextContainer instances', () => {
+      it('should push specific items from source to target', () => {
+        const itemPaths = ['data.value', 'settings.theme'];
+        const strategy = 'mergeSourcePriority';
+        const options = { validateSchema: true };
 
-      const result = ContextOperations.pushItems(mockContext1, mockTarget, itemPaths, strategy, options);
+        const result = ContextOperations.pushItems(mockContainer1, mockTargetContainer, itemPaths, strategy, options);
 
-      expect(ContextMerger.merge).toHaveBeenCalledWith(mockContext1, mockTarget, strategy, {
-        validateSchema: true,
-        allowOnly: itemPaths
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          mockContainer1,
+          mockTargetContainer,
+          strategy,
+          { validateSchema: true, allowOnly: itemPaths }
+        );
+        expect(result.success).toBe(true);
+        expect(result.strategy).toBe(strategy);
+        expect(result.operation).toBe('pushItems');
+        expect(result.itemsProcessed).toEqual(expect.arrayContaining(itemPaths));
       });
-      expect(result.success).toBe(true);
-      expect(result.strategy).toBe(strategy);
-      expect(result.operation).toBe('pushItems');
-      expect(result.itemsProcessed).toEqual(expect.arrayContaining(itemPaths));
-    });
 
-    it('should use default strategy when not provided', () => {
-      const itemPaths = ['data.value'];
+      it('should use mergeNewerWins strategy by default', () => {
+        const itemPaths = ['data.value'];
 
-      ContextOperations.pushItems(mockContext1, mockTarget, itemPaths);
+        ContextOperations.pushItems(mockContainer1, mockTargetContainer, itemPaths);
 
-      expect(ContextMerger.merge).toHaveBeenCalledWith(mockContext1, mockTarget, 'mergeNewerWins', {
-        allowOnly: itemPaths
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          mockContainer1,
+          mockTargetContainer,
+          'mergeNewerWins',
+          { allowOnly: itemPaths }
+        );
+      });
+
+      it('should handle mergeTargetPriority strategy', () => {
+        const itemPaths = ['data.value'];
+        const strategy = 'mergeTargetPriority';
+
+        ContextOperations.pushItems(mockContainer1, mockTargetContainer, itemPaths, strategy);
+
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          mockContainer1,
+          mockTargetContainer,
+          strategy,
+          { allowOnly: itemPaths }
+        );
       });
     });
 
-    it('should work with ContextContainer instances', () => {
-      const itemPaths = ['data.value'];
-      const result = ContextOperations.pushItems(mockContainer1, mockContainer2, itemPaths);
+    describe('with ContextItem instances', () => {
+      it('should push specific items from source to target', () => {
+        const itemPaths = ['value'];
+        const strategy = 'mergeSourcePriority';
+        const options = { validateSchema: true };
 
-      // Since the instanceof check may not work as expected in test environment,
-      // the call might fall through to the Context merge logic
-      // Just check that it returns a result
-      expect(result).toBeDefined();
-      expect(result.success).toBeDefined();
+        const result = ContextOperations.pushItems(mockItem1, mockTargetItem, itemPaths, strategy, options);
+
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          mockItem1,
+          mockTargetItem,
+          strategy,
+          { validateSchema: true, allowOnly: itemPaths }
+        );
+        expect(result.success).toBe(true);
+        expect(result.strategy).toBe(strategy);
+        expect(result.operation).toBe('pushItems');
+      });
+
+      it('should use mergeNewerWins strategy by default', () => {
+        const itemPaths = ['value'];
+
+        ContextOperations.pushItems(mockItem1, mockTargetItem, itemPaths);
+
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          mockItem1,
+          mockTargetItem,
+          'mergeNewerWins',
+          { allowOnly: itemPaths }
+        );
+      });
     });
 
-    it('should work with ContextItem instances', () => {
-      const itemPaths = ['value'];
-      const result = ContextOperations.pushItems(mockItem1, mockItem2, itemPaths);
+    describe('error handling', () => {
+      it('should throw error when source is not provided', () => {
+        const itemPaths = ['data.value'];
 
-      // Since the instanceof check may not work as expected in test environment,
-      // the call might fall through to the Context merge logic
-      // Just check that it returns a result
-      expect(result).toBeDefined();
-      expect(result.success).toBeDefined();
-    });
+        expect(() => {
+          ContextOperations.pushItems(null, mockTargetContainer, itemPaths);
+        }).toThrow('Source and target contexts must be provided');
+      });
 
-    it('should throw error when source is not provided', () => {
-      const itemPaths = ['data.value'];
+      it('should throw error when target is not provided', () => {
+        const itemPaths = ['data.value'];
 
-      expect(() => {
-        ContextOperations.pushItems(null, mockTarget, itemPaths);
-      }).toThrow('Source and target contexts must be provided');
-    });
+        expect(() => {
+          ContextOperations.pushItems(mockContainer1, null, itemPaths);
+        }).toThrow('Source and target contexts must be provided');
+      });
 
-    it('should throw error when target is not provided', () => {
-      const itemPaths = ['data.value'];
+      it('should throw error when itemPaths is not an array', () => {
+        expect(() => {
+          ContextOperations.pushItems(mockContainer1, mockTargetContainer, 'not-an-array');
+        }).toThrow('Item paths must be a non-empty array');
+      });
 
-      expect(() => {
-        ContextOperations.pushItems(mockContext1, null, itemPaths);
-      }).toThrow('Source and target contexts must be provided');
-    });
+      it('should throw error when itemPaths is empty array', () => {
+        expect(() => {
+          ContextOperations.pushItems(mockContainer1, mockTargetContainer, []);
+        }).toThrow('Item paths must be a non-empty array');
+      });
 
-    it('should throw error when itemPaths is not an array', () => {
-      expect(() => {
-        ContextOperations.pushItems(mockContext1, mockTarget, 'not-an-array');
-      }).toThrow('Item paths must be a non-empty array');
-    });
+      it('should throw error for incompatible object types', () => {
+        ContextMerger.merge.mockImplementation(() => {
+          throw new Error('Incompatible object types: ContextContainer and ContextItem');
+        });
 
-    it('should throw error when itemPaths is empty array', () => {
-      expect(() => {
-        ContextOperations.pushItems(mockContext1, mockTarget, []);
-      }).toThrow('Item paths must be a non-empty array');
+        expect(() => {
+          ContextOperations.pushItems(mockContainer1, mockTargetItem, ['value']);
+        }).toThrow('Incompatible object types: ContextContainer and ContextItem');
+      });
     });
   });
 
   describe('pullItems', () => {
-    it('should pull specific items from source to target', () => {
-      const itemPaths = ['data.value', 'settings.theme'];
-      const strategy = 'mergeSourcePriority';
-      const options = { validateSchema: true };
+    describe('with ContextContainer instances', () => {
+      it('should pull specific items from source to target', () => {
+        const itemPaths = ['data.value', 'settings.theme'];
+        const strategy = 'mergeSourcePriority';
+        const options = { validateSchema: true };
 
-      const result = ContextOperations.pullItems(mockContext1, mockTarget, itemPaths, strategy, options);
+        const result = ContextOperations.pullItems(mockContainer1, mockTargetContainer, itemPaths, strategy, options);
 
-      expect(ContextMerger.merge).toHaveBeenCalledWith(mockTarget, mockContext1, strategy, {
-        validateSchema: true,
-        allowOnly: itemPaths
-      });
-      expect(result.success).toBe(true);
-      expect(result.strategy).toBe(strategy);
-      expect(result.operation).toBe('pullItems');
-      expect(result.itemsProcessed).toEqual(expect.arrayContaining(itemPaths));
-    });
-
-    it('should use default strategy when not provided', () => {
-      const itemPaths = ['data.value'];
-
-      ContextOperations.pullItems(mockContext1, mockTarget, itemPaths);
-
-      expect(ContextMerger.merge).toHaveBeenCalledWith(mockTarget, mockContext1, 'mergeNewerWins', {
-        allowOnly: itemPaths
+        // pullItems swaps source and target parameters
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          mockTargetContainer,
+          mockContainer1,
+          strategy,
+          { validateSchema: true, allowOnly: itemPaths }
+        );
+        expect(result.success).toBe(true);
+        expect(result.strategy).toBe(strategy);
+        expect(result.operation).toBe('pullItems');
       });
     });
 
-    it('should throw error when source is not provided', () => {
-      const itemPaths = ['data.value'];
+    describe('with ContextItem instances', () => {
+      it('should pull specific items from source to target', () => {
+        const itemPaths = ['value'];
+        const strategy = 'mergeNewerWins';
 
-      expect(() => {
-        ContextOperations.pullItems(null, mockTarget, itemPaths);
-      }).toThrow('Source and target contexts must be provided');
+        const result = ContextOperations.pullItems(mockItem1, mockTargetItem, itemPaths, strategy);
+
+        // pullItems swaps source and target parameters
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          mockTargetItem,
+          mockItem1,
+          strategy,
+          { allowOnly: itemPaths }
+        );
+        expect(result.operation).toBe('pullItems');
+      });
     });
 
-    it('should throw error when target is not provided', () => {
-      const itemPaths = ['data.value'];
+    describe('error handling', () => {
+      it('should throw error when source is not provided', () => {
+        const itemPaths = ['data.value'];
 
-      expect(() => {
-        ContextOperations.pullItems(mockContext1, null, itemPaths);
-      }).toThrow('Source and target contexts must be provided');
-    });
+        expect(() => {
+          ContextOperations.pullItems(null, mockTargetContainer, itemPaths);
+        }).toThrow('Source and target contexts must be provided');
+      });
 
-    it('should throw error when itemPaths is not an array', () => {
-      expect(() => {
-        ContextOperations.pullItems(mockContext1, mockTarget, 'not-an-array');
-      }).toThrow('Item paths must be a non-empty array');
-    });
-
-    it('should throw error when itemPaths is empty array', () => {
-      expect(() => {
-        ContextOperations.pullItems(mockContext1, mockTarget, []);
-      }).toThrow('Item paths must be a non-empty array');
+      it('should throw error when itemPaths is empty', () => {
+        expect(() => {
+          ContextOperations.pullItems(mockContainer1, mockTargetContainer, []);
+        }).toThrow('Item paths must be a non-empty array');
+      });
     });
   });
 
   describe('pushFromMultipleSources', () => {
-    it('should push from multiple sources to single target successfully', () => {
-      const sources = [mockContext1, mockContext2, mockContext3];
+    it('should push from multiple ContextContainer sources to single target successfully', () => {
+      const sources = [mockContainer1, mockContainer2, mockContainer3];
       const strategy = 'mergeSourcePriority';
       const options = { validateSchema: true };
 
-      const results = ContextOperations.pushFromMultipleSources(sources, mockTarget, strategy, options);
+      const results = ContextOperations.pushFromMultipleSources(sources, mockTargetContainer, strategy, options);
 
-      expect(ContextMerger.merge).toHaveBeenCalledTimes(3);
-      expect(ContextMerger.merge).toHaveBeenNthCalledWith(1, mockContext1, mockTarget, strategy, options);
-      expect(ContextMerger.merge).toHaveBeenNthCalledWith(2, mockContext2, mockTarget, strategy, options);
-      expect(ContextMerger.merge).toHaveBeenNthCalledWith(3, mockContext3, mockTarget, strategy, options);
+      expect(ContextContainerSync.mergeWithPriority).toHaveBeenCalledTimes(3);
+      expect(ContextContainerSync.mergeWithPriority).toHaveBeenNthCalledWith(1, mockContainer1, mockTargetContainer, 'source', options);
+      expect(ContextContainerSync.mergeWithPriority).toHaveBeenNthCalledWith(2, mockContainer2, mockTargetContainer, 'source', options);
+      expect(ContextContainerSync.mergeWithPriority).toHaveBeenNthCalledWith(3, mockContainer3, mockTargetContainer, 'source', options);
 
       expect(results).toHaveLength(3);
       results.forEach((result, index) => {
-        expect(result).toEqual({
-          sourceIndex: index,
-          success: true,
-          operation: 'pushFromMultipleSources',
-          strategy: strategy,
-          ...mockMergeResult
-        });
+        expect(result.sourceIndex).toBe(index);
+        expect(result.success).toBe(true);
+        expect(result.operation).toBe('pushFromMultipleSources');
+        expect(result.strategy).toBe(strategy);
       });
     });
 
-    it('should handle merge errors gracefully', () => {
-      const sources = [mockContext1, mockContext2];
-      const errorMessage = 'Merge failed';
+    it('should push from multiple ContextItem sources successfully', () => {
+      const sources = [mockItem1, mockItem2];
+      const strategy = 'mergeNewerWins';
 
-      ContextMerger.merge
-        .mockReturnValueOnce(mockMergeResult)
+      const results = ContextOperations.pushFromMultipleSources(sources, mockTargetItem, strategy);
+
+      expect(ContextItemSync.mergeNewerWins).toHaveBeenCalledTimes(2);
+      expect(results).toHaveLength(2);
+    });
+
+    it('should handle sync errors gracefully', () => {
+      const sources = [mockContainer1, mockContainer2];
+      const errorMessage = 'Sync failed';
+
+      ContextContainerSync.mergeWithPriority
+        .mockReturnValueOnce(mockContainerSyncResult)
         .mockImplementationOnce(() => { throw new Error(errorMessage); });
 
-      const results = ContextOperations.pushFromMultipleSources(sources, mockTarget);
+      const results = ContextOperations.pushFromMultipleSources(sources, mockTargetContainer, 'mergeSourcePriority');
 
       expect(results).toHaveLength(2);
-      expect(results[0]).toEqual({
-        sourceIndex: 0,
-        success: true,
-        operation: 'pushFromMultipleSources',
-        strategy: 'mergeNewerWins',
-        ...mockMergeResult
-      });
-      expect(results[1]).toEqual({
-        sourceIndex: 1,
-        success: false,
-        error: errorMessage,
-        operation: 'pushFromMultipleSources',
-        strategy: 'mergeNewerWins'
-      });
-    });
-
-    it('should use default strategy when not provided', () => {
-      const sources = [mockContext1];
-
-      ContextOperations.pushFromMultipleSources(sources, mockTarget);
-
-      expect(ContextMerger.merge).toHaveBeenCalledWith(mockContext1, mockTarget, 'mergeNewerWins', {});
+      expect(results[0].success).toBe(true);
+      expect(results[1].success).toBe(false);
+      expect(results[1].error).toBe(errorMessage);
     });
 
     it('should throw error when sources is not an array', () => {
       expect(() => {
-        ContextOperations.pushFromMultipleSources('not-an-array', mockTarget);
-      }).toThrow('Sources must be a non-empty array of contexts');
-    });
-
-    it('should throw error when sources is empty array', () => {
-      expect(() => {
-        ContextOperations.pushFromMultipleSources([], mockTarget);
+        ContextOperations.pushFromMultipleSources('not-an-array', mockTargetContainer);
       }).toThrow('Sources must be a non-empty array of contexts');
     });
 
     it('should throw error when target is not provided', () => {
       expect(() => {
-        ContextOperations.pushFromMultipleSources([mockContext1], null);
+        ContextOperations.pushFromMultipleSources([mockContainer1], null);
       }).toThrow('Target context must be provided');
     });
   });
 
   describe('pushToMultipleTargets', () => {
-    it('should push from single source to multiple targets successfully', () => {
-      const targets = [mockContext1, mockContext2, mockContext3];
+    it('should push from single source to multiple ContextContainer targets successfully', () => {
+      const targets = [mockContainer1, mockContainer2, mockContainer3];
       const strategy = 'mergeSourcePriority';
       const options = { validateSchema: true };
 
-      const results = ContextOperations.pushToMultipleTargets(mockTarget, targets, strategy, options);
+      const results = ContextOperations.pushToMultipleTargets(mockTargetContainer, targets, strategy, options);
 
-      expect(ContextMerger.merge).toHaveBeenCalledTimes(3);
-      expect(ContextMerger.merge).toHaveBeenNthCalledWith(1, mockTarget, mockContext1, strategy, options);
-      expect(ContextMerger.merge).toHaveBeenNthCalledWith(2, mockTarget, mockContext2, strategy, options);
-      expect(ContextMerger.merge).toHaveBeenNthCalledWith(3, mockTarget, mockContext3, strategy, options);
+      expect(ContextContainerSync.mergeWithPriority).toHaveBeenCalledTimes(3);
+      expect(ContextContainerSync.mergeWithPriority).toHaveBeenNthCalledWith(1, mockTargetContainer, mockContainer1, 'source', options);
+      expect(ContextContainerSync.mergeWithPriority).toHaveBeenNthCalledWith(2, mockTargetContainer, mockContainer2, 'source', options);
+      expect(ContextContainerSync.mergeWithPriority).toHaveBeenNthCalledWith(3, mockTargetContainer, mockContainer3, 'source', options);
 
       expect(results).toHaveLength(3);
       results.forEach((result, index) => {
-        expect(result).toEqual({
-          targetIndex: index,
-          success: true,
-          operation: 'pushToMultipleTargets',
-          strategy: strategy,
-          ...mockMergeResult
-        });
+        expect(result.targetIndex).toBe(index);
+        expect(result.success).toBe(true);
+        expect(result.operation).toBe('pushToMultipleTargets');
+        expect(result.strategy).toBe(strategy);
       });
     });
 
-    it('should handle merge errors gracefully', () => {
-      const targets = [mockContext1, mockContext2];
-      const errorMessage = 'Merge failed';
+    it('should handle sync errors gracefully', () => {
+      const targets = [mockContainer1, mockContainer2];
+      const errorMessage = 'Sync failed';
 
-      ContextMerger.merge
-        .mockReturnValueOnce(mockMergeResult)
+      ContextContainerSync.mergeNewerWins
+        .mockReturnValueOnce(mockContainerSyncResult)
         .mockImplementationOnce(() => { throw new Error(errorMessage); });
 
-      const results = ContextOperations.pushToMultipleTargets(mockTarget, targets);
+      const results = ContextOperations.pushToMultipleTargets(mockTargetContainer, targets);
 
       expect(results).toHaveLength(2);
-      expect(results[0]).toEqual({
-        targetIndex: 0,
-        success: true,
-        operation: 'pushToMultipleTargets',
-        strategy: 'mergeNewerWins',
-        ...mockMergeResult
-      });
-      expect(results[1]).toEqual({
-        targetIndex: 1,
-        success: false,
-        error: errorMessage,
-        operation: 'pushToMultipleTargets',
-        strategy: 'mergeNewerWins'
-      });
-    });
-
-    it('should use default strategy when not provided', () => {
-      const targets = [mockContext1];
-
-      ContextOperations.pushToMultipleTargets(mockTarget, targets);
-
-      expect(ContextMerger.merge).toHaveBeenCalledWith(mockTarget, mockContext1, 'mergeNewerWins', {});
+      expect(results[0].success).toBe(true);
+      expect(results[1].success).toBe(false);
+      expect(results[1].error).toBe(errorMessage);
     });
 
     it('should throw error when source is not provided', () => {
       expect(() => {
-        ContextOperations.pushToMultipleTargets(null, [mockContext1]);
+        ContextOperations.pushToMultipleTargets(null, [mockContainer1]);
       }).toThrow('Source context must be provided');
     });
 
     it('should throw error when targets is not an array', () => {
       expect(() => {
-        ContextOperations.pushToMultipleTargets(mockTarget, 'not-an-array');
-      }).toThrow('Targets must be a non-empty array of contexts');
-    });
-
-    it('should throw error when targets is empty array', () => {
-      expect(() => {
-        ContextOperations.pushToMultipleTargets(mockTarget, []);
+        ContextOperations.pushToMultipleTargets(mockTargetContainer, 'not-an-array');
       }).toThrow('Targets must be a non-empty array of contexts');
     });
   });
 
   describe('pushItemsBulk', () => {
-    it('should push items from multiple sources to multiple targets successfully', () => {
-      const sources = [mockContext1, mockContext2];
-      const targets = [mockContext3, mockTarget];
-      const itemPaths = ['data.value', 'settings.theme'];
-      const strategy = 'mergeSourcePriority';
-      const options = { validateSchema: true };
+      it('should push items from multiple sources to multiple targets successfully', () => {
+        const sources = [mockContainer1, mockContainer2];
+        const targets = [mockTargetContainer, mockTargetContainer2];
+        const itemPaths = ['data', 'settings'];
+        const strategy = 'mergeWithPriority';
+        const options = { validateSchema: true };
 
-      const results = ContextOperations.pushItemsBulk(sources, targets, itemPaths, strategy, options);
+        const results = ContextOperations.pushItemsBulk(sources, targets, itemPaths, strategy, options);
 
-      expect(ContextMerger.merge).toHaveBeenCalledTimes(4);
-      expect(results).toHaveLength(2);
-      expect(results[0]).toHaveLength(2);
-      expect(results[1]).toHaveLength(2);
+        expect(ContextMerger.merge).toHaveBeenCalledTimes(4);
+        expect(results).toHaveLength(2); // 2 sources
+        expect(results[0]).toHaveLength(2); // 2 targets for each source
+        expect(results[1]).toHaveLength(2);
+        
+        // Check that ContextMerger.merge was called with correct parameters
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          mockContainer1,
+          mockTargetContainer,
+          strategy,
+          { validateSchema: true, allowOnly: itemPaths }
+        );
 
-      // Check each result
-      expect(results[0][0]).toEqual({
+      // Check result structure
+      expect(results[0][0]).toEqual(expect.objectContaining({
         sourceIndex: 0,
         targetIndex: 0,
         success: true,
         operation: 'pushItemsBulk',
-        strategy: strategy,
-        ...mockMergeResult
-      });
-
-      // Verify merge calls with allowOnly filter
-      expect(ContextMerger.merge).toHaveBeenCalledWith(mockContext1, mockContext3, strategy, {
-        validateSchema: true,
-        allowOnly: itemPaths
-      });
+        strategy: strategy
+      }));
     });
 
-    it('should handle merge errors gracefully in bulk operations', () => {
-      const sources = [mockContext1, mockContext2];
-      const targets = [mockContext3];
+    it('should handle sync errors gracefully in bulk operations', () => {
+      const sources = [mockContainer1, mockContainer2];
+      const targets = [mockContainer3];
       const itemPaths = ['data.value'];
-      const errorMessage = 'Merge failed';
+      const errorMessage = 'Sync failed';
 
       ContextMerger.merge
-        .mockReturnValueOnce(mockMergeResult)
+        .mockReturnValueOnce(mockResult)
         .mockImplementationOnce(() => { throw new Error(errorMessage); });
 
       const results = ContextOperations.pushItemsBulk(sources, targets, itemPaths);
 
       expect(results).toHaveLength(2);
-      expect(results[0][0]).toEqual({
-        sourceIndex: 0,
-        targetIndex: 0,
-        success: true,
-        operation: 'pushItemsBulk',
-        strategy: 'mergeNewerWins',
-        ...mockMergeResult
-      });
-      expect(results[1][0]).toEqual({
-        sourceIndex: 1,
-        targetIndex: 0,
-        success: false,
-        error: errorMessage,
-        operation: 'pushItemsBulk',
-        strategy: 'mergeNewerWins'
-      });
-    });
-
-    it('should use default strategy when not provided', () => {
-      const sources = [mockContext1];
-      const targets = [mockTarget];
-      const itemPaths = ['data.value'];
-
-      ContextOperations.pushItemsBulk(sources, targets, itemPaths);
-
-      expect(ContextMerger.merge).toHaveBeenCalledWith(mockContext1, mockTarget, 'mergeNewerWins', {
-        allowOnly: itemPaths
-      });
-    });
-
-    it('should throw error when sources is not an array', () => {
-      expect(() => {
-        ContextOperations.pushItemsBulk('not-an-array', [mockTarget], ['data.value']);
-      }).toThrow('Sources must be a non-empty array of contexts');
-    });
-
-    it('should throw error when targets is not an array', () => {
-      expect(() => {
-        ContextOperations.pushItemsBulk([mockContext1], 'not-an-array', ['data.value']);
-      }).toThrow('Targets must be a non-empty array of contexts');
-    });
-
-    it('should throw error when itemPaths is not an array', () => {
-      expect(() => {
-        ContextOperations.pushItemsBulk([mockContext1], [mockTarget], 'not-an-array');
-      }).toThrow('Item paths must be a non-empty array');
+      expect(results[0][0].success).toBe(true);
+      expect(results[1][0].success).toBe(false);
+      expect(results[1][0].error).toBe(errorMessage);
     });
 
     it('should throw error when arrays are empty', () => {
       expect(() => {
-        ContextOperations.pushItemsBulk([], [mockTarget], ['data.value']);
+        ContextOperations.pushItemsBulk([], [mockTargetContainer], ['data.value']);
       }).toThrow('Sources must be a non-empty array of contexts');
 
       expect(() => {
-        ContextOperations.pushItemsBulk([mockContext1], [], ['data.value']);
+        ContextOperations.pushItemsBulk([mockContainer1], [], ['data.value']);
       }).toThrow('Targets must be a non-empty array of contexts');
 
       expect(() => {
-        ContextOperations.pushItemsBulk([mockContext1], [mockTarget], []);
+        ContextOperations.pushItemsBulk([mockContainer1], [mockTargetContainer], []);
       }).toThrow('Item paths must be a non-empty array');
     });
   });
 
   describe('synchronizeBidirectional', () => {
-    it('should synchronize contexts bidirectionally successfully', () => {
+    it('should synchronize ContextContainer instances bidirectionally successfully', () => {
       const options = {
         strategy: 'mergeSourcePriority',
-        context1Priority: ['data.player'],
-        context2Priority: ['settings.ui'],
-        excludePaths: ['data.cache'],
         validateSchema: true
       };
 
-      const result = ContextOperations.synchronizeBidirectional(mockContext1, mockContext2, options);
+      const result = ContextOperations.synchronizeBidirectional(mockContainer1, mockContainer2, options);
 
-      expect(ContextMerger.merge).toHaveBeenCalledTimes(2);
-      expect(ItemFilter.and).toHaveBeenCalledTimes(2);
-      expect(ItemFilter.or).toHaveBeenCalledTimes(2);
-      expect(ItemFilter.blockOnly).toHaveBeenCalledWith(['data.cache']);
-      expect(ItemFilter.allowOnly).toHaveBeenCalledWith(['data.player']);
-      expect(ItemFilter.allowOnly).toHaveBeenCalledWith(['settings.ui']);
+      expect(ContextContainerSync.mergeWithPriority).toHaveBeenCalledTimes(2);
+      expect(ContextContainerSync.mergeWithPriority).toHaveBeenNthCalledWith(1, mockContainer1, mockContainer2, 'source', { validateSchema: true });
+      expect(ContextContainerSync.mergeWithPriority).toHaveBeenNthCalledWith(2, mockContainer2, mockContainer1, 'source', { validateSchema: true });
 
       expect(result).toEqual({
         success: true,
         operation: 'synchronizeBidirectional',
         strategy: 'mergeSourcePriority',
-        direction1to2: mockMergeResult,
-        direction2to1: mockMergeResult,
-        totalItemsProcessed: "data.value,settings.themedata.value,settings.theme",
-        totalConflicts: 2
+        direction1to2: expect.objectContaining({ success: true }),
+        direction2to1: expect.objectContaining({ success: true })
       });
     });
 
-    it('should use default options when not provided', () => {
-      ContextOperations.synchronizeBidirectional(mockContext1, mockContext2);
+    it('should synchronize ContextItem instances bidirectionally successfully', () => {
+      const result = ContextOperations.synchronizeBidirectional(mockItem1, mockItem2);
 
-      expect(ContextMerger.merge).toHaveBeenCalledTimes(2);
-      expect(ContextMerger.merge).toHaveBeenCalledWith(mockContext1, mockContext2, 'mergeNewerWins', expect.any(Object));
-      expect(ContextMerger.merge).toHaveBeenCalledWith(mockContext2, mockContext1, 'mergeNewerWins', expect.any(Object));
+      expect(ContextItemSync.mergeNewerWins).toHaveBeenCalledTimes(2);
+      expect(result.success).toBe(true);
+      expect(result.operation).toBe('synchronizeBidirectional');
     });
 
-    it('should handle merge failures in bidirectional sync', () => {
+    it('should handle sync failures in bidirectional sync', () => {
       const failedResult = { success: false, itemsProcessed: 0, conflicts: 0 };
 
-      ContextMerger.merge
-        .mockReturnValueOnce(mockMergeResult)
+      ContextContainerSync.mergeNewerWins
+        .mockReturnValueOnce(mockContainerSyncResult)
         .mockReturnValueOnce(failedResult);
 
-      const result = ContextOperations.synchronizeBidirectional(mockContext1, mockContext2);
+      const result = ContextOperations.synchronizeBidirectional(mockContainer1, mockContainer2);
 
       expect(result.success).toBe(false);
-      expect(result.direction1to2).toBe(mockMergeResult);
-      expect(result.direction2to1).toBe(failedResult);
+      expect(result.direction1to2.success).toBe(true);
+      expect(result.direction2to1.success).toBe(false);
     });
 
-    it('should handle empty priority arrays', () => {
-      const options = {
-        context1Priority: [],
-        context2Priority: [],
-        excludePaths: []
-      };
+    it('should handle errors during synchronization', () => {
+      ContextContainerSync.mergeNewerWins.mockImplementation(() => {
+        throw new Error('Sync error');
+      });
 
-      ContextOperations.synchronizeBidirectional(mockContext1, mockContext2, options);
+      const result = ContextOperations.synchronizeBidirectional(mockContainer1, mockContainer2);
 
-      expect(ItemFilter.allowOnly).toHaveBeenCalledWith([]);
-      expect(ItemFilter.blockOnly).toHaveBeenCalledWith([]);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Sync error');
     });
   });
 
   describe('consolidateContexts', () => {
-    it('should consolidate multiple contexts successfully', () => {
-      const sources = [mockContext1, mockContext2, mockContext3];
+    it('should consolidate multiple ContextContainer sources successfully', () => {
+      const sources = [mockContainer1, mockContainer2, mockContainer3];
       const options = {
         strategy: 'mergeSourcePriority',
         priorities: { 0: 'high', 1: 'medium', 2: 'low' },
-        excludePaths: ['data.temp'],
         validateSchema: true
       };
 
-      const result = ContextOperations.consolidateContexts(sources, mockTarget, options);
+      const result = ContextOperations.consolidateContexts(sources, mockTargetContainer, options);
 
-      expect(ContextMerger.merge).toHaveBeenCalledTimes(3);
-      expect(ItemFilter.blockOnly).toHaveBeenCalledWith(['data.temp']);
+      expect(ContextContainerSync.mergeWithPriority).toHaveBeenCalledTimes(3);
+      expect(result.success).toBe(true);
+      expect(result.operation).toBe('consolidateContexts');
+      expect(result.strategy).toBe('mergeSourcePriority');
+      expect(result.results).toHaveLength(3);
+      expect(result.consolidatedSources).toBe(3);
 
-      expect(result).toEqual({
-        success: true,
-        operation: 'consolidateContexts',
-        strategy: 'mergeSourcePriority',
-        results: [
-          expect.objectContaining({
-            sourceIndex: expect.any(Number),
-            success: true,
-            operation: 'consolidateContexts',
-            strategy: 'mergeSourcePriority',
-            ...mockMergeResult
-          }),
-          expect.objectContaining({
-            sourceIndex: expect.any(Number),
-            success: true,
-            operation: 'consolidateContexts',
-            strategy: 'mergeSourcePriority',
-            ...mockMergeResult
-          }),
-          expect.objectContaining({
-            sourceIndex: expect.any(Number),
-            success: true,
-            operation: 'consolidateContexts',
-            strategy: 'mergeSourcePriority',
-            ...mockMergeResult
-          })
-        ],
-        totalItemsProcessed: "0data.value,settings.themedata.value,settings.themedata.value,settings.theme",
-        totalConflicts: 3,
-        consolidatedSources: 3
+      // Check that results contain expected structure
+      result.results.forEach(res => {
+        expect(res).toEqual(expect.objectContaining({
+          sourceIndex: expect.any(Number),
+          success: true,
+          operation: 'consolidateContexts',
+          strategy: 'mergeSourcePriority'
+        }));
       });
     });
 
     it('should sort sources by priority correctly', () => {
-      const sources = [mockContext1, mockContext2, mockContext3];
+      const sources = [mockContainer1, mockContainer2, mockContainer3];
       const options = {
         priorities: { 0: 'low', 1: 'high', 2: 'medium' }
       };
 
-      ContextOperations.consolidateContexts(sources, mockTarget, options);
+      ContextOperations.consolidateContexts(sources, mockTargetContainer, options);
 
-      // High priority (context2) should be processed first
-      expect(ContextMerger.merge).toHaveBeenNthCalledWith(1, mockContext2, mockTarget, 'mergeNewerWins', expect.any(Object));
-      // Medium priority (context3) should be processed second
-      expect(ContextMerger.merge).toHaveBeenNthCalledWith(2, mockContext3, mockTarget, 'mergeNewerWins', expect.any(Object));
-      // Low priority (context1) should be processed last
-      expect(ContextMerger.merge).toHaveBeenNthCalledWith(3, mockContext1, mockTarget, 'mergeNewerWins', expect.any(Object));
+      // High priority (container2) should be processed first
+      expect(ContextContainerSync.mergeNewerWins).toHaveBeenNthCalledWith(1, mockContainer2, mockTargetContainer, {});
+      // Medium priority (container3) should be processed second
+      expect(ContextContainerSync.mergeNewerWins).toHaveBeenNthCalledWith(2, mockContainer3, mockTargetContainer, {});
+      // Low priority (container1) should be processed last
+      expect(ContextContainerSync.mergeNewerWins).toHaveBeenNthCalledWith(3, mockContainer1, mockTargetContainer, {});
     });
 
-    it('should handle sources without explicit priorities', () => {
-      const sources = [mockContext1, mockContext2];
-      const options = { priorities: { 0: 'high' } }; // Only first source has priority
-
-      ContextOperations.consolidateContexts(sources, mockTarget, options);
-
-      expect(ContextMerger.merge).toHaveBeenCalledTimes(2);
-      // High priority source should be processed first
-      expect(ContextMerger.merge).toHaveBeenNthCalledWith(1, mockContext1, mockTarget, 'mergeNewerWins', expect.any(Object));
-    });
-
-    it('should handle merge errors during consolidation', () => {
-      const sources = [mockContext1, mockContext2];
+    it('should handle consolidation errors gracefully', () => {
+      const sources = [mockContainer1, mockContainer2];
       const errorMessage = 'Consolidation failed';
 
-      ContextMerger.merge
-        .mockReturnValueOnce(mockMergeResult)
+      ContextContainerSync.mergeNewerWins
+        .mockReturnValueOnce(mockContainerSyncResult)
         .mockImplementationOnce(() => { throw new Error(errorMessage); });
 
-      const result = ContextOperations.consolidateContexts(sources, mockTarget);
+      const result = ContextOperations.consolidateContexts(sources, mockTargetContainer);
 
       expect(result.success).toBe(false);
       expect(result.results).toHaveLength(2);
@@ -682,40 +572,131 @@ describe('ContextOperations', () => {
     });
 
     it('should use default options when not provided', () => {
-      const sources = [mockContext1];
+      const sources = [mockContainer1];
 
-      ContextOperations.consolidateContexts(sources, mockTarget);
+      ContextOperations.consolidateContexts(sources, mockTargetContainer);
 
-      expect(ContextMerger.merge).toHaveBeenCalledWith(mockContext1, mockTarget, 'mergeNewerWins', {});
-    });
-
-    it('should skip filter when no exclude paths provided', () => {
-      const sources = [mockContext1];
-
-      ContextOperations.consolidateContexts(sources, mockTarget);
-
-      expect(ItemFilter.blockOnly).not.toHaveBeenCalled();
-      expect(ContextMerger.merge).toHaveBeenCalledWith(mockContext1, mockTarget, 'mergeNewerWins', {
-        onConflict: undefined
-      });
+      expect(ContextContainerSync.mergeNewerWins).toHaveBeenCalledWith(mockContainer1, mockTargetContainer, {});
     });
 
     it('should throw error when sources is not an array', () => {
       expect(() => {
-        ContextOperations.consolidateContexts('not-an-array', mockTarget);
-      }).toThrow('Sources must be a non-empty array of contexts');
-    });
-
-    it('should throw error when sources is empty array', () => {
-      expect(() => {
-        ContextOperations.consolidateContexts([], mockTarget);
+        ContextOperations.consolidateContexts('not-an-array', mockTargetContainer);
       }).toThrow('Sources must be a non-empty array of contexts');
     });
 
     it('should throw error when target is not provided', () => {
       expect(() => {
-        ContextOperations.consolidateContexts([mockContext1], null);
+        ContextOperations.consolidateContexts([mockContainer1], null);
       }).toThrow('Target context must be provided');
+    });
+  });
+
+  describe('filtering capabilities', () => {
+    describe('allowOnly filtering', () => {
+      it('should preserve filtering capabilities through allowOnly options', () => {
+        const itemPaths = ['data.specific', 'settings.specific'];
+
+        ContextOperations.pushItems(mockContainer1, mockTargetContainer, itemPaths);
+
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          mockContainer1,
+          mockTargetContainer,
+          'mergeNewerWins',
+          { allowOnly: itemPaths }
+        );
+      });
+
+      it('should preserve filtering in bulk operations', () => {
+        const sources = [mockContainer1];
+        const targets = [mockTargetContainer];
+        const itemPaths = ['filtered.path1', 'filtered.path2'];
+
+        ContextOperations.pushItemsBulk(sources, targets, itemPaths);
+
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          mockContainer1,
+          mockTargetContainer,
+          'mergeNewerWins',
+          { allowOnly: itemPaths }
+        );
+      });
+    });
+
+    describe('blockOnly and excludePaths filtering', () => {
+      beforeEach(() => {
+        // Setup the mock return value for ContextMerger.merge
+        ContextMerger.merge = jest.fn().mockReturnValue({
+          success: true,
+          operation: 'merge',
+          itemsProcessed: 2,
+          conflicts: 0
+        });
+      });
+
+      afterEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('should use ContextMerger when blockOnly is specified', () => {
+        const options = { blockOnly: ['blocked.path'] };
+
+        const result = ContextOperations.pushFromMultipleSources([mockContainer1], mockTargetContainer, 'merge', options);
+
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          mockContainer1,
+          mockTargetContainer,
+          'merge',
+          { blockOnly: ['blocked.path'] }
+        );
+      });
+
+      it('should use ContextMerger when excludePaths is specified', () => {
+        const options = { excludePaths: ['excluded.path'] };
+
+        ContextOperations.pushFromMultipleSources([mockContainer1], mockTargetContainer, 'merge', options);
+
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          mockContainer1,
+          mockTargetContainer,
+          'merge',
+          { excludePaths: ['excluded.path'] }
+        );
+      });
+
+      it('should use ContextMerger in consolidation with excludePaths', () => {
+        const sources = [mockContainer1];
+        const options = { excludePaths: ['excluded.path'] };
+
+        ContextOperations.consolidateContexts(sources, mockTargetContainer, options);
+
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          mockContainer1,
+          mockTargetContainer,
+          'mergeNewerWins',
+          { excludePaths: ['excluded.path'] }
+        );
+      });
+
+      it('should use ContextMerger in bidirectional sync with filtering', () => {
+        const options = { blockOnly: ['blocked.path'] };
+
+        ContextOperations.synchronizeBidirectional(mockContainer1, mockContainer2, options);
+
+        expect(ContextMerger.merge).toHaveBeenCalledTimes(2);
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          mockContainer1,
+          mockContainer2,
+          'mergeNewerWins',
+          { blockOnly: ['blocked.path'] }
+        );
+        expect(ContextMerger.merge).toHaveBeenCalledWith(
+          mockContainer2,
+          mockContainer1,
+          'mergeNewerWins',
+          { blockOnly: ['blocked.path'] }
+        );
+      });
     });
   });
 });

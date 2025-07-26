@@ -10,6 +10,7 @@ import { ContextItem } from './contextItem.js';
 import { ContextContainer } from './contextContainer.js';
 import { ItemFilter } from './contextItemFilter.js';
 import constants from '../../constants/constants.js';
+import PathUtils from '../../helpers/pathUtils.js';
 
 /**
  * @class ContextMerger
@@ -25,7 +26,7 @@ import constants from '../../constants/constants.js';
  * - `updateTargetToSource`: Updates target items with source values.
  * - `replace`: Completely replaces source items with target items.
  * - `noAction`: No changes are made, used for validation or dry runs.
- * 
+ *
  * ## Public API
  * - `MERGE_STRATEGIES` - Static enum of available merge strategies
  * - `DEFAULT_COMPONENTS` - Static array of default context component keys
@@ -166,6 +167,32 @@ class ContextMerger {
 
   /**
    * @private
+   * Processes ContextContainer objects directly (no components).
+   * @param {ContextContainer} source - Source container.
+   * @param {ContextContainer} target - Target container.
+   * @param {string} strategy - Merge strategy.
+   * @param {object} options - Merge options.
+   * @param {object} result - Result object to update.
+   */
+  static #processContainerItems(source, target, strategy, options, result) {
+    // Get all item keys from both containers
+    const allKeys = ContextMerger.#getAllItemKeys(source, target);
+
+    for (const itemKey of allKeys) {
+      ContextMerger.#processItem(
+        source,  // source container
+        target,  // target container
+        itemKey,
+        '',     // no component path for containers
+        strategy,
+        options,
+        result
+      );
+    }
+  }
+
+  /**
+   * @private
    * Aggregates component merge results into the main result.
    * @param {object} mainResult - Main result object.
    * @param {object} componentResult - Component result to aggregate.
@@ -206,6 +233,14 @@ class ContextMerger {
    * @param {object} result - Result object to update.
    */
   static #processItem(sourceComponent, targetComponent, itemKey, componentKey, strategy, options, result) {
+    const itemPath = componentKey ? `${componentKey}.${itemKey}` : itemKey;
+
+    // Apply path filtering before processing
+    if (!ContextMerger.#shouldProcessItem(itemPath, options, sourceComponent, targetComponent)) {
+      result.statistics.skipped++;
+      return;
+    }
+
     const sourceItem = sourceComponent?.getItem ? sourceComponent.getItem(itemKey) : null;
     const targetItem = targetComponent?.getItem ? targetComponent.getItem(itemKey) : null;
     const hasTargetItem = targetComponent?.hasItem ? targetComponent.hasItem(itemKey) : !!targetItem;
@@ -219,7 +254,7 @@ class ContextMerger {
         hasTargetItem,
         targetComponent,
         itemKey,
-        `${componentKey}.${itemKey}`,
+        itemPath,
         strategy,
         options
       );
@@ -227,14 +262,137 @@ class ContextMerger {
       ContextMerger.#aggregateItemResult(result, itemResult);
     } catch (error) {
       result.changes.push({
-        path: `${componentKey}.${itemKey}`,
+        path: itemPath,
         action: 'error',
         error: error.message
       });
     }
-  }
+  }  /**
+   * @private
+   * Determines if an item should be processed based on filtering options.
+   * Now supports structure-aware filtering for mixed object types.
+   * @param {string} itemPath - The full path of the item.
+   * @param {object} options - Merge options containing filtering parameters.
+   * @param {ContextContainer} sourceComponent - Source component for structure-aware filtering.
+   * @param {ContextContainer} targetComponent - Target component for structure-aware filtering.
+   * @returns {boolean} True if the item should be processed, false if it should be skipped.
+   */
+  static #shouldProcessItem(itemPath, options, sourceComponent = null, targetComponent = null) {
+    const { allowOnly, blockOnly, excludePaths, customFilter } = options;
 
-  /**
+    // If customFilter is specified, use it with enhanced parameters
+    if (customFilter && typeof customFilter === 'function') {
+      const sourceItem = sourceComponent?.getItem ? sourceComponent.getItem(itemPath.split('.').pop()) : null;
+      const targetItem = targetComponent?.getItem ? targetComponent.getItem(itemPath.split('.').pop()) : null;
+      
+      try {
+        const filterResult = customFilter(sourceItem, targetItem, itemPath, sourceComponent, targetComponent);
+        // If filter returns sourceItem, process the item; if targetItem, skip it
+        return filterResult === sourceItem;
+      } catch (error) {
+        console.warn(`Custom filter error for path ${itemPath}:`, error);
+        return true; // Default to processing on error
+      }
+    }
+
+    // If allowOnly is specified, only allow items that match using structure-aware logic
+    if (allowOnly && allowOnly.length > 0) {
+      const isAllowed = allowOnly.some(allowedPath => {
+        // Exact match
+        if (itemPath === allowedPath) return true;
+        
+        // Direct parent-child relationships
+        if (itemPath.startsWith(`${allowedPath}.`) || allowedPath.startsWith(`${itemPath}.`)) return true;
+        
+        // Structure-aware checking for complex nested paths
+        if (sourceComponent && PathUtils.pathExistsInMixedStructure(sourceComponent, allowedPath)) {
+          // Check if itemPath is under the allowed path structure
+          if (itemPath.startsWith(allowedPath)) return true;
+          
+          // Check relative paths within the allowed structure
+          const resolvedPath = PathUtils.resolveMixedPath(sourceComponent, allowedPath);
+          if (resolvedPath.exists && resolvedPath.value) {
+            const relativePath = itemPath.replace(`${allowedPath}.`, '');
+            if (relativePath !== itemPath) {
+              return PathUtils.pathExistsInMixedStructure(resolvedPath.value, relativePath);
+            }
+          }
+        }
+        
+        return false;
+      });
+      
+      if (!isAllowed) {
+        return false;
+      }
+    }
+
+    // If blockOnly is specified, block items that match using structure-aware logic
+    if (blockOnly && blockOnly.length > 0) {
+      const isBlocked = blockOnly.some(blockedPath => {
+        // Exact match
+        if (itemPath === blockedPath) return true;
+        
+        // Block children of blocked paths
+        if (itemPath.startsWith(`${blockedPath}.`)) return true;
+        
+        // Structure-aware checking for complex nested paths
+        if (sourceComponent && PathUtils.pathExistsInMixedStructure(sourceComponent, blockedPath)) {
+          // Check if itemPath is under the blocked path structure
+          if (itemPath.startsWith(blockedPath)) return true;
+          
+          // Check relative paths within the blocked structure
+          const resolvedPath = PathUtils.resolveMixedPath(sourceComponent, blockedPath);
+          if (resolvedPath.exists && resolvedPath.value) {
+            const relativePath = itemPath.replace(`${blockedPath}.`, '');
+            if (relativePath !== itemPath) {
+              return PathUtils.pathExistsInMixedStructure(resolvedPath.value, relativePath);
+            }
+          }
+        }
+        
+        return false;
+      });
+      
+      if (isBlocked) {
+        return false;
+      }
+    }
+
+    // If excludePaths is specified, exclude items that match using structure-aware logic
+    if (excludePaths && excludePaths.length > 0) {
+      const isExcluded = excludePaths.some(excludedPath => {
+        // Exact match
+        if (itemPath === excludedPath) return true;
+        
+        // Exclude children of excluded paths
+        if (itemPath.startsWith(`${excludedPath}.`)) return true;
+        
+        // Structure-aware checking for complex nested paths
+        if (sourceComponent && PathUtils.pathExistsInMixedStructure(sourceComponent, excludedPath)) {
+          // Check if itemPath is under the excluded path structure
+          if (itemPath.startsWith(excludedPath)) return true;
+          
+          // Check relative paths within the excluded structure
+          const resolvedPath = PathUtils.resolveMixedPath(sourceComponent, excludedPath);
+          if (resolvedPath.exists && resolvedPath.value) {
+            const relativePath = itemPath.replace(`${excludedPath}.`, '');
+            if (relativePath !== itemPath) {
+              return PathUtils.pathExistsInMixedStructure(resolvedPath.value, relativePath);
+            }
+          }
+        }
+        
+        return false;
+      });
+      
+      if (isExcluded) {
+        return false;
+      }
+    }
+
+    return true;
+  }  /**
    * @private
    * Aggregates item merge results.
    * @param {object} result - Main result object.
@@ -527,6 +685,83 @@ class ContextMerger {
    * @returns {object} Updated result.
    */
   static #handleExistingItems(sourceItem, targetItem, targetComponent, itemKey, itemPath, strategy, options, result) {
+    // For ContextContainer objects with simple values, handle directly
+    if (targetComponent.constructor.name === 'ContextContainer') {
+      // Check if we need to do deep merging for nested objects
+      if (typeof sourceItem === 'object' && sourceItem !== null && 
+          typeof targetItem === 'object' && targetItem !== null &&
+          !Array.isArray(sourceItem) && !Array.isArray(targetItem)) {
+        
+        // Deep merge with path filtering
+        const mergedItem = ContextMerger.#deepMergeWithFiltering(
+          sourceItem, 
+          targetItem, 
+          itemPath, 
+          strategy, 
+          options
+        );
+        
+        if (mergedItem !== targetItem) {
+          if (!options.dryRun) {
+            targetComponent.setItem(itemKey, mergedItem);
+          }
+          result.statistics.updated++;
+          result.changes.push({
+            path: itemPath,
+            action: 'deep-merged',
+            strategy: strategy
+          });
+        } else {
+          result.statistics.skipped++;
+          result.changes.push({
+            path: itemPath,
+            action: 'skipped',
+            reason: 'no changes after filtering'
+          });
+        }
+        
+        return result;
+      }      // For simple values, apply strategy without comparison
+      let chosenItem;
+      let actionTaken;
+
+      if (strategy === 'mergeSourcePriority' || strategy === 'updateTargetToSource') {
+        chosenItem = sourceItem;
+        actionTaken = 'sourcePreferred';
+      } else if (strategy === 'mergeTargetPriority') {
+        chosenItem = targetItem;
+        actionTaken = 'targetPreferred';
+      } else {
+        // Default behavior for other strategies: prefer source
+        chosenItem = sourceItem;
+        actionTaken = 'sourcePreferred';
+      }
+
+      if (chosenItem !== targetItem) {
+        if (!options.dryRun) {
+          targetComponent.setItem(itemKey, chosenItem);
+        }
+        result.statistics.updated++;
+        result.changes.push({
+          path: itemPath,
+          action: 'updated',
+          oldValue: targetItem,
+          newValue: chosenItem,
+          strategy: strategy
+        });
+      } else {
+        result.statistics.skipped++;
+        result.changes.push({
+          path: itemPath,
+          action: 'skipped',
+          reason: 'no change needed'
+        });
+      }
+
+      return result;
+    }
+
+    // Original logic for ContextItem objects
     const comparison = ContextComparison.compare(sourceItem, targetItem, { compareBy: options.compareBy });
     const { chosenItem, actionTaken } = ContextMerger.#determineItemChoice(sourceItem, targetItem, strategy, comparison);
 
@@ -579,37 +814,37 @@ class ContextMerger {
    * @param {Function} [options.onConflict] - Custom conflict resolver function.
    * @param {string[]} [options.allowOnly] - Array of item paths to allow (alternative to onConflict).
    * @param {string[]} [options.blockOnly] - Array of item paths to block (alternative to onConflict).
+   * @param {string[]} [options.excludePaths] - Array of item paths to exclude (alternative to onConflict).
    * @param {string} [options.singleItem] - Single item path to merge (alternative to onConflict).
    * @param {RegExp} [options.matchPattern] - Pattern to match item paths (alternative to onConflict).
    * @param {Function} [options.customFilter] - Custom filter function (alternative to onConflict).
    * @returns {object} Detailed merge result with statistics and changes.
    */
   static merge(source, target, strategy = 'mergeNewerWins', options = {}) {
+    // Set default options
+    const defaultOptions = {
+      createMissing: true,
+      preserveMetadata: false,
+      dryRun: false
+    };
+    
     // Process convenience parameters and convert them to onConflict filter
-    const processedOptions = { ...options };
+    const processedOptions = { ...defaultOptions, ...options };
 
-    // If no onConflict is specified but convenience parameters are provided, create appropriate filter
-    if (!processedOptions.onConflict) {
-      const { allowOnly, blockOnly, singleItem, matchPattern, customFilter } = processedOptions;
-
-      if (allowOnly) {
-        processedOptions.onConflict = ItemFilter.allowOnly(allowOnly);
-      } else if (blockOnly) {
-        processedOptions.onConflict = ItemFilter.blockOnly(blockOnly);
-      } else if (singleItem) {
-        processedOptions.onConflict = ItemFilter.allowOnly([singleItem]);
-      } else if (matchPattern) {
-        processedOptions.onConflict = ItemFilter.matchPattern(matchPattern);
-      } else if (customFilter) {
-        processedOptions.onConflict = ItemFilter.custom(customFilter);
-      }
-    }
+    // No need to convert allowOnly, blockOnly, excludePaths to onConflict anymore
+    // They are handled directly in #shouldProcessItem
 
     const result = ContextMerger.#initializeMergeResult(source, target, strategy);
 
     try {
-      const componentsToProcess = ContextMerger.#determineComponentsToProcess(processedOptions);
-      ContextMerger.#processAllComponents(source, target, componentsToProcess, strategy, processedOptions, result);
+      // Check if we're dealing with ContextContainer objects directly
+      if (source.constructor.name === 'ContextContainer' && target.constructor.name === 'ContextContainer') {
+        ContextMerger.#processContainerItems(source, target, strategy, processedOptions, result);
+      } else {
+        // Process Context objects with components
+        const componentsToProcess = ContextMerger.#determineComponentsToProcess(processedOptions);
+        ContextMerger.#processAllComponents(source, target, componentsToProcess, strategy, processedOptions, result);
+      }
       result.success = result.errors.length === 0;
     } catch (error) {
       result.success = false;
@@ -645,6 +880,70 @@ class ContextMerger {
     return requiredMethods.every(method =>
       source.hasOwnProperty(method) && target.hasOwnProperty(method)
     );
+  }
+
+  /**
+   * @private
+   * Performs deep merging of objects with path-based filtering.
+   * @param {object} sourceObj - Source object.
+   * @param {object} targetObj - Target object.
+   * @param {string} basePath - Base path for this object.
+   * @param {string} strategy - Merge strategy.
+   * @param {object} options - Merge options with filtering.
+   * @returns {object} Merged object.
+   */
+  static #deepMergeWithFiltering(sourceObj, targetObj, basePath, strategy, options) {
+    const result = { ...targetObj }; // Start with target object
+    let hasChanges = false;
+
+    // Process all keys from source object
+    for (const [key, sourceValue] of Object.entries(sourceObj)) {
+      const currentPath = basePath ? `${basePath}.${key}` : key;
+
+      // Check if this path should be processed
+      if (!ContextMerger.#shouldProcessItem(currentPath, options)) {
+        continue; // Skip this path
+      }
+
+      const targetValue = targetObj[key];
+
+      if (typeof sourceValue === 'object' && sourceValue !== null &&
+          typeof targetValue === 'object' && targetValue !== null &&
+          !Array.isArray(sourceValue) && !Array.isArray(targetValue)) {
+
+        // Recursively merge nested objects
+        const nestedResult = ContextMerger.#deepMergeWithFiltering(
+          sourceValue,
+          targetValue,
+          currentPath,
+          strategy,
+          options
+        );
+
+        if (nestedResult !== targetValue) {
+          result[key] = nestedResult;
+          hasChanges = true;
+        }
+      } else {
+        // Handle primitive values or arrays
+        let chosenValue;
+
+        if (strategy === 'mergeSourcePriority' || strategy === 'updateTargetToSource') {
+          chosenValue = sourceValue;
+        } else if (strategy === 'mergeTargetPriority') {
+          chosenValue = targetValue;
+        } else {
+          chosenValue = sourceValue; // Default to source
+        }
+
+        if (chosenValue !== targetValue) {
+          result[key] = chosenValue;
+          hasChanges = true;
+        }
+      }
+    }
+
+    return hasChanges ? result : targetObj;
   }
 }
 

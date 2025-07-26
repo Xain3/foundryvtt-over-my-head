@@ -63,8 +63,8 @@ class ContextContainerSync {
     const changes = [];
 
     if (deepSync) {
-      ContextContainerSync.#syncContainerItems(source, target, 'sourceToTarget', { syncMetadata });
-      changes.push({ type: 'containerSync', direction: 'sourceToTarget' });
+      ContextContainerSync.#syncContainerItems(source, target, 'targetToSource', { syncMetadata });
+      changes.push({ type: 'containerSync', direction: 'targetToSource' });
     } else {
       source.value = target.value;
       changes.push({ type: 'containerValue', to: target.value });
@@ -93,8 +93,8 @@ class ContextContainerSync {
     const changes = [];
 
     if (deepSync) {
-      ContextContainerSync.#syncContainerItems(source, target, 'targetToSource', { syncMetadata });
-      changes.push({ type: 'containerSync', direction: 'targetToSource' });
+      ContextContainerSync.#syncContainerItems(source, target, 'sourceToTarget', { syncMetadata });
+      changes.push({ type: 'containerSync', direction: 'sourceToTarget' });
     } else {
       target.value = source.value;
       changes.push({ type: 'containerValue', to: source.value });
@@ -123,11 +123,11 @@ class ContextContainerSync {
     const { compareBy = 'modifiedAt', deepSync = true, syncMetadata = true } = options;
     const comparison = ContextComparison.compare(source, target, { compareBy });
 
-    if (comparison.result === ContextComparison.COMPARISON_RESULTS.SOURCE_NEWER) {
+    if (comparison.result === ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER) {
       const result = ContextContainerSync.updateTargetToMatchSource(source, target, { deepSync, syncMetadata });
       return { ...result, operation: 'mergeNewerWins' };
     }
-    if (comparison.result === ContextComparison.COMPARISON_RESULTS.TARGET_NEWER) {
+    if (comparison.result === ContextComparison.COMPARISON_RESULTS.CONTAINER_B_NEWER) {
       const result = ContextContainerSync.updateSourceToMatchTarget(source, target, { deepSync, syncMetadata });
       return { ...result, operation: 'mergeNewerWins' };
     }

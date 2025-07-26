@@ -58,9 +58,9 @@ describe('ContextContainerSync', () => {
       const result = ContextContainerSync.updateSourceToMatchTarget(mockSourceContainer, mockTargetContainer);
 
       expect(ContextContainerSyncEngine).toHaveBeenCalledWith({ syncMetadata: true });
-      expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'sourceToTarget');
+      expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'targetToSource');
       expect(result.success).toBe(true);
-      expect(result.changes).toEqual([{ type: 'containerSync', direction: 'sourceToTarget' }]);
+      expect(result.changes).toEqual([{ type: 'containerSync', direction: 'targetToSource' }]);
       expect(result.operation).toBe('updateSourceToMatchTarget');
     });
 
@@ -78,7 +78,7 @@ describe('ContextContainerSync', () => {
       const result = ContextContainerSync.updateSourceToMatchTarget(mockSourceContainer, mockTargetContainer, { syncMetadata: false });
 
       expect(ContextContainerSyncEngine).toHaveBeenCalledWith({ syncMetadata: false });
-      expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'sourceToTarget');
+      expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'targetToSource');
       expect(result.operation).toBe('updateSourceToMatchTarget');
     });
   });
@@ -88,9 +88,9 @@ describe('ContextContainerSync', () => {
       const result = ContextContainerSync.updateTargetToMatchSource(mockSourceContainer, mockTargetContainer);
 
       expect(ContextContainerSyncEngine).toHaveBeenCalledWith({ syncMetadata: true });
-      expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'targetToSource');
+      expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'sourceToTarget');
       expect(result.success).toBe(true);
-      expect(result.changes).toEqual([{ type: 'containerSync', direction: 'targetToSource' }]);
+      expect(result.changes).toEqual([{ type: 'containerSync', direction: 'sourceToTarget' }]);
       expect(result.operation).toBe('updateTargetToMatchSource');
     });
 
@@ -108,27 +108,27 @@ describe('ContextContainerSync', () => {
   describe('mergeNewerWins', () => {
     beforeEach(() => {
       ContextComparison.COMPARISON_RESULTS = {
-        SOURCE_NEWER: 'source_newer',
-        TARGET_NEWER: 'target_newer',
+        CONTAINER_A_NEWER: 'containerANewer',
+        CONTAINER_B_NEWER: 'containerBNewer',
         EQUAL: 'equal',
       };
     });
 
     it('should update target when source is newer', () => {
-      ContextComparison.compare.mockReturnValue({ result: ContextComparison.COMPARISON_RESULTS.SOURCE_NEWER });
-      const result = ContextContainerSync.mergeNewerWins(mockSourceContainer, mockTargetContainer);
-
-      expect(ContextContainerSyncEngine).toHaveBeenCalledWith({ syncMetadata: true });
-      expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'targetToSource');
-      expect(result.operation).toBe('mergeNewerWins');
-    });
-
-    it('should update source when target is newer', () => {
-      ContextComparison.compare.mockReturnValue({ result: ContextComparison.COMPARISON_RESULTS.TARGET_NEWER });
+      ContextComparison.compare.mockReturnValue({ result: ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER });
       const result = ContextContainerSync.mergeNewerWins(mockSourceContainer, mockTargetContainer);
 
       expect(ContextContainerSyncEngine).toHaveBeenCalledWith({ syncMetadata: true });
       expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'sourceToTarget');
+      expect(result.operation).toBe('mergeNewerWins');
+    });
+
+    it('should update source when target is newer', () => {
+      ContextComparison.compare.mockReturnValue({ result: ContextComparison.COMPARISON_RESULTS.CONTAINER_B_NEWER });
+      const result = ContextContainerSync.mergeNewerWins(mockSourceContainer, mockTargetContainer);
+
+      expect(ContextContainerSyncEngine).toHaveBeenCalledWith({ syncMetadata: true });
+      expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'targetToSource');
       expect(result.operation).toBe('mergeNewerWins');
     });
 
@@ -147,7 +147,7 @@ describe('ContextContainerSync', () => {
       const result = ContextContainerSync.mergeWithPriority(mockSourceContainer, mockTargetContainer, 'source');
 
       expect(ContextContainerSyncEngine).toHaveBeenCalledWith({ syncMetadata: true });
-      expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'targetToSource');
+      expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'sourceToTarget');
       expect(result.operation).toBe('mergeWithPriority');
     });
 
@@ -155,7 +155,7 @@ describe('ContextContainerSync', () => {
       const result = ContextContainerSync.mergeWithPriority(mockSourceContainer, mockTargetContainer, 'target');
 
       expect(ContextContainerSyncEngine).toHaveBeenCalledWith({ syncMetadata: true });
-      expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'sourceToTarget');
+      expect(mockSync).toHaveBeenCalledWith(mockSourceContainer, mockTargetContainer, 'targetToSource');
       expect(result.operation).toBe('mergeWithPriority');
     });
   });

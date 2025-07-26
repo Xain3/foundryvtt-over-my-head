@@ -5,6 +5,8 @@
 
  */
 
+import PathUtils from '../../helpers/pathUtils.js';
+
 
 /**
  * @class ItemFilter
@@ -67,26 +69,78 @@
 class ItemFilter {
   /**
    * Creates a filter that allows only specific item paths.
+   * Supports complex nested structures with mixed ContextContainers and plain objects.
    * @param {string[]} allowedPaths - Array of item paths to allow (e.g., ['data.inventory', 'settings.volume'])
    * @returns {Function} Filter function for use with ContextMerger
    */
   static allowOnly(allowedPaths) {
-    return (sourceItem, targetItem, itemPath) => {
-      const isAllowed = allowedPaths.some(path => itemPath.includes(path));
+    return (sourceItem, targetItem, itemPath, sourceContainer, targetContainer) => {
+      // Check if this path should be allowed based on structure-aware matching
+      const isAllowed = allowedPaths.some(allowedPath => {
+        // Exact match
+        if (itemPath === allowedPath) return true;
+        
+        // Check if itemPath starts with allowedPath (allows nested items)
+        if (itemPath.startsWith(`${allowedPath}.`)) return true;
+        
+        // Check if the path exists in the actual container structures
+        if (sourceContainer && PathUtils.pathExistsInMixedStructure(sourceContainer, allowedPath)) {
+          // If the allowed path is a prefix of our item path, allow it
+          if (itemPath.startsWith(allowedPath)) return true;
+          
+          // Check if our path exists under the allowed path
+          const relativePath = itemPath.replace(`${allowedPath}.`, '');
+          if (relativePath !== itemPath) {
+            const resolvedAllowedPath = PathUtils.resolveMixedPath(sourceContainer, allowedPath);
+            if (resolvedAllowedPath.exists && resolvedAllowedPath.value) {
+              return PathUtils.pathExistsInMixedStructure(resolvedAllowedPath.value, relativePath);
+            }
+          }
+        }
+        
+        // Fallback to simple includes check for compatibility
+        return itemPath.includes(allowedPath);
+      });
+      
       return isAllowed ? sourceItem : targetItem;
     };
   }
 
   /**
    * Creates a filter that blocks specific item paths.
+   * Supports complex nested structures with mixed ContextContainers and plain objects.
    * @param {string[]} blockedPaths - Array of item paths to block
    * @returns {Function} Filter function for use with ContextMerger
    */
   static blockOnly(blockedPaths) {
-    return (sourceItem, targetItem, itemPath) => {
-      const isBlocked = blockedPaths.some(path =>
-        itemPath === path || itemPath.startsWith(`${path}.`) || itemPath.includes(path)
-      );
+    return (sourceItem, targetItem, itemPath, sourceContainer, targetContainer) => {
+      // Check if this path should be blocked based on structure-aware matching
+      const isBlocked = blockedPaths.some(blockedPath => {
+        // Exact match
+        if (itemPath === blockedPath) return true;
+        
+        // Check if itemPath starts with blockedPath (blocks nested items)
+        if (itemPath.startsWith(`${blockedPath}.`)) return true;
+        
+        // Check if the path exists in the actual container structures
+        if (sourceContainer && PathUtils.pathExistsInMixedStructure(sourceContainer, blockedPath)) {
+          // If the blocked path is a prefix of our item path, block it
+          if (itemPath.startsWith(blockedPath)) return true;
+          
+          // Check if our path exists under the blocked path
+          const relativePath = itemPath.replace(`${blockedPath}.`, '');
+          if (relativePath !== itemPath) {
+            const resolvedBlockedPath = PathUtils.resolveMixedPath(sourceContainer, blockedPath);
+            if (resolvedBlockedPath.exists && resolvedBlockedPath.value) {
+              return PathUtils.pathExistsInMixedStructure(resolvedBlockedPath.value, relativePath);
+            }
+          }
+        }
+        
+        // Fallback to simple includes check for compatibility
+        return itemPath.includes(blockedPath);
+      });
+      
       return isBlocked ? targetItem : sourceItem;
     };
   }

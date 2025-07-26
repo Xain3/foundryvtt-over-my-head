@@ -328,3 +328,8 @@ class ContextHelpers {
 }
 
 export default ContextHelpers;
+export { ContextHelpers,
+  ContextItem, ContextContainer, ContextValueWrapper, ContextItemSetter,
+  ContextSync, ContextItemSync, ContextContainerSync, ContextContainerSyncEngine,
+  ContextAutoSync, ContextLegacySync, ContextMerger, ContextOperations,
+  ItemFilter, ContextComparison, RootMapValidator };

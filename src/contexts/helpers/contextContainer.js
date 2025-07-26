@@ -704,10 +704,36 @@ class ContextContainer {
    */
   get value() {
     if (this.recordAccess) this._updateAccessTimestamp();
-    const result = {};
-    for (const [key, managedItem] of this.#managedItems) {
-      result[key] = managedItem.value;
+    return this._getValueWithCircularCheck(new Set());
+  }
+
+  /**
+   * Gets the container's value with circular reference detection.
+   * @param {Set} visited - Set of visited container instances to detect circular references.
+   * @returns {object} The container's current value as a plain object.
+   * @private
+   */
+  _getValueWithCircularCheck(visited) {
+    if (visited.has(this)) {
+      // Return a placeholder for circular references
+      return { __circular: true, __id: this.containerId || 'unknown' };
     }
+
+    visited.add(this);
+    const result = {};
+
+    try {
+      for (const [key, managedItem] of this.#managedItems) {
+        if (managedItem && typeof managedItem === 'object' && managedItem.constructor === ContextContainer) {
+          result[key] = managedItem._getValueWithCircularCheck(visited);
+        } else {
+          result[key] = managedItem.value;
+        }
+      }
+    } finally {
+      visited.delete(this);
+    }
+
     return result;
   }
 

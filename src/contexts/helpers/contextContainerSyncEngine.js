@@ -55,7 +55,9 @@ class ContextContainerSyncEngine {
   #syncContainerItems(sourceContainer, targetContainer) {
     for (const key of sourceContainer.keys()) {
       try {
-        const sourceItem = sourceContainer.getItem(key);
+        // Get the managed item from source to preserve ContextContainer instances
+        const sourceManagedItem = sourceContainer._getManagedItem ? sourceContainer._getManagedItem(key) : null;
+        const sourceItem = sourceManagedItem || sourceContainer.getItem(key);
         if (!sourceItem) continue;
 
         // Skip if the source item is the same as the source container (self-reference)
@@ -65,7 +67,9 @@ class ContextContainerSyncEngine {
         }
 
         if (targetContainer.hasItem(key)) {
-          const targetItem = targetContainer.getItem(key);
+          // Get the managed item from target to preserve ContextContainer instances
+          const targetManagedItem = targetContainer._getManagedItem ? targetContainer._getManagedItem(key) : null;
+          const targetItem = targetManagedItem || targetContainer.getItem(key);
           this._updateItem(sourceItem, targetItem);
         } else {
           this._addItem(key, sourceItem, targetContainer);
@@ -124,15 +128,48 @@ class ContextContainerSyncEngine {
    * @private
    */
   _updateItem(sourceItem, targetItem) {
-    // Handle ContextItem to ContextItem synchronization
+    // Handle ContextItem to ContextItem synchronization with deep merging
     if (sourceItem?.isContextItem && targetItem?.isContextItem) {
-      ContextItemSync.updateTargetToMatchSource(sourceItem, targetItem, { syncMetadata: this.syncMetadata });
+      this._updateContextItems(sourceItem, targetItem);
       return;
     }
 
     // Handle ContextContainer to ContextContainer synchronization
     if (sourceItem?.isContextContainer && targetItem?.isContextContainer) {
       this._syncContainer(sourceItem, targetItem);
+      return;
+    }
+
+    // Handle mixed-type synchronization: ContextItem <-> ContextContainer
+    if (sourceItem?.isContextItem && targetItem?.isContextContainer) {
+      this._updateItemToContainer(sourceItem, targetItem);
+      return;
+    }
+
+    if (sourceItem?.isContextContainer && targetItem?.isContextItem) {
+      this._updateContainerToItem(sourceItem, targetItem);
+      return;
+    }
+
+    // Handle ContextItem <-> Plain Object
+    if (sourceItem?.isContextItem && this._isPlainObject(targetItem)) {
+      this._updateItemToPlainObject(sourceItem, targetItem);
+      return;
+    }
+
+    if (this._isPlainObject(sourceItem) && targetItem?.isContextItem) {
+      this._updatePlainObjectToItem(sourceItem, targetItem);
+      return;
+    }
+
+    // Handle ContextContainer <-> Plain Object
+    if (sourceItem?.isContextContainer && this._isPlainObject(targetItem)) {
+      this._updateContainerToPlainObject(sourceItem, targetItem);
+      return;
+    }
+
+    if (this._isPlainObject(sourceItem) && targetItem?.isContextContainer) {
+      this._updatePlainObjectToContainer(sourceItem, targetItem);
       return;
     }
 
@@ -244,6 +281,229 @@ class ContextContainerSyncEngine {
     const newContainer = new ContextContainer(sourceContainer.value, sourceContainer.metadata);
     this._syncContainer(newContainer, sourceContainer);
     targetContainer.setItem(key, newContainer, { metadata: sourceContainer.metadata });
+  }
+
+  /**
+   * Handles deep synchronization between two ContextItems.
+   * @param {ContextItem} sourceItem - The source ContextItem.
+   * @param {ContextItem} targetItem - The target ContextItem.
+   * @private
+   */
+  _updateContextItems(sourceItem, targetItem) {
+    const sourceValue = sourceItem.value;
+    const targetValue = targetItem.value;
+
+    // If both values are plain objects, perform deep merge
+    if (this._isPlainObject(sourceValue) && this._isPlainObject(targetValue)) {
+      const mergedValue = this._deepMergeObjects(sourceValue, targetValue);
+      targetItem.value = mergedValue;
+      
+      // Sync metadata if enabled
+      if (this.syncMetadata) {
+        targetItem.setMetadata(sourceItem.metadata, false);
+      }
+    } else {
+      // Use the standard ContextItemSync for non-plain-object cases
+      ContextItemSync.updateTargetToMatchSource(sourceItem, targetItem, { syncMetadata: this.syncMetadata });
+    }
+  }
+
+  /**
+   * Handles synchronization from ContextItem to ContextContainer.
+   * @param {ContextItem} sourceItem - The source ContextItem.
+   * @param {ContextContainer} targetContainer - The target ContextContainer.
+   * @private
+   */
+  _updateItemToContainer(sourceItem, targetContainer) {
+    const sourceValue = sourceItem.value;
+    
+    if (this._isPlainObject(sourceValue)) {
+      // If source is a plain object, sync its properties to the container
+      for (const [key, value] of Object.entries(sourceValue)) {
+        if (targetContainer.hasItem(key)) {
+          const targetManagedItem = targetContainer._getManagedItem ? targetContainer._getManagedItem(key) : null;
+          const targetItem = targetManagedItem || targetContainer.getItem(key);
+          this._updateItem(value, targetItem);
+        } else {
+          targetContainer.setItem(key, value);
+        }
+      }
+    } else {
+      // Replace container with a single item
+      targetContainer.clear();
+      targetContainer.setItem('value', sourceValue, { metadata: sourceItem.metadata });
+    }
+  }
+
+  /**
+   * Handles synchronization from ContextContainer to ContextItem.
+   * @param {ContextContainer} sourceContainer - The source ContextContainer.
+   * @param {ContextItem} targetItem - The target ContextItem.
+   * @private
+   */
+  _updateContainerToItem(sourceContainer, targetItem) {
+    const sourceValue = sourceContainer.value;
+    const targetValue = targetItem.value;
+
+    if (this._isPlainObject(targetValue)) {
+      // Merge container values into the target object
+      const mergedValue = this._deepMergeObjects(sourceValue, targetValue);
+      targetItem.value = mergedValue;
+    } else {
+      // Replace with container value
+      targetItem.value = sourceValue;
+    }
+  }
+
+  /**
+   * Handles synchronization from ContextItem to plain object.
+   * @param {ContextItem} sourceItem - The source ContextItem.
+   * @param {object} targetObject - The target plain object.
+   * @private
+   */
+  _updateItemToPlainObject(sourceItem, targetObject) {
+    const sourceValue = sourceItem.value;
+    
+    // Preserve metadata function before any modifications
+    const preservedSetMetadata = targetObject.setMetadata;
+    const shouldSyncMetadata = this.syncMetadata && sourceItem.metadata && typeof preservedSetMetadata === 'function';
+    
+    if (this._isPlainObject(sourceValue)) {
+      // Deep merge source object into target
+      Object.assign(targetObject, this._deepMergeObjects(sourceValue, targetObject));
+    } else {
+      // Replace target with source value
+      Object.keys(targetObject).forEach(key => delete targetObject[key]);
+      if (this._isPlainObject(sourceValue)) {
+        Object.assign(targetObject, sourceValue);
+      } else {
+        targetObject.value = sourceValue;
+      }
+    }
+
+    // Handle metadata syncing using preserved function
+    if (shouldSyncMetadata) {
+      try {
+        preservedSetMetadata.call(targetObject, sourceItem.metadata, false);
+      } catch (error) {
+        console.warn('Failed to set metadata on target item:', error);
+        try {
+          targetObject.metadata = sourceItem.metadata;
+        } catch (metadataError) {
+          // Additional fallback failed, but we already warned about the original error
+        }
+      }
+    }
+  }
+
+  /**
+   * Handles synchronization from plain object to ContextItem.
+   * @param {object} sourceObject - The source plain object.
+   * @param {ContextItem} targetItem - The target ContextItem.
+   * @private
+   */
+  _updatePlainObjectToItem(sourceObject, targetItem) {
+    const targetValue = targetItem.value;
+    
+    if (this._isPlainObject(targetValue)) {
+      // Deep merge source into target value
+      const mergedValue = this._deepMergeObjects(sourceObject, targetValue);
+      targetItem.value = mergedValue;
+    } else {
+      // Replace target value with source
+      targetItem.value = sourceObject;
+    }
+  }
+
+  /**
+   * Handles synchronization from ContextContainer to plain object.
+   * @param {ContextContainer} sourceContainer - The source ContextContainer.
+   * @param {object} targetObject - The target plain object.
+   * @private
+   */
+  _updateContainerToPlainObject(sourceContainer, targetObject) {
+    const sourceValue = sourceContainer.value;
+    
+    // Deep merge container value into target object
+    Object.assign(targetObject, this._deepMergeObjects(sourceValue, targetObject));
+  }
+
+  /**
+   * Handles synchronization from plain object to ContextContainer.
+   * @param {object} sourceObject - The source plain object.
+   * @param {ContextContainer} targetContainer - The target ContextContainer.
+   * @private
+   */
+  _updatePlainObjectToContainer(sourceObject, targetContainer) {
+    // Sync each property of the source object to the container
+    for (const [key, value] of Object.entries(sourceObject)) {
+      if (targetContainer.hasItem(key)) {
+        const targetManagedItem = targetContainer._getManagedItem ? targetContainer._getManagedItem(key) : null;
+        const targetItem = targetManagedItem || targetContainer.getItem(key);
+        this._updateItem(value, targetItem);
+      } else {
+        targetContainer.setItem(key, value);
+      }
+    }
+  }
+
+  /**
+   * Checks if a value is a plain object (not an array, null, or other object types).
+   * @param {*} value - The value to check.
+   * @returns {boolean} True if the value is a plain object.
+   * @private
+   */
+  _isPlainObject(value) {
+    return (
+      value !== null &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      value.constructor === Object &&
+      !value.isContextItem &&
+      !value.isContextContainer
+    );
+  }
+
+  /**
+   * Performs a deep merge of two objects, preserving target properties that don't exist in source.
+   * @param {object} sourceObject - The source object.
+   * @param {object} targetObject - The target object.
+   * @returns {object} The merged object.
+   * @private
+   */
+  _deepMergeObjects(sourceObject, targetObject) {
+    const cloneDeep = (obj) => {
+      if (obj === null || typeof obj !== 'object') return obj;
+      if (obj instanceof Date) return new Date(obj);
+      if (Array.isArray(obj)) return obj.map(cloneDeep);
+      
+      const cloned = {};
+      for (const [key, value] of Object.entries(obj)) {
+        cloned[key] = cloneDeep(value);
+      }
+      return cloned;
+    };
+
+    // Start with a deep clone of the target to preserve its existing structure
+    const result = cloneDeep(targetObject);
+    
+    // Recursively merge source properties into the result
+    for (const [key, sourceValue] of Object.entries(sourceObject)) {
+      if (result.hasOwnProperty(key)) {
+        if (this._isPlainObject(sourceValue) && this._isPlainObject(result[key])) {
+          // Recursively merge nested objects
+          result[key] = this._deepMergeObjects(sourceValue, result[key]);
+        } else {
+          // Replace with source value
+          result[key] = cloneDeep(sourceValue);
+        }
+      } else {
+        // Add new property from source
+        result[key] = cloneDeep(sourceValue);
+      }
+    }
+    
+    return result;
   }
 
   /**

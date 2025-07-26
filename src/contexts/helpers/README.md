@@ -476,7 +476,7 @@ const result = ContextOperations.synchronizeBidirectional(context1, context2, {
 **Dependencies**: None
 **Exports**: `ItemFilter` (class)
 
-Filtering capabilities for selective context merging operations.
+Filtering capabilities for selective context merging operations. Provides both simple path-based filtering and advanced custom logic filtering.
 
 #### Public API
 
@@ -499,7 +499,7 @@ const filter = ItemFilter.allowOnly(['data.inventory', 'settings.volume']);
 // Combine filters
 const combinedFilter = ItemFilter.and(
   ItemFilter.allowOnly(['data.player']),
-  ItemFilter.custom((source, target) => source.priority > target.priority)
+  ItemFilter.custom((source, target, path) => source.priority > target.priority)
 );
 
 // Use with ContextMerger
@@ -582,20 +582,27 @@ Validates root map configurations and initialization parameters.
 The helpers include comprehensive unit tests and integration tests:
 
 - **Unit Tests**: Each helper class has individual unit tests (`*.unit.test.js`) that test isolated functionality
-- **Integration Tests**: The `helpers.int.test.js` file tests the complete workflow between helpers
+- **Integration Tests**: Located in `tests/integration/contextHelpers.int.test.js` and `tests/integration/contextHelpers.smoke.int.test.js`
 
 ### Integration Test Coverage
 
-The integration tests verify:
+The comprehensive integration tests (`contextHelpers.int.test.js`) verify:
 
 - **ContextSync Facade**: Testing ContextSync as a unified interface for all synchronization operations
 - **ContextOperations → ContextMerger Workflow**: Complex merging operations with filtering and bulk operations
 - **Container Operations**: Deep nested synchronization and bidirectional sync
 - **Single Item Operations**: Item-level synchronization with metadata preservation
-- **Complex Filtering**: ItemFilter usage with pattern matching and combined filters
+- **Advanced Filtering**: ItemFilter usage with allowOnly, blockOnly, excludePaths, and pattern matching
+- **Nested Container Integration**: Mixed type handling with ContextContainer and ContextItem nesting
 - **Real-world Scenarios**: Player data sync, settings management, module configuration
-- **Performance Testing**: Large-scale operations and concurrent synchronization
-- **Error Handling**: Graceful handling of failures and edge cases
+- **Bulk Operations**: Multi-source/target operations and consolidation
+- **Error Handling**: Graceful handling of failures, type mismatches, and edge cases
+
+The simplified smoke tests (`contextHelpers.smoke.int.test.js`) provide:
+
+- **Basic Integration**: Core functionality verification
+- **Essential Workflows**: Primary use cases and common patterns
+- **Quick Validation**: Fast-running tests for development cycles
 
 ### Running Tests
 
@@ -606,8 +613,11 @@ npm test helpers
 # Run only unit tests
 npm test helpers.unit
 
-# Run only integration tests
-npm test helpers.int
+# Run comprehensive integration tests
+npm test contextHelpers.int
+
+# Run smoke integration tests
+npm test contextHelpers.smoke
 ````
 
 ## Dependencies Graph

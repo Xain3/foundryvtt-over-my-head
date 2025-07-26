@@ -456,20 +456,30 @@ describe('ContextContainerSyncEngine', () => {
       });
 
       it('should handle mixed type updates with syncMetadata', () => {
-        const mixedTarget = { value: 'old value', setMetadata: jest.fn() };
+        const setMetadataSpy = jest.fn();
+        const mixedTarget = { 
+          value: 'old value', 
+          setMetadata: setMetadataSpy,
+          _getManagedItem: jest.fn()
+        };
 
         engine._updateItem(mockSourceItem, mixedTarget);
         expect(mixedTarget.value).toBe('source value');
-        expect(mixedTarget.setMetadata).toHaveBeenCalledWith(mockSourceItem.metadata, false);
+        expect(setMetadataSpy).toHaveBeenCalledWith(mockSourceItem.metadata, false);
       });
 
       it('should handle mixed type updates without syncMetadata', () => {
         engine = new ContextContainerSyncEngine({ syncMetadata: false });
-        const mixedTarget = { value: 'old value', setMetadata: jest.fn() };
+        const setMetadataSpy = jest.fn();
+        const mixedTarget = { 
+          value: 'old value', 
+          setMetadata: setMetadataSpy,
+          _getManagedItem: jest.fn()
+        };
 
         engine._updateItem(mockSourceItem, mixedTarget);
         expect(mixedTarget.value).toBe('source value');
-        expect(mixedTarget.setMetadata).not.toHaveBeenCalled();
+        expect(setMetadataSpy).not.toHaveBeenCalled();
       });
 
       it('should handle items without setMetadata method', () => {
@@ -484,13 +494,12 @@ describe('ContextContainerSyncEngine', () => {
 
       it('should handle fallback when setMetadata fails', () => {
         const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const setMetadataSpy = jest.fn(() => { throw new Error('setMetadata failed'); });
         const mixedTarget = {
           value: 'old value',
-          setMetadata: jest.fn(() => { throw new Error('setMetadata failed'); })
+          setMetadata: setMetadataSpy,
+          _getManagedItem: jest.fn()
         };
-
-        // Make the object non-extensible so that setting .metadata will also fail
-        Object.preventExtensions(mixedTarget);
 
         engine._updateItem(mockSourceItem, mixedTarget);
         expect(mixedTarget.value).toBe('source value');

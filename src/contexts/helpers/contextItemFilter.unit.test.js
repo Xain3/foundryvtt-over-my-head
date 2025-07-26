@@ -91,7 +91,7 @@ describe('ItemFilter', () => {
       const filter = ItemFilter.allowOnly(['test']);
 
       expect(typeof filter).toBe('function');
-      expect(filter.length).toBe(3);
+      expect(filter.length).toBe(5); // Enhanced to accept: sourceItem, targetItem, itemPath, sourceComponent, targetComponent
     });
   });
 
@@ -158,7 +158,7 @@ describe('ItemFilter', () => {
       const filter = ItemFilter.blockOnly(['test']);
 
       expect(typeof filter).toBe('function');
-      expect(filter.length).toBe(3);
+      expect(filter.length).toBe(5); // Enhanced to accept: sourceItem, targetItem, itemPath, sourceComponent, targetComponent
     });
   });
 

@@ -723,47 +723,6 @@ class Context extends ContextContainer {
   }
 
   /**
-   * Enhanced path resolution with reserved key fallback strategies.
-   * This method includes all fallback strategies including reserved key renaming.
-   * @private
-   * @param {object|ContextContainer} rootObj - The root object or ContextContainer to search in.
-   * @param {string} path - The dot-notation path to resolve.
-   * @param {ContextContainer} [contextContainer] - The ContextContainer instance for internal property access.
-   * @returns {*} The resolved value, or undefined if not found.
-   */
-  #resolvePathWithReservedKeyFallbacks(rootObj, path, contextContainer = null) {
-    // First try the standard enhanced resolution
-    const standardResult = this.#resolvePathWithFallbacks(rootObj, path, contextContainer);
-    if (standardResult !== undefined) {
-      return standardResult;
-    }
-
-    // Strategy 3: Try reserved key renaming (getReservedItem logic)
-    if (typeof path === 'string' && path.includes('.')) {
-      const pathParts = path.split('.');
-      const alternativePaths = this.#generateReservedKeyAlternatives(pathParts);
-
-      for (const alternativePath of alternativePaths) {
-        // Use simple object path traversal for alternatives to avoid ContextContainer complications
-        const result = this.#getValueAtPath(rootObj, alternativePath);
-        if (result !== undefined) {
-          return result;
-        }
-      }
-    } else if (typeof path === 'string') {
-      // Simple key case - try renamed version
-      const renamedKey = `_${path}`;
-      const result = this.#getValueAtPath(rootObj, renamedKey);
-      if (result !== undefined) {
-        return result;
-      }
-    }
-
-    // If all strategies fail, return undefined
-    return undefined;
-  }
-
-  /**
    * Generates alternative paths by replacing reserved keys with their renamed versions.
    * @private
    * @param {string[]} pathParts - Array of path segments.
@@ -884,37 +843,28 @@ class Context extends ContextContainer {
    * const playerValue2 = context.getItem('data.player._value'); // Returns 'Hero'
    */
   getReservedItem(key) {
-    // First try to get the item with the original key
+    // First try the original key
     if (this.hasItem(key)) {
-      console.debug(`[Context.getReservedItem] Found original key: ${key}`);
       return this.getItem(key);
     }
 
-    // If not found, try with reserved key alternatives
+    // Try reserved key alternatives
     if (typeof key === 'string' && key.includes('.')) {
       const pathParts = key.split('.');
       const alternativePaths = this.#generateReservedKeyAlternatives(pathParts);
 
       for (const alternativePath of alternativePaths) {
         if (this.hasItem(alternativePath)) {
-          console.debug(`[Context.getReservedItem] Reserved key access: ${key} → ${alternativePath}`);
           return this.getItem(alternativePath);
         }
       }
     } else if (typeof key === 'string') {
-      // For simple keys, just try the renamed version
-      const reservedKeys = ['value', 'metadata', 'size', 'createdAt', 'modifiedAt', 'lastAccessedAt'];
-      if (reservedKeys.includes(key)) {
-        const renamedKey = `_${key}`;
-        if (this.hasItem(renamedKey)) {
-          console.debug(`[Context.getReservedItem] Reserved key access: ${key} → ${renamedKey}`);
-          return this.getItem(renamedKey);
-        }
+      const renamedKey = `_${key}`;
+      if (this.hasItem(renamedKey)) {
+        return this.getItem(renamedKey);
       }
     }
 
-    // If nothing found, return undefined
-    console.debug(`[Context.getReservedItem] No alternative found for key: ${key}`);
     return undefined;
   }
 

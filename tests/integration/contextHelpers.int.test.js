@@ -1097,6 +1097,218 @@ describe('Context Helpers Integration Tests', () => {
     });
   });
 
+  describe('Enhanced Nested Path Checking Integration Tests', () => {
+    describe('ContextContainer with enhanced nested path checking disabled (default)', () => {
+      let container;
+
+      beforeEach(() => {
+        container = new ContextContainer({
+          player: {
+            profile: { name: 'Alice', class: 'Warrior' },
+            stats: { level: 10, health: 100 },
+            inventory: {
+              weapons: ['sword', 'shield'],
+              armor: { helmet: 'Iron Helmet', chest: 'Leather Armor' }
+            }
+          },
+          settings: {
+            graphics: { resolution: '1920x1080', quality: 'high' },
+            audio: { master: 0.8, music: 0.6 }
+          }
+        });
+      });
+
+      it('should use default behavior and not find nested paths in plain objects', () => {
+        // Top-level items should be found
+        expect(container.hasItem('player')).toBe(true);
+        expect(container.hasItem('settings')).toBe(true);
+
+        // Nested paths in plain objects should NOT be found with default behavior
+        expect(container.hasItem('player.profile')).toBe(false);
+        expect(container.hasItem('player.profile.name')).toBe(false);
+        expect(container.hasItem('player.stats.level')).toBe(false);
+        expect(container.hasItem('settings.graphics.resolution')).toBe(false);
+        expect(container.hasItem('settings.audio.master')).toBe(false);
+      });
+
+      it('should preserve filtering behavior in merge operations', () => {
+        const sourceContainer = new ContextContainer({
+          player: {
+            profile: { name: 'Bob', class: 'Mage' },
+            stats: { level: 15, health: 120 }
+          }
+        });
+
+        // Test merge with excludePaths - this should work correctly with default behavior
+        const result = ContextMerger.merge(
+          sourceContainer,
+          container,
+          'mergeSourcePriority',
+          {
+            excludePaths: ['player.stats.level']
+          }
+        );
+
+        expect(result.success).toBe(true);
+        
+        // The excluded path should not be overridden
+        expect(container.getItem('player.stats.level')).toBe(10); // Original value preserved
+        
+        // Other values should be merged
+        expect(container.getItem('player.profile.name')).toBe('Bob');
+        expect(container.getItem('player.stats.health')).toBe(120);
+      });
+    });
+
+    describe('ContextContainer with enhanced nested path checking enabled', () => {
+      let container;
+
+      beforeEach(() => {
+        container = new ContextContainer({
+          player: {
+            profile: { name: 'Alice', class: 'Warrior' },
+            stats: { level: 10, health: 100 },
+            inventory: {
+              weapons: ['sword', 'shield'],
+              armor: { helmet: 'Iron Helmet', chest: 'Leather Armor' }
+            }
+          },
+          settings: {
+            graphics: { resolution: '1920x1080', quality: 'high' },
+            audio: { master: 0.8, music: 0.6 }
+          }
+        }, {}, { enhancedNestedPathChecking: true });
+      });
+
+      it('should find nested paths in plain objects with enhanced behavior', () => {
+        // Top-level items should be found
+        expect(container.hasItem('player')).toBe(true);
+        expect(container.hasItem('settings')).toBe(true);
+
+        // Nested paths in plain objects should be found with enhanced behavior
+        expect(container.hasItem('player.profile')).toBe(true);
+        expect(container.hasItem('player.profile.name')).toBe(true);
+        expect(container.hasItem('player.profile.class')).toBe(true);
+        expect(container.hasItem('player.stats')).toBe(true);
+        expect(container.hasItem('player.stats.level')).toBe(true);
+        expect(container.hasItem('player.stats.health')).toBe(true);
+        expect(container.hasItem('player.inventory')).toBe(true);
+        expect(container.hasItem('player.inventory.weapons')).toBe(true);
+        expect(container.hasItem('player.inventory.armor')).toBe(true);
+        expect(container.hasItem('player.inventory.armor.helmet')).toBe(true);
+        expect(container.hasItem('player.inventory.armor.chest')).toBe(true);
+        expect(container.hasItem('settings.graphics')).toBe(true);
+        expect(container.hasItem('settings.graphics.resolution')).toBe(true);
+        expect(container.hasItem('settings.graphics.quality')).toBe(true);
+        expect(container.hasItem('settings.audio')).toBe(true);
+        expect(container.hasItem('settings.audio.master')).toBe(true);
+        expect(container.hasItem('settings.audio.music')).toBe(true);
+
+        // Non-existent paths should NOT be found
+        expect(container.hasItem('player.stats.mana')).toBe(false);
+        expect(container.hasItem('player.inventory.consumables')).toBe(false);
+        expect(container.hasItem('settings.network')).toBe(false);
+        expect(container.hasItem('nonexistent')).toBe(false);
+        expect(container.hasItem('player.nonexistent.path')).toBe(false);
+      });
+
+      it('should still work correctly with ContextContainer nesting', () => {
+        // Add a nested ContextContainer with enhanced path checking enabled to match parent
+        const nestedContainer = new ContextContainer({ 
+          nestedData: 'from nested container',
+          deepValue: { very: { deep: 'value' } }
+        }, {}, { enhancedNestedPathChecking: true });
+        container.setItem('nestedContainer', nestedContainer);
+
+        // Should work with ContextContainer nesting regardless of enhanced option
+        expect(container.hasItem('nestedContainer')).toBe(true);
+        expect(container.hasItem('nestedContainer.nestedData')).toBe(true);
+        expect(container.hasItem('nestedContainer.deepValue')).toBe(true);
+        expect(container.hasItem('nestedContainer.deepValue.very')).toBe(true);
+        expect(container.hasItem('nestedContainer.deepValue.very.deep')).toBe(true);
+      });
+
+      it('should maintain correct filtering behavior in operations', () => {
+        const sourceContainer = new ContextContainer({
+          player: {
+            profile: { name: 'Bob', class: 'Mage', race: 'Elf' },
+            stats: { level: 15, health: 120, mana: 150 }
+          }
+        }, {}, { enhancedNestedPathChecking: true });
+
+        // Test that filtering still works correctly even with enhanced checking
+        const result = ContextMerger.merge(
+          sourceContainer,
+          container,
+          'mergeSourcePriority',
+          {
+            excludePaths: ['player.stats.level', 'player.profile.class']
+          }
+        );
+
+        expect(result.success).toBe(true);
+        
+        // Excluded paths should not be overridden
+        expect(container.getItem('player.stats.level')).toBe(10); // Original value preserved
+        expect(container.getItem('player.profile.class')).toBe('Warrior'); // Original value preserved
+        
+        // Non-excluded values should be merged
+        expect(container.getItem('player.profile.name')).toBe('Bob');
+        expect(container.getItem('player.stats.health')).toBe(120);
+        expect(container.getItem('player.stats.mana')).toBe(150); // New field added
+        expect(container.getItem('player.profile.race')).toBe('Elf'); // New field added
+      });
+    });
+
+    describe('Behavior consistency across integration scenarios', () => {
+      it('should maintain consistent hasItem behavior in ContextOperations', () => {
+        const defaultContainer = new ContextContainer({
+          data: { player: { name: 'Alice', stats: { level: 5 } } }
+        });
+
+        const enhancedContainer = new ContextContainer({
+          data: { player: { name: 'Bob', stats: { level: 10 } } }
+        }, {}, { enhancedNestedPathChecking: true });
+
+        // Default behavior: should not find nested paths in plain objects
+        expect(defaultContainer.hasItem('data.player.stats')).toBe(false);
+        expect(defaultContainer.hasItem('data.player.stats.level')).toBe(false);
+
+        // Enhanced behavior: should find nested paths in plain objects
+        expect(enhancedContainer.hasItem('data.player.stats')).toBe(true);
+        expect(enhancedContainer.hasItem('data.player.stats.level')).toBe(true);
+
+        // Both should find the top-level items
+        expect(defaultContainer.hasItem('data')).toBe(true);
+        expect(enhancedContainer.hasItem('data')).toBe(true);
+      });
+
+      it('should not affect ContextContainer-to-ContextContainer operations', () => {
+        const sourceWithEnhanced = new ContextContainer({
+          nested: new ContextContainer({ testValue: 'test' }, {}, { enhancedNestedPathChecking: true })
+        }, {}, { enhancedNestedPathChecking: true });
+
+        const targetWithDefault = new ContextContainer({
+          other: 'data'
+        }); // Default behavior
+
+        // Both should handle ContextContainer nesting the same way
+        expect(sourceWithEnhanced.hasItem('nested')).toBe(true);
+        expect(sourceWithEnhanced.hasItem('nested.testValue')).toBe(true);
+
+        // Sync operation should work regardless of enhanced option differences
+        const result = ContextContainerSync.updateTargetToMatchSource(
+          sourceWithEnhanced,
+          targetWithDefault
+        );
+
+        expect(result.success).toBe(true);
+        expect(targetWithDefault.hasItem('nested')).toBe(true);
+        expect(targetWithDefault.hasItem('nested.testValue')).toBe(true);
+      });
+    });
+  });
+
   describe('Nested Container and Hybrid Type Integration Tests', () => {
     let parentContainer;
     let nestedContainer;

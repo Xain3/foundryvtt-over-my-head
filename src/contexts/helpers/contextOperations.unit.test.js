@@ -457,9 +457,9 @@ describe('ContextOperations', () => {
 
       const result = ContextOperations.synchronizeBidirectional(mockContainer1, mockContainer2, options);
 
-      expect(ContextContainerSync.mergeWithPriority).toHaveBeenCalledTimes(2);
-      expect(ContextContainerSync.mergeWithPriority).toHaveBeenNthCalledWith(1, mockContainer1, mockContainer2, 'source', { validateSchema: true });
-      expect(ContextContainerSync.mergeWithPriority).toHaveBeenNthCalledWith(2, mockContainer2, mockContainer1, 'source', { validateSchema: true });
+      expect(ContextMerger.merge).toHaveBeenCalledTimes(2);
+      expect(ContextMerger.merge).toHaveBeenNthCalledWith(1, mockContainer1, mockContainer2, 'mergeSourcePriority', { validateSchema: true, excludePaths: [] });
+      expect(ContextMerger.merge).toHaveBeenNthCalledWith(2, mockContainer2, mockContainer1, 'mergeSourcePriority', { validateSchema: true, excludePaths: [] });
 
       expect(result).toEqual({
         success: true,
@@ -473,7 +473,7 @@ describe('ContextOperations', () => {
     it('should synchronize ContextItem instances bidirectionally successfully', () => {
       const result = ContextOperations.synchronizeBidirectional(mockItem1, mockItem2);
 
-      expect(ContextItemSync.mergeNewerWins).toHaveBeenCalledTimes(2);
+      expect(ContextMerger.merge).toHaveBeenCalledTimes(2);
       expect(result.success).toBe(true);
       expect(result.operation).toBe('synchronizeBidirectional');
     });
@@ -481,8 +481,8 @@ describe('ContextOperations', () => {
     it('should handle sync failures in bidirectional sync', () => {
       const failedResult = { success: false, itemsProcessed: 0, conflicts: 0 };
 
-      ContextContainerSync.mergeNewerWins
-        .mockReturnValueOnce(mockContainerSyncResult)
+      ContextMerger.merge
+        .mockReturnValueOnce(mockResult)
         .mockReturnValueOnce(failedResult);
 
       const result = ContextOperations.synchronizeBidirectional(mockContainer1, mockContainer2);
@@ -493,7 +493,7 @@ describe('ContextOperations', () => {
     });
 
     it('should handle errors during synchronization', () => {
-      ContextContainerSync.mergeNewerWins.mockImplementation(() => {
+      ContextMerger.merge.mockImplementation(() => {
         throw new Error('Sync error');
       });
 
@@ -688,13 +688,13 @@ describe('ContextOperations', () => {
           mockContainer1,
           mockContainer2,
           'mergeNewerWins',
-          { blockOnly: ['blocked.path'] }
+          { blockOnly: ['blocked.path'], excludePaths: [] }
         );
         expect(ContextMerger.merge).toHaveBeenCalledWith(
           mockContainer2,
           mockContainer1,
           'mergeNewerWins',
-          { blockOnly: ['blocked.path'] }
+          { blockOnly: ['blocked.path'], excludePaths: [] }
         );
       });
     });

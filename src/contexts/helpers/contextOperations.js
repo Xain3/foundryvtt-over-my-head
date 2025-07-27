@@ -405,8 +405,9 @@ class ContextOperations {
 
     try {
       // Simple bidirectional sync for ContextContainer and ContextItem instances
-      const result1to2 = ContextOperations.#performSyncWithFiltering(context1, context2, strategy, mergeOptions);
-      const result2to1 = ContextOperations.#performSyncWithFiltering(context2, context1, strategy, mergeOptions);
+      const fullMergeOptions = { ...mergeOptions, excludePaths };
+      const result1to2 = ContextOperations.#performSyncWithFiltering(context1, context2, strategy, fullMergeOptions);
+      const result2to1 = ContextOperations.#performSyncWithFiltering(context2, context1, strategy, fullMergeOptions);
 
       return {
         success: (result1to2.success !== false) && (result2to1.success !== false),

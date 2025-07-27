@@ -90,6 +90,13 @@ class ContextContainer {
   #isContextContainer;
 
   /**
+   * If true, enables checking nested paths in plain object values for hasItem().
+   * @type {boolean}
+   * @private
+   */
+  #enhancedNestedPathChecking;
+
+  /**
    * Creates an instance of ContextContainer.
    * @param {object|*} [initialItemsOrValue={}] - An object where keys are item names and values are raw values to be managed,
    *                                            or a single value to be managed under the key "default" if `initialItemsOrValue` is not a plain object.
@@ -97,6 +104,7 @@ class ContextContainer {
    * @param {object} [options={}] - Options for the container and default options for its items.
    * @param {boolean} [options.recordAccess=true] - If true, records access to the container itself (e.g., getting its overall value or size).
    * @param {boolean} [options.recordAccessForMetadata=false] - If true, records access to the container's metadata.
+   * @param {boolean} [options.enhancedNestedPathChecking=false] - If true, enables checking nested paths in plain object values for hasItem().
    * @param {boolean} [options.defaultItemWrapPrimitives=true] - Default for `wrapPrimitives` for items added to this container.
    * @param {"ContextItem"|"ContextContainer"} [options.defaultItemWrapAs="ContextItem"] - Default for `wrapAs` for items added to this container.
    * @param {boolean} [options.defaultItemRecordAccess=true] - Default `recordAccess` for items created within this container.
@@ -108,6 +116,7 @@ class ContextContainer {
     {
       recordAccess = true,
       recordAccessForMetadata = false,
+      enhancedNestedPathChecking = false,
       defaultItemWrapPrimitives = true,
       defaultItemWrapAs = "ContextItem",
       defaultItemRecordAccess = true,
@@ -123,6 +132,7 @@ class ContextContainer {
       recordAccess: defaultItemRecordAccess,
       recordAccessForMetadata: defaultItemRecordAccessForMetadata,
     };
+    this.#enhancedNestedPathChecking = enhancedNestedPathChecking;
 
     if (initialItemsOrValue !== undefined) {
       if (Validator.isPlainObject(initialItemsOrValue)) {
@@ -155,6 +165,17 @@ class ContextContainer {
    */
   get isContextContainer() {
     return this.#isContextContainer;
+  }
+
+  /**
+   * Gets whether enhanced nested path checking is enabled for this container.
+   * @returns {boolean} True if enhanced nested path checking is enabled.
+   * @example
+   * const container = new ContextContainer({}, {}, { enhancedNestedPathChecking: true });
+   * console.log(container.enhancedNestedPathChecking); // true
+   */
+  get enhancedNestedPathChecking() {
+    return this.#enhancedNestedPathChecking;
   }
 
   // Delegation properties for ContextItem functionality
@@ -360,20 +381,34 @@ class ContextContainer {
    */
   _createNestedContainer(key) {
     let container = this.#managedItems.get(key);
+
     if (!container) {
+      // Create a new empty ContextContainer
       container = ContextValueWrapper.wrap({}, {
         ...this.#defaultItemOptions,
         wrapAs: 'ContextContainer'
       });
       this.#managedItems.set(key, container);
+      return container;
     }
 
-    // Use duck typing to check if it's a container (has setItem method)
-    if (!container || typeof container.setItem !== 'function') {
-      throw new TypeError(`Cannot set nested value on non-container item at key "${key}"`);
+    // If it's already a ContextContainer, return it
+    if (container && typeof container.setItem === 'function') {
+      return container;
     }
 
-    return container;
+    // If it's a ContextItem with an object value, convert it to a ContextContainer
+    if (container && container.value && typeof container.value === 'object' && container.value !== null) {
+      const newContainer = ContextValueWrapper.wrap(container.value, {
+        ...this.#defaultItemOptions,
+        wrapAs: 'ContextContainer'
+      });
+      this.#managedItems.set(key, newContainer);
+      return newContainer;
+    }
+
+    // Cannot convert non-object values to containers
+    throw new TypeError(`Cannot set nested value on non-container item at key "${key}"`);
   }
 
   /**
@@ -514,9 +549,31 @@ class ContextContainer {
         }
       });
       const item = this.#managedItems.get(firstKey);
+      
       if (item && item instanceof ContextContainer) {
         return item.hasItem(remainingPath);
       }
+      
+      // Enhanced nested path checking: if enabled, check if item contains plain object with nested path
+      if (this.#enhancedNestedPathChecking && item && item instanceof ContextItem) {
+        const value = item.value;
+        
+        // If the value is a ContextContainer, delegate to it (same as normal logic)
+        if (value instanceof ContextContainer) {
+          return value.hasItem(remainingPath);
+        }
+        
+        // If the value is a plain object, use enhanced path checking
+        if (Validator.isPlainObject(value)) {
+          try {
+            const nestedValue = PathUtils.getValueFromMixedPath(value, remainingPath);
+            return nestedValue !== undefined;
+          } catch (error) {
+            return false;
+          }
+        }
+      }
+      
       return false;
     }
 
@@ -536,6 +593,26 @@ class ContextContainer {
   getItem(key) {
     if (typeof key !== 'string') {
       return undefined;
+    }
+
+    // Check if the user is manually accessing a renamed reserved key
+    const reservedKeys = ['value', 'metadata', 'size', 'createdAt', 'modifiedAt', 'lastAccessedAt'];
+    
+    // Check for direct renamed key access (e.g., "_value")
+    if (key.startsWith('_') && reservedKeys.includes(key.substring(1))) {
+      console.debug(`[ContextContainer.getItem] Direct renamed reserved key access: ${key} (original: ${key.substring(1)})`);
+    }
+    
+    // Check for nested renamed key access in dot notation
+    if (key.includes('.')) {
+      const pathParts = key.split('.');
+      for (let i = 0; i < pathParts.length; i++) {
+        const part = pathParts[i];
+        if (part.startsWith('_') && reservedKeys.includes(part.substring(1))) {
+          console.debug(`[ContextContainer.getItem] Nested renamed reserved key access: ${key} (renamed part: ${part} → ${part.substring(1)})`);
+          break;
+        }
+      }
     }
 
     // Handle dot notation for nested access

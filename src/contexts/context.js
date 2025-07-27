@@ -1,946 +1,1142 @@
 /**
  * @file context.js
- * @description This file defines the Context class, which encapsulates various data sources and settings for the module.
- * @path /src/contexts/context.js
+ * @description This file contains the Context class that provides a sophisticated data management framework for FoundryVTT modules, built on a modular architecture with delegation to specialized helper classes.
+ * @path src/contexts/context.js
  */
 
-import manifest from '../constants/manifest.js';
-import constants from '../constants/constants.js';
-import Validator from '../utils/static/validator.js';
 import { ContextContainer } from './helpers/contextContainer.js';
-import ContextMerger from './helpers/contextMerger.js';
-import ContextSync from './helpers/contextSync.js';
-import ContextOperations from './helpers/contextOperations.js';
+import { ContextItem } from './helpers/contextItem.js';
+import ContextHelpers from './helpers/contextHelpers.js';
+import constants from '../constants/constants.js';
 
-export const DEFAULT_INITIALIZATION_PARAMS = {
-  contextSchema: constants.context.schema,
+const DEFAULT_INITIALIZATION_PARAMS = {
+  contextSchema: {},
   namingConvention: constants.context.naming,
-  constants: constants,
-  manifest: manifest,
-  flags: constants.flags,
+  contextLocation: 'local',
+  constants: {},
+  manifest: {},
+  flags: {},
   data: {},
   settings: {}
 };
 
-
-
-const DEFAULT_OPERATIONS_PARAMS = constants.context.operationsParams.defaults;
-
-/**
- * @typedef {object} OperationsParams
- * @property {boolean} [alwaysPullBeforeGetting=false]
- * @property {boolean} [alwaysPullBeforeSetting=false]
- * @property {Context[]} [pullFrom=[]]
- * @property {boolean} [alwaysPushAfterSetting=false]
- * @property {Context[]} [pushTo=[]]
- * @property {ErrorHandlingConfig} [errorHandling]
- */
-
-/**
- * @typedef {object} ErrorHandlingConfig
- * @property {'warn'|'throw'|'silent'} [onPullError='warn']
- * @property {'warn'|'throw'|'silent'} [onPushError='warn']
- * @property {'warn'|'throw'|'silent'} [onValidationError='throw']
- */
+const DEFAULT_OPERATIONS_PARAMS = {
+  alwaysPullBeforeGetting: constants.context.operationsParams.defaults.alwaysPullBeforeGetting,
+  alwaysPullBeforeSetting: constants.context.operationsParams.defaults.alwaysPullBeforeSetting,
+  pullFrom: constants.context.operationsParams.defaults.pullFrom,
+  alwaysPushAfterSetting: constants.context.operationsParams.defaults.alwaysPushAfterSetting,
+  pushTo: constants.context.operationsParams.defaults.pushTo,
+  errorHandling: constants.context.operationsParams.defaults.errorHandling
+};
 
 /**
  * @class Context
- * @description Represents the operational context for the module, holding configuration,
- * manifest data, constants, flags, and other relevant state or data.
- * It extends ContextContainer, meaning the Context itself is a container,
- * and its main properties (manifest, constants, etc.) are items within it.
  * @extends ContextContainer
- * @property {ContextContainer} schema - The schema definition for this context. Access via getter.
- * @property {ContextContainer} constants - Module-wide constants available in this context. Access via getter.
- * @property {ContextContainer} manifest - The module's manifest data. Access via getter.
- * @property {ContextContainer} flags - Flags associated with this context. Access via getter.
- * @property {ContextContainer} state - A mutable state object for this context. Access via getter.
- * @property {ContextContainer} data - General data associated with this context. Access via getter.
- * @property {ContextContainer} settings - Settings associated with this context. Access via getter.
- * @property {object} #namingConvention - The naming convention used within this context. Frozen.
- * Inherits `createdAt`, `modifiedAt`, `lastAccessedAt` from ContextItem via ContextContainer.
+ * @export
+ * @description Provides a sophisticated data management framework for FoundryVTT modules, built on a modular architecture
+ * where the Context class acts as an orchestration layer that delegates specialized operations to dedicated helper classes.
+ *
+ * ## Architecture
+ * - **Composition over Inheritance**: Context composes helper classes rather than implementing everything internally
+ * - **Single Responsibility**: Each helper class focuses on one specific concern
+ * - **Orchestration Layer**: Context manages inter-context operations and provides a unified interface
+ * - **Delegation Pattern**: Complex operations are delegated to specialized helpers
+ * - **Simplicity**: Maintains a simple external interface while encapsulating complex logic internally
+ * - **Shortcuts for Common Operations**: Provides convenient methods for common tasks while allowing full access to helper functionality
+ *
+ * ## Core Components
+ * The Context manages seven key components as ContextContainer/ContextItem instances:
+ * - **schema** - Context schema definition (frozen ContextItem)
+ * - **constants** - Module-wide constants (frozen ContextItem)
+ * - **manifest** - Module manifest data (frozen ContextItem)
+ * - **flags** - Mutable flags (ContextContainer)
+ * - **state** - Mutable runtime state (ContextContainer)
+ * - **data** - General purpose data (ContextContainer)
+ * - **settings** - Module settings (ContextContainer)
+ *
+ * ## Inheritance and Path Support
+ * Context extends ContextContainer, inheriting its sophisticated nested path access capabilities:
+ * - **Dot Notation Support**: Direct access to nested items using paths like `'data.player.stats.level'`
+ * - **Component Traversal**: Seamless navigation across component boundaries
+ * - **Mixed Structure Handling**: Works with both ContextContainer and plain object nesting
+ * - **Path Validation**: Automatic validation and error handling for invalid paths
+ *
+ * ## Public API
+ *
+ * ### Item Management
+ * - `setItem(itemPath, itemValue, options, overrides)` - Sets items with Context-specific pull/push logic
+ * - `pullAndGetItem({itemPath, pullFrom, options})` - Context-specific pull operations
+ * - `getItem(key)` - Inherited dot notation support for nested paths (e.g., `'data.player.name'`)
+ * - `getReservedItem(key)` - Retrieves items using original reserved key names with automatic renaming
+ * - `hasItem(key)` - Inherited dot notation support for nested paths (e.g., `'settings.ui.theme'`)
+ *
+ * ### Component Access (Getters)
+ * - `get schema()` - Readonly ContextContainer for schema definition
+ * - `get constants()` - Readonly ContextContainer for module-wide constants
+ * - `get manifest()` - Readonly ContextContainer for module manifest data
+ * - `get flags()` - ContextContainer for mutable flags
+ * - `get state()` - ContextContainer for mutable runtime state
+ * - `get data()` - ContextContainer for general purpose data
+ * - `get settings()` - ContextContainer for module settings
+ *
+ * ### Comparison Operations
+ * - `compare(target, options)` - Delegates to ContextComparison
+ *
+ * ### Merge Operations
+ * - `merge(target, strategy, options)` - Delegates to ContextMerger with nested path support
+ * - `mergeItem(target, itemPath, strategy, options)` - Merge specific nested items
+ * - `analyzeMerge(target, strategy, options)` - Dry-run analysis of merge operations
+ *
+ * ### Pull/Push Operations
+ * - Inter-context synchronization with cooldowns and performance tracking
+ * - Automatic pull/push behavior based on operations parameters
+ * - Performance metrics tracking for pull/push operations
+ *
+ * @example
+ * // Basic Context usage
+ * const context = new Context({
+ *   initializationParams: {
+ *     data: { player: { name: 'Hero', stats: { level: 5 } } },
+ *     settings: { ui: { theme: 'dark' } }
+ *   }
+ * });
+ *
+ * // Nested path access (inherited from ContextContainer)
+ * const playerName = context.getItem('data.player.name');          // 'Hero'
+ * const playerLevel = context.getItem('data.player.stats.level');  // 5
+ * const theme = context.getItem('settings.ui.theme');              // 'dark'
+ *
+ * // Component getter approach
+ * const playerStats = context.data().getItem('player.stats');
+ * const uiSettings = context.settings().getItem('ui');
+ *
+ * // Merge operations
+ * const result = context.merge(otherContext, 'mergeNewerWins');
  */
 class Context extends ContextContainer {
-  #namingConvention;
+  /**
+   * Operations parameters for automatic pull/push behavior.
+   * @type {object}
+   * @private
+   */
   #operationsParams;
-  #lastPullTimestamp = new Map();
-  #pullCooldown = 1000; // ms
-  #performanceMetrics = {
-    pullOperations: 0,
-    pushOperations: 0,
-    averagePullTime: 0,
-    averagePushTime: 0
-  };
-  #isContextObject = true;
 
   /**
-   * @constructor
-   * @param {object} [options={}] - The options object.
-   * @param {object} [options.initializationParams=DEFAULT_INITIALIZATION_PARAMS] - The parameters for initializing the context.
-   * @param {object} [options.initializationParams.contextSchema=constants.context.schema] - The schema definition for the context.
-   * @param {object} [options.initializationParams.namingConvention=constants.context.naming] - The naming convention to be used.
-   * @param {object} [options.initializationParams.constants=constants] - Module-wide constants.
-   * @param {object} [options.initializationParams.manifest=manifest] - The module's manifest data.
-   * @param {object} [options.initializationParams.flags=constants.flags] - Initial flags for the context.
-   * @param {object} [options.initializationParams.data={}] - Initial data for the context.
-   * @param {object} [options.initializationParams.settings={}] - Initial settings for the context.
-   * @param {object} [options.operationsParams] - Parameters controlling pulling/pushing behavior.
-   * @param {boolean} [options.operationsParams.alwaysPullBeforeGetting=false] - Whether to always pull from sources before getting items.
-   * @param {boolean} [options.operationsParams.alwaysPullBeforeSetting=false] - Whether to always pull from sources before setting items.
-   * @param {Context[]} [options.operationsParams.pullFrom=[]] - Array of source contexts to pull from.
-   * @param {boolean} [options.operationsParams.alwaysPushAfterSetting=false] - Whether to always push to targets after setting items.
-   * @param {Context[]} [options.operationsParams.pushTo=[]] - Array of target contexts to push to.
-   * @param {object} [options.operationsParams.errorHandling] - Error handling configuration.
-   * @param {string} [options.operationsParams.errorHandling.onPullError='warn'] - Action on pull error ('warn', 'throw', 'silent').
-   * @param {string} [options.operationsParams.errorHandling.onPushError='warn'] - Action on push error ('warn', 'throw', 'silent').
-   * @param {string} [options.operationsParams.errorHandling.onValidationError='throw'] - Action on validation error ('warn', 'throw', 'silent').
+   * Naming convention configuration (frozen).
+   * @type {ContextItem}
+   * @private
+   */
+  #namingConvention;
+
+  /**
+   * Location of the context (e.g., module name, local context, world name, directory path).
+   * @type {string}
+   * @private
+   */
+  #contextLocation;
+
+  /**
+   * Core components as ContextContainer/ContextItem instances.
+   * @type {object}
+   * @private
+   */
+  #components;
+
+  /**
+   * Performance metrics for pull/push operations.
+   * @type {object}
+   * @private
+   */
+  #performanceMetrics;
+
+  /**
+   * Cooldown tracking for pull operations.
+   * @type {object}
+   * @private
+   */
+  #pullCooldown;
+
+  /**
+   * Duck typing identifier.
+   * @type {boolean}
+   * @private
+   */
+  #isContextObject;
+
+  /**
+   * Creates an instance of Context.
+   * @param {object} [params={}] - Configuration parameters.
+   * @param {object} [params.initializationParams=DEFAULT_INITIALIZATION_PARAMS] - Initialization parameters.
+   * @param {object} [params.initializationParams.contextSchema] - Schema definition for the context.
+   * @param {object} [params.initializationParams.namingConvention] - Naming convention configuration.
+   * @param {string} [params.initializationParams.contextLocation] - Location of the context.
+   * @param {object} [params.initializationParams.constants] - Module-wide constants object.
+   * @param {object} [params.initializationParams.manifest] - Module manifest data.
+   * @param {object} [params.initializationParams.flags] - Initial flags object.
+   * @param {object} [params.initializationParams.data={}] - Initial data object.
+   * @param {object} [params.initializationParams.settings={}] - Initial settings object.
+   * @param {object} [params.operationsParams=DEFAULT_OPERATIONS_PARAMS] - Operations parameters.
+   * @param {boolean} [params.operationsParams.alwaysPullBeforeGetting=false] - Auto-pull before get operations.
+   * @param {boolean} [params.operationsParams.alwaysPullBeforeSetting=false] - Auto-pull before set operations.
+   * @param {Context[]} [params.operationsParams.pullFrom=[]] - Array of source contexts for pulling.
+   * @param {boolean} [params.operationsParams.alwaysPushAfterSetting=false] - Auto-push after set operations.
+   * @param {Context[]} [params.operationsParams.pushTo=[]] - Array of target contexts for pushing.
+   * @param {object} [params.operationsParams.errorHandling] - Error handling configuration object.
+   * @param {boolean} [params.enhancedNestedPathChecking=false] - If true, enables checking nested paths in plain object values for hasItem().
    */
   constructor({
     initializationParams = DEFAULT_INITIALIZATION_PARAMS,
     operationsParams = DEFAULT_OPERATIONS_PARAMS,
+    enhancedNestedPathChecking = false
   } = {}) {
-    // Initialize ContextContainer part.
-    super({}, {}, { recordAccess: false, recordAccessForMetadata: false, defaultItemWrapAs: 'ContextContainer' });
-
-    // Set operations params FIRST before any setItem calls
-    this.#operationsParams = operationsParams;
-
-    // Extract parameters with defaults
-    const {
-      contextSchema = constants.context.schema,
-      namingConvention = constants.context.naming,
-      constants: consts = constants,
-      manifest: manifestData = manifest,
-      flags = constants.flags,
-      data = {},
-      settings = {}
-    } = initializationParams;
-
-    const constructorArgs = {
-      contextSchema,
-      namingConvention,
-      constants: consts,
-      manifest: manifestData,
-      flags,
-      data,
-      settings
-    };
-
-    this.#validateConstructorArgs(constructorArgs);
-
-    // Initialize properties as items within this ContextContainer
-    this.#initializeContextItems(contextSchema, consts, manifestData, flags, data, settings);
-
-    // #namingConvention remains a private property, not an item in the container.
-    this.#namingConvention = new ContextContainer(namingConvention, {}, { 
-      recordAccess: false,
-      defaultItemRecordAccess: false 
-    });
-    
-    // Freeze the naming convention container and its items
-    this.#namingConvention.freeze();
-    for (const [key, item] of this.#namingConvention.entries()) {
-      item.freeze();
-    }
-  }
-
-  #initializeContextItems(contextSchema, consts, manifestData, flags, data, settings) {
-    // Use ContextItem for simple data objects that should be frozen
-    this.setItem('schema', contextSchema, { 
-      wrapAs: 'ContextItem', 
-      frozen: true 
-    });
-    
-    this.setItem('constants', consts, { 
-      wrapAs: 'ContextItem', 
-      frozen: true 
-    });
-    
-    this.setItem('manifest', manifestData, { 
-      wrapAs: 'ContextItem', 
-      frozen: true 
+    // Initialize the parent ContextContainer with empty data first
+    super({}, {}, {
+      recordAccess: true,
+      recordAccessForMetadata: false,
+      enhancedNestedPathChecking
     });
 
-    // Use ContextContainer for mutable container-like objects
-    this.setItem('flags', flags);  // Uses default ContextContainer
-    this.setItem('state', {}); // State is initialized as an empty container
-    this.setItem('data', data);  // Uses default ContextContainer
-    this.setItem('settings', settings);  // Uses default ContextContainer
-  }
+    // Set duck typing identifier
+    this.#isContextObject = true;
 
-  // Private helper methods (placed at top for better organization)
+    // Initialize operations parameters
+    this.#operationsParams = { ...DEFAULT_OPERATIONS_PARAMS, ...operationsParams };
 
-  /**
-   * @private
-   * @method #validateConstructorArgs
-   * @description Validates the arguments passed to the Context constructor.
-   * @param {object} constructorArgs - The arguments object to validate.
-   * @param {object} constructorArgs.contextSchema - The context schema.
-   * @param {object} constructorArgs.namingConvention - The naming convention.
-   * @param {object} constructorArgs.constants - The constants object.
-   * @param {object} constructorArgs.manifest - The manifest object.
-   * @param {object} constructorArgs.flags - The flags object.
-   * @param {object} constructorArgs.data - The data object.
-   * @param {object} constructorArgs.settings - The settings object.
-   * @throws {Error} If any validation fails.
-   */
-  #validateConstructorArgs(constructorArgs) {
-    // Validate constructor arguments
-    Validator.validateArgsObjectStructure(constructorArgs, 'Context constructor parameters');
-
-    const { contextSchema, namingConvention, constants, manifest, flags, data, settings } = constructorArgs;
-
-    Validator.validateSchemaDefinition(contextSchema, 'Context schema');
-
-    Validator.validateObject(namingConvention, 'Naming convention');
-    // Validate naming convention;
-    Object.entries(namingConvention).forEach(([property, name]) => {
-      Validator.validateStringAgainstPattern(
-        name,
-        `Naming convention.${property}`,
-        /^[a-zA-Z0-9_]+$/,
-        'alphanumeric characters and underscores',
-        { allowEmpty: false }
-      );
-    });
-
-    Validator.validateObject(constants, 'Constants', { allowEmpty: false });
-    Validator.validateObject(manifest, 'Manifest', { allowEmpty: false });
-
-    Validator.validateObject(flags, 'Flags', { allowEmpty: true, checkKeys: true });
-    Validator.validateObject(data, 'Data', { allowEmpty: true, checkKeys: true });
-    Validator.validateObject(settings, 'Settings', { allowEmpty: true, checkKeys: true });
-  }
-
-  /**
-   * @private
-   * @method #validateOperationsParams
-   * @description Validates the operations parameters for pull/push functionality.
-   * @param {OperationsParams} operationsParams - The operations parameters to validate.
-   * @throws {Error} If validation fails.
-   */
-  #validateOperationsParams(operationsParams) {
-    if (!operationsParams) return;
-
-    const { pullFrom, pushTo } = operationsParams;
-
-    if (pullFrom && !Array.isArray(pullFrom)) {
-      throw new Error('operationsParams.pullFrom must be an array');
-    }
-
-    if (pushTo && !Array.isArray(pushTo)) {
-      throw new Error('operationsParams.pushTo must be an array');
-    }
-
-    // Validate that all contexts in arrays are actually Context instances
-    [...(pullFrom || []), ...(pushTo || [])].forEach((ctx, index) => {
-      if (!(ctx instanceof Context)) {
-        throw new Error(`Context at index ${index} is not a valid Context instance`);
-      }
-    });
-  }
-
-  /**
-   * @private
-   * @method #handleError
-   * @description Handles errors based on the configured error handling strategy.
-   * @param {Error} error - The error to handle.
-   * @param {string} operation - The operation that caused the error (e.g., 'Pull', 'Push').
-   * @param {object} [options={}] - Additional context for error handling.
-   */
-  #handleError(error, operation, options = {}) {
-    const errorHandling = this.#operationsParams.errorHandling || {};
-    const action = errorHandling[`on${operation}Error`] || 'warn';
-
-    switch (action) {
-      case 'throw':
-        throw error;
-      case 'silent':
-        break;
-      case 'warn':
-      default:
-        console.warn(`${operation} failed:`, error);
-    }
-  }
-
-  /**
-   * @private
-   * @method #prepareFinalOptions
-   * @description Prepares final options by merging defaults with provided options.
-   * @param {object} options - The options to merge with defaults.
-   * @returns {object} The merged options object.
-   */
-  #prepareFinalOptions(options) {
-    const defaultOptions = {
-      pull: this.#operationsParams?.alwaysPullBeforeSetting || false,
-      pullFrom: this.#operationsParams?.pullFrom || [],
-      push: this.#operationsParams?.alwaysPushAfterSetting || false,
-      pushTo: this.#operationsParams?.pushTo || [],
-    };
-    return { ...defaultOptions, ...options };
-  }
-
-  /**
-   * @private
-   * @method #performPull
-   * @description Performs a pull operation from source contexts.
-   * @param {object} finalOptions - The final options for the pull operation.
-   * @param {string} itemPath - The path of the item to pull.
-   * @param {*} initialValue - The initial value to use if pull fails.
-   * @returns {*} The final value after pull operation.
-   */
-  #performPull(finalOptions, itemPath, initialValue) {
-    let finalValue = initialValue;
-    try {
-      for (const sourceContext of finalOptions.pullFrom) {
-        const pullResult = ContextOperations.pullItems(
-          sourceContext,
-          this,
-          [itemPath],
-          'mergeNewerWins',
-          { dryRun: true }
-        );
-
-        if (pullResult.success && pullResult.changes.length > 0) {
-          const pulledValue = sourceContext.getItem(itemPath);
-          if (pulledValue !== undefined) {
-            finalValue = pulledValue;
-            break; // Use the first successful pull
-          }
-        }
-      }
-    } catch (error) {
-      this.#handleError(error, 'Pull', { itemPath, sourceContexts: finalOptions.pullFrom });
-    }
-    return finalValue;
-  }
-
-  /**
-   * @private
-   * @method #performPush
-   * @description Performs a push operation to target contexts.
-   * @param {object} finalOptions - The final options for the push operation.
-   * @param {string} itemPath - The path of the item to push.
-   */
-  #performPush(finalOptions, itemPath) {
-    try {
-      for (const targetContext of finalOptions.pushTo) {
-        ContextOperations.pushItems(
-          this,
-          targetContext,
-          [itemPath],
-          'mergeSourcePriority'
-        );
-      }
-    } catch (error) {
-      this.#handleError(error, 'Push', { itemPath, targetContexts: finalOptions.pushTo });
-    }
-  }
-
-  /**
-   * @private
-   * @method #shouldPull
-   * @description Determines if a property should be pulled based on cooldown and configuration.
-   * @param {string} propertyName - The name of the property to check.
-   * @returns {boolean} True if the property should be pulled.
-   */
-  #shouldPull(propertyName) {
-    if (!this.#operationsParams.alwaysPullBeforeGetting) return false;
-
-    const lastPull = this.#lastPullTimestamp.get(propertyName) || 0;
-    const now = Date.now();
-
-    return (now - lastPull) > this.#pullCooldown;
-  }
-
-  /**
-   * @private
-   * @method #pullPropertyIfNeeded
-   * @description Pulls a property if needed based on configuration and cooldown.
-   * @param {string} propertyName - The name of the property to potentially pull.
-   */
-  #pullPropertyIfNeeded(propertyName) {
-    if (!this.#shouldPull(propertyName)) return;
-
-    if (this.#operationsParams.alwaysPullBeforeGetting &&
-        Array.isArray(this.#operationsParams.pullFrom) &&
-        this.#operationsParams.pullFrom.length > 0) {
-      this.#performPullOperation(propertyName);
-    }
-  }
-
-  /**
-   * @private
-   * @method #performPullOperation
-   * @description Performs the actual pull operation for a specific property.
-   * @param {string} propertyName - The name of the property to pull.
-   */
-  #performPullOperation(propertyName) {
-    try {
-      for (const sourceContext of this.#operationsParams.pullFrom) {
-        const pullResult = ContextOperations.pullItems(
-          sourceContext,
-          this,
-          [propertyName],
-          'mergeNewerWins',
-          { dryRun: true }
-        );
-
-        if (pullResult.success && pullResult.changes.length > 0) {
-          const pulledValue = sourceContext.getItem(propertyName);
-          if (pulledValue !== undefined) {
-            super.setItem(propertyName, pulledValue);
-            break;
-          }
-        }
-      }
-    } catch (error) {
-      console.warn(`Failed to pull ${propertyName}:`, error);
-    }
-  }
-
-  /**
-   * @private
-   * @method #executePullAndGetItem
-   * @description Executes the actual pull operation and returns the item if available.
-   * @param {Context} sourceContext - The source context to pull from.
-   * @param {string} itemPath - The path of the item to pull.
-   * @param {object} options - Options for the pull operation.
-   * @returns {*|null} The pulled item or null if not found.
-   */
-  #executePullAndGetItem(sourceContext, itemPath, options) {
-    const pulledValue = sourceContext.getItem(itemPath);
-    if (pulledValue !== undefined) {
-      ContextOperations.pullItems(sourceContext, this, [itemPath], 'mergeNewerWins', options);
-      return this.getItem(itemPath);
-    }
-    return null;
-  }
-
-  /**
-   * @private
-   * @method #tryPullFromSource
-   * @description Attempts to pull an item from a single source context.
-   * @param {Context} sourceContext - The source context to pull from.
-   * @param {string} itemPath - The path of the item to pull.
-   * @param {object} options - Options for the pull operation.
-   * @returns {*|null} The pulled value or null if not found/failed.
-   */
-  #tryPullFromSource(sourceContext, itemPath, options) {
-    const pullResult = ContextOperations.pullItems(
-      sourceContext,
-      this,
-      [itemPath],
-      'mergeNewerWins',
-      { ...options, dryRun: true }
+    // Initialize naming convention (frozen)
+    this.#namingConvention = new ContextItem(
+      { ...constants.context.naming, ...initializationParams.namingConvention },
+      { type: 'namingConvention' },
+      { frozen: true, recordAccess: false }
     );
 
-    if (pullResult.success && pullResult.changes.length > 0) {
-      return this.#executePullAndGetItem(sourceContext, itemPath, options);
-    }
+    // Set context location
+    this.#contextLocation = initializationParams.contextLocation || 'local';
 
-    return null;
-  }
-
-  /**
-   * @private
-   * @method #iterateSourcesForPull
-   * @description Iterates through source contexts attempting to pull the specified item.
-   * @param {Context[]} pullFrom - Array of source contexts to pull from.
-   * @param {string} itemPath - The path of the item to pull.
-   * @param {object} options - Options for the pull operation.
-   * @returns {*|undefined} The pulled item or undefined if not found.
-   */
-  #iterateSourcesForPull(pullFrom, itemPath, options) {
-    for (const sourceContext of pullFrom) {
-      const result = this.#tryPullFromSource(sourceContext, itemPath, options);
-      if (result !== null) {
-        return result;
-      }
-    }
-    return undefined;
-  }
-
-    /**
-   * @private
-   * @method #determineSingleItemResolution
-   * @description Determines how a single item conflict was resolved based on merge results.
-   * @param {object} mergeResult - The result from the merge operation.
-   * @param {string} itemPath - The path of the item that was merged.
-   * @returns {string|null} The resolution type or null if no conflict.
-   */
-  #determineSingleItemResolution(mergeResult, itemPath) {
-    if (mergeResult.conflicts === 0) return null;
-
-    const change = mergeResult.changes.find(change => change.path === itemPath);
-    if (!change) return 'skipped';
-
-    switch (change.action) {
-      case 'sourcePreferred':
-        return 'source';
-      case 'targetPreferred':
-        return 'target';
-      case 'customResolution':
-        return 'custom';
-      default:
-        return 'skipped';
-    }
-  }
-
-  /**
-   * @private
-   * @method #getSingleItemFinalValue
-   * @description Gets the final value for a single item after merge operation.
-   * @param {object} mergeResult - The result from the merge operation.
-   * @param {string} itemPath - The path of the item that was merged.
-   * @param {boolean} isDryRun - Whether this was a dry run operation.
-   * @returns {*} The final value or undefined if not available.
-   */
-  #getSingleItemFinalValue(mergeResult, itemPath, isDryRun) {
-    if (isDryRun) {
-      const change = mergeResult.changes.find(change => change.path === itemPath);
-      return change ? change.newValue : undefined;
-    }
-
-    // For non-dry runs, get the actual current value
-    return this.getItem(itemPath);
-  }
-
-  // Public methods
-
-  /**
-   * @method setItem
-   * @description Sets an item in the context with optional pull/push operations.
-   * @param {string} itemPath - The path of the item to set.
-   * @param {*} itemValue - The value to set.
-   * @param {object} [options] - Options for the set operation.
-   * @param {boolean} [options.pull] - Whether to pull from sources before setting.
-   * @param {Context[]} [options.pullFrom] - Array of contexts to pull from.
-   * @param {boolean} [options.push] - Whether to push to targets after setting.
-   * @param {Context[]} [options.pushTo] - Array of contexts to push to.
-   * @param {boolean} [options.ignoreFrozen=false] - If true, allows overwriting frozen items without error.
-   * @param {object} [overrides={}] - Override options for the underlying setItem call.
-   */
-  setItem(itemPath, itemValue, options = {}, overrides = {}) {
-    const finalOptions = this.#prepareFinalOptions(options);
-    let finalValue = itemValue;
-
-    if (finalOptions.pull) {
-      finalValue = this.#performPull(finalOptions, itemPath, finalValue);
-    }
-
-    // Merge options and overrides, with overrides taking precedence
-    const mergedOptions = { ...finalOptions, ...overrides };
-    
-    super.setItem(itemPath, finalValue, mergedOptions);
-
-    if (finalOptions.push) {
-      this.#performPush(finalOptions, itemPath);
-    }
-  }
-
-  /**
-   * @method pullAndGetItem
-   * @description Pulls the specified item from the defined sources and returns it.
-   * If the item is not found, it returns undefined.
-   * @param {object} params - Parameters for pulling and getting the item.
-   * @param {string} params.itemPath - The path of the item to pull and get.
-   * @param {Context[]} [params.pullFrom=this.#operationsParams.pullFrom] - Sources to pull from.
-   * @param {object} [params.options={}] - Additional options for pulling.
-   * @returns {ContextItem|undefined} The pulled item or undefined if not found.
-   */
-  pullAndGetItem({itemPath, pullFrom = this.#operationsParams.pullFrom, options = {}}) {
-    if (!Array.isArray(pullFrom) || pullFrom.length === 0) {
-      return undefined;
-    }
-
-    try {
-      return this.#iterateSourcesForPull(pullFrom, itemPath, options);
-    } catch (error) {
-      console.warn(`Failed to pull and get item ${itemPath}:`, error);
-      return undefined;
-    }
-  }
-
-  /**
-   * @method compare
-   * @description Compares this context with another context object.
-   * @param {Context|ContextContainer|ContextItem} target - The target context object to compare with.
-   * @param {object} [options={}] - Comparison options.
-   * @param {string} [options.compareBy='modifiedAt'] - Which timestamp to compare ('createdAt', 'modifiedAt', 'lastAccessedAt').
-   * @param {Context|ContextContainer|ContextItem} [options.sourceContext=this] - The source context to use for comparison.
-   * @returns {object} Comparison result with details.
-   */
-  compare(target, options = {}) {
-    const { sourceContext = this, ...otherOptions } = options;
-    return ContextSync.compare(sourceContext, target, otherOptions);
-  }
-
-  /**
-   * Performs a sophisticated merge of this context with a target context using ContextMerger.
-   * This is the primary entry point for all merge operations, providing granular synchronization
-   * at the ContextItem level with comprehensive options for conflict resolution and change tracking.
-   *
-   * The method supports multiple approaches for controlling which items are merged:
-   * 1. Component-level filtering (includeComponents/excludeComponents)
-   * 2. Path-based filtering (allowOnly/blockOnly/singleItem)
-   * 3. Pattern-based filtering (matchPattern)
-   * 4. Custom logic filtering (customFilter/onConflict)
-   *
-   * @param {Context|ContextContainer|ContextItem} target - The target context to merge with.
-   * @param {string} [strategy='mergeNewerWins'] - The merge strategy to apply. Available strategies:
-   *   - 'mergeNewerWins': Choose the item with the newer timestamp (default)
-   *   - 'mergeSourcePriority': Always prefer source context items over target
-   *   - 'mergeTargetPriority': Always prefer target context items over source
-   *   - 'updateSourceToTarget': Update source items to match target values
-   *   - 'updateTargetToSource': Update target items to match source values
-   *   - 'replace': Replace entire containers rather than merging individual items
-   *   - 'noAction': Compare but don't modify anything (analysis mode)
-   *
-   * @param {object} [options={}] - Comprehensive merge options to control behavior.
-   *
-   * @param {string} [options.compareBy='modifiedAt'] - Which timestamp field to use for item comparisons.
-   *   Options: 'createdAt', 'modifiedAt', 'lastAccessedAt'. Used when strategy involves timestamp comparison.
-   *
-   * @param {boolean} [options.preserveMetadata=true] - Whether to preserve existing metadata (timestamps, etc.)
-   *   when updating items. If false, metadata will be reset during merge operations.
-   *
-   * @param {boolean} [options.createMissing=true] - Whether to create items that exist in source but not in target.
-   *   If false, only existing items will be updated.
-   *
-   * @param {boolean} [options.dryRun=false] - If true, performs analysis without making actual changes.
-   *   Useful for previewing merge operations before executing them.
-   *
-   * // === COMPONENT-LEVEL FILTERING ===
-   * @param {string[]} [options.includeComponents] - Array of component keys to include in merge.
-   *   If specified, only these components will be processed. Available components:
-   *   ['schema', 'constants', 'manifest', 'flags', 'state', 'data', 'settings']
-   *   Example: ['data', 'settings'] - only merge data and settings components
-   *
-   * @param {string[]} [options.excludeComponents=[]] - Array of component keys to exclude from merging.
-   *   These components will be skipped entirely during the merge operation.
-   *   Example: ['schema', 'constants'] - merge everything except schema and constants
-   *
-   * // === PATH-BASED FILTERING (Convenience Parameters) ===
-   * // These parameters provide simplified filtering and are converted to onConflict filters internally.
-   * // Use these for common filtering scenarios instead of writing custom onConflict functions.
-   *
-   * @param {string[]} [options.allowOnly] - Array of specific item paths to allow in the merge.
-   *   Only items with paths matching these patterns will be merged. All others are skipped.
-   *   Paths use dot notation: 'component.item' or 'component.nested.item'
-   *   Example: ['data.inventory', 'settings.volume', 'flags.experimentalFeatures']
-   *   Note: Cannot be used with blockOnly, singleItem, matchPattern, or customFilter
-   *
-   * @param {string[]} [options.blockOnly] - Array of specific item paths to exclude from the merge.
-   *   Items with paths matching these patterns will be skipped. All others are merged.
-   *   Example: ['data.temporaryCache', 'state.uiState', 'settings.debug']
-   *   Note: Cannot be used with allowOnly, singleItem, matchPattern, or customFilter
-   *
-   * @param {string} [options.singleItem] - Single item path to merge exclusively.
-   *   Only this specific item will be processed, all others are skipped.
-   *   Example: 'data.playerStats.level' - merge only the player level
-   *   Note: Cannot be used with allowOnly, blockOnly, matchPattern, or customFilter
-   *
-   * @param {RegExp} [options.matchPattern] - Regular expression pattern to match against item paths.
-   *   Only items whose paths match this pattern will be merged.
-   *   Example: /data\.player/ - merge all items under data.player
-   *   Example: /settings\..*volume$/ - merge all settings ending with 'volume'
-   *   Note: Cannot be used with allowOnly, blockOnly, singleItem, or customFilter
-   *
-   * @param {Function} [options.customFilter] - Custom filter function for advanced path-based filtering.
-   *   Function signature: (sourceItem, targetItem, itemPath) => boolean
-   *   Return true to include the item in merge, false to skip it.
-   *   Example: (src, tgt, path) => src?.version > tgt?.version
-   *   Note: Cannot be used with allowOnly, blockOnly, singleItem, or matchPattern
-   *
-   * // === ADVANCED CONFLICT RESOLUTION ===
-   * @param {Function} [options.onConflict] - Advanced custom conflict resolver function.
-   *   This provides full control over merge decisions for each conflicting item.
-   *   Function signature: (sourceItem, targetItem, itemPath) => ContextItem|null
-   *   - Return sourceItem to choose source
-   *   - Return targetItem to choose target
-   *   - Return null to skip this item
-   *   - Return a new ContextItem for custom resolution
-   *   Example: (src, tgt, path) => path.includes('critical') ? src : tgt
-   *   Note: If specified, convenience parameters (allowOnly, blockOnly, etc.) are ignored
-   *
-   * @returns {object} Detailed merge result with comprehensive statistics and change tracking.
-   * @returns {boolean} returns.success - Whether the merge operation completed successfully.
-   * @returns {string} returns.strategy - The merge strategy that was used.
-   * @returns {number} returns.itemsProcessed - Total number of items that were evaluated.
-   * @returns {number} returns.conflicts - Number of conflicts that were resolved.
-   * @returns {Array} returns.changes - Array of change objects describing what was modified.
-   * @returns {object} returns.statistics - Detailed statistics about the merge operation.
-   * @returns {number} returns.statistics.sourcePreferred - Items where source was chosen.
-   * @returns {number} returns.statistics.targetPreferred - Items where target was chosen.
-   * @returns {number} returns.statistics.created - New items created in target.
-   * @returns {number} returns.statistics.updated - Existing items that were updated.
-   * @returns {number} returns.statistics.skipped - Items that were skipped.
-   * @returns {Array} returns.errors - Array of error objects if any occurred.
-   *
-   * @example
-   * // Basic merge with newer items winning
-   * const result = context.merge(targetContext);
-   *
-   * @example
-   * // Merge only specific data with source priority
-   * const result = context.merge(targetContext, 'mergeSourcePriority', {
-   *   allowOnly: ['data.inventory', 'settings.volume', 'flags.experimentalFeatures']
-   * });
-   *
-   * @example
-   * // Merge everything except temporary data
-   * const result = context.merge(targetContext, 'mergeNewerWins', {
-   *   blockOnly: ['data.temporaryCache', 'state.pendingRequests']
-   * });
-   *
-   * @example
-   * // Merge single item with metadata preservation
-   * const result = context.merge(targetContext, 'mergeSourcePriority', {
-   *   singleItem: 'data.playerStats.level',
-   *   preserveMetadata: true
-   * });
-   *
-   * @example
-   * // Merge items matching a pattern
-   * const result = context.merge(targetContext, 'mergeNewerWins', {
-   *   matchPattern: /data\.player/
-   * });
-   *
-   * @example
-   * // Merge with custom filtering logic
-   * const result = context.merge(targetContext, 'mergeNewerWins', {
-   *   customFilter: (sourceItem, targetItem, itemPath) => {
-   *     return sourceItem?.version > targetItem?.version;
-   *   }
-   * });
-   *
-   * @example
-   * // Advanced merge with custom conflict resolution
-   * const result = context.merge(targetContext, 'mergeNewerWins', {
-   *   excludeComponents: ['schema'],
-   *   preserveMetadata: true,
-   *   onConflict: (sourceItem, targetItem, path) => {
-   *     if (path.includes('critical')) return sourceItem;
-   *     if (path.includes('cache')) return null; // skip
-   *     return targetItem; // default to target
-   *   }
-   * });
-   *
-   * @example
-   * // Preview merge without making changes
-   * const preview = context.merge(targetContext, 'mergeNewerWins', {
-   *   dryRun: true,
-   *   includeComponents: ['data', 'settings']
-   * });
-   * console.log(`Would process ${preview.itemsProcessed} items with ${preview.conflicts} conflicts`);
-   * preview.changes.forEach(change => console.log(`${change.action}: ${change.path}`));
-   */
-  merge(target, strategy = 'mergeNewerWins', options = {}) {
-    return ContextMerger.merge(this, target, strategy, options);
-  }
-
-  /**
-   * @method mergeItem
-   * @description Merges a single item between this context and a target context.
-   * This is a convenience method that simplifies merging individual items
-   * without needing to configure component-level or path-based filtering.
-   *
-   * @param {Context|ContextContainer|ContextItem} target - The target context to merge with.
-   * @param {string} itemPath - The path of the specific item to merge (e.g., 'data.playerStats', 'settings.volume').
-   * @param {string} [strategy='mergeNewerWins'] - The merge strategy to apply. Available strategies:
-   *   - 'mergeNewerWins': Choose the item with the newer timestamp (default)
-   *   - 'mergeSourcePriority': Always prefer source context item over target
-   *   - 'mergeTargetPriority': Always prefer target context item over source
-   *   - 'updateSourceToTarget': Update source item to match target value
-   *   - 'updateTargetToSource': Update target item to match source value
-   *   - 'replace': Replace the item entirely rather than merging
-   *   - 'noAction': Compare but don't modify anything (analysis mode)
-   * @param {object} [options={}] - Additional merge options.
-   * @param {string} [options.compareBy='modifiedAt'] - Which timestamp field to use for comparison.
-   * @param {boolean} [options.preserveMetadata=true] - Whether to preserve existing metadata.
-   * @param {boolean} [options.dryRun=false] - If true, performs analysis without making changes.
-   * @param {Function} [options.onConflict] - Custom conflict resolver for this specific item.
-   * @returns {object} Detailed merge result for the single item.
-   * @returns {boolean} returns.success - Whether the merge operation completed successfully.
-   * @returns {string} returns.itemPath - The path of the item that was merged.
-   * @returns {boolean} returns.wasConflict - Whether there was a conflict between source and target.
-   * @returns {string|null} returns.resolution - How the conflict was resolved ('source', 'target', 'skipped', 'custom').
-   * @returns {Array} returns.changes - Array of change objects (0 or 1 items).
-   * @returns {*} returns.finalValue - The final value that was set (if not a dry run).
-   * @returns {Array} returns.errors - Array of error objects if any occurred.
-   *
-   * @example
-   * // Merge a single data item with newer wins strategy
-   * const result = context.mergeItem(targetContext, 'data.playerStats.level');
-   *
-   * @example
-   * // Force source priority for a specific setting
-   * const result = context.mergeItem(targetContext, 'settings.volume', 'mergeSourcePriority');
-   *
-   * @example
-   * // Preview what would happen to a specific item
-   * const preview = context.mergeItem(targetContext, 'data.inventory.items', 'mergeNewerWins', {
-   *   dryRun: true
-   * });
-   *
-   * @example
-   * // Merge with custom conflict resolution for this item
-   * const result = context.mergeItem(targetContext, 'flags.experimentalFeatures', 'mergeNewerWins', {
-   *   onConflict: (sourceItem, targetItem, path) => {
-   *     // Custom logic for this specific item
-   *     return sourceItem.value.enabled ? sourceItem : targetItem;
-   *   }
-   * });
-   */
-  mergeItem(target, itemPath, strategy = 'mergeNewerWins', options = {}) {
-    // Validate inputs
-    if (!itemPath || typeof itemPath !== 'string') {
-      throw new Error('itemPath must be a non-empty string');
-    }
-
-    // Use the existing merge method with singleItem option
-    const mergeResult = this.merge(target, strategy, {
-      ...options,
-      singleItem: itemPath
-    });
-
-    // Transform the result to be more specific to single-item operations
-    const singleItemResult = {
-      success: mergeResult.success,
-      itemPath: itemPath,
-      wasConflict: mergeResult.conflicts > 0,
-      resolution: this.#determineSingleItemResolution(mergeResult, itemPath),
-      changes: mergeResult.changes,
-      finalValue: this.#getSingleItemFinalValue(mergeResult, itemPath, options.dryRun),
-      errors: mergeResult.errors
+    // Initialize performance metrics
+    this.#performanceMetrics = {
+      pullOperations: 0,
+      pushOperations: 0,
+      totalPullTime: 0,
+      totalPushTime: 0,
+      lastPullTime: null,
+      lastPushTime: null
     };
 
-    return singleItemResult;
+    // Initialize pull cooldown tracking
+    this.#pullCooldown = {
+      lastPull: null,
+      cooldownMs: 1000
+    };
+
+    // Initialize core components
+    this.#components = {};
+
+    // Create frozen components (schema, constants, manifest)
+    this.#components.schema = new ContextItem(
+      initializationParams.contextSchema || {},
+      { type: 'schema' },
+      { frozen: true, recordAccess: false }
+    );
+
+    this.#components.constants = new ContextItem(
+      initializationParams.constants || {},
+      { type: 'constants' },
+      { frozen: true, recordAccess: false }
+    );
+
+    this.#components.manifest = new ContextItem(
+      initializationParams.manifest || {},
+      { type: 'manifest' },
+      { frozen: true, recordAccess: false }
+    );
+
+    // Create mutable components (flags, state, data, settings)
+    this.#components.flags = new ContextContainer(
+      initializationParams.flags || {},
+      { type: 'flags' },
+      { recordAccess: true, recordAccessForMetadata: false, enhancedNestedPathChecking }
+    );
+
+    this.#components.state = new ContextContainer(
+      {},
+      { type: 'state' },
+      { recordAccess: true, recordAccessForMetadata: false, enhancedNestedPathChecking }
+    );
+
+    this.#components.data = new ContextContainer(
+      initializationParams.data || {},
+      { type: 'data' },
+      { recordAccess: true, recordAccessForMetadata: false, enhancedNestedPathChecking }
+    );
+
+    this.#components.settings = new ContextContainer(
+      initializationParams.settings || {},
+      { type: 'settings' },
+      { recordAccess: true, recordAccessForMetadata: false, enhancedNestedPathChecking }
+    );
+
+    // Set up the main container to hold component references
+    // Note: We don't add components directly to the parent container to avoid reserved key conflicts
+    // Components are accessed through dedicated getters instead
   }
 
   /**
-   * @method analyzeMerge
-   * @description Creates a detailed preview of potential merge operations without executing them.
-   * This method provides analysis of what would happen during a merge operation,
-   * allowing you to preview changes before committing to them.
-   *
-   * @param {Context|ContextContainer|ContextItem} target - The target context to analyze against.
-   * @param {string} [strategy='mergeNewerWins'] - The merge strategy to analyze.
-   * @param {object} [options={}] - Analysis options. Same as merge() method options.
-   * @returns {object} Detailed analysis of what would happen during merge.
-   * @returns {boolean} returns.success - Whether the analysis completed successfully.
-   * @returns {number} returns.itemsProcessed - Total number of items that would be evaluated.
-   * @returns {number} returns.conflicts - Number of conflicts that would be encountered.
-   * @returns {Array} returns.changes - Array of potential change objects.
-   * @returns {object} returns.statistics - Detailed statistics about the potential merge.
-   *
-   * @example
-   * // Preview what would be merged for specific components
-   * const preview = context.analyzeMerge(targetContext, 'mergeNewerWins', {
-   *   includeComponents: ['data'],
-   *   allowOnly: ['data.playerStats', 'data.inventory']
-   * });
-   *
-   * console.log(`Would process ${preview.itemsProcessed} items with ${preview.conflicts} conflicts`);
-   * preview.changes.forEach(change => console.log(`${change.action}: ${change.path}`));
-   */
-  analyzeMerge(target, strategy = 'mergeNewerWins', options = {}) {
-    return ContextMerger.analyze(this, target, strategy, options);
-  }
-
-  /**
-   * @method getPerformanceMetrics
-   * @description Returns a copy of the current performance metrics.
-   * @returns {object} Performance metrics including pull/push operations and timing data.
-   */
-  getPerformanceMetrics() {
-    return { ...this.#performanceMetrics };
-  }
-
-  // Property getters (maintain direct access style)
-
-  /**
-   * @type {boolean}
-   * @readonly
-   * @description Duck typing identifier for Context objects. Used by other classes to identify
-   * Context instances without requiring direct imports and avoiding circular dependencies.
+   * Gets whether this instance is a Context object (for duck typing).
+   * @returns {boolean} Always returns true for Context instances.
    */
   get isContextObject() {
     return this.#isContextObject;
   }
 
   /**
-   * @type {ContextContainer}
-   * @readonly
+   * Gets the context location.
+   * @returns {string} The context location.
    */
-  get schema() {
-    this.#pullPropertyIfNeeded('schema');
-    return this.getWrappedItem('schema');
+  get contextLocation() {
+    return this.#contextLocation;
   }
 
   /**
-   * @type {ContextContainer}
-   * @readonly
-   */
-  get constants() {
-    this.#pullPropertyIfNeeded('constants');
-    return this.getWrappedItem('constants');
-  }
-
-  /**
-   * @type {ContextContainer}
-   * @readonly
-   */
-  get manifest() {
-    this.#pullPropertyIfNeeded('manifest');
-    return this.getWrappedItem('manifest');
-  }
-
-  /**
-   * @type {ContextContainer}
-   * @readonly
-   */
-  get flags() {
-    this.#pullPropertyIfNeeded('flags');
-    return this.getWrappedItem('flags');
-  }
-
-  /**
-   * @type {ContextContainer}
-   * @readonly
-   */
-  get state() {
-    this.#pullPropertyIfNeeded('state');
-    return this.getWrappedItem('state');
-  }
-
-  /**
-   * @type {ContextContainer}
-   * @readonly
-   */
-  get data() {
-    this.#pullPropertyIfNeeded('data');
-    return this.getWrappedItem('data');
-  }
-
-  /**
-   * @type {ContextContainer}
-   * @readonly
-   */
-  get settings() {
-    this.#pullPropertyIfNeeded('settings');
-    return this.getWrappedItem('settings');
-  }
-
-  /**
-   * Gets the naming convention for the context.
-   * @type {ContextContainer}
-   * @readonly
+   * Gets the naming convention (frozen).
+   * @returns {ContextItem} The naming convention container.
    */
   get namingConvention() {
     return this.#namingConvention;
   }
+
+  /**
+   * Gets the operations parameters.
+   * @returns {object} The operations parameters.
+   */
+  get operationsParams() {
+    return { ...this.#operationsParams };
+  }
+
+  /**
+   * Gets the performance metrics.
+   * @returns {object} The performance metrics.
+   */
+  get performanceMetrics() {
+    return { ...this.#performanceMetrics };
+  }
+
+  // Component getters
+
+  /**
+   * Gets the schema component (readonly ContextItem).
+   * @returns {ContextItem} The schema component.
+   * @example
+   * const validationRules = context.schema.value.validation.rules;
+   */
+  get schema() {
+    return this.#components.schema;
+  }
+
+  /**
+   * Gets the constants component (readonly ContextItem).
+   * @returns {ContextItem} The constants component.
+   * @example
+   * const appVersion = context.constants.value.app.version;
+   */
+  get constants() {
+    return this.#components.constants;
+  }
+
+  /**
+   * Gets the manifest component (readonly ContextItem).
+   * @returns {ContextItem} The manifest component.
+   * @example
+   * const dependencies = context.manifest.value.module.dependencies;
+   */
+  get manifest() {
+    return this.#components.manifest;
+  }
+
+  /**
+   * Gets the flags component (mutable ContextContainer).
+   * @returns {ContextContainer} The flags component.
+   * @example
+   * const experimentalFeatures = context.flags.getItem('experimental.features');
+   */
+  get flags() {
+    return this.#components.flags;
+  }
+
+  /**
+   * Gets the state component (mutable ContextContainer).
+   * @returns {ContextContainer} The state component.
+   * @example
+   * const currentUser = context.state.getItem('session.currentUser');
+   */
+  get state() {
+    return this.#components.state;
+  }
+
+  /**
+   * Gets the data component (mutable ContextContainer).
+   * @returns {ContextContainer} The data component.
+   * @example
+   * const playerInventory = context.data.getItem('player.inventory');
+   */
+  get data() {
+    return this.#components.data;
+  }
+
+  /**
+   * Gets the settings component (mutable ContextContainer).
+   * @returns {ContextContainer} The settings component.
+   * @example
+   * const uiPreferences = context.settings.getItem('ui.preferences');
+   */
+  get settings() {
+    return this.#components.settings;
+  }
+
+  /**
+   * Performs a pull operation from source contexts.
+   * @private
+   * @param {object} options - Pull options.
+   * @param {Context[]} [pullFrom] - Contexts to pull from.
+   * @param {string} [itemPath] - Specific item path to pull.
+   * @returns {object} Pull result.
+   */
+  #performPull(options = {}, pullFrom = null, itemPath = null) {
+    const now = Date.now();
+
+    // Check cooldown
+    if (this.#pullCooldown.lastPull &&
+        (now - this.#pullCooldown.lastPull) < this.#pullCooldown.cooldownMs) {
+      return { success: false, reason: 'cooldown' };
+    }
+
+    const startTime = performance.now();
+    const sources = pullFrom || this.#operationsParams.pullFrom;
+
+    if (!sources || sources.length === 0) {
+      return { success: false, reason: 'no sources' };
+    }
+
+    try {
+      // Use ContextHelpers for synchronization
+      const results = sources.map(source => {
+        if (itemPath) {
+          // Pull specific item
+          return ContextHelpers.Sync.syncItem(source, this, itemPath, 'updateTargetToSource', options);
+        } else {
+          // Pull entire context
+          return ContextHelpers.Sync.sync(source, this, 'updateTargetToSource', options);
+        }
+      });
+
+      const endTime = performance.now();
+      this.#performanceMetrics.pullOperations++;
+      this.#performanceMetrics.totalPullTime += (endTime - startTime);
+      this.#performanceMetrics.lastPullTime = new Date();
+      this.#pullCooldown.lastPull = now;
+
+      return { success: true, results };
+    } catch (error) {
+      if (this.#operationsParams.errorHandling.onPullError === 'throw') {
+        throw error;
+      } else if (this.#operationsParams.errorHandling.onPullError === 'warn') {
+        console.warn('Pull operation failed:', error);
+      }
+      return { success: false, error };
+    }
+  }
+
+  /**
+   * Performs a push operation to target contexts.
+   * @private
+   * @param {object} options - Push options.
+   * @param {string} [itemPath] - Specific item path to push.
+   * @returns {object} Push result.
+   */
+  #performPush(options = {}, itemPath = null) {
+    const startTime = performance.now();
+    const targets = this.#operationsParams.pushTo;
+
+    if (!targets || targets.length === 0) {
+      return { success: false, reason: 'no targets' };
+    }
+
+    try {
+      // Use ContextHelpers for synchronization
+      const results = targets.map(target => {
+        if (itemPath) {
+          // Push specific item
+          return ContextHelpers.Sync.syncItem(this, target, itemPath, 'updateTargetToSource', options);
+        } else {
+          // Push entire context
+          return ContextHelpers.Sync.sync(this, target, 'updateTargetToSource', options);
+        }
+      });
+
+      const endTime = performance.now();
+      this.#performanceMetrics.pushOperations++;
+      this.#performanceMetrics.totalPushTime += (endTime - startTime);
+      this.#performanceMetrics.lastPushTime = new Date();
+
+      return { success: true, results };
+    } catch (error) {
+      if (this.#operationsParams.errorHandling.onPushError === 'throw') {
+        throw error;
+      } else if (this.#operationsParams.errorHandling.onPushError === 'warn') {
+        console.warn('Push operation failed:', error);
+      }
+      return { success: false, error };
+    }
+  }
+
+  /**
+   * Sets a value at a nested path in a plain object.
+   * @private
+   * @param {object} obj - The object to modify.
+   * @param {string} path - The dot-notation path.
+   * @param {*} value - The value to set.
+   */
+  #setValueAtPath(obj, path, value) {
+    const parts = path.split('.');
+    let current = obj;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i];
+      if (!(part in current) || typeof current[part] !== 'object') {
+        current[part] = {};
+      }
+      current = current[part];
+    }
+
+    current[parts[parts.length - 1]] = value;
+  }
+
+  /**
+   * Sets or updates an item in the context with Context-specific pull/push logic.
+   * Supports dot-notation path traversal for nested items (e.g., 'data.player.stats.level').
+   * @param {string} itemPath - The path for the item. Can use dot notation for nested access.
+   * @param {*} itemValue - The value to set.
+   * @param {object} [options={}] - Options for the operation.
+   * @param {object} [overrides={}] - Options to override for this specific operation.
+   * @returns {Context} The instance for chaining.
+   * @example
+   * context.setItem('data.player.name', 'Hero');
+   * context.setItem('settings.ui.theme.color', 'blue');
+   */
+  setItem(itemPath, itemValue, options = {}, overrides = {}) {
+    // Context-specific pre-processing
+    if (this.#operationsParams.alwaysPullBeforeSetting && !overrides.skipPull) {
+      this.#performPull(options, null, itemPath);
+    }
+
+    // Handle component-prefixed paths
+    if (typeof itemPath === 'string' && itemPath.includes('.')) {
+      const [componentName, ...pathParts] = itemPath.split('.');
+      const remainingPath = pathParts.join('.');
+
+      // Route to appropriate component
+      switch (componentName) {
+        case 'schema':
+          if (this.#components.schema.isFrozen() && !options.ignoreFrozen) {
+            throw new Error(`Cannot modify frozen schema component. Item path: ${itemPath}`);
+          }
+          // For ContextItem, we need to update the entire value
+          if (remainingPath) {
+            const currentValue = { ...this.#components.schema.value };
+            this.#setValueAtPath(currentValue, remainingPath, itemValue);
+            this.#components.schema.value = currentValue;
+          } else {
+            this.#components.schema.value = itemValue;
+          }
+          break;
+        case 'constants':
+          if (this.#components.constants.isFrozen() && !options.ignoreFrozen) {
+            throw new Error(`Cannot modify frozen constants component. Item path: ${itemPath}`);
+          }
+          // For ContextItem, we need to update the entire value
+          if (remainingPath) {
+            const currentValue = { ...this.#components.constants.value };
+            this.#setValueAtPath(currentValue, remainingPath, itemValue);
+            this.#components.constants.value = currentValue;
+          } else {
+            this.#components.constants.value = itemValue;
+          }
+          break;
+        case 'manifest':
+          if (this.#components.manifest.isFrozen() && !options.ignoreFrozen) {
+            throw new Error(`Cannot modify frozen manifest component. Item path: ${itemPath}`);
+          }
+          // For ContextItem, we need to update the entire value
+          if (remainingPath) {
+            const currentValue = { ...this.#components.manifest.value };
+            this.#setValueAtPath(currentValue, remainingPath, itemValue);
+            this.#components.manifest.value = currentValue;
+          } else {
+            this.#components.manifest.value = itemValue;
+          }
+          break;
+        case 'flags':
+          if (remainingPath) {
+            this.#components.flags.setItem(remainingPath, itemValue, options);
+          } else {
+            this.#components.flags.value = itemValue;
+          }
+          break;
+        case 'state':
+          if (remainingPath) {
+            this.#components.state.setItem(remainingPath, itemValue, options);
+          } else {
+            this.#components.state.value = itemValue;
+          }
+          break;
+        case 'data':
+          if (remainingPath) {
+            this.#components.data.setItem(remainingPath, itemValue, options);
+          } else {
+            this.#components.data.value = itemValue;
+          }
+          break;
+        case 'settings':
+          if (remainingPath) {
+            this.#components.settings.setItem(remainingPath, itemValue, options);
+          } else {
+            this.#components.settings.value = itemValue;
+          }
+          break;
+        default:
+          // Fall back to parent implementation for non-component paths
+          super.setItem(itemPath, itemValue, options);
+          break;
+      }
+    } else {
+      // Delegate to parent for simple keys
+      super.setItem(itemPath, itemValue, options);
+    }
+
+    // Context-specific post-processing
+    if (this.#operationsParams.alwaysPushAfterSetting && !overrides.skipPush) {
+      this.#performPush(options, itemPath);
+    }
+
+    return this;
+  }
+
+  /**
+   * Retrieves an item after performing a pull operation.
+   * @param {object} params - Parameters for the operation.
+   * @param {string} params.itemPath - The path of the item to retrieve.
+   * @param {Context[]} [params.pullFrom] - Contexts to pull from.
+   * @param {object} [params.options={}] - Options for the operation.
+   * @returns {*} The retrieved value.
+   * @example
+   * const remotePlayerData = context.pullAndGetItem({
+   *   itemPath: 'data.player.inventory.weapons',
+   *   pullFrom: [remoteContext1, remoteContext2]
+   * });
+   */
+  pullAndGetItem({ itemPath, pullFrom, options = {} }) {
+    this.#performPull(options, pullFrom, itemPath);
+    return this.getItem(itemPath);
+  }
+
+  /**
+   * Gets a value at a nested path in a plain object.
+   * @private
+   * @param {object} obj - The object to get from.
+   * @param {string} path - The dot-notation path.
+   * @returns {*} The value at the path, or undefined if not found.
+   */
+  #getValueAtPath(obj, path) {
+    if (!obj || typeof obj !== 'object') return undefined;
+
+    const parts = path.split('.');
+    let current = obj;
+
+    for (const part of parts) {
+      if (current && typeof current === 'object' && part in current) {
+        current = current[part];
+      } else {
+        return undefined;
+      }
+    }
+
+    return current;
+  }
+
+  /**
+   * Enhanced path resolution with multiple fallback strategies.
+   * Handles ContextContainer internal properties only - does not handle reserved key renaming.
+   * @private
+   * @param {object|ContextContainer} rootObj - The root object or ContextContainer to search in.
+   * @param {string} path - The dot-notation path to resolve.
+   * @param {ContextContainer} [contextContainer] - The ContextContainer instance for internal property access.
+   * @returns {*} The resolved value, or undefined if not found.
+   */
+  #resolvePathWithFallbacks(rootObj, path, contextContainer = null) {
+    // Strategy 1: Try normal path resolution first
+    if (contextContainer && typeof contextContainer.getItem === 'function') {
+      // Use ContextContainer's getItem for proper path traversal
+      const directResult = contextContainer.getItem(path);
+      if (directResult !== undefined) {
+        return directResult;
+      }
+    } else {
+      // Use simple object path traversal for plain objects
+      const directResult = this.#getValueAtPath(rootObj, path);
+      if (directResult !== undefined) {
+        return directResult;
+      }
+    }
+
+    // Strategy 2: Try ContextContainer internal property access
+    if (contextContainer && path.includes('.')) {
+      const pathParts = path.split('.');
+      const [firstKey, ...remainingParts] = pathParts;
+      const remainingPath = remainingParts.join('.');
+
+      // Check if first key leads to a ContextContainer
+      const firstLevelItem = contextContainer.getWrappedItem ? contextContainer.getWrappedItem(firstKey) : undefined;
+
+      if (firstLevelItem && typeof firstLevelItem === 'object') {
+        // Check if we're trying to access ContextContainer internal properties
+        const containerProperties = ['value', 'metadata', 'size', 'createdAt', 'modifiedAt', 'lastAccessedAt'];
+
+        if (remainingParts.length === 1 && containerProperties.includes(remainingParts[0])) {
+          // Direct access to ContextContainer property
+          // Only allow this for non-user-data properties (not 'value' or 'metadata' which could be confused with user data)
+          if (!['value', 'metadata'].includes(remainingParts[0]) && typeof firstLevelItem[remainingParts[0]] !== 'undefined') {
+            console.debug(`[Context.#resolvePathWithFallbacks] ContextContainer internal property access: ${path} → ${firstKey}.${remainingParts[0]}`);
+            return firstLevelItem[remainingParts[0]];
+          }
+        } else if (remainingParts.length > 1 && containerProperties.includes(remainingParts[0])) {
+          // Nested access through ContextContainer property
+          const containerProp = firstLevelItem[remainingParts[0]];
+          if (containerProp && typeof containerProp === 'object') {
+            console.debug(`[Context.#resolvePathWithFallbacks] ContextContainer nested property access: ${path} → ${firstKey}.${remainingParts[0]}.${remainingParts.slice(1).join('.')}`);
+            return this.#getValueAtPath(containerProp, remainingParts.slice(1).join('.'));
+          }
+        }
+      }
+    }
+
+    // If all strategies fail, return undefined
+    return undefined;
+  }
+
+  /**
+   * Enhanced path resolution with reserved key fallback strategies.
+   * This method includes all fallback strategies including reserved key renaming.
+   * @private
+   * @param {object|ContextContainer} rootObj - The root object or ContextContainer to search in.
+   * @param {string} path - The dot-notation path to resolve.
+   * @param {ContextContainer} [contextContainer] - The ContextContainer instance for internal property access.
+   * @returns {*} The resolved value, or undefined if not found.
+   */
+  #resolvePathWithReservedKeyFallbacks(rootObj, path, contextContainer = null) {
+    // First try the standard enhanced resolution
+    const standardResult = this.#resolvePathWithFallbacks(rootObj, path, contextContainer);
+    if (standardResult !== undefined) {
+      return standardResult;
+    }
+
+    // Strategy 3: Try reserved key renaming (getReservedItem logic)
+    if (typeof path === 'string' && path.includes('.')) {
+      const pathParts = path.split('.');
+      const alternativePaths = this.#generateReservedKeyAlternatives(pathParts);
+
+      for (const alternativePath of alternativePaths) {
+        // Use simple object path traversal for alternatives to avoid ContextContainer complications
+        const result = this.#getValueAtPath(rootObj, alternativePath);
+        if (result !== undefined) {
+          return result;
+        }
+      }
+    } else if (typeof path === 'string') {
+      // Simple key case - try renamed version
+      const renamedKey = `_${path}`;
+      const result = this.#getValueAtPath(rootObj, renamedKey);
+      if (result !== undefined) {
+        return result;
+      }
+    }
+
+    // If all strategies fail, return undefined
+    return undefined;
+  }
+
+  /**
+   * Generates alternative paths by replacing reserved keys with their renamed versions.
+   * @private
+   * @param {string[]} pathParts - Array of path segments.
+   * @returns {string[]} Array of alternative paths to try.
+   */
+  #generateReservedKeyAlternatives(pathParts) {
+    const reservedKeys = ['value', 'metadata', 'size', 'createdAt', 'modifiedAt', 'lastAccessedAt'];
+    const alternatives = [];
+
+    // Generate all possible combinations of renamed reserved keys
+    const generateCombinations = (parts, index = 0) => {
+      if (index >= parts.length) {
+        alternatives.push(parts.join('.'));
+        return;
+      }
+
+      const currentPart = parts[index];
+
+      // Try original part
+      generateCombinations([...parts], index + 1);
+
+      // Try renamed version if it's a reserved key
+      if (reservedKeys.includes(currentPart)) {
+        const renamedParts = [...parts];
+        renamedParts[index] = `_${currentPart}`;
+        generateCombinations(renamedParts, index + 1);
+      }
+    };
+
+    generateCombinations(pathParts);
+
+    // Remove duplicates and original path (it was already tried)
+    const originalPath = pathParts.join('.');
+    return [...new Set(alternatives)].filter(alt => alt !== originalPath);
+  }
+
+  /**
+   * Overrides getItem to add Context-specific pull logic and component routing.
+   * Supports component-prefixed paths like 'data.player.name' and 'settings.ui.theme'.
+   * Now includes enhanced path resolution for ContextContainer internal properties and reserved key fallback.
+   * @param {string} key - The key of the item to retrieve.
+   * @returns {*} The retrieved value.
+   */
+  getItem(key) {
+    // Context-specific pre-processing
+    if (this.#operationsParams.alwaysPullBeforeGetting) {
+      this.#performPull({}, null, key);
+    }
+
+    // Check if the user is manually accessing a renamed reserved key
+    if (typeof key === 'string') {
+      const reservedKeys = ['value', 'metadata', 'size', 'createdAt', 'modifiedAt', 'lastAccessedAt'];
+
+      // Check for direct renamed key access (e.g., "_value")
+      if (key.startsWith('_') && reservedKeys.includes(key.substring(1))) {
+        console.debug(`[Context.getItem] Direct renamed reserved key access: ${key} (original: ${key.substring(1)})`);
+      }
+
+      // Check for nested renamed key access (e.g., "data.player._value")
+      if (key.includes('.')) {
+        const pathParts = key.split('.');
+        for (let i = 0; i < pathParts.length; i++) {
+          const part = pathParts[i];
+          if (part.startsWith('_') && reservedKeys.includes(part.substring(1))) {
+            console.debug(`[Context.getItem] Nested renamed reserved key access: ${key} (renamed part: ${part} → ${part.substring(1)})`);
+            break;
+          }
+        }
+      }
+    }
+
+    // Handle component-prefixed paths
+    if (typeof key === 'string' && key.includes('.')) {
+      const [componentName, ...pathParts] = key.split('.');
+      const remainingPath = pathParts.join('.');
+
+      // Route to appropriate component with enhanced path resolution
+      switch (componentName) {
+        case 'schema':
+          return remainingPath ? this.#resolvePathWithFallbacks(this.#components.schema.value, remainingPath, this.#components.schema) : this.#components.schema.value;
+        case 'constants':
+          return remainingPath ? this.#resolvePathWithFallbacks(this.#components.constants.value, remainingPath, this.#components.constants) : this.#components.constants.value;
+        case 'manifest':
+          return remainingPath ? this.#resolvePathWithFallbacks(this.#components.manifest.value, remainingPath, this.#components.manifest) : this.#components.manifest.value;
+        case 'flags':
+          return remainingPath ? this.#resolvePathWithFallbacks(this.#components.flags, remainingPath, this.#components.flags) : this.#components.flags.value;
+        case 'state':
+          return remainingPath ? this.#resolvePathWithFallbacks(this.#components.state, remainingPath, this.#components.state) : this.#components.state.value;
+        case 'data':
+          return remainingPath ? this.#resolvePathWithFallbacks(this.#components.data, remainingPath, this.#components.data) : this.#components.data.value;
+        case 'settings':
+          return remainingPath ? this.#resolvePathWithFallbacks(this.#components.settings, remainingPath, this.#components.settings) : this.#components.settings.value;
+        default:
+          // Fall back to parent implementation for non-component paths
+          return super.getItem(key);
+      }
+    }
+
+    return super.getItem(key);
+  }
+
+  /**
+   * Retrieves an item value using the original reserved key name, automatically handling reserved key renaming.
+   * This method allows you to use the original reserved key names (like 'value') in your code,
+   * and it will automatically check for the renamed version (like '_value') if the original doesn't exist.
+   *
+   * @param {string} key - The key of the item to retrieve, using original reserved key names.
+   * @returns {*} The retrieved value, or undefined if not found.
+   *
+   * @example
+   * // Set a reserved key (gets renamed to '_value' internally)
+   * context.setItem('data.player.value', 'Hero');
+   *
+   * // Use getReservedItem to access it with the original name
+   * const playerValue = context.getReservedItem('data.player.value'); // Returns 'Hero'
+   *
+   * // This is equivalent to manually using the renamed key:
+   * const playerValue2 = context.getItem('data.player._value'); // Returns 'Hero'
+   */
+  getReservedItem(key) {
+    // First try to get the item with the original key
+    if (this.hasItem(key)) {
+      console.debug(`[Context.getReservedItem] Found original key: ${key}`);
+      return this.getItem(key);
+    }
+
+    // If not found, try with reserved key alternatives
+    if (typeof key === 'string' && key.includes('.')) {
+      const pathParts = key.split('.');
+      const alternativePaths = this.#generateReservedKeyAlternatives(pathParts);
+
+      for (const alternativePath of alternativePaths) {
+        if (this.hasItem(alternativePath)) {
+          console.debug(`[Context.getReservedItem] Reserved key access: ${key} → ${alternativePath}`);
+          return this.getItem(alternativePath);
+        }
+      }
+    } else if (typeof key === 'string') {
+      // For simple keys, just try the renamed version
+      const reservedKeys = ['value', 'metadata', 'size', 'createdAt', 'modifiedAt', 'lastAccessedAt'];
+      if (reservedKeys.includes(key)) {
+        const renamedKey = `_${key}`;
+        if (this.hasItem(renamedKey)) {
+          console.debug(`[Context.getReservedItem] Reserved key access: ${key} → ${renamedKey}`);
+          return this.getItem(renamedKey);
+        }
+      }
+    }
+
+    // If nothing found, return undefined
+    console.debug(`[Context.getReservedItem] No alternative found for key: ${key}`);
+    return undefined;
+  }
+
+  /**
+   * Overrides hasItem to add component routing.
+   * Supports component-prefixed paths like 'data.player.name' and 'settings.ui.theme'.
+   * @param {string} key - The key to check.
+   * @returns {boolean} True if the item exists.
+   */
+  hasItem(key) {
+    // Handle component-prefixed paths
+    if (typeof key === 'string' && key.includes('.')) {
+      const [componentName, ...pathParts] = key.split('.');
+      const remainingPath = pathParts.join('.');
+
+      // Route to appropriate component
+      switch (componentName) {
+        case 'schema':
+          return remainingPath ? this.#hasValueAtPath(this.#components.schema.value, remainingPath) : true;
+        case 'constants':
+          return remainingPath ? this.#hasValueAtPath(this.#components.constants.value, remainingPath) : true;
+        case 'manifest':
+          return remainingPath ? this.#hasValueAtPath(this.#components.manifest.value, remainingPath) : true;
+        case 'flags':
+          return remainingPath ? this.#components.flags.hasItem(remainingPath) : true;
+        case 'state':
+          return remainingPath ? this.#components.state.hasItem(remainingPath) : true;
+        case 'data':
+          return remainingPath ? this.#components.data.hasItem(remainingPath) : true;
+        case 'settings':
+          return remainingPath ? this.#components.settings.hasItem(remainingPath) : true;
+        default:
+          // Fall back to parent implementation for non-component paths
+          return super.hasItem(key);
+      }
+    }
+
+    return super.hasItem(key);
+  }
+
+  /**
+   * Checks if a value exists at a nested path in a plain object.
+   * @private
+   * @param {object} obj - The object to check.
+   * @param {string} path - The dot-notation path.
+   * @returns {boolean} True if the path exists.
+   */
+  #hasValueAtPath(obj, path) {
+    if (!obj || typeof obj !== 'object') return false;
+
+    const parts = path.split('.');
+    let current = obj;
+
+    for (const part of parts) {
+      if (current && typeof current === 'object' && part in current) {
+        current = current[part];
+      } else {
+        return false;
+      }
+    }
+
+    return true;
+  }  /**
+   * Compares this context with another context.
+   * Delegates to ContextComparison helper.
+   * @param {Context} target - The target context to compare with.
+   * @param {object} [options={}] - Comparison options.
+   * @returns {object} The comparison result.
+   * @example
+   * const comparison = context.compare(otherContext, { compareBy: 'modifiedAt' });
+   */
+  compare(target, options = {}) {
+    return ContextHelpers.Comparison.compare(this, target, options);
+  }
+
+  /**
+   * Merges this context with another context.
+   * Delegates to ContextMerger with nested path support.
+   * @param {Context} target - The target context to merge with.
+   * @param {string} [strategy='mergeNewerWins'] - The merge strategy.
+   * @param {object} [options={}] - Merge options.
+   * @returns {object} The merge result.
+   * @example
+   * const result = context.merge(sourceContext, 'mergeNewerWins', {
+   *   allowOnly: ['data.player.stats', 'settings.ui.theme']
+   * });
+   */
+  merge(target, strategy = 'mergeNewerWins', options = {}) {
+    // Context-specific pre-processing
+    if (this.#operationsParams.alwaysPullBeforeSetting) {
+      this.#performPull(options);
+    }
+
+    // Delegate to specialized helper
+    const result = ContextHelpers.Merger.merge(this, target, strategy, options);
+
+    // Context-specific post-processing
+    if (this.#operationsParams.alwaysPushAfterSetting) {
+      this.#performPush(options);
+    }
+
+    return result;
+  }
+
+  /**
+   * Merges a specific item from another context.
+   * @param {Context} target - The target context to merge from.
+   * @param {string} itemPath - The path of the item to merge.
+   * @param {string} [strategy='mergeNewerWins'] - The merge strategy.
+   * @param {object} [options={}] - Merge options.
+   * @returns {object} The merge result.
+   * @example
+   * const result = context.mergeItem(target, 'data.player.inventory.weapons');
+   */
+  mergeItem(target, itemPath, strategy = 'mergeNewerWins', options = {}) {
+    return ContextHelpers.Merger.merge(this, target, strategy, {
+      ...options,
+      singleItem: itemPath
+    });
+  }
+
+  /**
+   * Analyzes a potential merge without executing it.
+   * @param {Context} target - The target context to analyze merge with.
+   * @param {string} [strategy='mergeNewerWins'] - The merge strategy.
+   * @param {object} [options={}] - Analysis options.
+   * @returns {object} The analysis result.
+   * @example
+   * const analysis = context.analyzeMerge(target, 'mergeNewerWins');
+   */
+  analyzeMerge(target, strategy = 'mergeNewerWins', options = {}) {
+    return ContextHelpers.Merger.analyze(this, target, strategy, options);
+  }
+
+  /**
+   * Reinitializes the Context with new parameters.
+   * @param {object} [params={}] - New configuration parameters.
+   * @param {object} [params.initializationParams] - New initialization parameters.
+   * @param {object} [params.operationsParams] - New operations parameters.
+   */
+  reinitialize({
+    initializationParams = {},
+    operationsParams = {}
+  } = {}) {
+    // Update operations parameters
+    this.#operationsParams = { ...this.#operationsParams, ...operationsParams };
+
+    // Update naming convention if provided
+    if (initializationParams.namingConvention) {
+      this.#namingConvention = new ContextItem(
+        { ...this.#namingConvention.value, ...initializationParams.namingConvention },
+        { type: 'namingConvention' },
+        { frozen: true, recordAccess: false }
+      );
+    }
+
+    // Update context location if provided
+    if (initializationParams.contextLocation) {
+      this.#contextLocation = initializationParams.contextLocation;
+    }
+
+    // Reinitialize components if provided
+    if (initializationParams.contextSchema !== undefined) {
+      this.#components.schema.value = initializationParams.contextSchema;
+    }
+    if (initializationParams.constants !== undefined) {
+      this.#components.constants.value = initializationParams.constants;
+    }
+    if (initializationParams.manifest !== undefined) {
+      this.#components.manifest.value = initializationParams.manifest;
+    }
+    if (initializationParams.flags !== undefined) {
+      this.#components.flags.value = initializationParams.flags;
+    }
+    if (initializationParams.data !== undefined) {
+      this.#components.data.value = initializationParams.data;
+    }
+    if (initializationParams.settings !== undefined) {
+      this.#components.settings.value = initializationParams.settings;
+    }
+
+    // Reset performance metrics
+    this.#performanceMetrics = {
+      pullOperations: 0,
+      pushOperations: 0,
+      totalPullTime: 0,
+      totalPushTime: 0,
+      lastPullTime: null,
+      lastPushTime: null
+    };
+
+    // Reset pull cooldown
+    this.#pullCooldown.lastPull = null;
+  }
+
+  /**
+   * Clears the context and resets all components.
+   */
+  clear() {
+    super.clear();
+
+    // Clear all components
+    Object.values(this.#components).forEach(component => {
+      if (component && typeof component.clear === 'function') {
+        component.clear();
+      }
+    });
+
+    // Reset performance metrics
+    this.#performanceMetrics = {
+      pullOperations: 0,
+      pushOperations: 0,
+      totalPullTime: 0,
+      totalPushTime: 0,
+      lastPullTime: null,
+      lastPushTime: null
+    };
+
+    // Reset pull cooldown
+    this.#pullCooldown.lastPull = null;
+  }
 }
 
 export default Context;
+export { Context };

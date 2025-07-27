@@ -172,6 +172,8 @@ Manages collections of named ContextItems or nested ContextContainers with suppo
 ````javascript
 // Constructor
 new ContextContainer(initialValue = {}, metadata = {}, options = {})
+// Options:
+// - enhancedNestedPathChecking: boolean (default: false) - Enable checking nested paths in plain objects
 
 // Properties (getters/setters)
 .value          // Plain object representation of all items
@@ -181,11 +183,12 @@ new ContextContainer(initialValue = {}, metadata = {}, options = {})
 .modifiedAt     // Last modification timestamp (delegated)
 .lastAccessedAt // Last access timestamp (delegated)
 .recordAccess   // Whether to record access (delegated)
+.enhancedNestedPathChecking // Whether enhanced nested path checking is enabled (read-only)
 
 // Item Management
 .setItem(key, value, options = {}) // Set/update item (supports dot notation)
 .getItem(key)                      // Get item (supports dot notation)
-.hasItem(key)                      // Check if item exists
+.hasItem(key)                      // Check if item exists (supports enhanced nested path checking)
 .deleteItem(key)                   // Remove item
 .clear()                           // Remove all items
 
@@ -211,6 +214,22 @@ const container = new ContextContainer({
 console.log(container.getItem('player.name')); // 'John'
 container.setItem('player.level', 6);
 console.log(container.size); // 2
+
+// Enhanced nested path checking (optional)
+const enhancedContainer = new ContextContainer(
+  { player: { stats: { level: 5 } } },
+  {},
+  { enhancedNestedPathChecking: true }
+);
+
+// Default behavior: only finds top-level items in plain objects
+console.log(container.hasItem('player')); // true
+console.log(container.hasItem('player.name')); // false (default)
+
+// Enhanced behavior: finds nested paths in plain objects
+console.log(enhancedContainer.hasItem('player')); // true
+console.log(enhancedContainer.hasItem('player.stats')); // true (enhanced)
+console.log(enhancedContainer.hasItem('player.stats.level')); // true (enhanced)
 ````
 
 ### ContextValueWrapper
@@ -540,6 +559,12 @@ ContextOperations.synchronizeBidirectional(context1, context2, options)
 ContextOperations.consolidateContexts(sources, target, options)
 ````
 
+**Key Changes**:
+
+- **Enhanced Nested Path Checking**: ContextContainer now supports optional enhanced path checking for `hasItem()` operations
+- **Improved synchronizeBidirectional**: Fixed excludePaths handling to properly apply exclusions to both directions of bidirectional sync
+- **Better Container Type Conversion**: Enhanced `_createNestedContainer()` method to better handle conversion from ContextItem to ContextContainer when needed
+
 #### Example Usage
 
 ````javascript
@@ -550,11 +575,12 @@ const results = ContextOperations.pushFromMultipleSources(
   'mergeSourcePriority'
 );
 
-// Bidirectional sync with priorities
+// Bidirectional sync with proper excludePaths handling
 const result = ContextOperations.synchronizeBidirectional(context1, context2, {
+  strategy: 'mergeSourcePriority',
   context1Priority: ['data.playerStats'],
   context2Priority: ['settings.ui'],
-  excludePaths: ['data.cache']
+  excludePaths: ['data.cache'] // Now properly passed to both directions
 });
 ````
 
@@ -711,6 +737,58 @@ npm test contextHelpers.int
 npm test contextHelpers.smoke
 ````
 
+## Enhanced Nested Path Checking
+
+ContextContainer now supports an optional `enhancedNestedPathChecking` feature that changes how `hasItem()` behaves with nested paths in plain objects.
+
+### Default Behavior (Enhanced Checking Disabled)
+
+By default, `hasItem()` only finds top-level items when the value is a plain object:
+
+````javascript
+const container = new ContextContainer({
+  player: { stats: { level: 5, health: 100 } }
+});
+
+console.log(container.hasItem('player')); // true (top-level item)
+console.log(container.hasItem('player.stats')); // false (nested in plain object)
+console.log(container.hasItem('player.stats.level')); // false (nested in plain object)
+````
+
+### Enhanced Behavior (Enhanced Checking Enabled)
+
+When enabled, `hasItem()` can find nested paths within plain object values:
+
+````javascript
+const enhancedContainer = new ContextContainer(
+  { player: { stats: { level: 5, health: 100 } } },
+  {},
+  { enhancedNestedPathChecking: true }
+);
+
+console.log(enhancedContainer.hasItem('player')); // true (top-level item)
+console.log(enhancedContainer.hasItem('player.stats')); // true (found in plain object)
+console.log(enhancedContainer.hasItem('player.stats.level')); // true (found in plain object)
+console.log(enhancedContainer.hasItem('player.stats.mana')); // false (doesn't exist)
+````
+
+### Key Points
+
+- **Backward Compatibility**: Default behavior is unchanged to preserve existing functionality
+- **ContextContainer Nesting**: Works the same regardless of the enhanced option when using nested ContextContainer instances
+- **Performance**: Enhanced checking adds minimal overhead and only applies to `hasItem()` operations
+- **Filtering Integration**: Works seamlessly with filtering operations in ContextMerger and ContextOperations
+- **Constructor Option**: Enabled per-container via the `enhancedNestedPathChecking` constructor option
+
+### Use Cases
+
+Enhanced nested path checking is useful when:
+
+- You need to check existence of deeply nested properties in plain objects
+- Working with configuration data structures
+- Implementing conditional merging based on nested path existence
+- Building validation logic for complex data structures
+
 ## Dependencies Graph
 
 ```
@@ -781,6 +859,7 @@ ContextItem
 ## Usage Patterns
 
 ### External Usage (Recommended)
+
 Use `ContextHelpers` as a single entry point when importing from outside the helpers folder.
 
 ### Single Item Operations

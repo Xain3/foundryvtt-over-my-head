@@ -1,342 +1,307 @@
+import { getModule } from './moduleGetter.js';
+import constants from '@/constants/constants';
+import PathUtils from './pathUtils.js';
+
 /**
- * @file moduleGetter.unit.test.js
- * @description Unit tests for the moduleGetter helper function.
- * @path src/helpers/moduleGetter.unit.test.js
- * @date 25 May 2025
+ * @file moduleGetter.test.js
+ * @description This file contains unit tests for the getModule function.
+ * @path src/helpers/moduleGetter.test.js
  */
 
-import { getModule } from './moduleGetter.js';
 
-// Mock constants
 jest.mock('@/constants/constants', () => ({
   defaultFoundryModulesLocation: 'game.modules'
-}), { virtual: true });
+}));
+
+jest.mock('./pathUtils.js');
 
 describe('getModule', () => {
   let mockGlobalNamespace;
-  let mockModulesMap;
+  let mockModulesCollection;
 
   beforeEach(() => {
-    mockModulesMap = new Map();
+    mockModulesCollection = {
+      get: jest.fn()
+    };
     mockGlobalNamespace = {
       game: {
-        modules: mockModulesMap
+        modules: mockModulesCollection
       }
     };
+
+    // Set up PathUtils mock
+    PathUtils.resolvePath = jest.fn();
+
+    jest.clearAllMocks();
   });
 
-  describe('input validation', () => {
-    it('should throw TypeError if moduleName is not a string', () => {
-      expect(() => getModule(null)).toThrow(TypeError);
-      expect(() => getModule(undefined)).toThrow(TypeError);
+  describe('Input Validation', () => {
+    it('should throw TypeError when moduleName is not a string', () => {
       expect(() => getModule(123)).toThrow(TypeError);
-      expect(() => getModule({})).toThrow(TypeError);
-      expect(() => getModule([])).toThrow(TypeError);
-      expect(() => getModule(true)).toThrow(TypeError);
+      expect(() => getModule(123)).toThrow('moduleName must be a string');
     });
 
-    it('should throw TypeError if globalNamespace is not an object', () => {
+    it('should throw TypeError when moduleName is null', () => {
+      expect(() => getModule(null)).toThrow(TypeError);
+      expect(() => getModule(null)).toThrow('moduleName must be a string');
+    });
+
+    it('should throw TypeError when moduleName is undefined', () => {
+      expect(() => getModule(undefined)).toThrow(TypeError);
+      expect(() => getModule(undefined)).toThrow('moduleName must be a string');
+    });
+
+    it('should throw TypeError when globalNamespace is null', () => {
       expect(() => getModule('test-module', null)).toThrow(TypeError);
-      expect(() => getModule('test-module', 'string')).toThrow(TypeError);
+      expect(() => getModule('test-module', null)).toThrow('globalNamespace must be an object');
+    });
+
+    it('should throw TypeError when globalNamespace is not an object', () => {
+      expect(() => getModule('test-module', 'not-object')).toThrow(TypeError);
       expect(() => getModule('test-module', 123)).toThrow(TypeError);
       expect(() => getModule('test-module', true)).toThrow(TypeError);
     });
-
-    it('should use default globalThis when globalNamespace is undefined', () => {
-      // Mock globalThis to have the expected structure
-      const originalGlobalThis = globalThis.game;
-      globalThis.game = {
-        modules: new Map()
-      };
-
-      const testModule = { id: 'undefined-test', active: true };
-      globalThis.game.modules.set('undefined-test', testModule);
-
-      const result = getModule('undefined-test', undefined);
-      expect(result).toBe(testModule);
-
-      // Restore original globalThis
-      globalThis.game = originalGlobalThis;
-    });
-
-    it('should provide meaningful error messages for invalid inputs', () => {
-      expect(() => getModule(null)).toThrow('moduleName must be a string');
-      expect(() => getModule('test', 'invalid')).toThrow('globalNamespace must be an object');
-    });
   });
 
-  describe('successful module retrieval', () => {
-    it('should return module when it exists', () => {
-      const testModule = {
-        id: 'test-module',
-        name: 'Test Module',
-        active: true
-      };
-
-      mockModulesMap.set('test-module', testModule);
+  describe('Successful Cases', () => {
+    it('should return module when found in collection', () => {
+      const mockModule = { id: 'test-module', active: true };
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
+      mockModulesCollection.get.mockReturnValue(mockModule);
 
       const result = getModule('test-module', mockGlobalNamespace);
-      expect(result).toBe(testModule);
+
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith('game.modules', { namespace: mockGlobalNamespace });
+      expect(mockModulesCollection.get).toHaveBeenCalledWith('test-module');
+      expect(result).toBe(mockModule);
     });
 
-    it('should work with different module structures', () => {
-      const modules = [
-        {
-          id: 'module-1',
-          title: 'Module One',
-          version: '1.0.0'
-        },
-        {
-          id: 'module-2',
-          title: 'Module Two',
-          active: false
-        },
-        {
-          id: 'complex-module',
-          data: {
-            settings: {},
-            flags: {}
-          }
-        }
-      ];
+    it('should accept empty string as moduleName', () => {
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
+      mockModulesCollection.get.mockReturnValue(null);
 
-      modules.forEach(module => {
-        mockModulesMap.set(module.id, module);
-      });
+      const result = getModule('', mockGlobalNamespace);
 
-      modules.forEach(module => {
-        const result = getModule(module.id, mockGlobalNamespace);
-        expect(result).toBe(module);
-      });
+      expect(mockModulesCollection.get).toHaveBeenCalledWith('');
+      expect(result).toBeNull();
     });
 
-    it('should use default globalThis if no globalNamespace provided', () => {
-      // Mock globalThis to have the expected structure
-      const originalGlobalThis = globalThis.game;
-      globalThis.game = {
-        modules: mockModulesMap
-      };
+    it('should use globalThis as default namespace', () => {
+      const originalGlobalThis = globalThis;
+      globalThis.game = { modules: mockModulesCollection };
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
+      mockModulesCollection.get.mockReturnValue(null);
 
-      const testModule = { id: 'global-test', active: true };
-      mockModulesMap.set('global-test', testModule);
+      getModule('test-module');
 
-      const result = getModule('global-test');
-      expect(result).toBe(testModule);
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith('game.modules', { namespace: globalThis });
 
-      // Restore original globalThis
-      globalThis.game = originalGlobalThis;
+      globalThis.game = originalGlobalThis.game;
     });
   });
 
-  describe('error cases', () => {
-    it('should throw Error if module does not exist', () => {
-      expect(() => getModule('non-existent-module', mockGlobalNamespace))
-        .toThrow('Module "non-existent-module" not found in game.modules');
+  describe('Error Cases', () => {
+    it('should return null when modules collection is not found', () => {
+      PathUtils.resolvePath.mockReturnValue(null);
+
+      const result = getModule('test-module', mockGlobalNamespace);
+
+      expect(result).toBeNull();
     });
 
-    it('should throw Error if modules location does not exist', () => {
-      const invalidNamespace = {};
+    it('should return null when modules collection does not have get method', () => {
+      PathUtils.resolvePath.mockReturnValue({});
 
-      expect(() => getModule('test-module', invalidNamespace))
-        .toThrow('Module "test-module" not found in game.modules');
+      const result = getModule('test-module', mockGlobalNamespace);
+
+      expect(result).toBeNull();
     });
 
-    it('should throw Error if modules location is not a Map', () => {
-      const invalidNamespace = {
-        game: {
-          modules: {} // Not a Map
-        }
-      };
+    it('should return null when modules collection get method is not a function', () => {
+      PathUtils.resolvePath.mockReturnValue({ get: 'not-a-function' });
 
-      expect(() => getModule('test-module', invalidNamespace))
-        .toThrow('Module "test-module" not found in game.modules');
+      const result = getModule('test-module', mockGlobalNamespace);
+
+      expect(result).toBeNull();
     });
 
-    it('should handle null/undefined modules map gracefully', () => {
-      const namespacesWithNullModules = [
-        { game: { modules: null } },
-        { game: { modules: undefined } },
-        { game: {} },
-        {}
-      ];
+    it('should return null when module is not found in collection', () => {
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
+      mockModulesCollection.get.mockReturnValue(undefined);
 
-      namespacesWithNullModules.forEach(namespace => {
-        expect(() => getModule('test-module', namespace))
-          .toThrow('Module "test-module" not found in game.modules');
-      });
+      const result = getModule('non-existent-module', mockGlobalNamespace);
+
+      expect(result).toBeNull();
     });
   });
 
-  describe('edge cases', () => {
-    it('should handle empty string module names', () => {
-      expect(() => getModule('', mockGlobalNamespace))
-        .toThrow('Module "" not found in game.modules');
-    });
-
+  describe('Edge Cases', () => {
     it('should handle module names with special characters', () => {
-      const specialModules = [
-        'module-with-dashes',
-        'module_with_underscores',
-        'module.with.dots',
-        'module@with@symbols',
-        'module with spaces'
-      ];
+      const specialModuleName = 'my-module_v2.0@test';
+      const mockModule = { id: specialModuleName };
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
+      mockModulesCollection.get.mockReturnValue(mockModule);
 
-      specialModules.forEach(moduleName => {
-        const module = { id: moduleName, active: true };
-        mockModulesMap.set(moduleName, module);
+      const result = getModule(specialModuleName, mockGlobalNamespace);
 
-        const result = getModule(moduleName, mockGlobalNamespace);
-        expect(result).toBe(module);
+      expect(mockModulesCollection.get).toHaveBeenCalledWith(specialModuleName);
+      expect(result).toBe(mockModule);
+    });
+
+    it('should handle very long module names', () => {
+      const longModuleName = 'a'.repeat(1000);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
+      mockModulesCollection.get.mockReturnValue(null);
+
+      const result = getModule(longModuleName, mockGlobalNamespace);
+
+      expect(mockModulesCollection.get).toHaveBeenCalledWith(longModuleName);
+      expect(result).toBeNull();
+    });
+
+    it('should handle modules collection that throws on get', () => {
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
+      mockModulesCollection.get.mockImplementation(() => {
+        throw new Error('Collection error');
       });
-    });
 
-    it('should handle numeric module names as strings', () => {
-      const numericModule = { id: '123', active: true };
-      mockModulesMap.set('123', numericModule);
-
-      const result = getModule('123', mockGlobalNamespace);
-      expect(result).toBe(numericModule);
-    });
-
-    it('should be case-sensitive for module names', () => {
-      const lowerModule = { id: 'testmodule', active: true };
-      const upperModule = { id: 'TestModule', active: true };
-
-      mockModulesMap.set('testmodule', lowerModule);
-      mockModulesMap.set('TestModule', upperModule);
-
-      expect(getModule('testmodule', mockGlobalNamespace)).toBe(lowerModule);
-      expect(getModule('TestModule', mockGlobalNamespace)).toBe(upperModule);
-      expect(() => getModule('TESTMODULE', mockGlobalNamespace)).toThrow();
+      expect(() => getModule('test-module', mockGlobalNamespace)).toThrow('Collection error');
     });
   });
 
-  describe('constants integration', () => {
-    it('should use the correct modules location from constants', () => {
-      // The mock already sets defaultFoundryModulesLocation to 'game.modules'
-      // This test verifies that the constant is being used correctly
-      const testModule = { id: 'constants-test', active: true };
-      mockModulesMap.set('constants-test', testModule);
+  describe('Constants Integration', () => {
+    it('should use defaultFoundryModulesLocation from constants', () => {
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
+      mockModulesCollection.get.mockReturnValue(null);
 
-      const result = getModule('constants-test', mockGlobalNamespace);
-      expect(result).toBe(testModule);
+      getModule('test-module', mockGlobalNamespace);
+
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(constants.defaultFoundryModulesLocation, { namespace: mockGlobalNamespace });
+    });
+
+    it('should fallback to game.modules when constants.defaultFoundryModulesLocation is undefined', () => {
+      const originalConstant = constants.defaultFoundryModulesLocation;
+      constants.defaultFoundryModulesLocation = undefined;
+
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
+      mockModulesCollection.get.mockReturnValue(null);
+
+      getModule('test-module', mockGlobalNamespace);
+
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith('game.modules', { namespace: mockGlobalNamespace });
+
+      constants.defaultFoundryModulesLocation = originalConstant;
     });
   });
 
-  describe('alternative constants configuration', () => {
-    it('should handle different modules location constants', () => {
-      // Create a test namespace with alternative modules location
-      const alternativeNamespace = {
-        system: {
-          modules: new Map()
-        }
-      };
+  describe('Alternative Constants Configuration', () => {
+    it('should work with different modules location from constants', () => {
+      const originalConstant = constants.defaultFoundryModulesLocation;
+      constants.defaultFoundryModulesLocation = 'custom.modules.location';
 
-      const testModule = { id: 'alt-test', active: true };
-      alternativeNamespace.system.modules.set('alt-test', testModule);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
+      mockModulesCollection.get.mockReturnValue(null);
 
-      // Test that the current implementation works with the expected structure
-      // Since we can't easily mock the constant at runtime, we test with game.modules
-      // but verify the principle works with different namespace structures
-      expect(() => getModule('alt-test', alternativeNamespace))
-        .toThrow('Module "alt-test" not found in game.modules');
-      
-      // Test that it would work if the constant was set correctly
-      const gameModulesNamespace = {
-        game: {
-          modules: new Map()
-        }
-      };
-      gameModulesNamespace.game.modules.set('alt-test', testModule);
-      
-      const result = getModule('alt-test', gameModulesNamespace);
-      expect(result).toBe(testModule);
+      getModule('test-module', mockGlobalNamespace);
+
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith('custom.modules.location', { namespace: mockGlobalNamespace });
+
+      constants.defaultFoundryModulesLocation = originalConstant;
     });
   });
 
-  describe('Map behavior verification', () => {
-    it('should work with Map.get() method specifically', () => {
-      const testModule = { id: 'map-test', active: true };
-      mockModulesMap.set('map-test', testModule);
+  describe('Map Behaviour Modification', () => {
+    it('should handle Map-like collection with custom get behavior', () => {
+      const mapLikeCollection = new Map();
+      mapLikeCollection.set('test-module', { id: 'test-module', data: 'test' });
 
-      // Verify that Map.get() is actually being called
-      const getSpy = jest.spyOn(mockModulesMap, 'get');
+      PathUtils.resolvePath.mockReturnValue(mapLikeCollection);
 
-      const result = getModule('map-test', mockGlobalNamespace);
+      const result = getModule('test-module', mockGlobalNamespace);
 
-      expect(getSpy).toHaveBeenCalledWith('map-test');
-      expect(result).toBe(testModule);
-
-      getSpy.mockRestore();
+      expect(result).toEqual({ id: 'test-module', data: 'test' });
     });
 
-    it('should handle Map with falsy values correctly', () => {
-      // Maps can have falsy values that are still valid
-      const falsyModules = [
-        { name: 'false-module', value: false },
-        { name: 'zero-module', value: 0 },
-        { name: 'empty-module', value: '' },
-        { name: 'null-module', value: null }
-      ];
+    it('should handle collection with get method that returns falsy values', () => {
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
+      mockModulesCollection.get.mockReturnValue(false);
 
-      falsyModules.forEach(({ name, value }) => {
-        mockModulesMap.set(name, value);
+      const result = getModule('test-module', mockGlobalNamespace);
 
-        if (value === null) {
-          // null is treated as "not found" by our implementation
-          expect(() => getModule(name, mockGlobalNamespace)).toThrow();
-        } else {
-          // Other falsy values should be returned as-is
-          expect(getModule(name, mockGlobalNamespace)).toBe(value);
-        }
-      });
+      expect(result).toBeNull();
+    });
+
+    it('should handle collection with get method that returns 0', () => {
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
+      mockModulesCollection.get.mockReturnValue(0);
+
+      const result = getModule('test-module', mockGlobalNamespace);
+
+      expect(result).toBeNull();
     });
   });
 
-  describe('real-world scenarios', () => {
-    it('should handle typical Foundry VTT module structure', () => {
+  describe('Real-world Scenarios', () => {
+    it('should retrieve active Foundry VTT module', () => {
       const foundryModule = {
-        id: 'foundryvtt-over-my-head',
-        title: 'OverMyHead',
-        version: '12.0.1-alpha1',
+        id: 'dice-so-nice',
+        title: 'Dice So Nice!',
         active: true,
-        data: {
-          flags: {},
-          settings: {}
-        },
-        api: {
-          someMethod: jest.fn()
-        }
+        version: '4.2.6'
       };
 
-      mockModulesMap.set('foundryvtt-over-my-head', foundryModule);
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
+      mockModulesCollection.get.mockReturnValue(foundryModule);
 
-      const result = getModule('foundryvtt-over-my-head', mockGlobalNamespace);
-      expect(result).toBe(foundryModule);
-      expect(result.id).toBe('foundryvtt-over-my-head');
+      const result = getModule('dice-so-nice', mockGlobalNamespace);
+
+      expect(result).toEqual(foundryModule);
       expect(result.active).toBe(true);
     });
 
-    it('should work in a complete Foundry-like environment simulation', () => {
-      const completeFoundryNamespace = {
-        game: {
-          modules: new Map([
-            ['dnd5e', { id: 'dnd5e', title: 'D&D 5e', active: true }],
-            ['dice-so-nice', { id: 'dice-so-nice', title: 'Dice So Nice!', active: true }],
-            ['foundryvtt-over-my-head', { id: 'foundryvtt-over-my-head', title: 'OverMyHead', active: false }]
-          ]),
-          settings: {},
-          user: { isGM: true }
-        },
-        ui: {
-          notifications: {}
+    it('should handle inactive module retrieval', () => {
+      const inactiveModule = {
+        id: 'some-module',
+        title: 'Some Module',
+        active: false
+      };
+
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
+      mockModulesCollection.get.mockReturnValue(inactiveModule);
+
+      const result = getModule('some-module', mockGlobalNamespace);
+
+      expect(result).toEqual(inactiveModule);
+      expect(result.active).toBe(false);
+    });
+
+    it('should handle module lookup in different game systems', () => {
+      const customNamespace = {
+        foundry: {
+          modules: mockModulesCollection
         }
       };
 
-      expect(getModule('dnd5e', completeFoundryNamespace).title).toBe('D&D 5e');
-      expect(getModule('dice-so-nice', completeFoundryNamespace).active).toBe(true);
-      expect(getModule('foundryvtt-over-my-head', completeFoundryNamespace).active).toBe(false);
+      const originalConstant = constants.defaultFoundryModulesLocation;
+      constants.defaultFoundryModulesLocation = 'foundry.modules';
+
+      PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
+      mockModulesCollection.get.mockReturnValue({ id: 'system-module' });
+
+      const result = getModule('system-module', customNamespace);
+
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith('foundry.modules', { namespace: customNamespace });
+      expect(result).toEqual({ id: 'system-module' });
+
+      constants.defaultFoundryModulesLocation = originalConstant;
+    });
+
+    it('should handle case where resolvePath throws an error', () => {
+      PathUtils.resolvePath.mockImplementation(() => {
+        throw new Error('Path resolution failed');
+      });
+
+      expect(() => getModule('test-module', mockGlobalNamespace)).toThrow('Path resolution failed');
     });
   });
 });

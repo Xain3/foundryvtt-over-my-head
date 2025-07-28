@@ -1,13 +1,12 @@
+/**
+ * @file constantsBuilder.unit.test.js
+ * @description Test file for the ConstantsBuilder class functionality.
+ * @path src/constants/helpers/constantsBuilder.unit.test.js
+ */
+
 import ConstantsBuilder from './constantsBuilder.js';
 import ConstantsParser from './constantsParser.js';
 import ConstantsGetter from './constantsGetter.js';
-
-/**
- * @file constantsBuilder.test.js
- * @description Test file for the ConstantsBuilder class functionality.
- * @path src/constants/helpers/constantsBuilder.test.js
- * @date 2024-05-15
- */
 
 
 // Mock the dependencies
@@ -37,7 +36,7 @@ describe('ConstantsBuilder', () => {
 
     expect(ConstantsGetter.getConstantsYaml).toHaveBeenCalledTimes(1);
     expect(ConstantsParser.parseConstants).toHaveBeenCalledTimes(1);
-    expect(ConstantsParser.parseConstants).toHaveBeenCalledWith(mockYamlString, globalThis, true, false, null);
+    expect(ConstantsParser.parseConstants).toHaveBeenCalledWith(mockYamlString, globalThis, true, null);
   });
 
   it('should return the YAML string via asString getter', () => {

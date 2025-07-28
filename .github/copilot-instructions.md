@@ -10,7 +10,7 @@
 
   #### Code Style ####
 - Prefer 2-space indentation over tabs.
-- Prepend the file with a comment block that includes the file name, and creation date, in the format:
+- Prepend the file with a comment block that includes the file name, description, and path, in the format:
   ```javascript
   /**
   * @file the file name
@@ -38,6 +38,8 @@ This comment block should be placed at the top of the file, before any other cod
 - Properties should be documented in the class JSDoc comment or in the class or constructor’s main JSDoc block
 - JSDoc for classes inheriting from another class should include the parent class name and indicate the inherited methods and properties that are used or overridden within the class.
 - Write JSDoc comments for all functions, including parameters (using `@param`) and return (using `@returns`) types.
+- For exported classes, functions, and variables, use `@export` to indicate that they are part of the public API.
+- For exported class, include the public API in the JSDoc comment block.
 
   #### Conditional Statements ####
 - For simple flag checks, use a single line if statement (for example `if (flag) doSomething();`). Single-line if statements should not be used for complex conditions, or for long variable names.
@@ -112,10 +114,12 @@ if (flag && flag2 && veryLongFlag3) {
 - Use `console.table` for logging arrays and objects in a table format.
 - Use `console.group` and `console.groupEnd` for grouping log messages.
 
-#### Unit Testing ####
+#### Testing ####
 - Write unit tests for all functions and classes.
 - Unit tests should be independent and not rely on external resources (e.g., databases, APIs).
-- Unit test files are named with the `.unit.test.js` suffix.
+- Unit test files are named with the `.unit.test.js` suffix and are placed in the same directory as the tested file.
+- Integration test files are named with the `.int.test.js` suffix and are placed in the `tests/integration` directory.
+- Setup test files are named with the `.setup.test.js` suffix and are placed in the `tests/setup` directory.
 - Use `beforeEach` and `afterEach` for setup and teardown of tests.
 - Use `beforeAll` and `afterAll` for setup and teardown of tests that run once for all tests.
 - Use `expect` for assertions in tests.
@@ -133,4 +137,79 @@ if (flag && flag2 && veryLongFlag3) {
 - Use `toContain` for checking if an array contains a value.
 - Use `Jest` for unit testing.
 - Use `describe` for grouping related tests.
-- Use `it` for defining individual tests.
+- Prefer `it` instead of `test` for defining individual tests.
+- Aim for 100% test coverage, but prioritize meaningful tests over achieving coverage metrics.
+- Tests for functions should aim to include:
+  - Input validation
+  - Successful cases
+  - Error cases and handling
+  - Edge cases
+  - Constants integration
+  - Alternative constants configuration
+  - Real-world scenarios
+  - Any other relevant scenarios that ensure the function behaves as expected in all situations.
+
+- Tests for classes should aim to include:
+  - Initialization and setup
+  - Constructor parameter validation
+  - Method functionality
+  - Property access and modification
+  - Inheritance behavior (if applicable)
+  - State management
+  - Error cases and handling
+  - Edge cases
+  - Constants integration
+  - Alternative constants configuration
+  - Real-world scenarios
+  - Any other relevant scenarios that ensure the class behaves as expected in all situations.
+
+  #### Commit Messages ####
+- Use the present tense for commit messages (e.g., "Add feature" instead of "Added feature").
+- Use the imperative mood for commit messages (e.g., "Fix bug" instead than "Fixed bug").
+- Avoid using first-person pronouns like 'I' or 'we'.
+- Use a short summary (50 characters or less) for the commit message.
+- Use a longer description (72 characters or less per line) for the commit message body, if necessary.
+- Ensure that the message is clear and easy to understand.
+- The body can be structured with markdown for better readability.
+- The body should start with the main changes made in the commit, and then add any additional context or information that may be useful for understanding the commit.
+- Use bullets for lists in the commit message body, if necessary.
+- Separate the summary from the body with a blank line.
+- Use the body to explain the "why" behind the changes, not just the "what".
+- Use the body to provide context, motivation, and any relevant information that may help others understand the changes.
+- Use the body to explain any breaking changes, if applicable.
+- Use the body to explain any related issues or pull requests, if applicable.
+- Use the body to explain any relevant links or references, if applicable.
+- Use the body to explain any relevant context or background information, if applicable.
+- Use the body to explain any relevant implementation details, if applicable.
+- Use the body to explain any relevant testing details, if applicable.
+- Use the body to explain any relevant performance considerations, if applicable.
+- Use the body to explain any relevant security considerations, if applicable.
+- Use the body to explain any relevant compatibility considerations, if applicable.
+- Use the body to explain any relevant deployment considerations, if applicable.
+- Use the body to explain any relevant documentation considerations, if applicable.
+- Use the body to explain any relevant code style considerations, if applicable.
+- Use the body to explain any relevant code quality considerations, if applicable.
+- Use bullet points for the commit message body, if necessary.
+- Use the following format for commit messages:
+  ```
+  <type>(<scope>): <subject>
+
+  <body>
+  ```
+- The `<type>` can be one of the following:
+  - `feat`: A new feature
+  - `fix`: A bug fix
+  - `docs`: Documentation only changes
+  - `style`: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc.)
+  - `refactor`: A code change that neither fixes a bug nor adds a feature
+  - `perf`: A code change that improves performance
+  - `test`: Adding missing tests or correcting existing tests
+  - `build`: Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
+  - `ci`: Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)
+  - `chore`: Other changes
+- The `<scope>` is optional and can be used to indicate the area of the codebase that the commit affects (e.g., `ui`, `api`, `database`, etc.).
+- The `<subject>` is a brief summary of the changes made in the commit.
+- The `<body>` is an optional longer description of the changes made in the commit. It can include details about the motivation for the changes, any relevant context, and any other information that may be useful for understanding the commit.
+- If the commit is a work in progress, use 'WIP' in the message.
+- If the commit is a merge, use 'Merge branch <branch_name>'.
+- If the commit is a revert, use 'Revert <commit_hash>'.

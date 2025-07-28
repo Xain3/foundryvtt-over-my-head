@@ -1,16 +1,54 @@
+/**
+ * @file validator.js
+ * @description This file contains a static Validator class with utility methods for type checking and validation.
+ * @path src/utils/static/validator.js
+ * @date July 21, 2025
+ */
+
+import dayjs from 'dayjs';
+
+/**
+ * Static utility class for validating data types and values.
+ * Provides methods for checking primitive types, objects, arrays, and performing validation with error throwing.
+ *
+ * @class Validator
+ * @export
+ */
 class Validator {
+  /**
+   * Checks if a value is defined (not undefined).
+   * @param {*} value - The value to check.
+   * @returns {boolean} True if value is not undefined, false otherwise.
+   */
   static isDefined(value) {
     return value !== undefined;
   }
 
+  /**
+   * Checks if a value is null.
+   * @param {*} value - The value to check.
+   * @returns {boolean} True if value is null, false otherwise.
+   */
   static isNull(value) {
     return value === null;
   }
 
+  /**
+   * Checks if a value is a string.
+   * @param {*} value - The value to check.
+   * @returns {boolean} True if value is a string, false otherwise.
+   */
   static isString(value) {
     return typeof value === 'string';
   }
 
+  /**
+   * Checks if a value is an object with optional prototype name validation.
+   * @param {*} value - The value to check.
+   * @param {Object} [options={}] - Options for validation.
+   * @param {string|null} [options.expectedPrototypeName=null] - Expected prototype constructor name. Defaults to null.
+   * @returns {boolean} True if value is an object (and matches prototype if specified), false otherwise.
+   */
   static isObject(value, { expectedPrototypeName = null } = {}) {
     const basicObjectCheck = typeof value === 'object' && value !== null && !Array.isArray(value);
     if (!basicObjectCheck) {
@@ -22,20 +60,41 @@ class Validator {
     return true;
   }
 
+  /**
+   * Checks if a value is an array.
+   * @param {*} value - The value to check.
+   * @returns {boolean} True if value is an array, false otherwise.
+   */
   static isArray(value) {
     return Array.isArray(value);
+  }
+
+  /**
+   * Checks if a value is a plain object (not a built-in object, array, or null).
+   * Plain objects are objects created by the Object constructor or with object literal syntax.
+   * @param {*} value - The value to check.
+   * @returns {boolean} True if value is a plain object, false otherwise.
+   */
+  static isPlainObject(value) {
+    if (typeof value !== 'object') return false;
+    if (value === null) return false;
+    if (Array.isArray(value)) return false;
+
+    // Check if it's a plain object (created by Object constructor or object literal)
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === null || prototype === Object.prototype;
   }
 
   /**
    * Checks if a value is a number, with flexible options.
    * @param {*} value - The value to check.
    * @param {Object} [options={}] - Options for validation.
-   * @param {boolean} [options.integer=false] - Require integer.
-   * @param {boolean} [options.float=false] - Require float (non-integer).
-   * @param {boolean} [options.positive=false] - Require positive number.
-   * @param {boolean} [options.negative=false] - Require negative number.
-   * @param {boolean} [options.includeZero=true] - Whether zero is allowed.
-   * @returns {boolean}
+   * @param {boolean} [options.integer=false] - Require integer. Defaults to false.
+   * @param {boolean} [options.float=false] - Require float (non-integer). Defaults to false.
+   * @param {boolean} [options.positive=false] - Require positive number. Defaults to false.
+   * @param {boolean} [options.negative=false] - Require negative number. Defaults to false.
+   * @param {boolean} [options.includeZero=true] - Whether zero is allowed. Defaults to true.
+   * @returns {boolean} True if value meets all number criteria, false otherwise.
    */
   static isNumber(value, {
     integer = false,
@@ -71,6 +130,11 @@ class Validator {
     return true;
   }
 
+  /**
+   * Checks if a value is empty based on its type.
+   * @param {*} value - The value to check.
+   * @returns {boolean} True if value is empty (empty string, empty array, or empty object), false otherwise.
+   */
   static isEmpty(value) {
     if (Validator.isString(value)) return value.length === 0;
     if (Validator.isArray(value)) return value.length === 0;
@@ -78,6 +142,34 @@ class Validator {
     return false;
   }
 
+  static isBoolean(value) {
+    return typeof value === 'boolean';
+  }
+
+  /**
+   * Checks if a value is a a primitive type (string, number, boolean, null, or undefined).
+   * @param {*} value - The value to check.
+   * @returns {boolean} True if value is a primitive type, false otherwise.
+   */
+  static isPrimitive(value) {
+    return typeof value === 'string' ||
+          typeof value === 'number' ||
+          typeof value === 'boolean' ||
+          Validator.isNull(value) ||
+          !Validator.isDefined(value);
+  }
+
+  /**
+   * Private method to validate object shape and type.
+   * @private
+   * @param {*} value - The value to check.
+   * @param {string} name - Name of the value for error messages.
+   * @param {Object} [options={}] - Options for validation.
+   * @param {boolean} [options.allowNull=false] - Whether null values are allowed. Defaults to false.
+   * @param {boolean} [options.allowArray=false] - Whether arrays are allowed. Defaults to false.
+   * @returns {boolean} True if validation passes.
+   * @throws {Error} If validation fails.
+   */
   static #isObjectShape(value, name, { allowNull = false, allowArray = false } = {}) {
     if (Validator.isNull(value)) {
       if (allowNull) return true;
@@ -102,12 +194,26 @@ class Validator {
     return true;
   }
 
+  /**
+   * Private method to validate that object keys are strings.
+   * @private
+   * @param {Object} obj - The object to check.
+   * @param {string} name - Name of the object for error messages.
+   * @throws {Error} If any keys are not strings.
+   */
   static #hasStringKeys(obj, name) {
     if (Object.keys(obj).some(key => !Validator.isString(key))) {
       throw new Error(`${name} keys must be strings.`);
     }
   }
 
+  /**
+   * Private method to validate that a value is not empty.
+   * @private
+   * @param {*} value - The value to check.
+   * @param {string} name - Name of the value for error messages.
+   * @throws {Error} If value is empty.
+   */
   static #isNotEmpty(value, name) {
     if (Validator.isEmpty(value)) {
       if (Validator.isString(value) || Validator.isArray(value)) {
@@ -119,6 +225,16 @@ class Validator {
     }
   }
 
+  /**
+   * Validates that a value is an object with optional constraints.
+   * @param {*} value - The value to validate.
+   * @param {string} name - Name of the value for error messages.
+   * @param {Object} [options={}] - Options for validation.
+   * @param {boolean} [options.allowNull=false] - Whether null values are allowed. Defaults to false.
+   * @param {boolean} [options.allowEmpty=false] - Whether empty objects are allowed. Defaults to false.
+   * @param {boolean} [options.checkKeys=true] - Whether to validate that keys are strings. Defaults to true.
+   * @throws {Error} If validation fails.
+   */
   static validateObject(value, name, { allowNull = false, allowEmpty = false, checkKeys = true } = {}) {
     if (!Validator.isDefined(value)) return; // Property not provided, skip validation for it
 
@@ -141,6 +257,14 @@ class Validator {
     }
   }
 
+  /**
+   * Validates that a value is a string with optional constraints.
+   * @param {*} value - The value to validate.
+   * @param {string} name - Name of the value for error messages.
+   * @param {Object} [options={}] - Options for validation.
+   * @param {boolean} [options.allowEmpty=false] - Whether empty strings are allowed. Defaults to false.
+   * @throws {Error} If validation fails.
+   */
   static validateString(value, name, { allowEmpty = false } = {}) {
     if (!Validator.isDefined(value)) return;
     if (!Validator.isString(value)) {
@@ -151,6 +275,17 @@ class Validator {
     }
   }
 
+  /**
+   * Validates that a value is a number with optional constraints.
+   * @param {*} value - The value to validate.
+   * @param {string} name - Name of the value for error messages.
+   * @param {Object} [options={}] - Options for validation.
+   * @param {boolean} [options.isInt=false] - Whether the number must be an integer. Defaults to false.
+   * @param {number} [options.min=-Infinity] - Minimum allowed value. Defaults to -Infinity.
+   * @param {number} [options.max=Infinity] - Maximum allowed value. Defaults to Infinity.
+   * @param {boolean} [options.allowFutureTimestamp=false] - Whether future timestamps are allowed. Defaults to false.
+   * @throws {Error} If validation fails.
+   */
   static validateNumber(value, name, { isInt = false, min = -Infinity, max = Infinity, allowFutureTimestamp = false } = {}) {
     if (!Validator.isDefined(value)) return;
     // Keep original distinct error messages for typeof and NaN
@@ -175,29 +310,64 @@ class Validator {
     }
   }
 
+  /**
+   * Validates that the provided value is a valid Date object or a valid date string.
+   *
+   * @param {*} value - The value to validate as a date.
+   * @param {string} [name='Date'] - The name of the parameter being validated, used in error messages.
+   * @throws {TypeError} If the value is not a valid Date object or a valid date string.
+   * @throws {Error} If the value is a Date object but is invalid (e.g., `new Date('invalid')`).
+   */
+  static validateDate(value, name = 'Date') {
+    let dateToCheck = value;
+
+    // If it's not a Date object, check if dayjs can validate it
+    if (!(value instanceof Date)) {
+      if (!dayjs(value).isValid()) {
+        throw new TypeError("date must be a valid Date object");
+      }
+      // Convert valid date string to Date object for further validation
+      dateToCheck = new Date(value);
+    }
+
+    if (isNaN(dateToCheck.getTime())) {
+      throw new Error(`${name} must be a valid date. Received: ${value}`);
+    }
+  };
+
+  /**
+   * Validates the structure of an arguments object.
+   * @param {*} args - The arguments object to validate.
+   * @param {string} [name='Constructor arguments'] - Name for error messages. Defaults to 'Constructor arguments'.
+   * @throws {Error} If validation fails.
+   */
   static validateArgsObjectStructure(args, name = 'Constructor arguments') {
     this.#isObjectShape(args, name); // Uses updated #isObjectShape
     this.#isNotEmpty(args, name);   // Uses updated #isNotEmpty
     this.#hasStringKeys(args, name); // Uses updated #hasStringKeys
   }
 
+  /**
+   * Validates a schema definition object.
+   * @param {*} schemaStructure - The schema structure to validate.
+   * @param {string} name - Name of the schema for error messages.
+   * @throws {Error} If validation fails.
+   */
   static validateSchemaDefinition(schemaStructure, name) {
     if (!Validator.isDefined(schemaStructure)) throw new Error('Context schema must be provided.');
 
     this.validateObject(schemaStructure, name, { allowEmpty: false, checkKeys: true }); // Uses updated validateObject
-
-    Object.values(schemaStructure).forEach((value, index) => {
-      const keyName = Object.keys(schemaStructure)[index];
-      if (!Validator.isObject(value)) { // isObject checks for non-null, non-array object
-        throw new Error(`Value for key "${keyName}" in Context schema must be a non-null object and not an array.`);
-      }
-      if (Validator.isEmpty(value)) { // isEmpty checks for empty object
-        throw new Error(`Value for key "${keyName}" in Context schema cannot be an empty object.`);
-      }
-      // Not validating keys of inner objects to be strings, as per original logic.
-    });
   }
 
+  /**
+   * Validates a string against a regular expression pattern.
+   * @param {*} value - The value to validate.
+   * @param {string} name - Name of the value for error messages.
+   * @param {RegExp} pattern - Regular expression pattern to test against.
+   * @param {string} patternDescription - Human-readable description of the pattern.
+   * @param {Object} [stringValidationOptions={}] - Options passed to validateString. Defaults to {}.
+   * @throws {Error} If validation fails.
+   */
   static validateStringAgainstPattern(value, name, pattern, patternDescription, stringValidationOptions = {}) {
     if (!Validator.isDefined(value)) throw new Error(`${name} must be provided.`);
     this.validateString(value, name, stringValidationOptions); // Uses updated validateString
@@ -206,6 +376,13 @@ class Validator {
     }
   }
 
+  /**
+   * Validates that required keys exist in an object.
+   * @param {*} objectToCheck - The object to check for keys.
+   * @param {string|string[]} keysToCheck - Key or array of keys that must exist.
+   * @param {string} [objectName='Object'] - Name of the object for error messages. Defaults to 'Object'.
+   * @throws {Error} If validation fails.
+   */
   static validateObjectKeysExist(objectToCheck, keysToCheck, objectName = 'Object') {
     if (!Validator.isDefined(objectToCheck)) throw new Error(`${objectName} must be provided for key existence check.`);
     if (!Validator.isDefined(keysToCheck)) throw new Error(`Keys to check must be provided for ${objectName}.`);
@@ -230,6 +407,61 @@ class Validator {
       }
     }
   }
+
+  /**
+   * Checks if a key is reserved based on class prototypes and additional reserved keys.
+   * @param {string} key - The key to check.
+   * @param {Object} [options={}] - Options for validation.
+   * @param {Object|Object[]} [options.classPrototypes] - Class or array of classes whose prototype methods/properties should be considered reserved.
+   * @param {Set<string>|string[]} [options.additionalReservedKeys] - Additional keys to consider reserved.
+   * @param {Object} [options.instance] - Instance to check against (for prototype chain traversal).
+   * @returns {boolean} True if the key is reserved, false otherwise.
+   */
+  static isReservedKey(key, { classPrototypes, additionalReservedKeys, instance } = {}) {
+    if (!Validator.isString(key) || key.length === 0) return false;
+
+    // Initialize reserved keys set
+    const reservedKeys = new Set();
+
+    // Add additional reserved keys if provided
+    if (additionalReservedKeys) {
+      const keysToAdd = additionalReservedKeys instanceof Set
+        ? additionalReservedKeys
+        : Array.isArray(additionalReservedKeys)
+          ? additionalReservedKeys
+          : [additionalReservedKeys];
+
+      for (const reservedKey of keysToAdd) {
+        if (Validator.isString(reservedKey)) {
+          reservedKeys.add(reservedKey);
+        }
+      }
+    }
+
+    // Add prototype method/property names if class prototypes provided
+    if (classPrototypes) {
+      const classes = Array.isArray(classPrototypes) ? classPrototypes : [classPrototypes];
+
+      for (const classConstructor of classes) {
+        if (classConstructor && classConstructor.prototype) {
+          Object.getOwnPropertyNames(classConstructor.prototype).forEach(prop => {
+            if (Validator.isString(prop)) {
+              reservedKeys.add(prop);
+            }
+          });
+        }
+      }
+    }
+
+    // Check if key is in reserved set
+    if (reservedKeys.has(key)) return true;
+
+    // If instance provided, check if key exists on instance or prototype chain
+    if (instance && key in instance) return true;
+
+    return false;
+  }
 }
 
+export { Validator };
 export default Validator;

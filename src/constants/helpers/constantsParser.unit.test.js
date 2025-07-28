@@ -1,56 +1,26 @@
-import { z } from 'zod';
+/**
+ * @file constantsParser.unit.test.js
+ * @description Unit tests for the ConstantsParser class.
+ * @path src/constants/helpers/constantsParser.unit.test.js
+ * @date 26 May 2025
+ */
+
 import yaml from 'js-yaml';
 import ConstantsParser from './constantsParser.js';
-import * as stringToZodTypeModule from '@maps/stringToZodType';
-import * as resolvePathModule from '@helpers/resolvePath';
+import PathUtils from '@helpers/pathUtils.js';
 
 jest.mock('js-yaml', () => ({
   load: jest.fn(),
 }));
-jest.mock('@helpers/resolvePath', () => ({
-  resolvePath: jest.fn(),
+jest.mock('@helpers/pathUtils.js', () => ({
+  default: {
+    resolvePath: jest.fn(),
+  },
 }));
 
 describe('ConstantsParser', () => {
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('buildContextSchema', () => {
-    it('builds a Zod schema from a valid schema definition', () => {
-      const schemaDef = { foo: 'string', bar: 'number' };
-      const mockTypeMap = {
-        string: z.string(),
-        number: z.number(),
-      };
-      jest.spyOn(stringToZodTypeModule, 'stringToZodType')
-        .mockImplementation(type => mockTypeMap[type]);
-
-      const schema = ConstantsParser.buildContextSchema(schemaDef);
-
-      expect(schema).toBeInstanceOf(z.ZodObject);
-      expect(schema.shape.foo).toBe(mockTypeMap.string);
-      expect(schema.shape.bar).toBe(mockTypeMap.number);
-
-      expect(schema.safeParse({ foo: 'abc', bar: 123 }).success).toBe(true);
-      expect(schema.safeParse({ foo: 123, bar: 'abc' }).success).toBe(false);
-    });
-
-    it('throws if schemaDefinition is not an object', () => {
-      expect(() => ConstantsParser.buildContextSchema(null)).toThrow(TypeError);
-      expect(() => ConstantsParser.buildContextSchema('not an object')).toThrow(TypeError);
-    });
-
-    it('throws and logs error if stringToZodType throws', () => {
-      const schemaDef = { foo: 'string' };
-      jest.spyOn(stringToZodTypeModule, 'stringToZodType').mockImplementation(() => {
-        throw new Error('bad type');
-      });
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      expect(() => ConstantsParser.buildContextSchema(schemaDef)).toThrow('Failed to build context schema');
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
-    });
   });
 
   describe('parseConstants', () => {
@@ -66,42 +36,20 @@ describe('ConstantsParser', () => {
       yaml.load.mockReturnValue(JSON.parse(JSON.stringify(parsedYaml)));
     });
 
-    it('parses YAML and builds context.schema as Zod schema by default', () => {
-      const mockZodSchema = z.object({ foo: z.string(), bar: z.number() });
-      jest.spyOn(ConstantsParser, 'buildContextSchema').mockReturnValue(mockZodSchema);
-
+    it('parses YAML and returns the parsed structure', () => {
       const result = ConstantsParser.parseConstants(yamlString);
 
       expect(yaml.load).toHaveBeenCalledWith(yamlString);
-      expect(ConstantsParser.buildContextSchema).toHaveBeenCalledWith(parsedYaml.context.schema);
-      expect(result.context.schema).toBe(mockZodSchema);
-      expect(result.other).toBe(42);
-    });
-
-    it('parses YAML and does not build context.schema if buildContextSchema is false', () => {
-      const result = ConstantsParser.parseConstants(yamlString, globalThis, false);
-      expect(yaml.load).toHaveBeenCalledWith(yamlString);
       expect(result.context.schema).toEqual(parsedYaml.context.schema);
+      expect(result.other).toBe(42);
     });
 
     it('throws if constants is not a string', () => {
       expect(() => ConstantsParser.parseConstants(123)).toThrow(TypeError);
     });
 
-    it('throws if buildContextSchema is not a boolean', () => {
-      expect(() => ConstantsParser.parseConstants(yamlString, globalThis, 'yes')).toThrow(TypeError);
-    });
-
     it('throws and logs error if YAML parsing fails', () => {
       yaml.load.mockImplementation(() => { throw new Error('bad yaml'); });
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      expect(() => ConstantsParser.parseConstants(yamlString)).toThrow('Failed to parse constants');
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
-    });
-
-    it('throws and logs error if buildContextSchema throws', () => {
-      jest.spyOn(ConstantsParser, 'buildContextSchema').mockImplementation(() => { throw new Error('fail'); });
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       expect(() => ConstantsParser.parseConstants(yamlString)).toThrow('Failed to parse constants');
       expect(consoleSpy).toHaveBeenCalled();
@@ -114,7 +62,9 @@ describe('ConstantsParser', () => {
     const mockModule = { id: 'my-module', api: {} };
 
     beforeEach(() => {
-      resolvePathModule.resolvePath.mockClear();
+      // Set up PathUtils mock
+      PathUtils.resolvePath = jest.fn();
+      PathUtils.resolvePath.mockClear();
     });
 
     it('should create a root map function that correctly resolves paths', () => {
@@ -124,7 +74,7 @@ describe('ConstantsParser', () => {
           moduleApi: 'module.api',
         },
       };
-      resolvePathModule.resolvePath
+      PathUtils.resolvePath
         .mockReturnValueOnce(mockGlobalNamespace.game.system) // for 'game.system'
         .mockReturnValueOnce(mockModule.api); // for 'module.api'
 
@@ -132,9 +82,9 @@ describe('ConstantsParser', () => {
       const rootMap = rootMapFn(mockGlobalNamespace, mockModule);
 
       expect(rootMap.systemName).toBe('dnd5e');
-      expect(resolvePathModule.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'game.system');
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'game.system');
       expect(rootMap.moduleApi).toBe(mockModule.api);
-      expect(resolvePathModule.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'module.api');
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'module.api');
     });
 
     it('should handle "module" keyword correctly', () => {
@@ -147,7 +97,7 @@ describe('ConstantsParser', () => {
       const rootMap = rootMapFn(mockGlobalNamespace, mockModule);
 
       expect(rootMap.currentModule).toBe(mockModule);
-      expect(resolvePathModule.resolvePath).not.toHaveBeenCalled();
+      expect(PathUtils.resolvePath).not.toHaveBeenCalled();
     });
 
     it('should handle null values correctly', () => {
@@ -160,7 +110,7 @@ describe('ConstantsParser', () => {
       const rootMap = rootMapFn(mockGlobalNamespace, mockModule);
 
       expect(rootMap.optionalFeature).toBeNull();
-      expect(resolvePathModule.resolvePath).not.toHaveBeenCalled();
+      expect(PathUtils.resolvePath).not.toHaveBeenCalled();
     });
 
     it('should handle a mix of path resolutions, "module", and null values', () => {
@@ -171,16 +121,16 @@ describe('ConstantsParser', () => {
           nothing: null,
         },
       };
-      resolvePathModule.resolvePath.mockReturnValueOnce(mockGlobalNamespace.game.system);
+      PathUtils.resolvePath.mockReturnValueOnce(mockGlobalNamespace.game.system);
 
       const rootMapFn = ConstantsParser.createRootMapFromYaml(config);
       const rootMap = rootMapFn(mockGlobalNamespace, mockModule);
 
       expect(rootMap.system).toBe('dnd5e');
-      expect(resolvePathModule.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'game.system');
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'game.system');
       expect(rootMap.self).toBe(mockModule);
       expect(rootMap.nothing).toBeNull();
-      expect(resolvePathModule.resolvePath).toHaveBeenCalledTimes(1);
+      expect(PathUtils.resolvePath).toHaveBeenCalledTimes(1);
     });
 
     it('should return an empty object if config.rootMap is empty', () => {
@@ -191,7 +141,7 @@ describe('ConstantsParser', () => {
       const rootMap = rootMapFn(mockGlobalNamespace, mockModule);
 
       expect(rootMap).toEqual({});
-      expect(resolvePathModule.resolvePath).not.toHaveBeenCalled();
+      expect(PathUtils.resolvePath).not.toHaveBeenCalled();
     });
 
     it('should assign undefined if resolvePath returns undefined for a path', () => {
@@ -200,13 +150,13 @@ describe('ConstantsParser', () => {
           nonExistent: 'path.to.nothing',
         },
       };
-      resolvePathModule.resolvePath.mockReturnValueOnce(undefined);
+      PathUtils.resolvePath.mockReturnValueOnce(undefined);
 
       const rootMapFn = ConstantsParser.createRootMapFromYaml(config);
       const rootMap = rootMapFn(mockGlobalNamespace, mockModule);
 
       expect(rootMap.nonExistent).toBeUndefined();
-      expect(resolvePathModule.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'path.to.nothing');
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'path.to.nothing');
     });
   });
 });

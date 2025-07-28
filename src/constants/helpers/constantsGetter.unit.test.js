@@ -1,3 +1,9 @@
+/**
+ * @file constantsGetter.unit.test.js
+ * @description Test file for the ConstantsGetter class functionality.
+ * @path src/constants/helpers/constantsGetter.unit.test.js
+ */
+
 import fs from 'fs';
 import path from 'path';
 import ConstantsGetter from './constantsGetter.js';
@@ -23,12 +29,11 @@ describe('ConstantsGetter', () => {
     });
   });
 
-  it('reads constants.yaml and returns its content as a string', () => {
+
+  it('reads constants.yaml and returns its content as a string (default encoding)', () => {
     fs.readFileSync.mockReturnValueOnce(mockYamlContent);
-    // Update expected path.resolve arguments
     const expectedResolvedPath = `${process.cwd()}/${mockConstantsFile}`;
     path.resolve.mockReturnValueOnce(expectedResolvedPath);
-
 
     const result = ConstantsGetter.getConstantsYaml();
 
@@ -37,9 +42,21 @@ describe('ConstantsGetter', () => {
     expect(result).toBe(mockYamlContent);
   });
 
-  it('reads a custom yaml file if provided', () => {
+  it('reads constants.yaml with a custom encoding', () => {
+    const customEncoding = 'ascii';
+    fs.readFileSync.mockReturnValueOnce(mockYamlContent);
+    const expectedResolvedPath = `${process.cwd()}/${mockConstantsFile}`;
+    path.resolve.mockReturnValueOnce(expectedResolvedPath);
+
+    const result = ConstantsGetter.getConstantsYaml(undefined, customEncoding);
+
+    expect(path.resolve).toHaveBeenCalledWith(process.cwd(), mockConstantsFile);
+    expect(fs.readFileSync).toHaveBeenCalledWith(expectedResolvedPath, customEncoding);
+    expect(result).toBe(mockYamlContent);
+  });
+
+  it('reads a custom yaml file if provided (default encoding)', () => {
     fs.readFileSync.mockReturnValueOnce('custom: value');
-    // Update expected path.resolve arguments
     const expectedCustomResolvedPath = `${process.cwd()}/${mockCustomFile}`;
     path.resolve.mockReturnValueOnce(expectedCustomResolvedPath);
 
@@ -47,6 +64,19 @@ describe('ConstantsGetter', () => {
 
     expect(path.resolve).toHaveBeenCalledWith(process.cwd(), mockCustomFile);
     expect(fs.readFileSync).toHaveBeenCalledWith(expectedCustomResolvedPath, 'utf8');
+    expect(result).toBe('custom: value');
+  });
+
+  it('reads a custom yaml file with a custom encoding', () => {
+    const customEncoding = 'ascii';
+    fs.readFileSync.mockReturnValueOnce('custom: value');
+    const expectedCustomResolvedPath = `${process.cwd()}/${mockCustomFile}`;
+    path.resolve.mockReturnValueOnce(expectedCustomResolvedPath);
+
+    const result = ConstantsGetter.getConstantsYaml(mockCustomFile, customEncoding);
+
+    expect(path.resolve).toHaveBeenCalledWith(process.cwd(), mockCustomFile);
+    expect(fs.readFileSync).toHaveBeenCalledWith(expectedCustomResolvedPath, customEncoding);
     expect(result).toBe('custom: value');
   });
 

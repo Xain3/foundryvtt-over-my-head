@@ -44,17 +44,17 @@ context:
       rootIdentifier: "module" # The default identifier for the root object of the context.
       pathFromRoot: "context" # The default path of the context relative to the root object.
     rootMap:
-      window: "globalNamespace.window"  # The root object for the context, typically the global window object.
-      document: "globalNamespace.document"  # The root object for the context, typically the global document object.
-      game: "globalNamespace.game"  # The root object for the game context, typically the global game object.
-      user: "globalNamespace.game?.user"  # The root object for the user context, typically the global game user object.
-      world: "globalNamespace.game?.world"  # The root object for the world context, typically the global game world object.
-      canvas: "globalNamespace.canvas"  # The root object for the canvas context, typically the global canvas object.
-      ui: "globalNamespace.ui"  # The root object for the UI context, typically the global UI object.
-      local: "globalNamespace.localStorage"  # The root object for local storage, typically the global localStorage object.
-      session: "globalNamespace.sessionStorage"  # The root object for session storage, typically the global sessionStorage object.
-      module: "module"  # The root object for the module context, typically the module's own namespace.
-      invalid: null  # An invalid root object, used to indicate an error or uninitialized state.
+  window: "window"  # The root object for the context, typically the global window object.
+  document: "document"  # The root object for the context, typically the global document object.
+  game: "game"  # The root object for the game context, typically the global game object.
+  user: "game.user"  # The root object for the user context, typically the global game user object.
+  world: "game.world"  # The root object for the world context, typically the global game world object.
+  canvas: "canvas"  # The root object for the canvas context, typically the global canvas object.
+  ui: "ui"  # The root object for the UI context, typically the global UI object.
+  local: "localStorage"  # The root object for local storage, typically the global localStorage object.
+  session: "sessionStorage"  # The root object for session storage, typically the global sessionStorage object.
+  module: "module"  # The root object for the module context, typically the module's own namespace.
+  invalid: null  # An invalid root object, used to indicate an error or uninitialized state.
 
   sync:
     # Default synchronization configuration

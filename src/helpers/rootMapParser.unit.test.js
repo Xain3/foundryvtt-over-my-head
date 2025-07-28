@@ -223,7 +223,7 @@ describe('RootMapParser', () => {
           rootMap: { module: 'missing-module' },
           namespace: mockNamespace
         });
-      }).toThrow('Module "test-module-id" not found in namespace.');
+      }).toThrow('Module "test-module-id" not found in namespace');
     });
 
     it('should throw error when path cannot be resolved', () => {
@@ -234,7 +234,7 @@ describe('RootMapParser', () => {
           rootMap: { element: 'invalid.path' },
           namespace: mockNamespace
         });
-      }).toThrow('Path "invalid.path" could not be resolved for key "element".');
+      }).toThrow('Path "invalid.path" could not be resolved for key "element"');
     });
 
     it('should throw error for invalid value types', () => {
@@ -577,7 +577,7 @@ describe('RootMapParser', () => {
           rootMap: partialConfig,
           namespace: mockNamespace
         });
-      }).toThrow('Path "game.invalid" could not be resolved for key "invalidPath".');
+      }).toThrow('Path "game.invalid" could not be resolved for key "invalidPath"');
     });
 
     it('should handle circular reference detection', () => {

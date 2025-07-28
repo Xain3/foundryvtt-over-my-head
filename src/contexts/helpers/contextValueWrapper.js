@@ -1,8 +1,8 @@
 /**
  * @file contextValueWrapper.js
  * @description This file contains the ContextValueWrapper class for wrapping values into ContextItem or ContextContainer instances.
- * @path /src/context/helpers/contextValueWrapper.js
- * @date 23 May 2025
+ * @path src/contexts/helpers/contextValueWrapper.js
+
  */
 
 import { ContextItem } from './contextItem.js';
@@ -11,18 +11,43 @@ import { ContextContainer } from './contextContainer.js';
 /**
  * @class ContextValueWrapper
  * @classdesc Provides static methods to wrap raw values into ContextItem or ContextContainer instances.
+ * @export
+ * 
+ * **Public API:**
+ * - `static wrap(rawValue, options)` - Wraps a value into a ContextItem or ContextContainer based on options
  */
 class ContextValueWrapper {
   /**
-   * Validates the wrapAs option.
+   * Normalizes the wrapAs value to handle case inconsistency.
+   * @private
+   * @param {string} wrapAs - The wrapAs option to normalize.
+   * @returns {string} The normalized wrapAs value.
+   */
+  static _normalizeWrapAsValue(wrapAs) {
+    if (typeof wrapAs !== 'string') return wrapAs;
+
+    const normalized = wrapAs.toLowerCase();
+    if (normalized === 'contextitem') return 'ContextItem';
+    if (normalized === 'contextcontainer') return 'ContextContainer';
+
+    return wrapAs; // Return original if no match found
+  }
+
+  /**
+   * Validates the wrapAs option and returns the normalized value.
    * @private
    * @param {string} wrapAs - The wrapAs option to validate.
+   * @returns {string} The normalized wrapAs value.
    * @throws {TypeError} If wrapAs is not valid.
    */
   static _validateWrapOptions(wrapAs) {
-    if (wrapAs !== "ContextItem" && wrapAs !== "ContextContainer") {
-      throw new TypeError(`Invalid value for wrapAs: ${wrapAs}. Must be "ContextItem" or "ContextContainer".`);
+    const normalizedWrapAs = this._normalizeWrapAsValue(wrapAs);
+
+    if (normalizedWrapAs !== "ContextItem" && normalizedWrapAs !== "ContextContainer") {
+      throw new TypeError(`Invalid value for wrapAs: ${wrapAs}. Must be "ContextItem" or "ContextContainer" (case-insensitive).`);
     }
+
+    return normalizedWrapAs;
   }
 
   /**
@@ -51,7 +76,7 @@ class ContextValueWrapper {
   static _handlePrimitiveValue(rawValue, wrapPrimitives) {
     if (!wrapPrimitives) {
       const type = typeof rawValue;
-      if (type !== 'object' && type !== 'function' || rawValue === null) {
+      if ((type !== 'object' && type !== 'function') || rawValue === null) {
         return rawValue; // Return primitive as-is
       }
       throw new TypeError('rawValue must be an instance of ContextItem or ContextContainer if wrapPrimitives is false and rawValue is not a primitive.');
@@ -113,7 +138,7 @@ class ContextValueWrapper {
       defaultItemRecordAccessForMetadata: false,
     }
   } = {}) {
-    this._validateWrapOptions(wrapAs);
+    const normalizedWrapAs = this._validateWrapOptions(wrapAs);
 
     const existingInstance = this._handleExistingInstance(rawValue);
     if (existingInstance) return existingInstance;
@@ -122,8 +147,11 @@ class ContextValueWrapper {
     if (primitiveResult !== undefined) return primitiveResult;
 
     const newInstanceOptions = { recordAccess, recordAccessForMetadata };
-    return this._createNewInstance(rawValue, wrapAs, metadata, newInstanceOptions, containerOptions);
+    const result = this._createNewInstance(rawValue, normalizedWrapAs, metadata, newInstanceOptions, containerOptions);
+
+    return result;
   }
 }
 
 export { ContextValueWrapper };
+export default ContextValueWrapper;

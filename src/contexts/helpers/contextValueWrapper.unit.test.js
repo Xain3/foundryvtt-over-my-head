@@ -1,7 +1,8 @@
 /**
- * @file contextValueWrapper.test.js
+ * @file contextValueWrapper.unit.test.js
  * @description Unit tests for the ContextValueWrapper class.
- * @path src/context/helpers/contextValueWrapper.test.js
+ * @path src/contexts/helpers/contextValueWrapper.unit.test.js
+
  */
 
 import { ContextValueWrapper } from './contextValueWrapper.js';
@@ -9,15 +10,52 @@ import { ContextItem } from './contextItem.js';
 import { ContextContainer } from './contextContainer.js';
 
 describe('ContextValueWrapper', () => {
-  describe('_validateWrapOptions', () => {
-    it('should not throw for valid wrapAs options', () => {
-      expect(() => ContextValueWrapper._validateWrapOptions('ContextItem')).not.toThrow();
-      expect(() => ContextValueWrapper._validateWrapOptions('ContextContainer')).not.toThrow();
+  describe('_normalizeWrapAsValue', () => {
+    it('should normalize case-insensitive string values correctly', () => {
+      expect(ContextValueWrapper._normalizeWrapAsValue('contextitem')).toBe('ContextItem');
+      expect(ContextValueWrapper._normalizeWrapAsValue('CONTEXTITEM')).toBe('ContextItem');
+      expect(ContextValueWrapper._normalizeWrapAsValue('CoNtExTiTeM')).toBe('ContextItem');
+      expect(ContextValueWrapper._normalizeWrapAsValue('contextcontainer')).toBe('ContextContainer');
+      expect(ContextValueWrapper._normalizeWrapAsValue('CONTEXTCONTAINER')).toBe('ContextContainer');
+      expect(ContextValueWrapper._normalizeWrapAsValue('CoNtExTcOnTaInEr')).toBe('ContextContainer');
     });
 
-    it('should throw TypeError for invalid wrapAs options', () => {
-      expect(() => ContextValueWrapper._validateWrapOptions('InvalidOption')).toThrow(TypeError);
-      expect(() => ContextValueWrapper._validateWrapOptions('contextItem')).toThrow(TypeError);
+    it('should return original value for already correct casing', () => {
+      expect(ContextValueWrapper._normalizeWrapAsValue('ContextItem')).toBe('ContextItem');
+      expect(ContextValueWrapper._normalizeWrapAsValue('ContextContainer')).toBe('ContextContainer');
+    });
+
+    it('should return original value for non-matching strings', () => {
+      expect(ContextValueWrapper._normalizeWrapAsValue('InvalidOption')).toBe('InvalidOption');
+      expect(ContextValueWrapper._normalizeWrapAsValue('')).toBe('');
+      expect(ContextValueWrapper._normalizeWrapAsValue('random')).toBe('random');
+    });
+
+    it('should return original value for non-string inputs', () => {
+      expect(ContextValueWrapper._normalizeWrapAsValue(null)).toBe(null);
+      expect(ContextValueWrapper._normalizeWrapAsValue(undefined)).toBe(undefined);
+      expect(ContextValueWrapper._normalizeWrapAsValue(123)).toBe(123);
+      expect(ContextValueWrapper._normalizeWrapAsValue({})).toEqual({});
+    });
+  });
+
+  describe('_validateWrapOptions', () => {
+    it('should return normalized value for valid wrapAs options', () => {
+      expect(ContextValueWrapper._validateWrapOptions('ContextItem')).toBe('ContextItem');
+      expect(ContextValueWrapper._validateWrapOptions('ContextContainer')).toBe('ContextContainer');
+    });
+
+    it('should return normalized value for case-insensitive valid options', () => {
+      expect(ContextValueWrapper._validateWrapOptions('contextitem')).toBe('ContextItem');
+      expect(ContextValueWrapper._validateWrapOptions('CONTEXTITEM')).toBe('ContextItem');
+      expect(ContextValueWrapper._validateWrapOptions('contextcontainer')).toBe('ContextContainer');
+      expect(ContextValueWrapper._validateWrapOptions('CONTEXTCONTAINER')).toBe('ContextContainer');
+    });
+
+    it('should throw TypeError for invalid wrapAs options with improved error message', () => {
+      expect(() => ContextValueWrapper._validateWrapOptions('InvalidOption')).toThrow(
+        TypeError('Invalid value for wrapAs: InvalidOption. Must be "ContextItem" or "ContextContainer" (case-insensitive).')
+      );
       expect(() => ContextValueWrapper._validateWrapOptions('')).toThrow(TypeError);
       expect(() => ContextValueWrapper._validateWrapOptions(null)).toThrow(TypeError);
       expect(() => ContextValueWrapper._validateWrapOptions(undefined)).toThrow(TypeError);
@@ -128,8 +166,22 @@ describe('ContextValueWrapper', () => {
       expect(result).toBeInstanceOf(ContextContainer);
     });
 
-    it('should throw TypeError for invalid wrapAs option', () => {
-      expect(() => ContextValueWrapper.wrap('test', { wrapAs: 'Invalid' })).toThrow(TypeError);
+    it('should create ContextContainer when wrapAs is "ContextContainer" with case variations', () => {
+      expect(ContextValueWrapper.wrap({}, { wrapAs: 'contextcontainer' })).toBeInstanceOf(ContextContainer);
+      expect(ContextValueWrapper.wrap({}, { wrapAs: 'CONTEXTCONTAINER' })).toBeInstanceOf(ContextContainer);
+      expect(ContextValueWrapper.wrap({}, { wrapAs: 'CoNtExTcOnTaInEr' })).toBeInstanceOf(ContextContainer);
+    });
+
+    it('should create ContextItem when wrapAs is "ContextItem" with case variations', () => {
+      expect(ContextValueWrapper.wrap('test', { wrapAs: 'contextitem' })).toBeInstanceOf(ContextItem);
+      expect(ContextValueWrapper.wrap('test', { wrapAs: 'CONTEXTITEM' })).toBeInstanceOf(ContextItem);
+      expect(ContextValueWrapper.wrap('test', { wrapAs: 'CoNtExTiTeM' })).toBeInstanceOf(ContextItem);
+    });
+
+    it('should throw TypeError for invalid wrapAs option with improved error message', () => {
+      expect(() => ContextValueWrapper.wrap('test', { wrapAs: 'Invalid' })).toThrow(
+        TypeError('Invalid value for wrapAs: Invalid. Must be "ContextItem" or "ContextContainer" (case-insensitive).')
+      );
     });
 
     it('should pass options correctly to ContextItem', () => {

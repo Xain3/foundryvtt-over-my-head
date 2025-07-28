@@ -44,7 +44,7 @@ class ActiveContexts {
   /**
    * Initialize in-memory context using ContextFactory
    * @param {object} initializationParams - Parameters for context initialization
-   * @returns {InMemoryContextManager|undefined} The in-memory context manager or undefined if disabled
+   * @returns {Context|undefined} The in-memory context manager or undefined if disabled
    */
   initializeInMemoryContext(initializationParams = this.initializationParams) {
     if (!this.#inMemoryFlag) return undefined;
@@ -53,7 +53,7 @@ class ActiveContexts {
       initializationParams = initializationParams.inMemory;
     }
 
-    return ContextFactory.createInMemoryContext(initializationParams);
+    return ContextFactory.create('inMemory', initializationParams);
   }
 
   /**
@@ -73,7 +73,7 @@ class ActiveContexts {
       source: 'module',
     };
 
-    return ContextFactory.createExternalContext(moduleParams);
+    return ContextFactory.create('module', moduleParams);
   }
 
   /**
@@ -93,7 +93,7 @@ class ActiveContexts {
       source: 'user',
     };
 
-    return ContextFactory.createExternalContext(userParams);
+    return ContextFactory.create('user', userParams);
   }
 
   /**
@@ -113,7 +113,7 @@ class ActiveContexts {
       source: 'world',
     };
 
-    return ContextFactory.createExternalContext(worldParams);
+    return ContextFactory.create('world', worldParams);
   }
 
   /**
@@ -133,7 +133,7 @@ class ActiveContexts {
       source: 'localStorage',
     };
 
-    return ContextFactory.createExternalContext(localStorageParams);
+    return ContextFactory.create('localStorage', localStorageParams);
   }
 
   /**
@@ -153,7 +153,7 @@ class ActiveContexts {
       source: 'sessionStorage',
     };
 
-    return ContextFactory.createExternalContext(sessionStorageParams);
+    return ContextFactory.create('sessionStorage', sessionStorageParams);
   }
 
   /**
@@ -173,8 +173,10 @@ class ActiveContexts {
   }
 }
 
-// Create default contexts instance
-const contexts = new ActiveContexts().initializeAllContexts();
+// Create default contexts instance only if we're not in a test environment
+const contexts = typeof global !== 'undefined' && global.process?.env?.NODE_ENV === 'test' 
+  ? null 
+  : new ActiveContexts().initializeAllContexts();
 
 export default contexts;
 export { ActiveContexts };

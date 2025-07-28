@@ -5,18 +5,17 @@
  */
 
 import _ from "lodash";
-import Context, { DEFAULT_INITIALIZATION_PARAMS } from "./context.js";
-import BaseContextManager from "./baseContextManager.js";
+import Context from "./context.js";
 import StorageAdapter from "./storageAdapter.js";
 
 /**
  * @class ExternalContextManager
- * @extends BaseContextManager
  * @description Manages context data stored in external storage backends.
  * Provides a structured way to access and manipulate context data with persistent storage.
  * Uses StorageAdapter to handle different storage types including localStorage, sessionStorage,
- * and Foundry VTT game settings. Inherits common functionality from BaseContextManager.
+ * and Foundry VTT game settings. Composes a Context instance instead of extending BaseContextManager.
  *
+ * @property {Context} #context - The underlying context instance.
  * @property {StorageAdapter} #storage - The storage adapter for managing external persistence.
  *
  * @example
@@ -31,10 +30,11 @@ import StorageAdapter from "./storageAdapter.js";
  * const userData = contextManager.data.get('user');
  *
  * // Merge with another context
- * const result = contextManager.merge(otherContext, 'mergeNewerWins');
+ * const result = contextManager.context.merge(otherContext, 'mergeNewerWins');
  * ```
  */
-class ExternalContextManager extends BaseContextManager {
+class ExternalContextManager {
+  #context;
   #storage;
 
   /**
@@ -67,27 +67,29 @@ class ExternalContextManager extends BaseContextManager {
     rootIdentifier = undefined,
     pathFromRoot = undefined,
     rootMap = undefined,
-    initializationParams = {
-      mergeStrategy: 'mergeOlderWins'
-    }
+    initializationParams = {}
   } = {}) {
-    // Merge with defaults and create base context
-    const mergedParams = { ...DEFAULT_INITIALIZATION_PARAMS, ...initializationParams };
-    const baseContext = new Context({ initializationParams: mergedParams });
+    // Merge initialization parameters with defaults
+    const mergedParams = {
+      mergeStrategy: 'mergeOlderWins',
+      ...initializationParams
+    };
 
-    // Get configuration from constants
-    const constants = baseContext.constants;
-    const configuration = constants.getItem?.('context')?.getItem?.('external') || constants.context?.external;
+    // Create base context directly
+    this.#context = new Context({
+      initializationParams: mergedParams
+    });
+
+    // Get configuration from context constants
+    const constants = this.#context.constants.value;
+    const configuration = constants.context?.external;
 
     if (!configuration) {
       throw new Error('External context configuration not found in constants');
     }
 
-    // Call parent constructor first
-    super(baseContext);
-
     try {
-      // Create storage adapter after super() call
+      // Create storage adapter
       this.#storage = new StorageAdapter({
         source,
         configuration,
@@ -98,11 +100,123 @@ class ExternalContextManager extends BaseContextManager {
       });
 
       // Store the context using the storage adapter
-      this.#storage.store(this.context);
+      this.#storage.store(this.#context);
     } catch (error) {
       console.error('Failed to initialize ExternalContextManager:', error);
       throw error;
     }
+  }
+
+  /**
+   * @description Gets the underlying context instance.
+   * @returns {Context} The context instance.
+   *
+   * @example
+   * ```javascript
+   * const manager = new ExternalContextManager(config);
+   * const context = manager.context;
+   * ```
+   */
+  get context() {
+    return this.#context;
+  }
+
+  /**
+   * @description Gets the data container from the context.
+   * @returns {ContextContainer} The data container.
+   *
+   * @example
+   * ```javascript
+   * const manager = new ExternalContextManager(config);
+   * manager.data.setItem('user.name', 'Hero');
+   * ```
+   */
+  get data() {
+    return this.#context.data;
+  }
+
+  /**
+   * @description Gets the settings container from the context.
+   * @returns {ContextContainer} The settings container.
+   *
+   * @example
+   * ```javascript
+   * const manager = new ExternalContextManager(config);
+   * manager.settings.setItem('ui.theme', 'dark');
+   * ```
+   */
+  get settings() {
+    return this.#context.settings;
+  }
+
+  /**
+   * @description Gets the flags container from the context.
+   * @returns {ContextContainer} The flags container.
+   *
+   * @example
+   * ```javascript
+   * const manager = new ExternalContextManager(config);
+   * manager.flags.setItem('initialized', true);
+   * ```
+   */
+  get flags() {
+    return this.#context.flags;
+  }
+
+  /**
+   * @description Gets the state container from the context.
+   * @returns {ContextContainer} The state container.
+   *
+   * @example
+   * ```javascript
+   * const manager = new ExternalContextManager(config);
+   * manager.state.setItem('currentScene', 'tavern');
+   * ```
+   */
+  get state() {
+    return this.#context.state;
+  }
+
+  /**
+   * @description Gets the constants from the context.
+   * @returns {ContextItem} The constants item (readonly).
+   *
+   * @example
+   * ```javascript
+   * const manager = new ExternalContextManager(config);
+   * const moduleConstants = manager.constants.value;
+   * ```
+   */
+  get constants() {
+    return this.#context.constants;
+  }
+
+  /**
+   * @description Gets the manifest from the context.
+   * @returns {ContextItem} The manifest item (readonly).
+   *
+   * @example
+   * ```javascript
+   * const manager = new ExternalContextManager(config);
+   * const version = manager.manifest.value.version;
+   * ```
+   */
+  get manifest() {
+    return this.#context.manifest;
+  }
+
+  /**
+   * @description Gets the schema from the context.
+   * @returns {ContextItem} The schema item (readonly).
+   *
+   * @example
+   * ```javascript
+   * const manager = new ExternalContextManager(config);
+   * const schema = manager.schema.value;
+   * ```
+   */
+  get schema() {
+    return this.#context.schema;
   }
 
   /**

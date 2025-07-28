@@ -4,7 +4,7 @@
  * @path /src/contexts/contextFactory.js
  */
 
-import InMemoryContextManager from "./inMemory.js";
+import Context from "./context.js";
 import ExternalContextManager from "./external.js";
 
 /**
@@ -19,7 +19,7 @@ class ContextFactory {
    * @private
    */
   static #CONTEXT_TYPES = {
-    inMemory: InMemoryContextManager,
+    inMemory: Context,
     external: ExternalContextManager,
     localStorage: ExternalContextManager,
     sessionStorage: ExternalContextManager,
@@ -32,14 +32,14 @@ class ContextFactory {
    * @description Creates a context manager of the specified type.
    * @param {string} type - The type of context manager to create.
    * @param {object} [options={}] - Configuration options for the context manager.
-   * @returns {BaseContextManager|null} The created context manager or null if type is invalid.
+   * @returns {Context|ExternalContextManager|null} The created context manager or null if type is invalid.
    * @throws {Error} If context creation fails.
    *
    * @example
    * ```javascript
    * // Create in-memory context
    * const memoryContext = ContextFactory.create('inMemory', {
-   *   data: { user: 'test' }
+   *   initializationParams: { data: { user: 'test' } }
    * });
    *
    * // Create external context with localStorage
@@ -66,9 +66,12 @@ class ContextFactory {
 
     try {
       if (type === 'inMemory') {
-        return new ManagerClass(options);
+        // Create Context directly for in-memory usage
+        return new ManagerClass({ 
+          initializationParams: options 
+        });
       } else {
-        // For external contexts, ensure source is set correctly
+        // For external contexts, use ExternalContextManager
         const contextOptions = {
           source: type === 'external' ? options.source || 'external' : type,
           ...options

@@ -5,7 +5,6 @@
  */
 
 import RootMapParser from "../helpers/rootMapParser.js";
-import ContextMerger from './helpers/contextMerger.js';
 
 /**
  * @class StorageAdapter
@@ -70,9 +69,9 @@ class StorageAdapter {
     this.#mergeStrategy = mergeStrategy;
 
     // Use provided values or fall back to configuration defaults
-    this.#rootIdentifier = rootIdentifier || configuration.defaults?.rootIdentifier;
-    this.#rootMap = rootMap || configuration.rootMap;
-    this.#pathFromRoot = pathFromRoot || configuration.defaults?.pathFromRoot;
+    this.#rootIdentifier = rootIdentifier !== undefined ? rootIdentifier : configuration.defaults?.rootIdentifier;
+    this.#rootMap = rootMap !== undefined ? rootMap : configuration.rootMap;
+    this.#pathFromRoot = pathFromRoot !== undefined ? pathFromRoot : configuration.defaults?.pathFromRoot;
 
     this.#validateConfiguration();
     this.#contextRoot = this.#determineRoot(this.#rootIdentifier);
@@ -248,17 +247,90 @@ class StorageAdapter {
       throw new Error('Invalid path from root');
     }
 
+    // Check if we're dealing with browser storage that requires JSON serialization
+    const isBrowserStorage = this.#isBrowserStorage(contextRoot);
+
+    if (isBrowserStorage) {
+      return this.#handleBrowserStorage(context, contextRoot, pathFromRoot);
+    } else {
+      return this.#handleObjectStorage(context, contextRoot, pathFromRoot);
+    }
+  }
+
+  /**
+   * @description Determines if the contextRoot is browser storage (localStorage/sessionStorage).
+   * @param {object} contextRoot - The storage root object.
+   * @returns {boolean} True if contextRoot is browser storage.
+   * @private
+   */
+  #isBrowserStorage(contextRoot) {
+    // Check if contextRoot has the Storage interface methods
+    return (
+      typeof contextRoot.getItem === 'function' &&
+      typeof contextRoot.setItem === 'function' &&
+      typeof contextRoot.removeItem === 'function' &&
+      typeof contextRoot.clear === 'function'
+    );
+  }
+
+  /**
+   * @description Handles storage for browser storage (localStorage/sessionStorage) with JSON serialization.
+   * @param {Context} context - The context instance to store.
+   * @param {object} contextRoot - The browser storage object.
+   * @param {string} pathFromRoot - The path key for storage.
+   * @returns {Context} The stored context instance.
+   * @private
+   */
+  #handleBrowserStorage(context, contextRoot, pathFromRoot) {
+    // Create a serializable representation of the Context
+    const contextData = this.#serializeContext(context);
+    
+    // Check for existing data
+    const existingData = contextRoot.getItem(pathFromRoot);
+    
+    if (existingData && existingData !== 'null') {
+      try {
+        const parsedData = JSON.parse(existingData);
+        // If existing data exists, merge with new context
+        const mergedData = this.#mergeContextData(parsedData, contextData);
+        contextRoot.setItem(pathFromRoot, JSON.stringify(mergedData));
+        
+        console.warn(`Merged existing context data at path: ${pathFromRoot}`);
+        return context; // Return the original context instance
+      } catch (error) {
+        console.warn(`Invalid JSON in storage at ${pathFromRoot}, replacing with new data`);
+        contextRoot.setItem(pathFromRoot, JSON.stringify(contextData));
+        return context;
+      }
+    } else {
+      // No existing data, store new context
+      contextRoot.setItem(pathFromRoot, JSON.stringify(contextData));
+      return context;
+    }
+  }
+
+  /**
+   * @description Handles storage for object-based storage (non-browser storage).
+   * @param {Context} context - The context instance to store.
+   * @param {object} contextRoot - The storage root object.
+   * @param {string} pathFromRoot - The path from the storage root.
+   * @returns {Context} The stored context instance.
+   * @private
+   */
+  #handleObjectStorage(context, contextRoot, pathFromRoot) {
     // Check if there's already a context at this path
     const existingValue = contextRoot[pathFromRoot];
 
     if (existingValue && typeof existingValue === 'object') {
-      // Check if existingValue looks like a Context instance
-      const isContextLike = existingValue.constants && existingValue.schema && existingValue.manifest &&
-                            existingValue.flags && existingValue.state && existingValue.data &&
-                            existingValue.settings && typeof existingValue.compare === 'function';
+      // Check if existingValue looks like a Context instance using duck typing
+      const isContextLike = existingValue.isContextObject ||
+                           (existingValue.schema && existingValue.constants &&
+                            existingValue.manifest && existingValue.flags &&
+                            existingValue.state && existingValue.data &&
+                            existingValue.settings && typeof existingValue.merge === 'function');
 
       if (isContextLike) {
-        // Merge with existing Context instance
+        // Merge with existing Context instance using Context's own merge method
         contextRoot[pathFromRoot] = this.#mergeContextInstances(pathFromRoot, existingValue, context);
       } else {
         // Non-Context object exists - warn and replace
@@ -270,6 +342,43 @@ class StorageAdapter {
     }
 
     return contextRoot[pathFromRoot];
+  }
+
+  /**
+   * @description Serializes a Context instance to a JSON-compatible object.
+   * @param {Context} context - The context instance to serialize.
+   * @returns {object} The serializable context data.
+   * @private
+   */
+  #serializeContext(context) {
+    return {
+      data: context.data._container || {},
+      settings: context.settings._container || {},
+      schema: context.schema || {},
+      constants: context.constants?.value || {},
+      manifest: context.manifest || {},
+      flags: context.flags || {},
+      state: context.state || {},
+      timestamp: Date.now(),
+      contextType: 'serialized'
+    };
+  }
+
+  /**
+   * @description Merges existing context data with new context data.
+   * @param {object} existingData - The existing context data.
+   * @param {object} newData - The new context data to merge.
+   * @returns {object} The merged context data.
+   * @private
+   */
+  #mergeContextData(existingData, newData) {
+    return {
+      ...existingData,
+      ...newData,
+      data: { ...existingData.data, ...newData.data },
+      settings: { ...existingData.settings, ...newData.settings },
+      timestamp: newData.timestamp
+    };
   }
 
   /**
@@ -297,17 +406,14 @@ class StorageAdapter {
     console.warn(`Merging existing Context instance at path: ${pathFromRoot}`);
 
     try {
-      const mergeResult = ContextMerger.merge(
-        existingContext,
-        newContext,
-        this.#mergeStrategy
-      );
+      // Use the existing context's merge method instead of ContextMerger directly
+      const mergeResult = existingContext.merge(newContext, this.#mergeStrategy);
 
       if (!mergeResult.success) {
-        throw new Error(`Context merge failed: ${mergeResult.error}`);
+        throw new Error(`Context merge failed: ${mergeResult.error || 'Unknown error'}`);
       }
 
-      return mergeResult.mergedContext || newContext;
+      return existingContext; // The merge happens in-place
     } catch (error) {
       console.error('Failed to merge contexts:', error);
       throw new Error(`Context merge operation failed: ${error.message}`);

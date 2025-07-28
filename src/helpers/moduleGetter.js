@@ -14,6 +14,7 @@ import PathUtils from "./pathUtils.js";
  * @param {object} [globalNamespace=globalThis] - The global namespace object to search in
  * @returns {*} The requested module object or null if not found
  * @throws {TypeError} When moduleName is not a string or globalNamespace is not an object
+ * @export
  */
 export const getModule = (moduleName, globalNamespace = globalThis) => {
   if (typeof moduleName !== 'string') {
@@ -25,12 +26,10 @@ export const getModule = (moduleName, globalNamespace = globalThis) => {
   }
 
   const modulesLocation = constants.defaultFoundryModulesLocation || 'game.modules';
-  const modulesCollection = PathUtils.resolvePath(modulesLocation, { namespace: globalNamespace });
+  const modulesCollection = PathUtils.resolvePath(globalNamespace, modulesLocation, true);
   if (!modulesCollection || typeof modulesCollection.get !== 'function') {
     return null;
   }
 
   return modulesCollection.get(moduleName) || null;
 };
-
-

@@ -38,24 +38,6 @@ context:
         onValidationError: 'throw'
       }
 
-  # How to structure the context object
-  external:
-    defaults:
-      rootIdentifier: "module" # The default identifier for the root object of the context.
-      pathFromRoot: "context" # The default path of the context relative to the root object.
-    rootMap:
-  window: "window"  # The root object for the context, typically the global window object.
-  document: "document"  # The root object for the context, typically the global document object.
-  game: "game"  # The root object for the game context, typically the global game object.
-  user: "game.user"  # The root object for the user context, typically the global game user object.
-  world: "game.world"  # The root object for the world context, typically the global game world object.
-  canvas: "canvas"  # The root object for the canvas context, typically the global canvas object.
-  ui: "ui"  # The root object for the UI context, typically the global UI object.
-  local: "localStorage"  # The root object for local storage, typically the global localStorage object.
-  session: "sessionStorage"  # The root object for session storage, typically the global sessionStorage object.
-  module: "module"  # The root object for the module context, typically the module's own namespace.
-  invalid: null  # An invalid root object, used to indicate an error or uninitialized state.
-
   sync:
     # Default synchronization configuration
     defaults:
@@ -108,6 +90,52 @@ context:
     settings: 'object'
     timestamp: 'number'
 
+    # Constants for context helpers
+  helpers:
+    mergeStrategies:
+      MERGE_NEWER_WINS: "mergeNewerWins"
+      MERGE_SOURCE_PRIORITY: "mergeSourcePriority"
+      MERGE_TARGET_PRIORITY: "mergeTargetPriority"
+      UPDATE_SOURCE_TO_TARGET: "updateSourceToTarget"
+      UPDATE_TARGET_TO_SOURCE: "updateTargetToSource"
+      REPLACE: "replace"
+      NO_ACTION: "noAction"
+
+    comparisonResults:
+      SOURCE_NEWER: "sourceNewer"
+      TARGET_NEWER: "targetNewer"
+      EQUAL: "equal"
+      SOURCE_MISSING: "sourceMissing"
+      TARGET_MISSING: "targetMissing"
+      BOTH_MISSING: "bothMissing"
+      CONTAINER_A_NEWER: "containerANewer"
+      CONTAINER_B_NEWER: "containerBNewer"
+      CONTAINER_A_MISSING: "containerAMissing"
+      CONTAINER_B_MISSING: "containerBMissing"
+
+    defaultComponents:
+      - "schema"
+      - "constants"
+      - "manifest"
+      - "flags"
+      - "state"
+      - "data"
+      - "settings"
+
+    errorMessages:
+      invalidSourceTarget: "Source and target contexts must be provided"
+      emptyItemPaths: "Item paths must be a non-empty array"
+      emptySources: "Sources must be a non-empty array of contexts"
+      emptyTargets: "Targets must be a non-empty array of contexts"
+      emptyTarget: "Target context must be provided"
+      unsupportedObjectType: "Unsupported object type for synchronization"
+      unsupportedObjectTypes: "Unsupported object types for synchronization"
+      incompatibleTypes: "Incompatible object types: type mismatch between source and target"
+      invalidMergeContext: "Invalid source or target context for merge operation"
+      unknownSyncOperation: "Unknown synchronization operation: {operation}"
+      cannotOverwriteFrozen: "Cannot overwrite frozen item at key \"{key}\". Use ignoreFrozen option to force overwrite."
+      keyRenamed: "Key \"{key}\" is reserved. It will been renamed to \"_{key}\"."
+
 # Constants relative to placeables
 placeables:
   token:
@@ -128,52 +156,6 @@ placeables:
       - "top-right"
       - "bottom-left"
       - "bottom-right"
-
-# Constants for context helpers
-contextHelpers:
-  mergeStrategies:
-    MERGE_NEWER_WINS: "mergeNewerWins"
-    MERGE_SOURCE_PRIORITY: "mergeSourcePriority"
-    MERGE_TARGET_PRIORITY: "mergeTargetPriority"
-    UPDATE_SOURCE_TO_TARGET: "updateSourceToTarget"
-    UPDATE_TARGET_TO_SOURCE: "updateTargetToSource"
-    REPLACE: "replace"
-    NO_ACTION: "noAction"
-
-  comparisonResults:
-    SOURCE_NEWER: "sourceNewer"
-    TARGET_NEWER: "targetNewer"
-    EQUAL: "equal"
-    SOURCE_MISSING: "sourceMissing"
-    TARGET_MISSING: "targetMissing"
-    BOTH_MISSING: "bothMissing"
-    CONTAINER_A_NEWER: "containerANewer"
-    CONTAINER_B_NEWER: "containerBNewer"
-    CONTAINER_A_MISSING: "containerAMissing"
-    CONTAINER_B_MISSING: "containerBMissing"
-
-  defaultComponents:
-    - "schema"
-    - "constants"
-    - "manifest"
-    - "flags"
-    - "state"
-    - "data"
-    - "settings"
-
-  errorMessages:
-    invalidSourceTarget: "Source and target contexts must be provided"
-    emptyItemPaths: "Item paths must be a non-empty array"
-    emptySources: "Sources must be a non-empty array of contexts"
-    emptyTargets: "Targets must be a non-empty array of contexts"
-    emptyTarget: "Target context must be provided"
-    unsupportedObjectType: "Unsupported object type for synchronization"
-    unsupportedObjectTypes: "Unsupported object types for synchronization"
-    incompatibleTypes: "Incompatible object types: type mismatch between source and target"
-    invalidMergeContext: "Invalid source or target context for merge operation"
-    unknownSyncOperation: "Unknown synchronization operation: {operation}"
-    cannotOverwriteFrozen: "Cannot overwrite frozen item at key \"{key}\". Use ignoreFrozen option to force overwrite."
-    keyRenamed: "Key \"{key}\" is reserved. It will been renamed to \"_{key}\"."
 
 # Required attributes for a valid manifest (from https://foundryvtt.com/article/module-development/)
 requiredManifestAttributes:

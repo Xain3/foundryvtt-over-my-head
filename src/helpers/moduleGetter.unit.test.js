@@ -71,7 +71,7 @@ describe('getModule', () => {
 
       const result = getModule('test-module', mockGlobalNamespace);
 
-      expect(PathUtils.resolvePath).toHaveBeenCalledWith('game.modules', { namespace: mockGlobalNamespace });
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'game.modules', true);
       expect(mockModulesCollection.get).toHaveBeenCalledWith('test-module');
       expect(result).toBe(mockModule);
     });
@@ -94,7 +94,7 @@ describe('getModule', () => {
 
       getModule('test-module');
 
-      expect(PathUtils.resolvePath).toHaveBeenCalledWith('game.modules', { namespace: globalThis });
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(globalThis, 'game.modules', true);
 
       globalThis.game = originalGlobalThis.game;
     });
@@ -176,7 +176,7 @@ describe('getModule', () => {
 
       getModule('test-module', mockGlobalNamespace);
 
-      expect(PathUtils.resolvePath).toHaveBeenCalledWith(constants.defaultFoundryModulesLocation, { namespace: mockGlobalNamespace });
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, constants.defaultFoundryModulesLocation, true);
     });
 
     it('should fallback to game.modules when constants.defaultFoundryModulesLocation is undefined', () => {
@@ -188,7 +188,7 @@ describe('getModule', () => {
 
       getModule('test-module', mockGlobalNamespace);
 
-      expect(PathUtils.resolvePath).toHaveBeenCalledWith('game.modules', { namespace: mockGlobalNamespace });
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'game.modules', true);
 
       constants.defaultFoundryModulesLocation = originalConstant;
     });
@@ -204,7 +204,7 @@ describe('getModule', () => {
 
       getModule('test-module', mockGlobalNamespace);
 
-      expect(PathUtils.resolvePath).toHaveBeenCalledWith('custom.modules.location', { namespace: mockGlobalNamespace });
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'custom.modules.location', true);
 
       constants.defaultFoundryModulesLocation = originalConstant;
     });
@@ -290,7 +290,7 @@ describe('getModule', () => {
 
       const result = getModule('system-module', customNamespace);
 
-      expect(PathUtils.resolvePath).toHaveBeenCalledWith('foundry.modules', { namespace: customNamespace });
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(customNamespace, 'foundry.modules', true);
       expect(result).toEqual({ id: 'system-module' });
 
       constants.defaultFoundryModulesLocation = originalConstant;

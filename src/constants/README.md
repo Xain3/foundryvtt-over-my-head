@@ -338,7 +338,7 @@ const moduleInstance = {
 const contextConfig = {
   defaults: constants.context.sync.defaults,
   external: constants.context.external,
-  helpers: constants.contextHelpers
+  helpers: constants.context.helpers
 };
 ```
 

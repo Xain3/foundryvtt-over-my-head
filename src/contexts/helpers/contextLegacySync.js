@@ -66,7 +66,7 @@ class ContextLegacySync {
     if (syncClass) {
       return syncClass.updateSourceToTarget(source, target, options);
     }
-    throw new Error(constants.contextHelpers.errorMessages.unsupportedObjectType);
+    throw new Error(constants.context.helpers.errorMessages.unsupportedObjectType);
   }
 
   /**
@@ -82,7 +82,7 @@ class ContextLegacySync {
     if (syncClass) {
       return syncClass.updateTargetToSource(source, target, options);
     }
-    throw new Error(constants.contextHelpers.errorMessages.unsupportedObjectType);
+    throw new Error(constants.context.helpers.errorMessages.unsupportedObjectType);
   }
 
   /**
@@ -98,7 +98,7 @@ class ContextLegacySync {
     if (syncClass) {
       return syncClass.mergeNewerWins(source, target, options);
     }
-    throw new Error(constants.contextHelpers.errorMessages.unsupportedObjectType);
+    throw new Error(constants.context.helpers.errorMessages.unsupportedObjectType);
   }
 
   /**
@@ -115,7 +115,7 @@ class ContextLegacySync {
     if (syncClass) {
       return syncClass.mergeWithPriority(source, target, priority, options);
     }
-    throw new Error(constants.contextHelpers.errorMessages.unsupportedObjectType);
+    throw new Error(constants.context.helpers.errorMessages.unsupportedObjectType);
   }
 
   /**
@@ -123,12 +123,12 @@ class ContextLegacySync {
    * @description Legacy synchronization operation types.
    */
   static SYNC_OPERATIONS = {
-    UPDATE_SOURCE_TO_TARGET: constants.contextHelpers.mergeStrategies.UPDATE_SOURCE_TO_TARGET,
-    UPDATE_TARGET_TO_SOURCE: constants.contextHelpers.mergeStrategies.UPDATE_TARGET_TO_SOURCE,
-    MERGE_NEWER_WINS: constants.contextHelpers.mergeStrategies.MERGE_NEWER_WINS,
-    MERGE_SOURCE_PRIORITY: constants.contextHelpers.mergeStrategies.MERGE_SOURCE_PRIORITY,
-    MERGE_TARGET_PRIORITY: constants.contextHelpers.mergeStrategies.MERGE_TARGET_PRIORITY,
-    NO_ACTION: constants.contextHelpers.mergeStrategies.NO_ACTION
+    UPDATE_SOURCE_TO_TARGET: constants.context.helpers.mergeStrategies.UPDATE_SOURCE_TO_TARGET,
+    UPDATE_TARGET_TO_SOURCE: constants.context.helpers.mergeStrategies.UPDATE_TARGET_TO_SOURCE,
+    MERGE_NEWER_WINS: constants.context.helpers.mergeStrategies.MERGE_NEWER_WINS,
+    MERGE_SOURCE_PRIORITY: constants.context.helpers.mergeStrategies.MERGE_SOURCE_PRIORITY,
+    MERGE_TARGET_PRIORITY: constants.context.helpers.mergeStrategies.MERGE_TARGET_PRIORITY,
+    NO_ACTION: constants.context.helpers.mergeStrategies.NO_ACTION
   };
 
   /**
@@ -145,7 +145,7 @@ class ContextLegacySync {
     const targetType = ContextLegacySync.#getObjectType(target);
 
     if (sourceType === 'Unknown' || targetType === 'Unknown') {
-      throw new Error(constants.contextHelpers.errorMessages.unsupportedObjectType);
+      throw new Error(constants.context.helpers.errorMessages.unsupportedObjectType);
     }
 
     const comparison = ContextComparison.compare(source, target, { compareBy: options.compareBy });
@@ -186,7 +186,7 @@ class ContextLegacySync {
         };
 
       default:
-        throw new Error(constants.contextHelpers.errorMessages.unknownSyncOperation.replace('{operation}', operation));
+        throw new Error(constants.context.helpers.errorMessages.unknownSyncOperation.replace('{operation}', operation));
     }
   }
 

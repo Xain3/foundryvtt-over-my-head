@@ -33,7 +33,7 @@ class ContextComparison {
    * @enum {string}
    * @export
    */
-  static COMPARISON_RESULTS = constants.contextHelpers.comparisonResults;
+  static COMPARISON_RESULTS = constants.context.helpers.comparisonResults;
 
   /**
    * @private

@@ -147,10 +147,10 @@ class ContextOperations {
    */
   static pushItems(source, target, itemPaths, strategy = 'mergeNewerWins', options = {}) {
     if (!source || !target) {
-      throw new Error(constants.contextHelpers.errorMessages.invalidSourceTarget);
+      throw new Error(constants.context.helpers.errorMessages.invalidSourceTarget);
     }
     if (!Array.isArray(itemPaths) || itemPaths.length === 0) {
-      throw new Error(constants.contextHelpers.errorMessages.emptyItemPaths);
+      throw new Error(constants.context.helpers.errorMessages.emptyItemPaths);
     }
 
     const result = ContextOperations.#performSyncWithFiltering(source, target, strategy, {
@@ -190,10 +190,10 @@ class ContextOperations {
    */
   static pullItems(source, target, itemPaths, strategy = 'mergeNewerWins', options = {}) {
     if (!source || !target) {
-      throw new Error(constants.contextHelpers.errorMessages.invalidSourceTarget);
+      throw new Error(constants.context.helpers.errorMessages.invalidSourceTarget);
     }
     if (!Array.isArray(itemPaths) || itemPaths.length === 0) {
-      throw new Error(constants.contextHelpers.errorMessages.emptyItemPaths);
+      throw new Error(constants.context.helpers.errorMessages.emptyItemPaths);
     }
 
     const result = ContextOperations.#performSyncWithFiltering(target, source, strategy, {
@@ -234,10 +234,10 @@ class ContextOperations {
    */
   static pushFromMultipleSources(sources, target, strategy = 'mergeNewerWins', options = {}) {
     if (!Array.isArray(sources) || sources.length === 0) {
-      throw new Error(constants.contextHelpers.errorMessages.emptySources);
+      throw new Error(constants.context.helpers.errorMessages.emptySources);
     }
     if (!target) {
-      throw new Error(constants.contextHelpers.errorMessages.emptyTarget);
+      throw new Error(constants.context.helpers.errorMessages.emptyTarget);
     }
 
     return sources.map((source, index) => {
@@ -329,13 +329,13 @@ class ContextOperations {
    */
   static pushItemsBulk(sources, targets, itemPaths, strategy = 'mergeNewerWins', options = {}) {
     if (!Array.isArray(sources) || sources.length === 0) {
-      throw new Error(constants.contextHelpers.errorMessages.emptySources);
+      throw new Error(constants.context.helpers.errorMessages.emptySources);
     }
     if (!Array.isArray(targets) || targets.length === 0) {
-      throw new Error(constants.contextHelpers.errorMessages.emptyTargets);
+      throw new Error(constants.context.helpers.errorMessages.emptyTargets);
     }
     if (!Array.isArray(itemPaths) || itemPaths.length === 0) {
-      throw new Error(constants.contextHelpers.errorMessages.emptyItemPaths);
+      throw new Error(constants.context.helpers.errorMessages.emptyItemPaths);
     }
 
     return sources.map((source, sourceIndex) => {
@@ -454,10 +454,10 @@ class ContextOperations {
     } = options;
 
     if (!Array.isArray(sources) || sources.length === 0) {
-      throw new Error(constants.contextHelpers.errorMessages.emptySources);
+      throw new Error(constants.context.helpers.errorMessages.emptySources);
     }
     if (!target) {
-      throw new Error(constants.contextHelpers.errorMessages.emptyTarget);
+      throw new Error(constants.context.helpers.errorMessages.emptyTarget);
     }
 
     // Sort sources by priority if specified

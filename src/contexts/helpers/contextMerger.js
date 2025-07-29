@@ -74,13 +74,13 @@ class ContextMerger {
    * @enum {string}
    * @description Available merge strategies.
    */
-  static MERGE_STRATEGIES = constants.contextHelpers.mergeStrategies;
+  static MERGE_STRATEGIES = constants.context.helpers.mergeStrategies;
 
   /**
    * @enum {string}
    * @description Default Context component keys that can be merged.
    */
-  static DEFAULT_COMPONENTS = constants.contextHelpers.defaultComponents;
+  static DEFAULT_COMPONENTS = constants.context.helpers.defaultComponents;
 
   /**
    * @private
@@ -92,7 +92,7 @@ class ContextMerger {
    */
   static #initializeMergeResult(source, target, strategy) {
     if (!source || !target) {
-      throw new Error(constants.contextHelpers.errorMessages.invalidMergeContext);
+      throw new Error(constants.context.helpers.errorMessages.invalidMergeContext);
     }
 
     return {

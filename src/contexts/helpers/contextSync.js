@@ -113,7 +113,7 @@ class ContextSync {
       return ContextLegacySync.performLegacySync(source, target, operation, options);
     }
 
-    throw new Error(constants.contextHelpers.errorMessages.unsupportedObjectTypes);
+    throw new Error(constants.context.helpers.errorMessages.unsupportedObjectTypes);
   }
 
   /**
@@ -163,7 +163,7 @@ class ContextSync {
         return {
           success: false,
           operation,
-          error: constants.contextHelpers.errorMessages.incompatibleTypes,
+          error: constants.context.helpers.errorMessages.incompatibleTypes,
           warnings
         };
       }

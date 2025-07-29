@@ -9,6 +9,7 @@ import Validator from '../utils/static/validator.js';
 /**
  * @class PathUtils
  * @classdesc Static utility class providing methods for path resolution, object navigation, and key extraction.
+ * @export
  */
 class PathUtils {
   /**
@@ -172,8 +173,9 @@ class PathUtils {
 
     let current = obj;
 
-    for (let i = startIndex; i < pathParts.length; i++) {
-      const part = pathParts[i];
+    for (const i of pathParts.slice(startIndex).keys()) {
+      const actualIndex = i + startIndex;
+      const part = pathParts[actualIndex];
 
       if (current === null || current === undefined) {
         return undefined;
@@ -281,8 +283,7 @@ class PathUtils {
     const strategy = navigationStrategy || PathUtils.#defaultNavigationStrategy;
 
     // Navigate through all path segments except the last one
-    for (let i = 0; i < parts.length - 1; i++) {
-      const part = parts[i];
+    for (const [index, part] of parts.slice(0, -1).entries()) {
       const result = strategy.navigate(current, part);
 
       if (!result.success) {

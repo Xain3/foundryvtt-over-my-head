@@ -1,7 +1,7 @@
 /**
  * @file rootMapParser.js
  * @description This file contains a function to parse root map configurations into resolved objects.
- * @path src/context/helpers/rootMapParser.js
+ * @path src/helpers/rootMapParser.js
  */
 
 import manifest from '@manifest';
@@ -12,6 +12,12 @@ import { getModule } from '@/helpers/moduleGetter';
 /**
  * Parses a root map configuration into resolved objects.
  * Handles special cases like 'module' key and null values.
+ *
+ * @export
+ * @class RootMapParser
+ *
+ * Public API:
+ * - parse({ rootMap, key?, namespace?, module? }): Parses root map into resolved references
  */
 class RootMapParser {
   /**
@@ -26,7 +32,7 @@ class RootMapParser {
   static #retrieveModuleInNamespace(module, namespace) {
     const moduleObject = getModule(module, namespace);
     if (!moduleObject) {
-      throw new Error(`Module "${module}" not found in namespace.`);
+      throw new Error(`Module "${module}" not found in namespace`);
     }
     return moduleObject;
   }
@@ -48,9 +54,9 @@ class RootMapParser {
       return RootMapParser.#retrieveModuleInNamespace(module, namespace);
     }
 
-    const resolved = PathUtils.resolvePath(value, { namespace, module });
+  const resolved = PathUtils.resolvePath(namespace, value, true);
     if (resolved === undefined) {
-      throw new Error(`Path "${value}" could not be resolved for key "${key}".`);
+      throw new Error(`Path "${value}" could not be resolved for key "${key}"`);
     }
 
     return resolved;

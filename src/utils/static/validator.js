@@ -409,6 +409,67 @@ class Validator {
   }
 
   /**
+   * Central validation method that acts as an entry point for all validation methods.
+   * @param {string} validationType - The type of validation to perform.
+   * @param {Object} args - Arguments object containing validation parameters.
+   * @param {*} args.value - The value to validate.
+   * @param {string} [args.name] - Name of the value for error messages.
+   * @param {Object} [args.options={}] - Options specific to the validation type.
+   * @returns {boolean|void} Returns true for check methods, void for validate methods.
+   * @throws {Error} If validation type is not supported or validation fails.
+   */
+  static validate(validationType, { value, name, options = {} } = {}) {
+    if (!Validator.isString(validationType) || validationType.length === 0) {
+      throw new Error('Validation type must be a non-empty string.');
+    }
+
+    const validationMap = {
+      // Check methods (return boolean)
+      'isDefined': () => Validator.isDefined(value),
+      'isNull': () => Validator.isNull(value),
+      'isString': () => Validator.isString(value),
+      'isObject': () => Validator.isObject(value, options),
+      'isArray': () => Validator.isArray(value),
+      'isPlainObject': () => Validator.isPlainObject(value),
+      'isNumber': () => Validator.isNumber(value, options),
+      'isEmpty': () => Validator.isEmpty(value),
+      'isBoolean': () => Validator.isBoolean(value),
+      'isPrimitive': () => Validator.isPrimitive(value),
+      'isReservedKey': () => Validator.isReservedKey(value, options),
+
+      // Validate methods (throw on failure, return void on success)
+      'validateObject': () => Validator.validateObject(value, name || 'Value', options),
+      'validateString': () => Validator.validateString(value, name || 'Value', options),
+      'validateNumber': () => Validator.validateNumber(value, name || 'Value', options),
+      'validateDate': () => Validator.validateDate(value, name || 'Date'),
+      'validateArgsObjectStructure': () => Validator.validateArgsObjectStructure(value, name || 'Constructor arguments'),
+      'validateSchemaDefinition': () => Validator.validateSchemaDefinition(value, name || 'Schema'),
+      'validateStringAgainstPattern': () => {
+        const { pattern, patternDescription, stringValidationOptions = {} } = options;
+        if (!pattern || !patternDescription) {
+          throw new Error('Pattern and patternDescription are required for validateStringAgainstPattern.');
+        }
+        return Validator.validateStringAgainstPattern(value, name || 'Value', pattern, patternDescription, stringValidationOptions);
+      },
+      'validateObjectKeysExist': () => {
+        const { keysToCheck, objectName } = options;
+        if (!keysToCheck) {
+          throw new Error('keysToCheck option is required for validateObjectKeysExist.');
+        }
+        return Validator.validateObjectKeysExist(value, keysToCheck, objectName || 'Object');
+      }
+    };
+
+    const validationFunction = validationMap[validationType];
+    if (!validationFunction) {
+      const availableTypes = Object.keys(validationMap).join(', ');
+      throw new Error(`Unsupported validation type: "${validationType}". Available types: ${availableTypes}`);
+    }
+
+    return validationFunction();
+  }
+
+  /**
    * Checks if a key is reserved based on class prototypes and additional reserved keys.
    * @param {string} key - The key to check.
    * @param {Object} [options={}] - Options for validation.

@@ -6,10 +6,11 @@
 
 import Validator from './validator.js';
 import Unpacker from './unpacker.js';
+import GameManager from './gameManager.js';
 
 /**
  * Central entry point for all static utility classes.
- * Provides a unified interface to access all static utilities including validation, unpacking, and more.
+ * Provides a unified interface to access all static utilities including validation, unpacking, game management, and more.
  * This class acts as a facade pattern, allowing easy access to all static utilities from a single import.
  *
  * @class StaticUtils
@@ -29,6 +30,13 @@ class StaticUtils {
    * @type {typeof Unpacker}
    */
   static Unpacker = Unpacker;
+
+  /**
+   * Static reference to the GameManager class for managing game modules and remote contexts.
+   * @static
+   * @type {typeof GameManager}
+   */
+  static GameManager = GameManager;
 
   /**
    * Static instance of Unpacker for direct method access.
@@ -98,6 +106,72 @@ class StaticUtils {
   }
 
   /**
+   * Gets a module object by its identifier using the GameManager utility.
+   * Acts as a convenient proxy to GameManager.getModuleObject().
+   *
+   * @static
+   * @param {Object|string} moduleIdentifier - The module identifier (manifest object with 'id' property or string name)
+   * @returns {Object|null} The module object or null if not found
+   *
+   * @example
+   * // Using a string identifier
+   * const module = StaticUtils.getModuleObject('my-module-id');
+   *
+   * @example
+   * // Using a manifest object
+   * const manifest = { id: 'my-module-id', name: 'My Module' };
+   * const module = StaticUtils.getModuleObject(manifest);
+   */
+  static getModuleObject(moduleIdentifier) {
+    return this.GameManager.getModuleObject(moduleIdentifier);
+  }
+
+  /**
+   * Writes a key-value pair to a module object using the GameManager utility.
+   * Acts as a convenient proxy to GameManager.writeToModuleObject().
+   *
+   * @static
+   * @param {Object|string} moduleIdentifier - The module identifier (manifest object with 'id' property or string name)
+   * @param {string} key - The key to be added or updated in the module object
+   * @param {*} value - The value to be associated with the key in the module object
+   * @returns {boolean} True if the operation was successful, false otherwise
+   *
+   * @example
+   * // Write to module using string identifier
+   * StaticUtils.writeToModuleObject('my-module', 'customData', { setting: true });
+   *
+   * @example
+   * // Write to module using manifest object
+   * const manifest = { id: 'my-module' };
+   * StaticUtils.writeToModuleObject(manifest, 'status', 'active');
+   */
+  static writeToModuleObject(moduleIdentifier, key, value) {
+    return this.GameManager.writeToModuleObject(moduleIdentifier, key, value);
+  }
+
+  /**
+   * Reads a value from a module object using the GameManager utility.
+   * Acts as a convenient proxy to GameManager.readFromModuleObject().
+   *
+   * @static
+   * @param {Object|string} moduleIdentifier - The module identifier (manifest object with 'id' property or string name)
+   * @param {string} key - The key to look up in the module object
+   * @returns {*} The value associated with the provided key, or undefined if not found
+   *
+   * @example
+   * // Read from module using string identifier
+   * const data = StaticUtils.readFromModuleObject('my-module', 'customData');
+   *
+   * @example
+   * // Read from module using manifest object
+   * const manifest = { id: 'my-module' };
+   * const status = StaticUtils.readFromModuleObject(manifest, 'status');
+   */
+  static readFromModuleObject(moduleIdentifier, key) {
+    return this.GameManager.readFromModuleObject(moduleIdentifier, key);
+  }
+
+  /**
    * Gets all available validation types from the Validator class.
    * Useful for debugging or generating help documentation.
    *
@@ -133,12 +207,12 @@ class StaticUtils {
    *
    * @example
    * const info = StaticUtils.getUtilityInfo();
-   * console.log(info.utilities); // ['Validator', 'Unpacker']
+   * console.log(info.utilities); // ['Validator', 'Unpacker', 'GameManager']
    */
   static getUtilityInfo() {
     return {
       name: 'StaticUtils',
-      utilities: ['Validator', 'Unpacker'],
+      utilities: ['Validator', 'Unpacker', 'GameManager'],
       description: 'Central entry point for all static utility classes',
       version: '1.0.0'
     };

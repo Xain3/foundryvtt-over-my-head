@@ -11,7 +11,9 @@ src/utils/static/
 ├── validator.js                # Data validation utilities
 ├── validator.unit.test.js      # Validator tests
 ├── unpacker.js                 # Object property unpacking utilities
-└── unpacker.unit.test.js       # Unpacker tests
+├── unpacker.unit.test.js       # Unpacker tests
+├── gameManager.js              # Game module management utilities
+└── gameManager.unit.test.js    # GameManager tests
 ```
 
 ## 🚀 Quick Start
@@ -33,9 +35,14 @@ const data = { title: 'Test', version: '1.0.0' };
 StaticUtils.unpack(data, instance);
 // instance now has: instance.title, instance.version
 
+// Game module management
+const module = StaticUtils.getModuleObject('my-module-id');
+StaticUtils.writeToModuleObject('my-module', 'customData', { setting: true });
+const data = StaticUtils.readFromModuleObject('my-module', 'customData');
+
 // Get available utilities info
 const info = StaticUtils.getUtilityInfo();
-console.log(info.utilities); // ['Validator', 'Unpacker']
+console.log(info.utilities); // ['Validator', 'Unpacker', 'GameManager']
 ```
 
 ### Using Individual Classes
@@ -45,6 +52,7 @@ You can also import and use individual utility classes directly:
 ```javascript
 import { Validator } from '@/utils/static/validator.js';
 import Unpacker from '@/utils/static/unpacker.js';
+import GameManager from '@/utils/static/gameManager.js';
 
 // Direct validation
 const isString = Validator.isString('hello'); // true
@@ -53,6 +61,10 @@ Validator.validateObject(obj, 'testObject');
 // Direct unpacking
 const unpacker = new Unpacker();
 unpacker.unpack(data, instance);
+
+// Direct game management
+const module = GameManager.getModuleObject('my-module');
+GameManager.writeToModuleObject('my-module', 'key', 'value');
 ```
 
 ## 📚 Available Utilities
@@ -171,6 +183,61 @@ unpacker.unpack(objWithSymbols, instance);
 // Both instance.publicProp and instance[sym] are available
 ```
 
+### 4. GameManager
+
+**File**: `gameManager.js`  
+**Purpose**: Static utility class for managing game modules and remote contexts.
+
+#### Key Features:
+- ✅ **Static module management** - no instantiation required
+- ✅ **Flexible module identification** - supports strings, manifest objects, and module.json objects
+- ✅ **Module operations** - read, write, and check existence
+- ✅ **Error handling** - comprehensive error checking and logging
+- ✅ **FoundryVTT integration** - seamless integration with FoundryVTT game object
+
+#### Main Methods:
+- `getModuleObject(moduleIdentifier)` - Get module object by ID or manifest
+- `writeToModuleObject(moduleIdentifier, key, value)` - Write data to module
+- `readFromModuleObject(moduleIdentifier, key)` - Read data from module
+- `moduleExists(moduleIdentifier)` - Check if module exists
+- `getUtilityInfo()` - Get utility information
+
+#### Usage Examples:
+
+```javascript
+// Get module by string ID
+const module = GameManager.getModuleObject('my-module-id');
+
+// Get module using manifest object
+import manifest from './manifest.js';
+const module = GameManager.getModuleObject(manifest);
+
+// Get module using module.json
+import moduleJson from './module.json';
+const module = GameManager.getModuleObject(moduleJson);
+
+// Write custom data to module
+GameManager.writeToModuleObject('my-module', 'settings', { 
+  enabled: true, 
+  level: 5 
+});
+
+// Read custom data from module
+const settings = GameManager.readFromModuleObject('my-module', 'settings');
+
+// Check if module exists
+if (GameManager.moduleExists('optional-module')) {
+  // Module is available, safe to use
+  GameManager.writeToModuleObject('optional-module', 'integration', true);
+}
+
+// Using with manifest objects
+const manifest = { id: 'foundryvtt-over-my-head', name: 'OverMyHead' };
+if (GameManager.moduleExists(manifest)) {
+  const moduleData = GameManager.readFromModuleObject(manifest, 'customConfig');
+}
+```
+
 ## 🧪 Testing
 
 All utilities have comprehensive unit tests with 100% coverage:
@@ -182,6 +249,7 @@ npm test -- src/utils/static/
 # Run specific utility tests
 npm test -- src/utils/static/validator.unit.test.js
 npm test -- src/utils/static/unpacker.unit.test.js
+npm test -- src/utils/static/gameManager.unit.test.js
 
 # Run with coverage
 npm test -- src/utils/static/ --coverage
@@ -190,6 +258,7 @@ npm test -- src/utils/static/ --coverage
 ### Test Coverage:
 - **Validator**: 126 tests covering all methods, edge cases, and error scenarios
 - **Unpacker**: 15 tests covering functionality, error handling, and edge cases
+- **GameManager**: 25+ tests covering module management, error handling, and edge cases
 - **Combined**: 100% line, branch, and function coverage
 
 ## 🎯 Best Practices
@@ -327,6 +396,7 @@ For detailed API documentation, see the JSDoc comments in each file:
 - [StaticUtils API](./static.js) - Central entry point methods
 - [Validator API](./validator.js) - All validation methods with examples
 - [Unpacker API](./unpacker.js) - Object unpacking functionality
+- [GameManager API](./gameManager.js) - Game module management functionality
 
 ## 🤝 Contributing
 

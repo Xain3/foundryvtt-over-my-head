@@ -7,7 +7,8 @@ module.exports = {
   testMatch: [
     '**/*.unit.test.js',
     '**/*.int.test.js',
-    '**/*.setup.test.js'
+    '**/*.setup.test.js',
+    '**/*.performance.test.js'
   ],
   setupFilesAfterEnv: [],
   transform: {

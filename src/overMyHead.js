@@ -5,6 +5,7 @@
  */
 import manifest from "@manifest";
 import constants from "@constants";
+import Utilities from "./utils/utils";
 
 /**
  * @class OverMyHead
@@ -26,25 +27,8 @@ class OverMyHead {
      * @property {object} constants - The module constants.
      */
     this.constants = constants;
-    this.#unpackManifest();
-  }
-
-  /**
-   * @private
-   * @method #unpackManifest
-   * @description Unpacks properties from the manifest object directly onto the class instance.
-   * This makes manifest properties (like title, version, etc.) directly accessible via `this.propertyName`.
-   * @throws {Error} If an error occurs during the unpacking process.
-   */
-  #unpackManifest() {
-    try {
-      for (const [key, value] of Object.entries(this.manifest)) {
-        this[key] = value;
-      }
-    } catch (error) {
-      console.error("Error unpacking Over My Head manifest:", error);
-      throw error;
-    }
+    this.utils = new Utilities();
+    this.utils.static.unpack(this.manifest, this);
   }
 
   /**
@@ -60,6 +44,7 @@ class OverMyHead {
       // Export constants to global scope
       window.OMHconstants = this.constants;
       // Initialization logic to go here
+
       console.log(`${this.title} v${this.version} initialized.`);
     } catch (error) {
       console.error(`Error initializing ${this.title} v${this.version}: `, error);

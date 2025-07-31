@@ -19,7 +19,11 @@ defaultFoundryModulesLocation: "game.modules"
 # How to structure error messages
 errors:
   separator: " || " # The separator used to join multiple error messages
-  pattern: "{{module}}{{caller}}{{error}}{{stack}}"  # The pattern used to format error messages
+  pattern: "{{module}}{{caller}}{{error}}{{stack}}"  # The pattern used to format error messages. Not all elements are guaranteed to be present.
+
+# Hooks for module events
+hooks:
+  settingsReady: "OMHSettingsReady"  # The hook called when settings are ready
 
 # Constants relative to context and state management
 context:

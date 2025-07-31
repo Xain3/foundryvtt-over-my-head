@@ -126,6 +126,10 @@ class StaticUtils {
     return this.GameManager.getModuleObject(moduleIdentifier);
   }
 
+  static getSetting(moduleId, key) {
+    return this.GameManager.getSetting(moduleId, key);
+  }
+
   /**
    * Writes a key-value pair to a module object using the GameManager utility.
    * Acts as a convenient proxy to GameManager.writeToModuleObject().

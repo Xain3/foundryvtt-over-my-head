@@ -78,6 +78,10 @@ class GameManager {
         return null;
     }
 
+    static getSetting(moduleId, key) {
+        return globalThis.game?.settings.get(moduleId, key);
+    }
+
     /**
      * Writes a key-value pair to a module object.
      *

@@ -1,5 +1,69 @@
 import { Validator } from './validator.js';
 import dayjs from 'dayjs';
+  describe('isFunction', () => {
+    it('should return true for functions', () => {
+      expect(Validator.isFunction(() => {})).toBe(true);
+      expect(Validator.isFunction(function() {})).toBe(true);
+    });
+    it('should return false for non-functions', () => {
+      expect(Validator.isFunction(123)).toBe(false);
+      expect(Validator.isFunction('string')).toBe(false);
+      expect(Validator.isFunction({})).toBe(false);
+      expect(Validator.isFunction([])).toBe(false);
+      expect(Validator.isFunction(null)).toBe(false);
+      expect(Validator.isFunction(undefined)).toBe(false);
+    });
+  });
+
+  describe('isSymbol', () => {
+    it('should return true for symbols', () => {
+      expect(Validator.isSymbol(Symbol('test'))).toBe(true);
+    });
+    it('should return false for non-symbols', () => {
+      expect(Validator.isSymbol('symbol')).toBe(false);
+      expect(Validator.isSymbol(123)).toBe(false);
+      expect(Validator.isSymbol({})).toBe(false);
+      expect(Validator.isSymbol([])).toBe(false);
+      expect(Validator.isSymbol(null)).toBe(false);
+      expect(Validator.isSymbol(undefined)).toBe(false);
+    });
+  });
+
+  describe('isValidType', () => {
+    it('should return true when value matches allowed type (string)', () => {
+      expect(Validator.isValidType('hello', 'string')).toBe(true);
+      expect(Validator.isValidType(123, 'number')).toBe(true);
+      expect(Validator.isValidType([], 'array')).toBe(true);
+      expect(Validator.isValidType({}, 'object')).toBe(true);
+    });
+    it('should return true when value matches one of allowed types (array)', () => {
+      expect(Validator.isValidType('hello', ['string', 'number'])).toBe(true);
+      expect(Validator.isValidType(123, ['string', 'number'])).toBe(true);
+    });
+    it('should return false when value does not match allowed types', () => {
+      expect(Validator.isValidType('hello', 'number')).toBe(false);
+      expect(Validator.isValidType(123, 'string')).toBe(false);
+      expect(Validator.isValidType({}, 'array')).toBe(false);
+    });
+    it('should return false for invalid allowedTypes', () => {
+      expect(Validator.isValidType('test', true)).toBe(false);
+      expect(Validator.isValidType('test', [])).toBe(false);
+    });
+  });
+
+  describe('isValidKey', () => {
+    it('should return true for string and number keys', () => {
+      expect(Validator.isValidKey('key')).toBe(true);
+      expect(Validator.isValidKey(123)).toBe(true);
+    });
+    it('should return false for non-string/number keys', () => {
+      expect(Validator.isValidKey({})).toBe(false);
+      expect(Validator.isValidKey([])).toBe(false);
+      expect(Validator.isValidKey(null)).toBe(false);
+      expect(Validator.isValidKey(undefined)).toBe(false);
+  expect(Validator.isValidKey(Symbol('test'))).toBe(true);
+    });
+  });
 
 /**
  * @file validator.unit.test.js
@@ -686,13 +750,13 @@ describe('Validator', () => {
 
         class TestClass {}
         const instance = new TestClass();
-        expect(Validator.validate('isObject', { 
-          value: instance, 
-          options: { expectedPrototypeName: 'TestClass' } 
+        expect(Validator.validate('isObject', {
+          value: instance,
+          options: { expectedPrototypeName: 'TestClass' }
         })).toBe(true);
-        expect(Validator.validate('isObject', { 
-          value: instance, 
-          options: { expectedPrototypeName: 'WrongClass' } 
+        expect(Validator.validate('isObject', {
+          value: instance,
+          options: { expectedPrototypeName: 'WrongClass' }
         })).toBe(false);
       });
 
@@ -716,13 +780,13 @@ describe('Validator', () => {
         expect(Validator.validate('isNumber', { value: 'test' })).toBe(false);
         expect(Validator.validate('isNumber', { value: NaN })).toBe(false);
 
-        expect(Validator.validate('isNumber', { 
-          value: 123, 
-          options: { integer: true } 
+        expect(Validator.validate('isNumber', {
+          value: 123,
+          options: { integer: true }
         })).toBe(true);
-        expect(Validator.validate('isNumber', { 
-          value: 3.14, 
-          options: { integer: true } 
+        expect(Validator.validate('isNumber', {
+          value: 3.14,
+          options: { integer: true }
         })).toBe(false);
       });
 
@@ -754,71 +818,127 @@ describe('Validator', () => {
 
       it('should handle isReservedKey validation with options', () => {
         expect(Validator.validate('isReservedKey', { value: 'test' })).toBe(false);
-        expect(Validator.validate('isReservedKey', { 
-          value: 'reserved', 
-          options: { additionalReservedKeys: ['reserved'] } 
+        expect(Validator.validate('isReservedKey', {
+          value: 'reserved',
+          options: { additionalReservedKeys: ['reserved'] }
         })).toBe(true);
 
         class TestClass {
           testMethod() {}
         }
-        expect(Validator.validate('isReservedKey', { 
-          value: 'testMethod', 
-          options: { classPrototypes: TestClass } 
+        expect(Validator.validate('isReservedKey', {
+          value: 'testMethod',
+          options: { classPrototypes: TestClass }
         })).toBe(true);
+      });
+
+      it('should handle isFunction validation', () => {
+        expect(Validator.validate('isFunction', { value: () => {} })).toBe(true);
+        expect(Validator.validate('isFunction', { value: function() {} })).toBe(true);
+        expect(Validator.validate('isFunction', { value: 'string' })).toBe(false);
+        expect(Validator.validate('isFunction', { value: 123 })).toBe(false);
+        expect(Validator.validate('isFunction', { value: {} })).toBe(false);
+        expect(Validator.validate('isFunction', { value: null })).toBe(false);
+      });
+
+      it('should handle isSymbol validation', () => {
+        expect(Validator.validate('isSymbol', { value: Symbol('test') })).toBe(true);
+        expect(Validator.validate('isSymbol', { value: 'symbol' })).toBe(false);
+        expect(Validator.validate('isSymbol', { value: 123 })).toBe(false);
+        expect(Validator.validate('isSymbol', { value: {} })).toBe(false);
+        expect(Validator.validate('isSymbol', { value: null })).toBe(false);
+      });
+
+      it('should handle isValidType validation', () => {
+        expect(Validator.validate('isValidType', {
+          value: 'hello',
+          options: { allowedTypes: 'string' }
+        })).toBe(true);
+        expect(Validator.validate('isValidType', {
+          value: 123,
+          options: { allowedTypes: ['string', 'number'] }
+        })).toBe(true);
+        expect(Validator.validate('isValidType', {
+          value: [],
+          options: { allowedTypes: 'array' }
+        })).toBe(true);
+        expect(Validator.validate('isValidType', {
+          value: 'hello',
+          options: { allowedTypes: 'number' }
+        })).toBe(false);
+        expect(Validator.validate('isValidType', {
+          value: {},
+          options: { allowedTypes: 'array' }
+        })).toBe(false);
+      });
+
+      it('should handle isValidKey validation', () => {
+        expect(Validator.validate('isValidKey', { value: 'key' })).toBe(true);
+        expect(Validator.validate('isValidKey', { value: 123 })).toBe(true);
+        expect(Validator.validate('isValidKey', { value: Symbol('test') })).toBe(true);
+        expect(Validator.validate('isValidKey', {
+          value: 'key',
+          options: { allowedTypes: ['string'] }
+        })).toBe(true);
+        expect(Validator.validate('isValidKey', {
+          value: 123,
+          options: { allowedTypes: ['string'] }
+        })).toBe(false);
+        expect(Validator.validate('isValidKey', { value: {} })).toBe(false);
+        expect(Validator.validate('isValidKey', { value: null })).toBe(false);
       });
     });
 
     describe('validate methods (throw on failure)', () => {
       it('should handle validateObject validation', () => {
-        expect(() => Validator.validate('validateObject', { 
-          value: { key: 'value' }, 
-          name: 'testObject' 
+        expect(() => Validator.validate('validateObject', {
+          value: { key: 'value' },
+          name: 'testObject'
         })).not.toThrow();
 
-        expect(() => Validator.validate('validateObject', { 
-          value: 'string', 
-          name: 'testObject' 
+        expect(() => Validator.validate('validateObject', {
+          value: 'string',
+          name: 'testObject'
         })).toThrow('testObject must be an object. Received: string');
 
-        expect(() => Validator.validate('validateObject', { 
-          value: {}, 
+        expect(() => Validator.validate('validateObject', {
+          value: {},
           name: 'testObject',
           options: { allowEmpty: true }
         })).not.toThrow();
       });
 
       it('should handle validateString validation', () => {
-        expect(() => Validator.validate('validateString', { 
-          value: 'test', 
-          name: 'testString' 
+        expect(() => Validator.validate('validateString', {
+          value: 'test',
+          name: 'testString'
         })).not.toThrow();
 
-        expect(() => Validator.validate('validateString', { 
-          value: 123, 
-          name: 'testString' 
+        expect(() => Validator.validate('validateString', {
+          value: 123,
+          name: 'testString'
         })).toThrow('testString must be a string. Received: number');
 
-        expect(() => Validator.validate('validateString', { 
-          value: '', 
+        expect(() => Validator.validate('validateString', {
+          value: '',
           name: 'testString',
           options: { allowEmpty: true }
         })).not.toThrow();
       });
 
       it('should handle validateNumber validation', () => {
-        expect(() => Validator.validate('validateNumber', { 
-          value: 123, 
-          name: 'testNumber' 
+        expect(() => Validator.validate('validateNumber', {
+          value: 123,
+          name: 'testNumber'
         })).not.toThrow();
 
-        expect(() => Validator.validate('validateNumber', { 
-          value: 'string', 
-          name: 'testNumber' 
+        expect(() => Validator.validate('validateNumber', {
+          value: 'string',
+          name: 'testNumber'
         })).toThrow('testNumber must be a number. Received: string');
 
-        expect(() => Validator.validate('validateNumber', { 
-          value: 3.14, 
+        expect(() => Validator.validate('validateNumber', {
+          value: 3.14,
           name: 'testNumber',
           options: { isInt: true }
         })).toThrow('testNumber must be an integer.');
@@ -828,40 +948,40 @@ describe('Validator', () => {
         const mockDayjs = { isValid: () => true };
         dayjs.mockReturnValue(mockDayjs);
 
-        expect(() => Validator.validate('validateDate', { 
-          value: new Date('2023-01-01') 
+        expect(() => Validator.validate('validateDate', {
+          value: new Date('2023-01-01')
         })).not.toThrow();
 
-        expect(() => Validator.validate('validateDate', { 
-          value: new Date('invalid'), 
-          name: 'customDate' 
+        expect(() => Validator.validate('validateDate', {
+          value: new Date('invalid'),
+          name: 'customDate'
         })).toThrow('customDate must be a valid date. Received: Invalid Date');
       });
 
       it('should handle validateArgsObjectStructure validation', () => {
-        expect(() => Validator.validate('validateArgsObjectStructure', { 
-          value: { key: 'value' } 
+        expect(() => Validator.validate('validateArgsObjectStructure', {
+          value: { key: 'value' }
         })).not.toThrow();
 
-        expect(() => Validator.validate('validateArgsObjectStructure', { 
-          value: {} 
+        expect(() => Validator.validate('validateArgsObjectStructure', {
+          value: {}
         })).toThrow('Constructor arguments cannot be an empty object.');
 
-        expect(() => Validator.validate('validateArgsObjectStructure', { 
+        expect(() => Validator.validate('validateArgsObjectStructure', {
           value: 'string',
           name: 'customArgs'
         })).toThrow('customArgs must be an object. Received: string');
       });
 
       it('should handle validateSchemaDefinition validation', () => {
-        expect(() => Validator.validate('validateSchemaDefinition', { 
-          value: { field: 'definition' }, 
-          name: 'testSchema' 
+        expect(() => Validator.validate('validateSchemaDefinition', {
+          value: { field: 'definition' },
+          name: 'testSchema'
         })).not.toThrow();
 
-        expect(() => Validator.validate('validateSchemaDefinition', { 
-          value: undefined, 
-          name: 'testSchema' 
+        expect(() => Validator.validate('validateSchemaDefinition', {
+          value: undefined,
+          name: 'testSchema'
         })).toThrow('Context schema must be provided.');
       });
 
@@ -869,42 +989,42 @@ describe('Validator', () => {
         const pattern = /^[a-z]+$/;
         const patternDescription = 'lowercase letters only';
 
-        expect(() => Validator.validate('validateStringAgainstPattern', { 
-          value: 'hello', 
+        expect(() => Validator.validate('validateStringAgainstPattern', {
+          value: 'hello',
           name: 'testString',
           options: { pattern, patternDescription }
         })).not.toThrow();
 
-        expect(() => Validator.validate('validateStringAgainstPattern', { 
-          value: 'HELLO', 
+        expect(() => Validator.validate('validateStringAgainstPattern', {
+          value: 'HELLO',
           name: 'testString',
           options: { pattern, patternDescription }
         })).toThrow('testString must be lowercase letters only. Received: "HELLO"');
 
-        expect(() => Validator.validate('validateStringAgainstPattern', { 
-          value: 'test' 
+        expect(() => Validator.validate('validateStringAgainstPattern', {
+          value: 'test'
         })).toThrow('Pattern and patternDescription are required for validateStringAgainstPattern.');
       });
 
       it('should handle validateObjectKeysExist validation', () => {
         const testObject = { key1: 'value1', key2: 'value2' };
 
-        expect(() => Validator.validate('validateObjectKeysExist', { 
+        expect(() => Validator.validate('validateObjectKeysExist', {
           value: testObject,
           options: { keysToCheck: 'key1' }
         })).not.toThrow();
 
-        expect(() => Validator.validate('validateObjectKeysExist', { 
+        expect(() => Validator.validate('validateObjectKeysExist', {
           value: testObject,
           options: { keysToCheck: ['key1', 'key2'] }
         })).not.toThrow();
 
-        expect(() => Validator.validate('validateObjectKeysExist', { 
+        expect(() => Validator.validate('validateObjectKeysExist', {
           value: testObject,
           options: { keysToCheck: 'nonexistent' }
         })).toThrow('Required key "nonexistent" is not found in Object.');
 
-        expect(() => Validator.validate('validateObjectKeysExist', { 
+        expect(() => Validator.validate('validateObjectKeysExist', {
           value: testObject
         })).toThrow('keysToCheck option is required for validateObjectKeysExist.');
       });
@@ -912,23 +1032,23 @@ describe('Validator', () => {
 
     describe('default naming behavior', () => {
       it('should use default names when name is not provided', () => {
-        expect(() => Validator.validate('validateString', { 
-          value: 123 
+        expect(() => Validator.validate('validateString', {
+          value: 123
         })).toThrow('Value must be a string. Received: number');
 
-        expect(() => Validator.validate('validateNumber', { 
-          value: 'string' 
+        expect(() => Validator.validate('validateNumber', {
+          value: 'string'
         })).toThrow('Value must be a number. Received: string');
 
-        expect(() => Validator.validate('validateDate', { 
-          value: new Date('invalid') 
+        expect(() => Validator.validate('validateDate', {
+          value: new Date('invalid')
         })).toThrow('Date must be a valid date. Received: Invalid Date');
 
-        expect(() => Validator.validate('validateSchemaDefinition', { 
-          value: {} 
+        expect(() => Validator.validate('validateSchemaDefinition', {
+          value: {}
         })).toThrow('Schema cannot be an empty object.');
 
-        expect(() => Validator.validate('validateObjectKeysExist', { 
+        expect(() => Validator.validate('validateObjectKeysExist', {
           value: { key: 'value' },
           options: { keysToCheck: 'nonexistent' }
         })).toThrow('Required key "nonexistent" is not found in Object.');
@@ -956,22 +1076,22 @@ describe('Validator', () => {
     describe('options handling', () => {
       it('should pass options correctly to underlying methods', () => {
         // Test complex options passing
-        expect(Validator.validate('isNumber', { 
-          value: 123, 
-          options: { 
-            integer: true, 
-            positive: true, 
-            includeZero: false 
-          } 
+        expect(Validator.validate('isNumber', {
+          value: 123,
+          options: {
+            integer: true,
+            positive: true,
+            includeZero: false
+          }
         })).toBe(true);
 
-        expect(Validator.validate('isNumber', { 
-          value: -123, 
-          options: { 
-            integer: true, 
-            positive: true, 
-            includeZero: false 
-          } 
+        expect(Validator.validate('isNumber', {
+          value: -123,
+          options: {
+            integer: true,
+            positive: true,
+            includeZero: false
+          }
         })).toBe(false);
       });
 
@@ -979,11 +1099,11 @@ describe('Validator', () => {
         const pattern = /^test$/;
         const patternDescription = 'exactly "test"';
 
-        expect(() => Validator.validate('validateStringAgainstPattern', { 
-          value: '', 
+        expect(() => Validator.validate('validateStringAgainstPattern', {
+          value: '',
           name: 'testString',
-          options: { 
-            pattern, 
+          options: {
+            pattern,
             patternDescription,
             stringValidationOptions: { allowEmpty: false }
           }

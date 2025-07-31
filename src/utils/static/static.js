@@ -7,6 +7,7 @@
 import Validator from './validator.js';
 import Unpacker from './unpacker.js';
 import GameManager from './gameManager.js';
+import ErrorFormatter from './errorFormatter.js';
 
 /**
  * Central entry point for all static utility classes.
@@ -17,6 +18,13 @@ import GameManager from './gameManager.js';
  * @export
  */
 class StaticUtils {
+  /**
+   * Static reference to the ErrorFormatter class for error formatting operations.
+   * @static
+   * @type {typeof ErrorFormatter}
+   */
+  static ErrorFormatter = ErrorFormatter;
+
   /**
    * Static reference to the Validator class for type checking and validation operations.
    * @static
@@ -45,6 +53,37 @@ class StaticUtils {
    * @private
    */
   static #unpackerInstance = new Unpacker();
+
+  /**
+   * Formats error messages using the ErrorFormatter class.
+   * @static
+   * @param {Error|string} error - The error to format
+   * @param {Object} [options={}] - Formatting options
+   *                                Options include:
+   *                                - includeStack (boolean): Whether to include stack trace
+   *                                - includeCaller (boolean): Whether to include caller information
+   *                                - caller (string): Custom caller information
+   * @returns {string} Formatted error message
+   *
+   * @example
+   * try {
+   *   // Some operation
+   * } catch (error) {
+   *   const formattedError = StaticUtils.formatError(error, { includeStack: true });
+   *   console.error(formattedError);
+   * }
+   */
+  static formatError(error, {
+      includeStack = false,
+      includeCaller = false,
+      caller = '',
+    } = {}) {
+    return this.ErrorFormatter.formatError(error, {
+      includeStack,
+      includeCaller,
+      caller,
+    });
+  }
 
   /**
    * Performs validation using the central validate method.
@@ -124,6 +163,10 @@ class StaticUtils {
    */
   static getModuleObject(moduleIdentifier) {
     return this.GameManager.getModuleObject(moduleIdentifier);
+  }
+
+  static getSetting(moduleId, key) {
+    return this.GameManager.getSetting(moduleId, key);
   }
 
   /**
@@ -212,7 +255,7 @@ class StaticUtils {
   static getUtilityInfo() {
     return {
       name: 'StaticUtils',
-      utilities: ['Validator', 'Unpacker', 'GameManager'],
+      utilities: ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter'],
       description: 'Central entry point for all static utility classes',
       version: '1.0.0'
     };

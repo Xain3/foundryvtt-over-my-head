@@ -16,6 +16,46 @@ import dayjs from 'dayjs';
  */
 class Validator {
   /**
+   * Checks if a value is a function.
+   * @param {*} value - The value to check.
+   * @returns {boolean} True if value is a function, false otherwise.
+   */
+  static isFunction(value) {
+    return typeof value === 'function';
+  }
+
+  /**
+   * Checks if a value is a symbol.
+   * @param {*} value - The value to check.
+   * @returns {boolean} True if value is a symbol, false otherwise.
+   */
+  static isSymbol(value) {
+    return typeof value === 'symbol';
+  }
+
+  /**
+   * Checks if a value is a valid type among allowed types.
+   * @param {*} value - The value to check.
+   * @param {string[]|string} allowedTypes - Allowed types (e.g., 'string', 'number', etc.)
+   * @returns {boolean} True if value is of an allowed type, false otherwise.
+   */
+  static isValidType(value, allowedTypes) {
+    if (!Array.isArray(allowedTypes)) allowedTypes = [allowedTypes];
+    // Normalize 'array' and 'object' checks
+    const type = Array.isArray(value) ? 'array' : typeof value;
+    return allowedTypes.includes(type);
+  }
+
+  /**
+   * Checks if a key is a valid key type (string, number, or symbol by default).
+   * @param {*} key - The key to check.
+   * @param {string[]} [allowedTypes=['string','number','symbol']] - Allowed key types.
+   * @returns {boolean} True if key is a valid type, false otherwise.
+   */
+  static isValidKey(key, allowedTypes = ['string', 'number', 'symbol']) {
+    return allowedTypes.includes(typeof key);
+  }
+  /**
    * Checks if a value is defined (not undefined).
    * @param {*} value - The value to check.
    * @returns {boolean} True if value is not undefined, false otherwise.
@@ -436,6 +476,10 @@ class Validator {
       'isBoolean': () => Validator.isBoolean(value),
       'isPrimitive': () => Validator.isPrimitive(value),
       'isReservedKey': () => Validator.isReservedKey(value, options),
+      'isFunction': () => Validator.isFunction(value),
+      'isSymbol': () => Validator.isSymbol(value),
+      'isValidType': () => Validator.isValidType(value, options.allowedTypes),
+      'isValidKey': () => Validator.isValidKey(value, options.allowedTypes),
 
       // Validate methods (throw on failure, return void on success)
       'validateObject': () => Validator.validateObject(value, name || 'Value', options),

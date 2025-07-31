@@ -5,12 +5,17 @@
  */
 
 import StaticUtils from './static.js';
-import { Validator } from './validator.js';
+import Validator from './validator.js';
 import Unpacker from './unpacker.js';
 import GameManager from './gameManager.js';
+import ErrorFormatter from './errorFormatter.js';
 
 describe('StaticUtils', () => {
   describe('Class Properties', () => {
+    it('should expose ErrorFormatter class', () => {
+      expect(StaticUtils.ErrorFormatter).toBe(ErrorFormatter);
+    });
+
     it('should expose Validator class', () => {
       expect(StaticUtils.Validator).toBe(Validator);
     });
@@ -21,6 +26,30 @@ describe('StaticUtils', () => {
 
     it('should expose GameManager class', () => {
       expect(StaticUtils.GameManager).toBe(GameManager);
+    });
+  });
+
+  describe('formatError method', () => {
+    it('should proxy to ErrorFormatter.formatError with default options', () => {
+      const error = new Error('Test error');
+      const result = StaticUtils.formatError(error);
+      expect(typeof result).toBe('string');
+      expect(result).toContain('Test error');
+    });
+
+    it('should handle formatError with options', () => {
+      const error = new Error('Test error with stack');
+      const result = StaticUtils.formatError(error, {
+        includeStack: true,
+        includeCaller: true,
+        caller: 'testFunction'
+      });
+      expect(typeof result).toBe('string');
+      expect(result).toContain('Test error with stack');
+    });
+
+    it('should handle non-Error objects', () => {
+      expect(() => StaticUtils.formatError('not an error')).toThrow();
     });
   });
 
@@ -99,12 +128,25 @@ describe('StaticUtils', () => {
       globalThis.game = {
         modules: {
           get: jest.fn((id) => id === 'test-module' ? mockModule : null)
+        },
+        settings: {
+          get: jest.fn((moduleId, key) => {
+            if (moduleId === 'test-module' && key === 'testSetting') {
+              return 'testValue';
+            }
+            return undefined;
+          })
         }
       };
     });
 
     afterEach(() => {
       globalThis.game = originalGame;
+    });
+
+    it('should proxy getSetting to GameManager', () => {
+      const result = StaticUtils.getSetting('test-module', 'testSetting');
+      expect(result).toBe('testValue');
     });
 
     it('should proxy getModuleObject to GameManager', () => {
@@ -174,6 +216,7 @@ describe('StaticUtils', () => {
       expect(info.utilities).toContain('Validator');
       expect(info.utilities).toContain('Unpacker');
       expect(info.utilities).toContain('GameManager');
+      expect(info.utilities).toContain('ErrorFormatter');
     });
 
     it('should have descriptive information', () => {

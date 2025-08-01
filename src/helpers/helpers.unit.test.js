@@ -20,7 +20,7 @@ import Helpers from './helpers.js';
 import PathUtils from './pathUtils.js';
 import { getModule } from './moduleGetter.js';
 import RootMapParser from './rootMapParser.js';
-import { formatError } from './errorFormatter.js';
+import { formatError } from '../utils/static/errorFormatter.js'; // Import kept for backward compatibility
 
 describe('Helpers', () => {
   beforeEach(() => {

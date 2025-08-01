@@ -8,12 +8,17 @@ This folder contains static utility classes that provide common functionality fo
 src/utils/static/
 ├── README.md                   # This documentation
 ├── static.js                   # Central entry point (StaticUtils)
+├── static.unit.test.js         # StaticUtils tests
 ├── validator.js                # Data validation utilities
 ├── validator.unit.test.js      # Validator tests
 ├── unpacker.js                 # Object property unpacking utilities
 ├── unpacker.unit.test.js       # Unpacker tests
 ├── gameManager.js              # Game module management utilities
-└── gameManager.unit.test.js    # GameManager tests
+├── gameManager.unit.test.js    # GameManager tests
+├── errorFormatter.js           # Error formatting utilities
+├── errorFormatter.unit.test.js # ErrorFormatter tests
+├── localizer.js                # Localization utilities
+└── localizer.unit.test.js      # Localizer tests
 ```
 
 ## 🚀 Quick Start
@@ -40,9 +45,24 @@ const module = StaticUtils.getModuleObject('my-module-id');
 StaticUtils.writeToModuleObject('my-module', 'customData', { setting: true });
 const data = StaticUtils.readFromModuleObject('my-module', 'customData');
 
+// Error formatting
+try {
+  throw new Error('Something went wrong');
+} catch (error) {
+  const formatted = StaticUtils.formatError(error, { includeStack: true });
+  console.error(formatted);
+}
+
+// Localization
+const welcomeText = StaticUtils.localize('MYMODULE.welcome');
+const greeting = StaticUtils.formatLocalized('MYMODULE.greeting', { name: 'Player' });
+if (StaticUtils.hasLocalization('MYMODULE.optionalText')) {
+  const optionalText = StaticUtils.localize('MYMODULE.optionalText');
+}
+
 // Get available utilities info
 const info = StaticUtils.getUtilityInfo();
-console.log(info.utilities); // ['Validator', 'Unpacker', 'GameManager']
+console.log(info.utilities); // ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer']
 ```
 
 ### Using Individual Classes
@@ -53,6 +73,8 @@ You can also import and use individual utility classes directly:
 import { Validator } from '@/utils/static/validator.js';
 import Unpacker from '@/utils/static/unpacker.js';
 import GameManager from '@/utils/static/gameManager.js';
+import { formatError } from '@/utils/static/errorFormatter.js';
+import Localizer from '@/utils/static/localizer.js';
 
 // Direct validation
 const isString = Validator.isString('hello'); // true
@@ -65,13 +87,21 @@ unpacker.unpack(data, instance);
 // Direct game management
 const module = GameManager.getModuleObject('my-module');
 GameManager.writeToModuleObject('my-module', 'key', 'value');
+
+// Direct error formatting
+const formatted = formatError(error, { includeStack: true });
+
+// Direct localization
+const localizer = new Localizer();
+const text = localizer.localize('MYMODULE.title');
+const staticText = Localizer.localize('MYMODULE.greeting');
 ```
 
 ## 📚 Available Utilities
 
 ### 1. StaticUtils (Entry Point)
 
-**File**: `static.js`  
+**File**: `static.js`
 **Purpose**: Central entry point providing unified access to all static utilities.
 
 #### Key Features:
@@ -83,12 +113,19 @@ GameManager.writeToModuleObject('my-module', 'key', 'value');
 #### Main Methods:
 - `validate(validationType, {value, name, options})` - Unified validation interface
 - `unpack(object, instance, objectName)` - Object property unpacking
+- `formatError(error, options)` - Error formatting with module context
+- `localize(stringId, i18nInstance)` - String localization
+- `formatLocalized(stringId, data, i18nInstance)` - Localized string formatting with variables
+- `hasLocalization(stringId, i18nInstance)` - Check if localization key exists
+- `getModuleObject(moduleIdentifier)` - Get module object
+- `writeToModuleObject(moduleIdentifier, key, value)` - Write to module object
+- `readFromModuleObject(moduleIdentifier, key)` - Read from module object
 - `getAvailableValidationTypes()` - Get list of validation types
 - `getUtilityInfo()` - Get utility information
 
 ### 2. Validator
 
-**File**: `validator.js`  
+**File**: `validator.js`
 **Purpose**: Comprehensive data validation and type checking utilities.
 
 #### Key Features:
@@ -125,20 +162,20 @@ Validator.validateNumber(age, 'age', { min: 0, max: 120 });
 
 // Pattern validation
 Validator.validateStringAgainstPattern(
-  email, 
+  email,
   'email',
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/, 
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   'a valid email format'
 );
 
 // Central validate method
-Validator.validate('isNumber', { 
-  value: 42, 
-  options: { integer: true, positive: true } 
+Validator.validate('isNumber', {
+  value: 42,
+  options: { integer: true, positive: true }
 }); // true
 
-Validator.validate('validateObject', { 
-  value: userData, 
+Validator.validate('validateObject', {
+  value: userData,
   name: 'userData',
   options: { allowEmpty: false }
 }); // throws on failure
@@ -146,7 +183,7 @@ Validator.validate('validateObject', {
 
 ### 3. Unpacker
 
-**File**: `unpacker.js`  
+**File**: `unpacker.js`
 **Purpose**: Utility for transferring properties from plain objects to class instances.
 
 #### Key Features:
@@ -175,9 +212,9 @@ unpacker.unpack(moduleData, module, 'module configuration');
 
 // Symbol key support
 const sym = Symbol('privateData');
-const objWithSymbols = { 
-  publicProp: 'visible', 
-  [sym]: 'hidden' 
+const objWithSymbols = {
+  publicProp: 'visible',
+  [sym]: 'hidden'
 };
 unpacker.unpack(objWithSymbols, instance);
 // Both instance.publicProp and instance[sym] are available
@@ -185,7 +222,7 @@ unpacker.unpack(objWithSymbols, instance);
 
 ### 4. GameManager
 
-**File**: `gameManager.js`  
+**File**: `gameManager.js`
 **Purpose**: Static utility class for managing game modules and remote contexts.
 
 #### Key Features:
@@ -217,9 +254,9 @@ import moduleJson from './module.json';
 const module = GameManager.getModuleObject(moduleJson);
 
 // Write custom data to module
-GameManager.writeToModuleObject('my-module', 'settings', { 
-  enabled: true, 
-  level: 5 
+GameManager.writeToModuleObject('my-module', 'settings', {
+  enabled: true,
+  level: 5
 });
 
 // Read custom data from module
@@ -238,6 +275,88 @@ if (GameManager.moduleExists(manifest)) {
 }
 ```
 
+### 5. ErrorFormatter
+
+**File**: `errorFormatter.js`
+**Purpose**: Static utility for formatting error messages with module context and structured output.
+
+#### Key Features:
+- ✅ **Module-aware error formatting** - Automatically includes module context
+- ✅ **Configurable stack traces** - Optional stack trace inclusion
+- ✅ **Caller context** - Optional caller information for debugging
+- ✅ **Pattern-based formatting** - Uses configurable templates for consistent output
+- ✅ **Error validation** - Ensures proper error objects before formatting
+
+#### Main Methods:
+- `formatError(error, options)` - Format error with module context
+- `getModuleName()` - Get the current module name for context
+
+#### Usage Examples:
+
+```javascript
+import { formatError } from '@/utils/static/errorFormatter.js';
+
+// Basic error formatting
+try {
+  throw new Error('Something went wrong');
+} catch (error) {
+  const formatted = formatError(error);
+  console.error(formatted); // [ModuleName] Something went wrong
+}
+
+// With stack trace and caller info
+const formatted = formatError(error, {
+  includeStack: true,
+  includeCaller: true,
+  caller: 'MyFunction'
+});
+// Output: [ModuleName] MyFunction: Something went wrong
+//         Call Stack: ...
+```
+
+### 6. Localizer
+
+**File**: `localizer.js`
+**Purpose**: Interface for Foundry VTT's i18n localization system with static and instance methods.
+
+#### Key Features:
+- ✅ **FoundryVTT integration** - Seamless integration with game.i18n
+- ✅ **Instance and static methods** - Flexible usage patterns
+- ✅ **Variable substitution** - Support for dynamic string formatting
+- ✅ **Key existence checking** - Validate localization keys before use
+- ✅ **Fallback handling** - Graceful handling when i18n not available
+
+#### Main Methods:
+- `localize(stringId)` - Translate a localization key
+- `format(stringId, data)` - Translate with variable substitution
+- `has(stringId)` - Check if localization key exists
+- `static localize(stringId, i18nInstance)` - Static localization method
+- `static format(stringId, data, i18nInstance)` - Static formatting method
+
+#### Usage Examples:
+
+```javascript
+import Localizer from '@/utils/static/localizer.js';
+
+// Instance usage
+const localizer = new Localizer();
+const welcomeText = localizer.localize('MYMODULE.welcome');
+const greeting = localizer.format('MYMODULE.greeting', { name: 'Player' });
+
+// Static usage
+const text = Localizer.localize('MYMODULE.title');
+const formatted = Localizer.format('MYMODULE.playerCount', { count: 5 });
+
+// Check if key exists
+if (localizer.has('MYMODULE.optionalText')) {
+  const optionalText = localizer.localize('MYMODULE.optionalText');
+}
+
+// With custom i18n instance
+const customLocalizer = new Localizer(customI18nInstance);
+const text = customLocalizer.localize('CUSTOM.key');
+```
+
 ## 🧪 Testing
 
 All utilities have comprehensive unit tests with 100% coverage:
@@ -250,6 +369,9 @@ npm test -- src/utils/static/
 npm test -- src/utils/static/validator.unit.test.js
 npm test -- src/utils/static/unpacker.unit.test.js
 npm test -- src/utils/static/gameManager.unit.test.js
+npm test -- src/utils/static/errorFormatter.unit.test.js
+npm test -- src/utils/static/localizer.unit.test.js
+npm test -- src/utils/static/static.unit.test.js
 
 # Run with coverage
 npm test -- src/utils/static/ --coverage
@@ -259,6 +381,9 @@ npm test -- src/utils/static/ --coverage
 - **Validator**: 126 tests covering all methods, edge cases, and error scenarios
 - **Unpacker**: 15 tests covering functionality, error handling, and edge cases
 - **GameManager**: 25+ tests covering module management, error handling, and edge cases
+- **ErrorFormatter**: Unit tests covering error formatting, validation, and edge cases
+- **Localizer**: Unit tests covering localization methods, static methods, and error handling
+- **StaticUtils**: Unit tests covering central entry point and utility integration
 - **Combined**: 100% line, branch, and function coverage
 
 ## 🎯 Best Practices
@@ -287,9 +412,9 @@ if (StaticUtils.validate('isObject', { value: config })) {
 }
 
 // Or validate with errors for required inputs
-StaticUtils.validate('validateObject', { 
-  value: config, 
-  name: 'configuration' 
+StaticUtils.validate('validateObject', {
+  value: config,
+  name: 'configuration'
 });
 ```
 
@@ -298,16 +423,16 @@ StaticUtils.validate('validateObject', {
 // Use the central validate method for consistency
 function validateUserData(userData) {
   StaticUtils.validate('validateObject', { value: userData, name: 'userData' });
-  StaticUtils.validate('validateObjectKeysExist', { 
-    value: userData, 
+  StaticUtils.validate('validateObjectKeysExist', {
+    value: userData,
     options: { keysToCheck: ['name', 'email'] }
   });
-  StaticUtils.validate('validateStringAgainstPattern', { 
-    value: userData.email, 
+  StaticUtils.validate('validateStringAgainstPattern', {
+    value: userData.email,
     name: 'email',
-    options: { 
-      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, 
-      patternDescription: 'a valid email format' 
+    options: {
+      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      patternDescription: 'a valid email format'
     }
   });
 }
@@ -337,20 +462,20 @@ Many validation methods accept options for customization:
 
 ```javascript
 // Number validation with constraints
-StaticUtils.validate('isNumber', { 
-  value: 42, 
-  options: { 
+StaticUtils.validate('isNumber', {
+  value: 42,
+  options: {
     integer: true,      // Must be integer
     positive: true,     // Must be positive
     includeZero: false  // Zero not allowed
-  } 
+  }
 });
 
 // Object validation with flexibility
-StaticUtils.validate('validateObject', { 
-  value: obj, 
+StaticUtils.validate('validateObject', {
+  value: obj,
   name: 'config',
-  options: { 
+  options: {
     allowNull: true,    // Allow null values
     allowEmpty: false,  // Don't allow empty objects
     checkKeys: true     // Validate key types
@@ -362,11 +487,11 @@ StaticUtils.validate('validateObject', {
 
 ```javascript
 // Custom pattern validation
-StaticUtils.validate('validateStringAgainstPattern', { 
-  value: input, 
+StaticUtils.validate('validateStringAgainstPattern', {
+  value: input,
   name: 'identifier',
-  options: { 
-    pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/, 
+  options: {
+    pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/,
     patternDescription: 'a valid identifier (letter followed by letters, numbers, or underscores)',
     stringValidationOptions: { allowEmpty: false }
   }

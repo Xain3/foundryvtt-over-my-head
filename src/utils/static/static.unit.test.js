@@ -9,6 +9,7 @@ import Validator from './validator.js';
 import Unpacker from './unpacker.js';
 import GameManager from './gameManager.js';
 import ErrorFormatter from './errorFormatter.js';
+import Localizer from './localizer.js';
 
 describe('StaticUtils', () => {
   describe('Class Properties', () => {
@@ -26,6 +27,10 @@ describe('StaticUtils', () => {
 
     it('should expose GameManager class', () => {
       expect(StaticUtils.GameManager).toBe(GameManager);
+    });
+
+    it('should expose Localizer class', () => {
+      expect(StaticUtils.Localizer).toBe(Localizer);
     });
   });
 
@@ -172,6 +177,126 @@ describe('StaticUtils', () => {
     });
   });
 
+  describe('Localizer proxy methods', () => {
+    let originalGame;
+    let mockI18n;
+
+    beforeEach(() => {
+      originalGame = globalThis.game;
+      mockI18n = {
+        localize: jest.fn((key) => {
+          const translations = {
+            'TEST.welcome': 'Welcome',
+            'TEST.greeting': 'Hello {name}!',
+            'TEST.playerCount': 'Players: {count}',
+            'TEST.missing': 'TEST.missing'
+          };
+          return translations[key] || key;
+        }),
+        format: jest.fn((key, data = {}) => {
+          const template = mockI18n.localize(key);
+          return template.replace(/{(\w+)}/g, (match, prop) => data[prop] || match);
+        }),
+        has: jest.fn((key) => {
+          const existingKeys = ['TEST.welcome', 'TEST.greeting', 'TEST.playerCount'];
+          return existingKeys.includes(key);
+        })
+      };
+      globalThis.game = { i18n: mockI18n };
+    });
+
+    afterEach(() => {
+      globalThis.game = originalGame;
+    });
+
+    it('should proxy localize to Localizer.localize', () => {
+      const result = StaticUtils.localize('TEST.welcome');
+      expect(result).toBe('Welcome');
+      expect(mockI18n.localize).toHaveBeenCalledWith('TEST.welcome');
+    });
+
+    it('should handle localize with custom i18n instance', () => {
+      const customI18n = {
+        localize: jest.fn(() => 'Custom Translation')
+      };
+
+      const result = StaticUtils.localize('TEST.custom', customI18n);
+      expect(result).toBe('Custom Translation');
+      expect(customI18n.localize).toHaveBeenCalledWith('TEST.custom');
+    });
+
+    it('should proxy formatLocalized to Localizer.format with default data', () => {
+      const result = StaticUtils.formatLocalized('TEST.greeting');
+      expect(result).toBe('Hello {name}!');
+      expect(mockI18n.format).toHaveBeenCalledWith('TEST.greeting', {});
+    });
+
+    it('should proxy formatLocalized to Localizer.format with data substitution', () => {
+      const result = StaticUtils.formatLocalized('TEST.greeting', { name: 'Player' });
+      expect(result).toBe('Hello Player!');
+      expect(mockI18n.format).toHaveBeenCalledWith('TEST.greeting', { name: 'Player' });
+    });
+
+    it('should handle formatLocalized with custom i18n instance', () => {
+      const customI18n = {
+        format: jest.fn(() => 'Custom Formatted Text')
+      };
+
+      const result = StaticUtils.formatLocalized('TEST.custom', { value: 42 }, customI18n);
+      expect(result).toBe('Custom Formatted Text');
+      expect(customI18n.format).toHaveBeenCalledWith('TEST.custom', { value: 42 });
+    });
+
+    it('should proxy hasLocalization to Localizer.has', () => {
+      const existingResult = StaticUtils.hasLocalization('TEST.welcome');
+      expect(existingResult).toBe(true);
+      expect(mockI18n.has).toHaveBeenCalledWith('TEST.welcome');
+
+      const missingResult = StaticUtils.hasLocalization('TEST.nonexistent');
+      expect(missingResult).toBe(false);
+      expect(mockI18n.has).toHaveBeenCalledWith('TEST.nonexistent');
+    });
+
+    it('should handle hasLocalization with custom i18n instance', () => {
+      const customI18n = {
+        has: jest.fn(() => true)
+      };
+
+      const result = StaticUtils.hasLocalization('TEST.custom', customI18n);
+      expect(result).toBe(true);
+      expect(customI18n.has).toHaveBeenCalledWith('TEST.custom');
+    });
+
+    it('should handle error cases when no i18n instance is available', () => {
+      globalThis.game = {};
+
+      expect(() => StaticUtils.localize('TEST.key')).toThrow();
+      expect(() => StaticUtils.formatLocalized('TEST.key', {})).toThrow();
+
+      // hasLocalization returns false instead of throwing when no i18n is available
+      expect(StaticUtils.hasLocalization('TEST.key')).toBe(false);
+    });
+
+    it('should work in integration with other proxy methods', () => {
+      // Test that localization works alongside other utilities
+      const moduleData = { name: 'Test Module', version: '1.0.0' };
+      const instance = {};
+
+      // Unpack data
+      StaticUtils.unpack(moduleData, instance);
+
+      // Localize a message
+      const welcomeMsg = StaticUtils.localize('TEST.welcome');
+
+      // Format a localized message with unpacked data
+      const greeting = StaticUtils.formatLocalized('TEST.greeting', { name: instance.name });
+
+      expect(instance.name).toBe('Test Module');
+      expect(welcomeMsg).toBe('Welcome');
+      expect(greeting).toBe('Hello Test Module!');
+    });
+  });
+
   describe('getAvailableValidationTypes method', () => {
     it('should return array of validation type names', () => {
       const types = StaticUtils.getAvailableValidationTypes();
@@ -217,6 +342,7 @@ describe('StaticUtils', () => {
       expect(info.utilities).toContain('Unpacker');
       expect(info.utilities).toContain('GameManager');
       expect(info.utilities).toContain('ErrorFormatter');
+      expect(info.utilities).toContain('Localizer');
     });
 
     it('should have descriptive information', () => {

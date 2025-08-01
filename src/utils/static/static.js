@@ -8,14 +8,25 @@ import Validator from './validator.js';
 import Unpacker from './unpacker.js';
 import GameManager from './gameManager.js';
 import ErrorFormatter from './errorFormatter.js';
+import Localizer from './localizer.js';
 
 /**
  * Central entry point for all static utility classes.
- * Provides a unified interface to access all static utilities including validation, unpacking, game management, and more.
+ * Provides a unified interface to access all static utilities including validation, unpacking, game management, error formatting, and localization.
  * This class acts as a facade pattern, allowing easy access to all static utilities from a single import.
  *
  * @class StaticUtils
  * @export
+ *
+ * Public API for static utility functions:
+ * - formatError(error, options)
+ * - localize(stringId, i18nInstance)
+ * - formatLocalized(stringId, data, i18nInstance)
+ * - hasLocalization(stringId, i18nInstance)
+ * - getModuleObject(moduleIdentifier)
+ * - writeToModuleObject(moduleIdentifier, key, value)
+ * - readFromModuleObject(moduleIdentifier, key)
+ * - getAvailableValidationTypes()
  */
 class StaticUtils {
   /**
@@ -45,6 +56,13 @@ class StaticUtils {
    * @type {typeof GameManager}
    */
   static GameManager = GameManager;
+
+  /**
+   * Static reference to the Localizer class for localization operations.
+   * @static
+   * @type {typeof Localizer}
+   */
+  static Localizer = Localizer;
 
   /**
    * Static instance of Unpacker for direct method access.
@@ -215,6 +233,70 @@ class StaticUtils {
   }
 
   /**
+   * Localizes a string using Foundry VTT's localization system.
+   * Acts as a convenient proxy to Localizer.localize().
+   *
+   * @static
+   * @param {string} stringId - The localization key to translate
+   * @param {Object} [i18nInstance] - Optional i18n instance to use. Defaults to game?.i18n
+   * @returns {string} The localized string, or the original string if translation is not found
+   * @throws {Error} If no i18n instance is available
+   *
+   * @example
+   * // Basic localization
+   * const welcomeText = StaticUtils.localize('MYMODULE.welcome');
+   *
+   * @example
+   * // With custom i18n instance
+   * const text = StaticUtils.localize('CUSTOM.key', customI18nInstance);
+   */
+  static localize(stringId, i18nInstance = null) {
+    return this.Localizer.localize(stringId, i18nInstance);
+  }
+
+  /**
+   * Formats a localized string with variable substitution using Foundry VTT's localization system.
+   * Acts as a convenient proxy to Localizer.format().
+   *
+   * @static
+   * @param {string} stringId - The localization key to translate
+   * @param {Object} [data={}] - Data object for variable substitution
+   * @param {Object} [i18nInstance] - Optional i18n instance to use. Defaults to game?.i18n
+   * @returns {string} The formatted localized string with variables substituted
+   * @throws {Error} If no i18n instance is available
+   *
+   * @example
+   * // Basic formatting with variables
+   * const greeting = StaticUtils.formatLocalized('MYMODULE.greeting', { name: 'Player' });
+   *
+   * @example
+   * // With custom i18n instance
+   * const formatted = StaticUtils.formatLocalized('CUSTOM.playerCount', { count: 5 }, customI18nInstance);
+   */
+  static formatLocalized(stringId, data = {}, i18nInstance = null) {
+    return this.Localizer.format(stringId, data, i18nInstance);
+  }
+
+  /**
+   * Checks if a localization key exists in the translation dictionary.
+   * Acts as a convenient proxy to Localizer.has().
+   *
+   * @static
+   * @param {string} stringId - The localization key to check
+   * @param {Object} [i18nInstance] - Optional i18n instance to use. Defaults to game?.i18n
+   * @returns {boolean} True if the key exists, false otherwise
+   *
+   * @example
+   * // Check if localization key exists
+   * if (StaticUtils.hasLocalization('MYMODULE.optionalText')) {
+   *   const text = StaticUtils.localize('MYMODULE.optionalText');
+   * }
+   */
+  static hasLocalization(stringId, i18nInstance = null) {
+    return this.Localizer.has(stringId, i18nInstance);
+  }
+
+  /**
    * Gets all available validation types from the Validator class.
    * Useful for debugging or generating help documentation.
    *
@@ -250,12 +332,12 @@ class StaticUtils {
    *
    * @example
    * const info = StaticUtils.getUtilityInfo();
-   * console.log(info.utilities); // ['Validator', 'Unpacker', 'GameManager']
+   * console.log(info.utilities); // ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer']
    */
   static getUtilityInfo() {
     return {
       name: 'StaticUtils',
-      utilities: ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter'],
+      utilities: ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer'],
       description: 'Central entry point for all static utility classes',
       version: '1.0.0'
     };

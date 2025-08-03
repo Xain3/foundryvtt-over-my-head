@@ -1,4 +1,4 @@
-jest.mock('@manifest', () => ({
+jest.mock('@/config/manifest', () => ({
   id: 'test-module-id'
 }));
 
@@ -14,10 +14,13 @@ jest.mock('@/helpers/moduleGetter', () => ({
 }));
 
 import RootMapParser from './rootMapParser.js';
-import manifest from '@manifest';
+import config from '../config/config.js';
 import Validator from '@utils/static/validator';
 import PathUtils from '@helpers/pathUtils.js';
 import { getModule } from '@/helpers/moduleGetter';
+
+const manifest = config.manifest;
+
 
 describe('RootMapParser', () => {
   let mockNamespace;
@@ -110,7 +113,7 @@ describe('RootMapParser', () => {
       getModule.mockReturnValue({ id: 'test-module', active: true });
 
       RootMapParser.parse({ rootMap: mockRootMap });
-      expect(Validator.validateString).toHaveBeenCalledWith('test-module-id', 'module');
+      expect(Validator.validateString).toHaveBeenCalledWith(config.manifest.id, 'module');
     });
   });
 
@@ -399,8 +402,8 @@ describe('RootMapParser', () => {
     });
 
     it('should handle undefined manifest ID', () => {
-      const originalId = manifest.id;
-      manifest.id = undefined;
+      const originalId = config.manifest.id;
+      config.manifest.id = undefined;
 
       PathUtils.resolvePath.mockReturnValue({ test: true });
 
@@ -411,7 +414,7 @@ describe('RootMapParser', () => {
 
       expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockNamespace, 'game.test', true);
 
-      manifest.id = originalId;
+      config.manifest.id = originalId;
     });
   });
 

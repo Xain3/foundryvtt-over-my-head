@@ -10,7 +10,8 @@ import { ContextContainer } from './contextContainer.js';
 import ContextComparison from './contextComparison.js';
 import ContextAutoSync from './contextAutoSync.js';
 import ContextLegacySync from './contextLegacySync.js';
-import constants from '../../constants/constants.js';
+import config from '../../config/config.js';
+
 
 /**
  * @class ContextSync
@@ -113,7 +114,7 @@ class ContextSync {
       return ContextLegacySync.performLegacySync(source, target, operation, options);
     }
 
-    throw new Error(constants.context.helpers.errorMessages.unsupportedObjectTypes);
+    throw new Error(config.constants.context.helpers.errorMessages.unsupportedObjectTypes);
   }
 
   /**
@@ -163,7 +164,7 @@ class ContextSync {
         return {
           success: false,
           operation,
-          error: constants.context.helpers.errorMessages.incompatibleTypes,
+          error: config.constants.context.helpers.errorMessages.incompatibleTypes,
           warnings
         };
       }

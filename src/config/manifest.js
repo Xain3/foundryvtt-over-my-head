@@ -19,6 +19,12 @@ import ManifestParser from "./helpers/manifestParser.js";
  * @throws {Error} If validation fails during module initialization.
  */
 const parser = new ManifestParser(importedManifest);
+
+/**
+ * The validated and frozen manifest object.
+ *
+ * @type {Object}
+ */
 const manifest = parser.getValidatedManifest();
 
 export default manifest;

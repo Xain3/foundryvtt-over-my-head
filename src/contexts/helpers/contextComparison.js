@@ -6,7 +6,8 @@
  */
 
 import dayjs from 'dayjs';
-import constants from '../../constants/constants.js';
+import config from '../../config/config.js';
+
 
 /**
  * @class ContextComparison
@@ -33,7 +34,7 @@ class ContextComparison {
    * @enum {string}
    * @export
    */
-  static COMPARISON_RESULTS = constants.context.helpers.comparisonResults;
+  static COMPARISON_RESULTS = config.constants.context.helpers.comparisonResults;
 
   /**
    * @private

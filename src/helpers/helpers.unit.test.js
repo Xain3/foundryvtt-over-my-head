@@ -8,7 +8,7 @@
 jest.mock('./pathUtils.js');
 jest.mock('./moduleGetter.js');
 jest.mock('./errorFormatter.js', () => ({
-  formatError: jest.fn()
+  formatError: jest.fn((error, options = {}) => `Mocked error: ${error.message}`)
 }));
 jest.mock('./rootMapParser.js', () => ({
   default: {
@@ -20,7 +20,7 @@ import Helpers from './helpers.js';
 import PathUtils from './pathUtils.js';
 import { getModule } from './moduleGetter.js';
 import RootMapParser from './rootMapParser.js';
-import { formatError } from '../utils/static/errorFormatter.js'; // Import kept for backward compatibility
+import { formatError } from './errorFormatter.js';
 
 describe('Helpers', () => {
   beforeEach(() => {

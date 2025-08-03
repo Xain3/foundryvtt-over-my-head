@@ -1,19 +1,24 @@
-import { getModule } from './moduleGetter.js';
-import constants from '@/constants/constants';
-import PathUtils from './pathUtils.js';
-
 /**
  * @file moduleGetter.test.js
  * @description This file contains unit tests for the getModule function.
  * @path src/helpers/moduleGetter.test.js
  */
 
-
-jest.mock('@/constants/constants', () => ({
-  defaultFoundryModulesLocation: 'game.modules'
+// Mock config before any imports
+jest.mock('@config', () => ({
+  constants: {
+    defaultFoundryModulesLocation: 'game.modules'
+  }
 }));
 
 jest.mock('./pathUtils.js');
+
+import { getModule } from './moduleGetter.js';
+import PathUtils from './pathUtils.js';
+import config from '@config';
+
+// Get constants from the mocked config
+const constants = config.constants;
 
 describe('getModule', () => {
   let mockGlobalNamespace;

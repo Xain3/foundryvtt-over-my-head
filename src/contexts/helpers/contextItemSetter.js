@@ -7,7 +7,8 @@
 
 import { ContextValueWrapper } from './contextValueWrapper.js';
 import PathUtils from '../../helpers/pathUtils.js';
-import constants from '../../constants/constants.js';
+import config from '../../config/config.js';
+
 
 /**
  * @class ContextItemSetter
@@ -61,7 +62,7 @@ class ContextItemSetter {
    */
   static #handleSimpleItemSetting(key, rawValue, containerInstance, itemOptionsOverrides) {
     if (containerInstance._isReservedKey(key)) {
-      console.warn(constants.context.helpers.errorMessages.keyRenamed.replace(/\{key\}/g, key));
+      console.warn(config.constants.context.helpers.errorMessages.keyRenamed.replace(/\{key\}/g, key));
       key = `_${key}`; // Prefix reserved keys to avoid conflicts
     }
 
@@ -70,7 +71,7 @@ class ContextItemSetter {
     const ignoreFrozen = itemOptionsOverrides.ignoreFrozen || false;
 
     if (existingItem && typeof existingItem.isFrozen === 'function' && existingItem.isFrozen() && !ignoreFrozen) {
-      throw new Error(constants.context.helpers.errorMessages.cannotOverwriteFrozen.replace(/\{key\}/g, key));
+      throw new Error(config.constants.context.helpers.errorMessages.cannotOverwriteFrozen.replace(/\{key\}/g, key));
     }
 
     const itemSpecificMetadata = itemOptionsOverrides.metadata || {};

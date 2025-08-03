@@ -10,7 +10,7 @@ const REQUIRED_MANIFEST_ATTRIBUTES = constants.requiredManifestAttributes;
 
 /**
  * The ManifestParser class provides comprehensive validation and processing for manifest objects.
- * It validates manifest structure, required attributes, and ensures immutability by freezing 
+ * It validates manifest structure, required attributes, and ensures immutability by freezing
  * the manifest and its nested objects. The class supports both array-based and object-based
  * required attribute definitions and provides detailed error messages for validation failures.
  *
@@ -23,7 +23,7 @@ const REQUIRED_MANIFEST_ATTRIBUTES = constants.requiredManifestAttributes;
  * - validateRequiredManifestAttributes() - Validates that required attributes are properly defined
  * - validateImportedManifest() - Validates the manifest structure and type
  * - validateManifestAttributesArray() - Validates array-based required attributes
- * - validateManifestAttributesObject() - Validates object-based required attributes  
+ * - validateManifestAttributesObject() - Validates object-based required attributes
  * - validateManifestHasRequiredAttributes() - Orchestrates validation based on attribute type
  * - freezeManifest() - Makes the manifest immutable by freezing it and nested objects
  * - getValidatedManifest() - Performs complete validation and returns frozen manifest

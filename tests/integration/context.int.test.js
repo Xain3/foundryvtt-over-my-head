@@ -7,7 +7,8 @@
 import Context from '../../src/contexts/context.js';
 import { ContextContainer } from '../../src/contexts/helpers/contextContainer.js';
 import { ContextItem } from '../../src/contexts/helpers/contextItem.js';
-import constants from '../../src/constants/constants.js';
+import config from '../../src/config/config.js';
+
 
 describe('Context Integration Tests', () => {
   let context;

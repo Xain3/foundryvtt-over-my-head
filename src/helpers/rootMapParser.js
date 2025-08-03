@@ -4,10 +4,11 @@
  * @path src/helpers/rootMapParser.js
  */
 
-import manifest from '@manifest';
-import Validator from '@utils/static/validator';
-import PathUtils from '@helpers/pathUtils.js';
-import { getModule } from '@/helpers/moduleGetter';
+import config from '@config';
+import Validator from '@utils/static/validator.js';
+import PathUtils from './pathUtils.js';
+import { getModule } from './moduleGetter.js';
+
 
 /**
  * Parses a root map configuration into resolved objects.
@@ -136,7 +137,7 @@ class RootMapParser {
    * @returns {object|*} Parsed map with resolved references, or single parsed value if key specified
    * @throws {Error} If the specified key doesn't exist in the root map (when key is provided)
    */
-  static parse({ rootMap, key, namespace = globalThis, module = manifest.id || undefined }) {
+  static parse({ rootMap, key, namespace = globalThis, module = config.manifest.id || undefined }) {
     Validator.validateObject(rootMap, 'rootMap');
     if (key !== undefined && key !== null) Validator.validateString(key, 'key');
     Validator.validateObject(namespace, 'namespace');

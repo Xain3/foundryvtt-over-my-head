@@ -4,22 +4,22 @@
  * @path src/helpers/errorFormatter.js
  */
 
-import manifest from '@manifest';
-import constants from '@constants';
+import config from '../../config/config.js';
+
 
 const moduleIdentifiers = {
-  "title": manifest.title,
-  "name": manifest.name,
-  "id": manifest.id,
-  "shortName": manifest.shortName,
+  "title": config.manifest.title,
+  "name": config.manifest.name,
+  "id": config.manifest.id,
+  "shortName": config.manifest.shortName,
 };
 
-const referBy = constants.referToModuleBy;
+const referBy = config.constants.referToModuleBy;
 
 const moduleName = moduleIdentifiers[referBy.toLowerCase()] || moduleIdentifiers.title;
 
-const separator = constants.errors.separator;
-const pattern = constants.errors.pattern;
+const separator = config.constants.errors.separator;
+const pattern = config.constants.errors.pattern;
 
 /**
  * Validates the arguments passed to formatError method

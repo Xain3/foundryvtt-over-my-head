@@ -7,7 +7,7 @@
 import PathUtils from './pathUtils.js';
 import { getModule } from './moduleGetter.js';
 import RootMapParser from './rootMapParser.js';
-import { formatError } from '../utils/static/errorFormatter.js'; // Import kept for backward compatibility
+import { formatError } from './errorFormatter.js';
 
 /**
  * @class Helpers

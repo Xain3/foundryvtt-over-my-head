@@ -4,8 +4,9 @@
  * @path src/helpers/moduleGetter.js
  */
 
-import constants from "@/constants/constants";
+import config from "@config";
 import PathUtils from "./pathUtils.js";
+
 
 /**
  * Retrieves a module by name from the global modules collection.
@@ -25,7 +26,7 @@ export const getModule = (moduleName, globalNamespace = globalThis) => {
     throw new TypeError('globalNamespace must be an object');
   }
 
-  const modulesLocation = constants.defaultFoundryModulesLocation || 'game.modules';
+  const modulesLocation = config.constants.defaultFoundryModulesLocation || 'game.modules';
   const modulesCollection = PathUtils.resolvePath(globalNamespace, modulesLocation, true);
   if (!modulesCollection || typeof modulesCollection.get !== 'function') {
     return null;

@@ -7,11 +7,12 @@
 import { ContextContainer } from './helpers/contextContainer.js';
 import { ContextItem } from './helpers/contextItem.js';
 import ContextHelpers from './helpers/contextHelpers.js';
-import constants from '../constants/constants.js';
+import config from '../config/config.js';
+
 
 const DEFAULT_INITIALIZATION_PARAMS = {
   contextSchema: {},
-  namingConvention: constants.context.naming,
+  namingConvention: config.constants.context.naming,
   contextLocation: 'local',
   constants: {},
   manifest: {},
@@ -21,12 +22,12 @@ const DEFAULT_INITIALIZATION_PARAMS = {
 };
 
 const DEFAULT_OPERATIONS_PARAMS = {
-  alwaysPullBeforeGetting: constants.context.operationsParams.defaults.alwaysPullBeforeGetting,
-  alwaysPullBeforeSetting: constants.context.operationsParams.defaults.alwaysPullBeforeSetting,
-  pullFrom: constants.context.operationsParams.defaults.pullFrom,
-  alwaysPushAfterSetting: constants.context.operationsParams.defaults.alwaysPushAfterSetting,
-  pushTo: constants.context.operationsParams.defaults.pushTo,
-  errorHandling: constants.context.operationsParams.defaults.errorHandling
+  alwaysPullBeforeGetting: config.constants.context.operationsParams.defaults.alwaysPullBeforeGetting,
+  alwaysPullBeforeSetting: config.constants.context.operationsParams.defaults.alwaysPullBeforeSetting,
+  pullFrom: config.constants.context.operationsParams.defaults.pullFrom,
+  alwaysPushAfterSetting: config.constants.context.operationsParams.defaults.alwaysPushAfterSetting,
+  pushTo: config.constants.context.operationsParams.defaults.pushTo,
+  errorHandling: config.constants.context.operationsParams.defaults.errorHandling
 };
 
 /**
@@ -204,7 +205,7 @@ class Context extends ContextContainer {
 
     // Initialize naming convention (frozen)
     this.#namingConvention = new ContextItem(
-      { ...constants.context.naming, ...initializationParams.namingConvention },
+      { ...config.constants.context.naming, ...initializationParams.namingConvention },
       { type: 'namingConvention' },
       { frozen: true, recordAccess: false }
     );

@@ -7,7 +7,7 @@
 import Context from './context.js';
 import { ContextContainer } from './helpers/contextContainer.js';
 import { ContextItem } from './helpers/contextItem.js';
-import constants from '../constants/constants.js';
+import constants from '../config/constants.js';
 
 // Mock helpers to avoid circular dependencies in tests
 jest.mock('./helpers/contextHelpers.js', () => {

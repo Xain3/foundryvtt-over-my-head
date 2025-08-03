@@ -6,7 +6,9 @@
 
 import PathUtils from '../../src/helpers/pathUtils.js';
 import { getModule } from '../../src/helpers/moduleGetter.js';
-import constants from '../../src/constants/constants.js';
+import config from '../../src/config/config.js';
+
+const constants = config.constants;
 
 // Mock RootMapParser to avoid manifest import issues
 jest.mock('../../src/helpers/rootMapParser.js', () => {
@@ -237,7 +239,7 @@ describe('PathUtils, ModuleGetter, and RootMapParser Integration Tests', () => {
     });
 
     it('should use constants for modules location', () => {
-      // Verify that moduleGetter uses the correct path from constants
+      // Verify that moduleGetter uses the correct path from config.constants
       expect(constants.defaultFoundryModulesLocation).toBe('game.modules');
 
       const module = getModule('test-module', mockNamespace);

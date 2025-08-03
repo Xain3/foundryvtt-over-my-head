@@ -9,7 +9,8 @@ import ContextComparison from './contextComparison.js';
 import { ContextItem } from './contextItem.js';
 import { ContextContainer } from './contextContainer.js';
 import { ItemFilter } from './contextItemFilter.js';
-import constants from '../../constants/constants.js';
+import config from '../../config/config.js';
+
 import ContextPathUtils from './contextPathUtils.js';
 
 /**
@@ -74,13 +75,13 @@ class ContextMerger {
    * @enum {string}
    * @description Available merge strategies.
    */
-  static MERGE_STRATEGIES = constants.context.helpers.mergeStrategies;
+  static MERGE_STRATEGIES = config.constants.context.helpers.mergeStrategies;
 
   /**
    * @enum {string}
    * @description Default Context component keys that can be merged.
    */
-  static DEFAULT_COMPONENTS = constants.context.helpers.defaultComponents;
+  static DEFAULT_COMPONENTS = config.constants.context.helpers.defaultComponents;
 
   /**
    * @private
@@ -92,7 +93,7 @@ class ContextMerger {
    */
   static #initializeMergeResult(source, target, strategy) {
     if (!source || !target) {
-      throw new Error(constants.context.helpers.errorMessages.invalidMergeContext);
+      throw new Error(config.constants.context.helpers.errorMessages.invalidMergeContext);
     }
 
     return {

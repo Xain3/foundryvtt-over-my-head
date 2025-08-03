@@ -10,7 +10,9 @@ import { ContextContainer } from './contextContainer.js';
 import { ContextItem } from './contextItem.js';
 import ContextContainerSync from './contextContainerSync.js';
 import ContextItemSync from './contextItemSync.js';
-import constants from '../../constants/constants.js';
+import config from '../../config/config.js';
+import constants from '../../config/constants.js';
+
 
 /**
  * @class ContextOperations

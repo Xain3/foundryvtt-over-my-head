@@ -110,13 +110,6 @@ class Utilities {
     this.formatError = this.static.formatError.bind(this.static);
 
     /**
-     * Convenience method for formatting hook names.
-     * Bound to hookFormatter.formatHookName for consistent hook naming.
-     * @type {Function}
-     */
-    this.formatHookName = this.hookFormatter.formatHookName.bind(this.hookFormatter);
-
-    /**
      * Logger instance for module-specific logging.
      * @type {Logger}
      */
@@ -132,16 +125,23 @@ class Utilities {
      * Initializer instance for context and settings initialization.
      * @type {Initializer}
      */
-    this.initializer = new Initializer(this.constants, this.manifest, this.logger, this.formatError, this.formatHookName, Context);
+    this.initializer = new Initializer(this.constants, this.manifest, this.logger, this.formatError, Context);
 
     // Convenience methods for frequently used operations
+
+    /**
+     * Convenience method for formatting hook names.
+     * Bound to hookFormatter.formatHookName for consistent hook naming.
+     * @type {Function}
+     */
+    this.formatHookName = this.hookFormatter.formatHookName.bind(this.hookFormatter);
 
     /**
      * Convenience method for initializing context objects.
      * Bound to initializer.initializeContextObject for context setup.
      * @type {Function}
      */
-    this.initializeContext = this.initializer._initializeContextObject.bind(this.initializer);
+    this.initializeContext = this.initializer.initializeContextObject.bind(this.initializer);
   }
 }
 

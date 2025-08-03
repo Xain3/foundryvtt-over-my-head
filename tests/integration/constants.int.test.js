@@ -17,7 +17,7 @@ describe('Config Integration Test', () => {
     });
 
     it('should load other values from constants.yaml through config', () => {
-      expect(config.constants.referToModuleBy).toBeDefined();
+      expect(config.constants.moduleManagement.referToModuleBy).toBeDefined();
       expect(config.constants.errors).toBeDefined();
       expect(config.constants.errors.separator).toBeDefined();
       expect(config.constants.placeables).toBeDefined();
@@ -67,7 +67,7 @@ describe('Config Integration Test', () => {
         id: config.manifest.id,
         title: config.manifest.title,
         version: config.manifest.version,
-        referenceBy: config.constants.referToModuleBy,
+        referenceBy: config.constants.moduleManagement.referToModuleBy,
         errorSeparator: config.constants.errors.separator,
         contextDefaults: config.constants.context.sync.defaults
       };
@@ -113,7 +113,7 @@ describe('Config Integration Test', () => {
       const config1 = config;
       const config2 = config;
 
-      expect(config1.constants.referToModuleBy).toBe(config2.constants.referToModuleBy);
+      expect(config1.constants.moduleManagement.referToModuleBy).toBe(config2.constants.moduleManagement.referToModuleBy);
       expect(config1.manifest.id).toBe(config2.manifest.id);
       expect(config1.manifest.title).toBe(config2.manifest.title);
       expect(config1).toBe(config2);

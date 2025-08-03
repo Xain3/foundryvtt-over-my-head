@@ -413,8 +413,10 @@ The helpers work with a YAML structure defined in `constants.yaml` at the projec
 ### Module Configuration
 
 ```yaml
-referToModuleBy: "title"
-defaultFoundryModulesLocation: "game.modules"
+moduleManagement:
+  referToModuleBy: "title"
+  defaults:
+    modulesLocation: "game.modules"
 ```
 
 ### Error Formatting

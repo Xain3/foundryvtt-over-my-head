@@ -171,7 +171,7 @@ getModule(moduleName, globalNamespace?)
 #### Key Features
 
 - **Foundry Integration**: Works with Foundry VTT's module system
-- **Configurable Location**: Uses `constants.defaultFoundryModulesLocation` for flexibility
+- **Configurable Location**: Uses `constants.moduleManagement.defaults.modulesLocation` for flexibility
 - **PathUtils Integration**: Leverages PathUtils for reliable module collection access
 - **Error Handling**: Graceful handling of missing modules or invalid collections
 - **Type Validation**: Validates input parameters
@@ -533,7 +533,7 @@ import { getModule } from './moduleGetter.js';
 
 The helpers integrate with the module's constants system:
 
-- **moduleGetter**: Uses `constants.defaultFoundryModulesLocation` for module collection path
+- **moduleGetter**: Uses `constants.moduleManagement.defaults.modulesLocation` for module collection path
 - **errorFormatter**: Uses constants for formatting configuration
 - **Configuration**: All constants are centrally managed via `constants.yaml`
 

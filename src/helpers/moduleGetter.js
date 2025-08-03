@@ -26,7 +26,7 @@ export const getModule = (moduleName, globalNamespace = globalThis) => {
     throw new TypeError('globalNamespace must be an object');
   }
 
-  const modulesLocation = config.constants.defaultFoundryModulesLocation || 'game.modules';
+  const modulesLocation = config.constants.moduleManagement.defaults.modulesLocation || 'game.modules';
   const modulesCollection = PathUtils.resolvePath(globalNamespace, modulesLocation, true);
   if (!modulesCollection || typeof modulesCollection.get !== 'function') {
     return null;

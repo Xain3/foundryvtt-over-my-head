@@ -52,7 +52,7 @@ The config system is built around a centralized architecture that provides unifi
 import config from './config/config.js';
 
 // Access constants directly
-const moduleRef = config.constants.referToModuleBy;           // "title"
+const moduleRef = config.constants.moduleManagement.referToModuleBy;           // "title"
 const syncDefaults = config.constants.context.sync.defaults;  // { autoSync: true, ... }
 const errorPattern = config.constants.errors.pattern;         // "{{module}}{{caller}}{{error}}{{stack}}"
 
@@ -90,7 +90,7 @@ const config = new Config();
 const constants = config.constants;
 
 // Access configuration values
-const moduleRef = constants.referToModuleBy;           // "title"
+const moduleRef = constants.moduleManagement.referToModuleBy;           // "title"
 const syncDefaults = constants.context.sync.defaults;  // { autoSync: true, ... }
 const errorPattern = constants.errors.pattern;         // "{{module}}{{caller}}{{error}}{{stack}}"
 ```
@@ -154,8 +154,10 @@ The system reads configuration from `constants.yaml` in the project root. The YA
 
 ### Module Configuration
 ```yaml
-referToModuleBy: "title"
-defaultFoundryModulesLocation: "game.modules"
+moduleManagement:
+  referToModuleBy: "title"
+  defaults:
+    modulesLocation: "game.modules"
 ```
 
 ### Error Management
@@ -599,7 +601,7 @@ The constants system is built around a layered architecture that separates conce
 
 ```javascript
 // Access configuration values
-const moduleRef = constants.referToModuleBy;           // "title"
+const moduleRef = constants.moduleManagement.referToModuleBy;           // "title"
 const syncDefaults = constants.context.sync.defaults;  // { autoSync: true, ... }
 const errorPattern = constants.errors.pattern;         // "{{module}}{{caller}}{{error}}{{stack}}"
 ```
@@ -655,8 +657,10 @@ The system reads configuration from `constants.yaml` in the project root. The YA
 
 ### Module Configuration
 ```yaml
-referToModuleBy: "title"
-defaultFoundryModulesLocation: "game.modules"
+moduleManagement:
+  referToModuleBy: "title"
+  defaults:
+    modulesLocation: "game.modules"
 ```
 
 ### Error Management

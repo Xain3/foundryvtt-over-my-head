@@ -14,7 +14,7 @@ const moduleIdentifiers = {
   "shortName": config.manifest.shortName,
 };
 
-const referBy = config.constants.referToModuleBy;
+const referBy = config.constants.moduleManagement.referToModuleBy;
 
 const moduleName = moduleIdentifiers[referBy.toLowerCase()] || moduleIdentifiers.title;
 

@@ -3,23 +3,39 @@
 # It is recommended to use this file to define constants that are used in multiple places.
 # This file will be parsed into a JavaScript object (in constants.js), which can be used in the module.
 
-# How to refer to the module in the logs
-# Can be "title", "id", "name", or "shortName"
-referToModuleBy: "title"
 
-# Configuration constants for Foundry VTT module management
-#
-# defaultFoundryModulesLocation:
-#   Description: Specifies the default path where Foundry VTT modules are located within the game system
-#   Type: String
-#   Default: "game.modules"
-#   Usage: Used as a reference point for module discovery and management operations. Path is relative to the global namespace.
-defaultFoundryModulesLocation: "game.modules"
+# Configuration constants for Foundry VTT system integration
+foundry:
+  defaults:
+    # Description: Specifies the default path where Foundry VTT i18n (internationalization) system is located
+    # Type: String
+    # Default: "game.i18n"
+    # Usage: Used as a reference point for localization operations. Path is relative to the global namespace.
+    i18nLocation: "game.i18n"
+
+# Configuration constants for module management and identification
+moduleManagement:
+  # How to refer to the module in the logs
+  # Can be "title", "id", "name", or "shortName"
+  referToModuleBy: "title"
+
+  defaults:
+    # Description: Specifies the default path where Foundry VTT modules are located within the game system
+    # Type: String
+    # Default: "game.modules"
+    # Usage: Used as a reference point for module discovery and management operations. Path is relative to the global namespace.
+    modulesLocation: "game.modules"
 
 # How to structure error messages
 errors:
   separator: " || " # The separator used to join multiple error messages
-  pattern: "{{module}}{{caller}}{{error}}{{stack}}"  # The pattern used to format error messages
+  pattern: "{{module}}{{caller}}{{error}}{{stack}}"  # The pattern used to format error messages. Not all elements are guaranteed to be present.
+
+# Hooks for module events
+hooks:
+  settingsReady: "SettingsReady"  # The hook called when settings are ready
+  contextReady: "ContextReady"  # The hook called when context is ready
+
 
 # Constants relative to context and state management
 context:
@@ -156,6 +172,74 @@ placeables:
       - "top-right"
       - "bottom-left"
       - "bottom-right"
+
+# Settings for the module
+settings:
+  - key: "useModule"
+    data: {
+      name: "Use Module",
+      hint: "Enable or disable the use of modules",
+      scope: "world",
+      config: true,
+      type: Boolean,
+      requireReload: true,
+      default: true
+    }
+    onChangeSendHook: false
+
+  - key: "debugMode"
+    data: {
+      name: "Debug Mode",
+      hint: "Enable or disable debug mode",
+      scope: "user",
+      config: true,
+      type: Boolean,
+      default: {{manifest.debugMode}}
+    }
+    onChangeSendHook: true
+
+  - key: "behaviorTokens"
+    data: {
+      name: "Behavior",
+      hint: "Configure what tokens the module should consider to determine occlusion mode.\nDefault is to include tokens that are both active and controlled.",
+      choices: {
+        default: "Active and Controlled",
+        onlyActive: "Only Active Tokens",
+        onlyControlled: "Only Controlled Tokens"
+      },
+      scope: "world",
+      config: true,
+      type: String,
+      default: "default"
+    }
+    onChangeSendHook: true
+
+  - key: "behaviorParty"
+    data: {
+      name: "Behavior Party",
+      hint: "Configure if the module should consider party members for occlusion mode, or only the controlled tokens.",
+      scope: "world",
+      config: true,
+      type: Boolean,
+      default: "default"
+    }
+    onChangeSendHook: true
+
+  - key: "behaviorGM"
+    data: {
+      name: "Behavior GM",
+      hint: "Configure if the module should be active for the GM as well",
+      choices: {
+        default: "Active, Only Active Tokens",
+        onlyNPCs: "Active, only NPCs",
+        inactive: "Inactive"
+      },
+      scope: "world",
+      config: true,
+      type: String,
+      default: "default"
+    }
+    onChangeSendHook: true
 
 # Required attributes for a valid manifest (from https://foundryvtt.com/article/module-development/)
 requiredManifestAttributes:

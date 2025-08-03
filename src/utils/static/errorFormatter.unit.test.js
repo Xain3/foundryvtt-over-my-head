@@ -17,7 +17,9 @@ jest.mock('@manifest', () => ({
 
 // Mock constants
 jest.mock('@constants', () => ({
-  referToModuleBy: 'title',
+  moduleManagement: {
+    referToModuleBy: 'title',
+  },
   errors: {
     separator: ' || ',
     pattern: '{{module}}{{caller}}{{error}}{{stack}}'
@@ -260,12 +262,12 @@ describe('ErrorFormatter', () => {
   });
 
   describe('module identification', () => {
-    it('should use title by default from constants.referToModuleBy', () => {
+    it('should use title by default from constants.moduleManagement.referToModuleBy', () => {
       const result = ErrorFormatter.formatError(testError, {});
       expect(result).toContain('OverMyHead');
     });
 
-    // Test different referToModuleBy values would require different mock setups
+    // Test different moduleManagement.referToModuleBy values would require different mock setups
     // These tests demonstrate how the system would work with different configurations
   });
 

@@ -7,7 +7,11 @@
 // Mock config before any imports
 jest.mock('@config', () => ({
   constants: {
-    defaultFoundryModulesLocation: 'game.modules'
+    moduleManagement: {
+      defaults: {
+        modulesLocation: 'game.modules'
+      }
+    }
   }
 }));
 
@@ -175,18 +179,18 @@ describe('getModule', () => {
   });
 
   describe('Constants Integration', () => {
-    it('should use defaultFoundryModulesLocation from constants', () => {
+    it('should use moduleManagement.defaults.modulesLocation from constants', () => {
       PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(null);
 
       getModule('test-module', mockGlobalNamespace);
 
-      expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, constants.defaultFoundryModulesLocation, true);
+      expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, constants.moduleManagement.defaults.modulesLocation, true);
     });
 
-    it('should fallback to game.modules when constants.defaultFoundryModulesLocation is undefined', () => {
-      const originalConstant = constants.defaultFoundryModulesLocation;
-      constants.defaultFoundryModulesLocation = undefined;
+    it('should fallback to game.modules when constants.moduleManagement.defaults.modulesLocation is undefined', () => {
+      const originalConstant = constants.moduleManagement.defaults.modulesLocation;
+      constants.moduleManagement.defaults.modulesLocation = undefined;
 
       PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(null);
@@ -195,14 +199,14 @@ describe('getModule', () => {
 
       expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'game.modules', true);
 
-      constants.defaultFoundryModulesLocation = originalConstant;
+      constants.moduleManagement.defaults.modulesLocation = originalConstant;
     });
   });
 
   describe('Alternative Constants Configuration', () => {
     it('should work with different modules location from constants', () => {
-      const originalConstant = constants.defaultFoundryModulesLocation;
-      constants.defaultFoundryModulesLocation = 'custom.modules.location';
+      const originalConstant = constants.moduleManagement.defaults.modulesLocation;
+      constants.moduleManagement.defaults.modulesLocation = 'custom.modules.location';
 
       PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue(null);
@@ -211,7 +215,7 @@ describe('getModule', () => {
 
       expect(PathUtils.resolvePath).toHaveBeenCalledWith(mockGlobalNamespace, 'custom.modules.location', true);
 
-      constants.defaultFoundryModulesLocation = originalConstant;
+      constants.moduleManagement.defaults.modulesLocation = originalConstant;
     });
   });
 
@@ -287,8 +291,8 @@ describe('getModule', () => {
         }
       };
 
-      const originalConstant = constants.defaultFoundryModulesLocation;
-      constants.defaultFoundryModulesLocation = 'foundry.modules';
+      const originalConstant = constants.moduleManagement.defaults.modulesLocation;
+      constants.moduleManagement.defaults.modulesLocation = 'foundry.modules';
 
       PathUtils.resolvePath.mockReturnValue(mockModulesCollection);
       mockModulesCollection.get.mockReturnValue({ id: 'system-module' });
@@ -298,7 +302,7 @@ describe('getModule', () => {
       expect(PathUtils.resolvePath).toHaveBeenCalledWith(customNamespace, 'foundry.modules', true);
       expect(result).toEqual({ id: 'system-module' });
 
-      constants.defaultFoundryModulesLocation = originalConstant;
+      constants.moduleManagement.defaults.modulesLocation = originalConstant;
     });
 
     it('should handle case where resolvePath throws an error', () => {

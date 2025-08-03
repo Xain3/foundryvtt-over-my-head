@@ -8,7 +8,9 @@ import config from './config.js';
 
 // Mock the dependencies
 jest.mock('./constants', () => Object.freeze({
-  referToModuleBy: 'title',
+  moduleManagement: {
+    referToModuleBy: 'title',
+  },
   errors: {
     separator: ' || ',
     pattern: '{{module}}{{caller}}{{error}}{{stack}}'
@@ -90,8 +92,8 @@ describe('Config', () => {
   });
 
   describe('Constants Access', () => {
-    it('should provide access to referToModuleBy', () => {
-      expect(config.constants.referToModuleBy).toBe('title');
+    it('should provide access to moduleManagement.referToModuleBy', () => {
+      expect(config.constants.moduleManagement.referToModuleBy).toBe('title');
     });
 
     it('should provide access to error configuration', () => {

@@ -240,7 +240,7 @@ describe('PathUtils, ModuleGetter, and RootMapParser Integration Tests', () => {
 
     it('should use constants for modules location', () => {
       // Verify that moduleGetter uses the correct path from config.constants
-      expect(constants.defaultFoundryModulesLocation).toBe('game.modules');
+      expect(constants.moduleManagement.defaults.modulesLocation).toBe('game.modules');
 
       const module = getModule('test-module', mockNamespace);
       expect(module).toBeDefined();

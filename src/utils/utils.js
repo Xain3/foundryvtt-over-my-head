@@ -30,6 +30,10 @@ import Context from "@contexts/context.js";
  * @property {Initializer} initializer - Initializer instance for context and settings initialization
  * @property {Function} formatHookName - Convenience method bound to hookFormatter.formatHookName
  * @property {Function} initializeContext - Convenience method bound to initializer.initializeContextObject
+ * @property {Function} log - Convenience method bound to logger.log (info-level logging)
+ * @property {Function} logError - Convenience method bound to logger.error (error-level logging)
+ * @property {Function} logWarning - Convenience method bound to logger.warn (warning-level logging)
+ * @property {Function} logDebug - Convenience method bound to logger.debug (debug-level logging)
  *
  * @example
  * // Creating a Utilities instance
@@ -54,6 +58,11 @@ import Context from "@contexts/context.js";
  * // Using logger
  * utilities.logger.debug('Debug message');
  * utilities.logger.error('Error message');
+  * // Or use convenience logging methods exposed by Utilities
+  * utilities.log('Info message');
+  * utilities.logWarning('Something to watch');
+  * utilities.logError('Something went wrong');
+  * utilities.logDebug('Detailed debug info');
  *
  * @since 1.0.0
  */
@@ -142,6 +151,34 @@ class Utilities {
      * @type {Function}
      */
     this.initializeContext = this.initializer.initializeContextObject.bind(this.initializer);
+
+  /**
+   * Convenience logging method (info level).
+   * Bound to logger.log for module-prefixed info logging.
+   * @type {Function}
+   */
+  this.log = this.logger.log.bind(this.logger);
+
+  /**
+   * Convenience logging method (error level).
+   * Bound to logger.error for module-prefixed error logging.
+   * @type {Function}
+   */
+  this.logError = this.logger.error.bind(this.logger);
+
+  /**
+   * Convenience logging method (warning level).
+   * Bound to logger.warn for module-prefixed warning logging.
+   * @type {Function}
+   */
+  this.logWarning = this.logger.warn.bind(this.logger);
+
+  /**
+   * Convenience logging method (debug level; respects debug mode).
+   * Bound to logger.debug for module-prefixed debug logging.
+   * @type {Function}
+   */
+  this.logDebug = this.logger.debug.bind(this.logger);
   }
 }
 

@@ -1,8 +1,6 @@
 # Utils
 
-This directory contains utility classes and functions that provide core functionality for module initialization, logging, hook formatting, and general utility operations. The utils isDebugEnabled()      # Check current debug mode status
-
-#### Logger Example Usageorganized into specialized utilities for module lifecycle management and static utilities for data operations.
+This directory contains utility classes and functions that provide core functionality for module initialization, logging, hook formatting, and general utility operations. The utils are organized into specialized utilities for module lifecycle management and static utilities for data operations.
 
 ## Overview
 
@@ -47,12 +45,33 @@ import Utils from '@/utils/utils.js';
 // Access all utilities through unified interface
 const logger = Utils.createLogger(constants, manifest, formatError);
 const initializer = Utils.createInitializer(constants, manifest, logger, formatError, formatHook);
-const hookName = Utils.formatHook('myHook', 'init');
 
 // Access static utilities
 const isValid = Utils.validate('isString', { value: 'test' });
 Utils.unpack(data, instance);
 const module = Utils.getModuleObject('my-module');
+
+```
+
+### Utilities Facade (formatHookName, initializeContext, logging)
+
+```javascript
+import Utilities from '@/utils/utils.js';
+
+// Create a Utilities instance (facade over logger/initializer/hookFormatter)
+const utils = new Utilities(constants, manifest);
+
+// Hook name formatting via Utilities facade
+const hookName = utils.formatHookName('ready'); // e.g., 'OMH.ready'
+
+// Initialize context objects via initializer shortcut
+await utils.initializeContext({ constants, manifest, logger: utils.logger, formatError: utils.formatError });
+
+// Convenience logging methods
+utils.log('Info message');
+utils.logWarning('Something to watch');
+utils.logError('Something went wrong');
+utils.logDebug('Detailed debug info');
 ```
 
 ### Direct Imports for Specific Use Cases
@@ -193,7 +212,7 @@ debug(message)        // Debug logging (only when debug mode enabled)
 isDebugEnabled()      // Check current debug mode status
 ```
 
-#### Example Usage
+#### Logger Example Usage
 
 ```javascript
 import Logger from '@/utils/logger.js';
@@ -346,7 +365,7 @@ static getAvailableValidationTypes()
 static getUtilityInfo()
 ```
 
-#### Example Usage
+#### Utils Example Usage
 
 ```javascript
 import Utils from '@/utils/utils.js';

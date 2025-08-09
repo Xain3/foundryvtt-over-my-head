@@ -132,8 +132,8 @@ describe('Config Integration Test', () => {
       const foundryModuleSetup = {
         manifest: config.manifest,
         settings: {
-          debugMode: config.constants.settings.find(s => s.key === 'debugMode'),
-          useModule: config.constants.settings.find(s => s.key === 'useModule')
+          debugMode: config.constants.settings.settingsList.find(s => s.key === 'debugMode'),
+          useModule: config.constants.settings.settingsList.find(s => s.key === 'useModule')
         },
         context: {
           syncStrategy: config.constants.context.sync.defaults.syncStrategy,

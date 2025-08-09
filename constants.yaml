@@ -35,6 +35,7 @@ errors:
 hooks:
   settingsReady: "SettingsReady"  # The hook called when settings are ready
   contextReady: "ContextReady"  # The hook called when context is ready
+  setting: ".setting"  # Base hook for setting changes - will become "OMH.setting.{settingKey}"
 
 
 # Constants relative to context and state management
@@ -175,71 +176,84 @@ placeables:
 
 # Settings for the module
 settings:
-  - key: "useModule"
-    data: {
-      name: "Use Module",
-      hint: "Enable or disable the use of modules",
-      scope: "world",
-      config: true,
-      type: Boolean,
-      requireReload: true,
-      default: true
-    }
-    onChangeSendHook: false
+  requiredKeys:
+    - "key"
+    - "config.name"
+    - "config.hint"
+    - "config.scope"
+    - "config.type"
+  settingsList:
+    - key: "useModule"
+      config:
+        name: "Use Module"
+        hint: "Enable or disable the use of modules"
+        scope: "world"
+        config: true
+        type: Boolean
+        requireReload: true
+        default: true
+        onChange:
+          sendHook: false
+          hookName: "useModule"
 
-  - key: "debugMode"
-    data: {
-      name: "Debug Mode",
-      hint: "Enable or disable debug mode",
-      scope: "user",
-      config: true,
-      type: Boolean,
-      default: {{manifest.debugMode}}
-    }
-    onChangeSendHook: true
 
-  - key: "behaviorTokens"
-    data: {
-      name: "Behavior",
-      hint: "Configure what tokens the module should consider to determine occlusion mode.\nDefault is to include tokens that are both active and controlled.",
-      choices: {
-        default: "Active and Controlled",
-        onlyActive: "Only Active Tokens",
-        onlyControlled: "Only Controlled Tokens"
-      },
-      scope: "world",
-      config: true,
-      type: String,
-      default: "default"
-    }
-    onChangeSendHook: true
+    - key: "debugMode"
+      config:
+        name: "Debug Mode"
+        hint: "Enable or disable debug mode"
+        scope: "user"
+        config: true
+        type: Boolean
+        default: {{manifest.debugMode}}
+        onChange:
+          sendHook: true
+          hookName: "debugMode"
 
-  - key: "behaviorParty"
-    data: {
-      name: "Behavior Party",
-      hint: "Configure if the module should consider party members for occlusion mode, or only the controlled tokens.",
-      scope: "world",
-      config: true,
-      type: Boolean,
-      default: "default"
-    }
-    onChangeSendHook: true
+    - key: "behaviorTokens"
+      config:
+        name: "Behavior"
+        hint: "Configure what tokens the module should consider to determine occlusion mode.\nDefault is to include tokens that are both active and controlled."
+        choices: {
+          default: "Active and Controlled",
+          onlyActive: "Only Active Tokens",
+          onlyControlled: "Only Controlled Tokens"
+        }
+        scope: "world"
+        config: true
+        type: String
+        default: "default"
+        onChange:
+          sendHook: true
+          hookName: "behaviorTokens"
 
-  - key: "behaviorGM"
-    data: {
-      name: "Behavior GM",
-      hint: "Configure if the module should be active for the GM as well",
-      choices: {
-        default: "Active, Only Active Tokens",
-        onlyNPCs: "Active, only NPCs",
-        inactive: "Inactive"
-      },
-      scope: "world",
-      config: true,
-      type: String,
-      default: "default"
-    }
-    onChangeSendHook: true
+    - key: "behaviorParty"
+      config:
+        name: "Behavior Party"
+        hint: "Configure if the module should consider party members for occlusion mode, or only the controlled tokens."
+        scope: "world"
+        config: true
+        type: Boolean
+        default: "default"
+        onChange:
+          sendHook: true
+          hookName: "behaviorParty"
+
+    - key: "behaviorGM"
+      config:
+        name: "Behavior GM"
+        hint: "Configure if the module should be active for the GM as well"
+        choices: {
+          default: "Active, Only Active Tokens",
+          onlyNPCs: "Active, only NPCs",
+          inactive: "Inactive"
+        }
+        scope: "world"
+        config: true
+        type: String
+        default: "default"
+        onChange:
+          sendHook: true
+          hookName: "behaviorGM"
 
 # Required attributes for a valid manifest (from https://foundryvtt.com/article/module-development/)
 requiredManifestAttributes:

@@ -42,7 +42,7 @@ import SettingsRegistrar from "./settingsHelpers/settingsRegistrar.js";
  * @export
  *
  * **Public API:**
- * - `constructor(config, context, utils)` - Creates handler and auto-parses settings
+ * - `constructor(config, utils, context)` - Creates handler and auto-parses settings
  * - `parse(settings)` - Parse settings with optional custom settings object
  * - `register(settings)` - Register settings with Foundry VTT (uses parsed settings by default)
  * - `settingsConfig` - Reference to the settings configuration from constants
@@ -92,15 +92,15 @@ class SettingsHandler extends Handler {
    *
    * @example
    * ```javascript
-   * const handler = new SettingsHandler(config, context, utils);
+   * const handler = new SettingsHandler(config, utils, context);
    * // Settings are automatically parsed and ready for registration
    * handler.register(); // Registers all parsed settings with Foundry VTT
    * ```
    */
-  constructor(config, context, utils) {
-    super(config, context, utils);
-    this.#parser = new SettingsParser(config, context, utils);
-    this.#registrar = new SettingsRegistrar(config, context, utils);
+  constructor(config, utils, context) {
+    super(config, utils, context);
+    this.#parser = new SettingsParser(config, utils, context);
+    this.#registrar = new SettingsRegistrar(config, utils, context);
 
     /**
      * Reference to the settings configuration from constants.

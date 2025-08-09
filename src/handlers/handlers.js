@@ -26,9 +26,9 @@ class Handlers extends Handler {
      * @param {Object} utils - Utilities facade providing logging and error formatting.
      * @throws {Error} If any required parameter is missing or invalid.
      */
-    constructor(config, context, utils) {
-        Handlers.#validateHandlerParameters(config, context, utils);
-        super(config, context, utils);
+    constructor(config, utils, context) {
+        Handlers.#validateHandlerParameters(config, utils, context);
+        super(config, utils, context);
         /**
          * The settings handler instance.
          * @type {SettingsHandler}
@@ -47,7 +47,7 @@ class Handlers extends Handler {
      * @param {Object} utils - Utilities facade.
      * @throws {Error} If any parameter is missing or not an object.
      */
-    static #validateHandlerParameters(config, context, utils) {
+    static #validateHandlerParameters(config, utils, context) {
         if (!config || typeof config !== 'object') throw new Error("Config must be a non-null object for Handlers");
         if (!context || typeof context !== 'object') throw new Error("Context must be a non-null object for Handlers");
         if (!utils || typeof utils !== 'object') throw new Error("Utils must be a non-null object for Handlers");

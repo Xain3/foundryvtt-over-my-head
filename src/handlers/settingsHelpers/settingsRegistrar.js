@@ -30,7 +30,7 @@ class SettingsRegistrar extends Handler {
    * @param {string|null} namespace - Optional namespace override, defaults to config.manifest.id
    */
   constructor(config, context, utils, namespace = null) {
-    super(config, context, utils);
+    super(config, utils, context);
     this.namespace = namespace || this.#getNamespace(config);
   }
 

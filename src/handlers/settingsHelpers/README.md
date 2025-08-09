@@ -145,7 +145,7 @@ A class for registering Foundry VTT settings with comprehensive error handling a
 ```javascript
 import SettingsRegistrar from './settingsRegistrar';
 
-const registrar = new SettingsRegistrar(config, context, utils);
+const registrar = new SettingsRegistrar(config, utils, context);
 
 const setting = {
   key: 'debugMode',
@@ -231,11 +231,11 @@ const isValid = SettingsChecker.check(setting, requiredKeys);
 
 if (isValid.success) {
   // 2. Parse with hook setup using SettingsParser
-  const parser = new SettingsParser(config, context, utils);
+  const parser = new SettingsParser(config, utils, context);
   const parseResult = parser.parse([setting]);
 
   // 3. Register with Foundry VTT using SettingsRegistrar
-  const registrar = new SettingsRegistrar(config, context, utils);
+  const registrar = new SettingsRegistrar(config, utils, context);
   const registerResult = registrar.register([setting]);
 
   console.log(`Successfully processed ${registerResult.successCounter} settings`);

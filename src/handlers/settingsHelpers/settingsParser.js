@@ -56,8 +56,8 @@ class SettingsParser extends Handler {
    * @param {Object} context - Execution context object.
    * @param {Object} utils - Utilities facade providing logging and error formatting.
    */
-  constructor(config, context, utils) {
-    super(config, context, utils);
+  constructor(config, utils, context) {
+    super(config, utils, context);
     this.requiredKeys = config.constants.settings.requiredKeys;
   }
 

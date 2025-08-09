@@ -1,4 +1,3 @@
-
 /**
  * @file settingsParser.unit.test.js
  * @description Merged unit tests for SettingsParser, including enhanced onChange hook functionality.
@@ -12,7 +11,7 @@ import SettingsChecker from './settingsChecker.js';
 jest.mock('./settingsChecker.js');
 jest.mock('@/baseClasses/handler', () => {
   return class MockHandler {
-    constructor(config, context, utils) {
+    constructor(config, utils, context) {
       this.config = config;
       this.context = context;
       this.utils = utils;
@@ -50,7 +49,7 @@ describe('SettingsParser', () => {
   it('parses an array of valid settings successfully', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser(config, context, utils);
+    const parser = new SettingsParser(config, utils, context);
 
     // All valid
     SettingsChecker.check.mockReturnValue(true);
@@ -71,7 +70,7 @@ describe('SettingsParser', () => {
   it('parses an object map of valid settings successfully', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser(config, context, utils);
+    const parser = new SettingsParser(config, utils, context);
 
     SettingsChecker.check.mockReturnValue(true);
     const input = {
@@ -91,7 +90,7 @@ describe('SettingsParser', () => {
   it('logs a warning when only a subset of settings are valid (array input)', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser(config, context, utils);
+    const parser = new SettingsParser(config, utils, context);
 
     // First valid, second invalid
     SettingsChecker.check
@@ -116,7 +115,7 @@ describe('SettingsParser', () => {
   it('throws for invalid input types', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser(config, context, utils);
+    const parser = new SettingsParser(config, utils, context);
 
     expect(() => parser.parse(null)).toThrow('Settings cannot be parsed: invalid format');
     expect(() => parser.parse(undefined)).toThrow('Settings cannot be parsed: invalid format');
@@ -127,7 +126,7 @@ describe('SettingsParser', () => {
   it('throws when no valid settings are found (empty array/object)', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser(config, context, utils);
+    const parser = new SettingsParser(config, utils, context);
 
     SettingsChecker.check.mockReturnValue(false);
 
@@ -138,7 +137,7 @@ describe('SettingsParser', () => {
   it('throws when all processed settings are invalid', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser(config, context, utils);
+    const parser = new SettingsParser(config, utils, context);
 
     SettingsChecker.check.mockReturnValue(false);
 
@@ -184,7 +183,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       formatHookName: jest.fn((hookName) => `OMH${hookName}`)
     };
 
-    settingsParser = new SettingsParser(mockConfig, mockContext, mockUtils);
+    settingsParser = new SettingsParser(mockConfig, mockUtils, mockContext);
 
     // Mock SettingsChecker to return true by default
     SettingsChecker.check.mockReturnValue(true);

@@ -109,7 +109,7 @@ describe('SettingsHandler Integration Tests', () => {
 
   describe('Full Integration Workflow', () => {
     beforeEach(() => {
-      settingsHandler = new SettingsHandler(config, context, utils);
+      settingsHandler = new SettingsHandler(config, utils, context);
     });
 
     it('should successfully parse and register all settings', () => {
@@ -220,7 +220,7 @@ describe('SettingsHandler Integration Tests', () => {
           // Succeed for other calls
         });
 
-      settingsHandler = new SettingsHandler(config, context, utils);
+      settingsHandler = new SettingsHandler(config, utils, context);
       const result = settingsHandler.register();
 
       expect(result.counter).toBe(3);
@@ -234,7 +234,7 @@ describe('SettingsHandler Integration Tests', () => {
         throw new Error('Hook formatting failed');
       });
 
-      settingsHandler = new SettingsHandler(config, context, utils);
+      settingsHandler = new SettingsHandler(config, utils, context);
       const result = settingsHandler.register();
 
       // Settings should still register, just without hooks
@@ -246,7 +246,7 @@ describe('SettingsHandler Integration Tests', () => {
 
   describe('Custom Settings Integration', () => {
     it('should parse and register custom settings provided at runtime', () => {
-      settingsHandler = new SettingsHandler(config, context, utils);
+      settingsHandler = new SettingsHandler(config, utils, context);
 
       const customSettings = [
         {
@@ -283,7 +283,7 @@ describe('SettingsHandler Integration Tests', () => {
 
   describe('Real-world Foundry VTT Compatibility', () => {
     it('should register settings that match Foundry VTT expected format', () => {
-      settingsHandler = new SettingsHandler(config, context, utils);
+      settingsHandler = new SettingsHandler(config, utils, context);
       settingsHandler.register();
 
       // Verify all registered settings follow Foundry patterns
@@ -341,7 +341,7 @@ describe('SettingsHandler Integration Tests', () => {
         }
       };
 
-      settingsHandler = new SettingsHandler(multiScopeConfig, context, utils);
+      settingsHandler = new SettingsHandler(multiScopeConfig, utils, context);
       settingsHandler.register();
 
       // Test hook calling behavior for different scopes
@@ -386,7 +386,7 @@ describe('SettingsHandler Integration Tests', () => {
       };
 
       const startTime = Date.now();
-      settingsHandler = new SettingsHandler(largeSettingsConfig, context, utils);
+      settingsHandler = new SettingsHandler(largeSettingsConfig, utils, context);
       const result = settingsHandler.register();
       const endTime = Date.now();
 

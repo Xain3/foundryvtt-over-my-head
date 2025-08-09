@@ -5,7 +5,7 @@
  */
 import config from './config/config.js';
 
-import Utilities from "./utils/utils";
+import Utilities from "./utils/utils.js";
 
 /**
  * @class OverMyHead
@@ -27,7 +27,7 @@ class OverMyHead {
      * @property {object} constants - The module constants.
      */
     this.constants = config.constants;
-    this.utils = new Utilities();
+    this.utils = new Utilities(this.constants, this.manifest);
     this.utils.static.unpack(this.manifest, this);
   }
 
@@ -42,13 +42,22 @@ class OverMyHead {
   async init() {
     try {
       // Export constants to global scope
-      window.OMHconstants = this.constants;
+      this.exportConstants();
       // Initialization logic to go here
 
       console.log(`${this.title} v${this.version} initialized.`);
     } catch (error) {
       console.error(`Error initializing ${this.title} v${this.version}: `, error);
       throw error;
+    }
+  }
+
+  exportConstants() {
+    if (!globalThis.OMHconstants) {
+      globalThis.OMHconstants = this.constants;
+      console.log("OverMyHead: Constants exported to global scope.");
+    } else {
+      console.warn("OverMyHead: Constants already exported to global scope.");
     }
   }
 }

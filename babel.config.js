@@ -36,4 +36,7 @@ module.exports = {
       },
     ],
   ],
+  parserOpts: {
+    plugins: ['importAttributes']
+  },
 };

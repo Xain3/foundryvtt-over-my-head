@@ -47,8 +47,8 @@
     "src/main.js"
   ],
 
-  "readme": "https://raw.githubusercontent.com/xain3/foundryvtt-vision-with-fade/releases/latest/README.md",
-  "manifest": "https://raw.githubusercontent.com/xain3/foundryvtt-vision-with-fade/releases/latest/module.json",
-  "download": "https://www.github.com/xain3/foundryvtt-vision-with-fade/releases/latest/download/module.zip",
-  "url": "https://github.com/xain3/foundryvtt-vision-with-fade"
+  "readme": "https://raw.githubusercontent.com/xain3/foundryvtt-over-my-head/releases/latest/README.md",
+  "manifest": "https://raw.githubusercontent.com/xain3/foundryvtt-over-my-head/releases/latest/module.json",
+  "download": "https://www.github.com/xain3/foundryvtt-over-my-head/releases/latest/download/module.zip",
+  "url": "https://github.com/xain3/foundryvtt-over-my-head"
 }

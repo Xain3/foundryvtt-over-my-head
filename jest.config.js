@@ -14,6 +14,9 @@ module.exports = {
   transform: {
     '^.+\\.js$': 'babel-jest',
   },
+  moduleNameMapper: {
+    '^(.+)\\.yaml\\?raw$': '<rootDir>/tests/setup/yaml-transformer.js',
+  },
   // Include project root for setup tests
   roots: ['<rootDir>/src', '<rootDir>/tests', '<rootDir>'],
   // Enforce minimum coverage thresholds

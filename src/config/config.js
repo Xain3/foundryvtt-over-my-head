@@ -4,8 +4,8 @@
  * @path src/config/config.js
  */
 
-import constants from "./constants";
-import manifest from "./manifest";
+import constants from "./constants.js";
+import manifest from "./manifest.js";
 
 /**
  * Central configuration class that provides unified access to all module configuration.

@@ -27,6 +27,10 @@ class OverMyHead {
      * @property {object} constants - The module constants.
      */
     this.constants = config.constants;
+    
+    // Add shortName from constants to manifest for backward compatibility
+    this.manifest.shortName = this.constants.moduleManagement.shortName;
+    
     this.utils = new Utilities(this.constants, this.manifest);
     this.utils.static.unpack(this.manifest, this);
   }

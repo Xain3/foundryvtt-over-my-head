@@ -4,7 +4,7 @@
  * @path /module.json.setup.test.js
  */
 
-import moduleManifest, { id, title, description, version, compatibility, esmodules, scripts, styles, packs, packFolders, relationships, languages, system, authors, socket, url, manifest, download, license, readme, bugs, changelog, library, media as _media, shortName, flags, name } from '../../module.json';
+import moduleManifest, { id, title, description, version, compatibility, esmodules, scripts, styles, packs, packFolders, relationships, languages, system, authors, socket, url, manifest, download, license, readme, bugs, changelog, library, media as _media, flags, name } from '../../module.json';
 
 describe('Module Manifest Validation', () => {
   describe('Required Attributes', () => {
@@ -286,13 +286,6 @@ describe('Module Manifest Validation', () => {
   });
 
   describe('Custom Fields', () => {
-    it('shortName should be a string if present', () => {
-      if (shortName) {
-        expect(typeof shortName).toBe('string');
-        expect(shortName.length).toBeGreaterThan(0);
-      }
-    });
-
     it('flags should be an object if present', () => {
       if (flags) {
         expect(typeof flags).toBe('object');
@@ -321,7 +314,6 @@ describe('Module Manifest Validation', () => {
       expect(version).toBe('12.0.1-alpha1');
 
       // Validate custom fields
-      expect(shortName).toBe('OMH');
       expect(flags).toBeDefined();
       expect(flags.debugMode).toBe(false);
       expect(flags.onlyGM).toBe(true);

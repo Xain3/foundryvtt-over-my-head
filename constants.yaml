@@ -18,6 +18,9 @@ moduleManagement:
   # How to refer to the module in the logs
   # Can be "title", "id", "name", or "shortName"
   referToModuleBy: "title"
+  
+  # Short name for the module
+  shortName: "OMH"
 
   defaults:
     # Description: Specifies the default path where Foundry VTT modules are located within the game system

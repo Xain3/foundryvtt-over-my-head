@@ -322,7 +322,7 @@ describe('Module Manifest Validation', () => {
 
     it('should validate array fields are not empty if defined', () => {
       if (esmodules && esmodules.length > 0) {
-        expect(esmodules).toContain('src/main.js');
+        expect(esmodules).toContain('dist/main.js');
       }
 
       if (styles && styles.length > 0) {

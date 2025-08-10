@@ -9,6 +9,21 @@ Module JSON:
 ```
 https://github.com/Gundancer/foundryvtt-token-color-marker/releases/latest/download/module.json
 ```
+
+## Development
+
+This module uses Vite for bundling to resolve MIME type errors and improve performance. 
+
+### Build Commands
+
+- `npm run build` - Build the module for production
+- `npm run dev` - Build the module in watch mode for development
+- `npm test` - Run the test suite
+
+### Build Process
+
+The module source code is in the `src/` directory and gets bundled into `dist/main.js` using Vite. The bundled file resolves all ES module imports and JSON imports into a single file that works reliably in Foundry VTT environments.
+
 ## Usage
 Open the tile configuration. Select the overhead tab and set occlusion mode to Vision. A checkbox will appear to toggle also fade. Example of how to do this is shown bellow
 

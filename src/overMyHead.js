@@ -20,19 +20,30 @@ class OverMyHead {
    */
   constructor() {
     /**
-     * @property {object} manifest - The module manifest data.
-     */
-    this.manifest = config.manifest;
-    /**
      * @property {object} constants - The module constants.
      */
     this.constants = config.constants;
-    
-    // Add shortName from constants to manifest for backward compatibility
-    this.manifest.shortName = this.constants.moduleManagement.shortName;
-    
+
+    /**
+     * @property {object} manifest - The module manifest data with shortName added for backward compatibility.
+     */
+    this.manifest = this.#buildManifestWithShortName();
+
     this.utils = new Utilities(this.constants, this.manifest);
     this.utils.static.unpack(this.manifest, this);
+  }
+
+  /**
+   * @private
+   * @method #buildManifestWithShortName
+   * @description Builds the module manifest with shortName added for backward compatibility.
+   * @returns {object} The frozen manifest object.
+   */
+  #buildManifestWithShortName() {
+    return Object.freeze({
+      ...config.manifest,
+      shortName: this.constants.moduleManagement.shortName
+    });
   }
 
   /**

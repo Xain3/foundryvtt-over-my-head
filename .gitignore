@@ -5,5 +5,5 @@ node_modules/
 coverage/
 dist/
 src/contexts/helpers/contextContainer.unit.test.js
-.vscode/foundryvtt-over-my-head.code-workspace
+.vscode/
 .vscode/settings.json

@@ -15,7 +15,7 @@ module.exports = {
     '^.+\\.js$': 'babel-jest',
   },
   moduleNameMapper: {
-    '^(.+)\\.yaml\\?raw$': '<rootDir>/tests/setup/yaml-transformer.js',
+    '^(.+)\\.yaml\\?raw$': '<rootDir>/tests/yaml-transformer.js',
   },
   // Include project root for setup tests
   roots: ['<rootDir>/src', '<rootDir>/tests', '<rootDir>'],

@@ -1,7 +1,7 @@
 /**
- * @file yaml-import.setup.test.js
+ * @file yaml-import.setup.js
  * @description Jest setup file to mock YAML imports for tests that run in Node.js environment.
- * @path tests/setup/yaml-import.setup.test.js
+ * @path tests/setup/yaml-import.setup.js
  */
 
 import fs from 'fs';

@@ -6,3 +6,4 @@ coverage/
 dist/
 src/contexts/helpers/contextContainer.unit.test.js
 .vscode/foundryvtt-over-my-head.code-workspace
+.vscode/settings.json

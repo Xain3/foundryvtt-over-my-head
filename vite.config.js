@@ -44,7 +44,8 @@ export default defineConfig({
       '@maps': resolve(process.cwd(), 'src/maps'),
       '@helpers': resolve(process.cwd(), 'src/helpers'),
       '@configHelpers': resolve(process.cwd(), 'src/config/helpers'),
-      '@validator': resolve(process.cwd(), 'src/utils/static/validator.js')
+      '@validator': resolve(process.cwd(), 'src/utils/static/validator.js'),
+      '@module': resolve(process.cwd(), 'module.json')
     }
   },
   // Enable JSON loading

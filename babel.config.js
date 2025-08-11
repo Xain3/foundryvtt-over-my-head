@@ -32,6 +32,7 @@ module.exports = {
           '@validator': './src/utils/static/validator.js',
           '@integrationTests': './tests/integration',
           '@mocks': './tests/mocks',
+          '@module': './module.json',
         },
       },
     ],

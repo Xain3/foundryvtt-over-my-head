@@ -1,5 +1,5 @@
 {
   "jest.runMode": {
-    "type": "on-save"
+    "type": "on-demand"
   }
 }

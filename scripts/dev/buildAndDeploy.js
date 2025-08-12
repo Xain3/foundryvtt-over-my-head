@@ -1,190 +1,14 @@
 /**
  * @file buildAndDeploy.js
- * @description Separates module directory finding, building, and deployment logic
+ * @description Orchestrates module directory finding, building, and deployment logic
  * @path scripts/dev/buildAndDeploy.js
  */
 
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
-
-import module from "@module" with { type: "json" };
-
-import ViteRunner from "../build/runViteWIthAction.js";
-
-const PLATFORM = os.platform();
-const USER = os.userInfo().username;
-const MODULE_DEFAULT_PATH = '/Data/modules';
-const MODULE_ID = module.id;
-const DIST_PATH = './dist';
-
-/**
- * @class UserDataDirFinder
- * @description Finds the FoundryVTT user data directory across platforms
- */
-class UserDataDirFinder {
-  #platform;
-  #user;
-
-  constructor(platform = PLATFORM, user = USER) {
-    this.#platform = platform;
-    this.#user = user;
-  }
-
-  find() {
-    return this.#getUserDataDir();
-  }
-
-  #getUserDataDir() {
-    const foundryUserdataDirs = this.#getPlatformPaths();
-
-    for (const dir of foundryUserdataDirs) {
-      if (this.#dirExists(dir)) {
-        console.log(`Found FoundryVTT user data directory: ${dir}`);
-        return dir;
-      }
-    }
-
-    console.warn('No FoundryVTT user data directory found');
-    return '';
-  }
-
-  #getPlatformPaths() {
-    const { #platform: platform, #user: user } = this;
-
-    switch (platform) {
-      case 'linux':
-        return [
-          `/home/${user}/.local/share/FoundryVTT`,
-          `/home/${user}/FoundryVTT`,
-          `/local/FoundryVTT`
-        ];
-      case 'darwin':
-        return [path.join(os.homedir(), 'Library/Application Support/FoundryVTT')];
-      case 'win32':
-        return [path.join(process.env.LOCALAPPDATA || '', 'FoundryVTT')];
-      default:
-        return [];
-    }
-  }
-
-  #dirExists(dir) {
-    return fs.existsSync(dir) && fs.statSync(dir).isDirectory();
-  }
-}
-
-/**
- * @class ModuleDirManager
- * @description Manages module directory creation and validation
- */
-class ModuleDirManager {
-  #userDataDir;
-  #moduleId;
-
-  constructor(userDataDir, moduleId = MODULE_ID) {
-    this.#userDataDir = userDataDir;
-    this.#moduleId = moduleId;
-  }
-
-  getModulesDir() {
-    if (!this.#userDataDir) {
-      throw new Error('User data directory not found');
-    }
-
-    const moduleDirPath = path.join(this.#userDataDir, MODULE_DEFAULT_PATH);
-    return this.#ensureDirectory(moduleDirPath, 'modules');
-  }
-
-  getModuleDir() {
-    const modulesDir = this.getModulesDir();
-    const moduleDirPath = path.join(modulesDir, this.#moduleId);
-    return this.#ensureDirectory(moduleDirPath, `module '${this.#moduleId}'`);
-  }
-
-  #ensureDirectory(dirPath, description) {
-    if (fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory()) {
-      console.log(`Found FoundryVTT ${description} directory: ${dirPath}`);
-      return dirPath;
-    }
-
-    console.log(`Creating FoundryVTT ${description} directory: ${dirPath}`);
-    fs.mkdirSync(dirPath, { recursive: true });
-    return dirPath;
-  }
-}
-
-/**
- * @class ModuleBuilder
- * @description Handles the building process using ViteRunner
- */
-class ModuleBuilder {
-  #runner;
-
-  constructor(options = {}) {
-    this.#runner = new ViteRunner({
-      watch: options.watch || false,
-      preBuildAction: options.preBuildAction,
-      postBuildAction: options.postBuildAction
-    });
-  }
-
-  async build() {
-    console.log('Starting module build...');
-    await this.#runner.start({});
-  }
-
-  async buildWithWatch(postBuildAction) {
-    console.log('Starting module build with watch mode...');
-    const runner = new ViteRunner({
-      watch: true,
-      postBuildAction
-    });
-    await runner.start({});
-  }
-}
-
-/**
- * @class ModuleDeployer
- * @description Handles deployment of built files to the FoundryVTT module directory
- */
-class ModuleDeployer {
-  #sourceDir;
-  #targetDir;
-
-  constructor(sourceDir = DIST_PATH, targetDir) {
-    this.#sourceDir = sourceDir;
-    this.#targetDir = targetDir;
-  }
-
-  deploy() {
-    if (!this.#targetDir) {
-      throw new Error('Target directory not specified for deployment');
-    }
-
-    console.log(`Deploying from ${this.#sourceDir} to ${this.#targetDir}`);
-    this.#copyFiles();
-  }
-
-  #copyFiles() {
-    // Simple file copying - could be enhanced with more sophisticated deployment logic
-    if (!fs.existsSync(this.#sourceDir)) {
-      console.warn(`Source directory ${this.#sourceDir} does not exist`);
-      return;
-    }
-
-    // Copy dist files to target directory
-    const files = fs.readdirSync(this.#sourceDir);
-    for (const file of files) {
-      const sourcePath = path.join(this.#sourceDir, file);
-      const targetPath = path.join(this.#targetDir, file);
-
-      if (fs.statSync(sourcePath).isFile()) {
-        fs.copyFileSync(sourcePath, targetPath);
-        console.log(`Copied: ${file}`);
-      }
-    }
-  }
-}
+import UserDataDirFinder from './userDataDirFinder.js';
+import ModuleDirManager from './moduleDirManager.js';
+import ModuleBuilder from './moduleBuilder.js';
+import ModuleDeployer from './deployer.js';
+import { removeRootBuildArtifacts } from './buildUtils.js';
 
 /**
  * @class BuildAndDeploy
@@ -215,12 +39,19 @@ class BuildAndDeploy {
 
   #setupComponents() {
     // Create deployer function to be used as post-build action
-    this.#deployer = new ModuleDeployer(DIST_PATH, this.#moduleDir);
-    const deployAction = () => this.#deployer.deploy();
+    this.#deployer = new ModuleDeployer(this.#moduleDir);
+    const deployAction = async () => {
+      // Ensure no duplicate root artifacts linger between builds in dev
+      removeRootBuildArtifacts();
+      this.#deployer.deploy();
+  // Run a delayed cleanup in case any late writes occurred
+  setTimeout(() => removeRootBuildArtifacts(), 250);
+    };
 
     // Create builder with deployment as post-build action
     this.#builder = new ModuleBuilder({
-      watch: true,
+  watch: true,
+  preBuildAction: removeRootBuildArtifacts,
       postBuildAction: deployAction
     });
   }
@@ -248,30 +79,32 @@ class BuildAndDeploy {
     const moduleDirManager = new ModuleDirManager(userDataDir);
     const moduleDir = moduleDirManager.getModuleDir();
 
-    const deployer = new ModuleDeployer(DIST_PATH, moduleDir);
+    const deployer = new ModuleDeployer(moduleDir);
     deployer.deploy();
   }
 }
 
-// Export classes for individual use
+// Export main orchestrator class and re-export individual classes for convenience
 export { UserDataDirFinder, ModuleDirManager, ModuleBuilder, ModuleDeployer, BuildAndDeploy };
 
 // CLI usage if called as main
-const isMain = import.meta.url === `file://${process.argv[1]}`;
+const isMain = process.argv[1] && process.argv[1].endsWith('buildAndDeploy.js');
 if (isMain) {
-  const args = process.argv.slice(2);
+  (async () => {
+    const args = process.argv.slice(2);
 
-  try {
-    if (args.includes('--build-only')) {
-      await BuildAndDeploy.buildOnly(args.includes('--watch'));
-    } else if (args.includes('--deploy-only')) {
-      BuildAndDeploy.deployOnly();
-    } else {
-      const buildAndDeploy = new BuildAndDeploy();
-      await buildAndDeploy.start();
+    try {
+      if (args.includes('--build-only')) {
+        await BuildAndDeploy.buildOnly(args.includes('--watch'));
+      } else if (args.includes('--deploy-only')) {
+        BuildAndDeploy.deployOnly();
+      } else {
+        const buildAndDeploy = new BuildAndDeploy();
+        await buildAndDeploy.start();
+      }
+    } catch (error) {
+      console.error('Build and deploy failed:', error);
+      process.exit(1);
     }
-  } catch (error) {
-    console.error('Failed to execute:', error);
-    process.exit(1);
-  }
+  })();
 }

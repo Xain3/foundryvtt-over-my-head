@@ -15,8 +15,11 @@
     "vite": "^7.1.1"
   },
   "scripts": {
+    "dev": "node ./scripts/dev/buildAndDeploy.js",
     "build": "vite build",
-    "dev": "vite build --watch",
+    "build:prod": "NODE_ENV=production vite build",
+    "prerelease": "npm run test && npm run build:prod",
+    "release": "npm run prerelease && git add dist/ && git commit -m 'Build artifacts'",
     "test": "jest --coverage",
     "test:unit": "jest --testMatch=\"**/*.unit.test.js\" --coverage",
     "test:integration": "jest --testMatch=\"**/*.int.test.js\"",

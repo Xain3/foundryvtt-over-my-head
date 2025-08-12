@@ -20,7 +20,13 @@ export default defineConfig({
     emptyOutDir: true,
     outDir: resolve(process.cwd(), 'dist'),
     rollupOptions: {
-      external: [],
+      external: [
+        // Exclude test files
+        /.*\.test\.js$/,
+        /.*\.unit\.test\.js$/,
+        /.*\.int\.test\.js$/,
+        /.*\.setup\.test\.js$/
+      ],
       output: {
         // Ensure the output is ES module format for Foundry VTT
         format: 'es',

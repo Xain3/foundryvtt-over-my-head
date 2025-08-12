@@ -75,6 +75,18 @@ class Initializer {
     }
 
     /**
+     * Public wrapper for creating and initializing a context object.
+     * Delegates to the protected _initializeContextObject to retain a clean facade.
+     *
+     * @public
+     * @param {Object} [params=this.contextInitParams] - The parameters to initialize the context with
+     * @returns {Object} The initialized context object
+     */
+    initializeContextObject(params = this.contextInitParams) {
+        return this._initializeContextObject(params);
+    }
+
+    /**
      * Creates and initializes a context object.
      * This method sets up the module configuration and creates a context instance.
      *

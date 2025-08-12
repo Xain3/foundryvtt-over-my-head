@@ -134,7 +134,14 @@ class Utilities {
      * Initializer instance for context and settings initialization.
      * @type {Initializer}
      */
-    this.initializer = new Initializer(this.constants, this.manifest, this.logger, this.formatError, Context);
+    this.initializer = new Initializer(
+      this.constants,
+      this.manifest,
+      this.logger,
+      this.formatError,
+      this.hookFormatter.formatHookName.bind(this.hookFormatter),
+      Context
+    );
 
     // Convenience methods for frequently used operations
 

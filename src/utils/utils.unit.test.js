@@ -131,8 +131,9 @@ describe('Utilities', () => {
         validConstants,
         validManifest,
         mockLogger,
-        expect.any(Function), // formatError bound function
-        Context
+  expect.any(Function), // formatError bound function
+  expect.any(Function), // formatHook (hookFormatter.formatHookName)
+  Context
       );
     });
 
@@ -327,8 +328,9 @@ describe('Utilities', () => {
         validConstants,
         validManifest,
         mockLogger,
-        expect.any(Function),
-        Context
+  expect.any(Function),
+  expect.any(Function),
+  Context
       );
     });
   });

@@ -596,6 +596,13 @@ describe('Context Helpers Integration Tests', () => {
     });
 
     it('should provide comparison operations through unified interface', () => {
+  // Ensure both pairs share the exact same timestamp to expect EQUAL
+  const equalDate = new Date('2025-01-01T00:00:00Z');
+  sourceContainer._updateModificationTimestamps(equalDate);
+  targetContainer._updateModificationTimestamps(equalDate);
+  sourceItem._updateModificationTimestamps(equalDate);
+  targetItem._updateModificationTimestamps(equalDate);
+
       const containerComparison = ContextSync.compare(sourceContainer, targetContainer);
       const itemComparison = ContextSync.compare(sourceItem, targetItem);
 

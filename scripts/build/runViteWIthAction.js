@@ -1,7 +1,7 @@
 /**
  * @file runViteWIthAction.js
  * @description Runs `vite build --watch` and triggers a custom action after each build.
- * @path scripts/dev/runViteWIthAction.js
+ * @path scripts/build/runViteWIthAction.js
  */
 
 import { spawn } from 'child_process';
@@ -36,8 +36,9 @@ class ViteRunner {
     watch = this.watch,
     preBuildAction = this.preBuildAction,
     postBuildAction = this.postBuildAction}) {
-    const args = await this.#generateBuildArgs(watch, preBuildAction);
-    this.vite = spawn('npx', args);
+  const args = await this.#generateBuildArgs(watch, preBuildAction);
+  // Force cwd and explicit config to avoid accidental root-level outputs
+  this.vite = spawn('npx', args, { cwd: process.cwd() });
 
     this.vite.stdout.setEncoding('utf8');
     this.vite.stderr.setEncoding('utf8');
@@ -50,10 +51,13 @@ class ViteRunner {
   }
 
   async #generateBuildArgs(watch, preBuildAction) {
-    const args = ['vite', 'build'];
+  const args = ['vite', 'build'];
     if (watch) {
       args.push('--watch');
     }
+  // Always pass the explicit config file to avoid picking up other configs
+  const configPath = resolve(process.cwd(), 'vite.config.js');
+  args.push('--config', configPath);
     if (preBuildAction) {
       try {
         await this.#executeAction(preBuildAction);
@@ -186,7 +190,7 @@ class ViteRunner {
 export default ViteRunner;
 
 // CLI usage if called as main
-const isMain = import.meta.url === `file://${process.argv[1]}`;
+const isMain = process.argv[1] && process.argv[1].endsWith('runViteWIthAction.js');
 if (isMain) {
   // Simple argument parsing
   const args = process.argv.slice(2);

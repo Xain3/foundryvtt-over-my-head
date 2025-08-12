@@ -8,6 +8,8 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
 export default defineConfig({
+  // Ensure Vite root is always the repo root
+  root: process.cwd(),
   build: {
     lib: {
       entry: resolve(process.cwd(), 'src/main.js'),
@@ -15,7 +17,8 @@ export default defineConfig({
       fileName: 'main',
       formats: ['es']
     },
-    outDir: 'dist',
+    emptyOutDir: true,
+    outDir: resolve(process.cwd(), 'dist'),
     rollupOptions: {
       external: [],
       output: {

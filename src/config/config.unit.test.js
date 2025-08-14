@@ -1,10 +1,70 @@
-/**
- * @file config.unit.test.js
- * @description Unit tests for the config instance that provides centralized configuration access.
- * @path src/config/config.unit.test.js
- */
-
 import config from './config.js';
+
+describe('Config.buildManifestWithShortName', () => {
+  it('should return a frozen manifest object that includes shortName from constants', () => {
+    const built = config.buildManifestWithShortName();
+    expect(built).toBeDefined();
+    expect(Object.isFrozen(built)).toBe(true);
+    // shortName should come from constants.moduleManagement.shortName when defined;
+    // otherwise it will be derived deterministically from manifest.title or manifest.id.
+    const expectedFromConstants = config.constants.moduleManagement?.shortName;
+    const expectedDerived = (() => {
+      const title = config.manifest && config.manifest.title;
+      if (title && typeof title === 'string') {
+        const initials = title
+          .split(/\s+/)
+          .map(w => w.replace(/[^A-Za-z0-9]/g, ''))
+          .filter(Boolean)
+          .map(w => w[0].toUpperCase())
+          .join('')
+          .slice(0, 3);
+        if (initials) return initials;
+      }
+      if (config.manifest && config.manifest.id) {
+        return String(config.manifest.id).replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 3);
+      }
+      return undefined;
+    })();
+
+    expect(built.shortName).toEqual(expectedFromConstants ?? expectedDerived);
+  });
+});
+
+// Additional scenario: when `constants.moduleManagement` is missing, ensure
+// the manifest still includes a derived shortName (from manifest.title or id).
+describe('Config.buildManifestWithShortName without moduleManagement', () => {
+  beforeEach(() => {
+    // Reset module cache so we can mock different constants/manifest
+    jest.resetModules();
+  });
+
+  it('should derive shortName from manifest.title when moduleManagement is absent', () => {
+    // Provide mocks that omit moduleManagement
+    jest.doMock('./constants', () => Object.freeze({
+      errors: { separator: ' || ' },
+      context: { sync: { defaults: {} } }
+    }));
+
+    jest.doMock('./manifest', () => Object.freeze({
+      id: 'test-module',
+      title: 'Test Module'
+    }));
+
+    // Re-import the config module under the mocked environment
+    // Use require to avoid interfering with the top-level import
+    // eslint-disable-next-line global-require, import/no-dynamic-require
+    const cfg = require('./config.js').default;
+
+    const built = cfg.buildManifestWithShortName();
+    expect(built).toBeDefined();
+    expect(Object.isFrozen(built)).toBe(true);
+    // Derived from 'Test Module' -> 'TM'
+    expect(built.shortName).toBe('TM');
+    // original properties still present
+    expect(built.id).toBe('test-module');
+    expect(built.title).toBe('Test Module');
+  });
+});
 
 // Mock the dependencies
 jest.mock('./constants', () => Object.freeze({

@@ -102,6 +102,54 @@ class Config {
      */
     this.manifest = manifest;
   }
+
+  /**
+   * Build and return a manifest object augmented with a shortName property.
+   *
+   * This method centralizes the logic of adding the backwards-compatible
+   * `shortName` to the manifest using the value from `constants.moduleManagement`.
+   * It returns a frozen object to preserve immutability.
+   *
+   * @returns {Object} A frozen manifest object containing the shortName
+   */
+  buildManifestWithShortName() {
+    // Safely obtain the shortName from constants.moduleManagement if it exists.
+    // If moduleManagement or its shortName is not present, return the manifest
+    // unchanged (avoid adding `shortName: undefined`) and warn for visibility.
+    let shortName = this.constants && this.constants.moduleManagement
+      ? this.constants.moduleManagement.shortName
+      : undefined;
+
+    if (!shortName) {
+      // Derive a deterministic shortName from manifest.title or manifest.id.
+      // Example: "Test Module" -> "TM" (initials of words, up to 3 chars)
+      const title = this.manifest && this.manifest.title;
+      if (title && typeof title === 'string') {
+        const initials = title
+          .split(/\s+/)
+          .map(w => w.replace(/[^A-Za-z0-9]/g, ''))
+          .filter(Boolean)
+          .map(w => w[0].toUpperCase())
+          .join('')
+          .slice(0, 3);
+        shortName = initials || undefined;
+      }
+
+      if (!shortName && this.manifest && this.manifest.id) {
+        // Fallback to a shortened module id (alphanumeric only, uppercase, first 3 chars)
+        shortName = String(this.manifest.id).replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 3);
+      }
+
+      if (typeof console !== 'undefined' && console.info) {
+        console.info(`Config.buildManifestWithShortName: derived default shortName='${shortName}' from manifest.`);
+      }
+    }
+
+    return Object.freeze({
+      ...this.manifest,
+      shortName
+    });
+  }
 }
 
 /**

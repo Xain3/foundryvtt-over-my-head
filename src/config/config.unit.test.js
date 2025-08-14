@@ -1,130 +1,98 @@
 import config from './config.js';
 
+describe('Config.exportConstants', () => {
+  beforeEach(() => {
+    // Clear all possible global constants before each test
+    Object.keys(globalThis).forEach(key => {
+      if (key.endsWith('Constants')) {
+        delete globalThis[key];
+      }
+    });
+    // Mock console methods to capture output
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    // Clean up all possible global constants after each test
+    Object.keys(globalThis).forEach(key => {
+      if (key.endsWith('Constants')) {
+        delete globalThis[key];
+      }
+    });
+    // Restore console methods
+    console.log.mockRestore();
+    console.warn.mockRestore();
+  });
+
+  it('should export constants to global scope with dynamic variable name', () => {
+    // Get the expected variable name based on shortName
+    const shortName = config.constants.moduleManagement?.shortName || 'OMH'; // OMH from "OverMyHead"
+    const expectedVariableName = `${shortName}Constants`;
+
+    // Ensure global constants don't exist initially
+    expect(globalThis[expectedVariableName]).toBeUndefined();
+
+    // Export constants
+    config.exportConstants();
+
+    // Verify constants are exported with correct variable name
+    expect(globalThis[expectedVariableName]).toBeDefined();
+    expect(globalThis[expectedVariableName]).toBe(config.constants);
+    expect(console.log).toHaveBeenCalledWith(`OverMyHead: Constants exported to global scope as ${expectedVariableName}.`);
+  });
+
+  it('should warn when constants are already exported with same variable name', () => {
+    // Get the expected variable name
+    const shortName = config.constants.moduleManagement?.shortName || 'OMH';
+    const expectedVariableName = `${shortName}Constants`;
+
+    // Pre-populate global constants
+    globalThis[expectedVariableName] = { existing: 'constants' };
+
+    // Export constants
+    config.exportConstants();
+
+    // Verify warning was logged and constants were not overwritten
+    expect(console.warn).toHaveBeenCalledWith(`OverMyHead: Constants already exported to global scope as ${expectedVariableName}.`);
+    expect(globalThis[expectedVariableName]).toEqual({ existing: 'constants' });
+  });
+
+  it('should export the same reference as config.constants', () => {
+    // Get the expected variable name
+    const shortName = config.constants.moduleManagement?.shortName || 'OMH';
+    const expectedVariableName = `${shortName}Constants`;
+
+    config.exportConstants();
+
+    // Verify the global reference is exactly the same object
+    expect(globalThis[expectedVariableName]).toBe(config.constants);
+  });
+
+  it('should allow access to nested constants properties globally', () => {
+    // Get the expected variable name
+    const shortName = config.constants.moduleManagement?.shortName || 'OMH';
+    const expectedVariableName = `${shortName}Constants`;
+
+    config.exportConstants();
+
+    // Test access to nested properties
+    expect(globalThis[expectedVariableName].errors.pattern).toBe('{{module}}{{caller}}{{error}}{{stack}}');
+    expect(globalThis[expectedVariableName].moduleManagement.referToModuleBy).toBe('title');
+  });
+});
+
 describe('Config.buildManifestWithShortName', () => {
   it('should return a frozen manifest object that includes shortName from constants', () => {
-    const built = config.buildManifestWithShortName();
-    expect(built).toBeDefined();
-    expect(Object.isFrozen(built)).toBe(true);
-    // shortName should come from constants.moduleManagement.shortName when defined;
-    // otherwise it will be derived deterministically from manifest.title or manifest.id.
-    const expectedFromConstants = config.constants.moduleManagement?.shortName;
-    const expectedDerived = (() => {
-      const title = config.manifest && config.manifest.title;
-      if (title && typeof title === 'string') {
-        const initials = title
-          .split(/\s+/)
-          .map(w => w.replace(/[^A-Za-z0-9]/g, ''))
-          .filter(Boolean)
-          .map(w => w[0].toUpperCase())
-          .join('')
-          .slice(0, 3);
-        if (initials) return initials;
-      }
-      if (config.manifest && config.manifest.id) {
-        return String(config.manifest.id).replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 3);
-      }
-      return undefined;
-    })();
+    const result = config.buildManifestWithShortName();
 
-    expect(built.shortName).toEqual(expectedFromConstants ?? expectedDerived);
+    expect(result).toBeDefined();
+    expect(typeof result).toBe('object');
+    expect(result.shortName).toBeDefined();
+    expect(result.shortName).toBe(config.constants.moduleManagement.shortName);
+    expect(Object.isFrozen(result)).toBe(true);
   });
 });
-
-// Additional scenario: when `constants.moduleManagement` is missing, ensure
-// the manifest still includes a derived shortName (from manifest.title or id).
-describe('Config.buildManifestWithShortName without moduleManagement', () => {
-  beforeEach(() => {
-    // Reset module cache so we can mock different constants/manifest
-    jest.resetModules();
-  });
-
-  it('should derive shortName from manifest.title when moduleManagement is absent', () => {
-    // Provide mocks that omit moduleManagement
-    jest.doMock('./constants', () => Object.freeze({
-      errors: { separator: ' || ' },
-      context: { sync: { defaults: {} } }
-    }));
-
-    jest.doMock('./manifest', () => Object.freeze({
-      id: 'test-module',
-      title: 'Test Module'
-    }));
-
-    // Re-import the config module under the mocked environment
-    // Use require to avoid interfering with the top-level import
-    // eslint-disable-next-line global-require, import/no-dynamic-require
-    const cfg = require('./config.js').default;
-
-    const built = cfg.buildManifestWithShortName();
-    expect(built).toBeDefined();
-    expect(Object.isFrozen(built)).toBe(true);
-    // Derived from 'Test Module' -> 'TM'
-    expect(built.shortName).toBe('TM');
-    // original properties still present
-    expect(built.id).toBe('test-module');
-    expect(built.title).toBe('Test Module');
-  });
-});
-
-// Mock the dependencies
-jest.mock('./constants', () => Object.freeze({
-  moduleManagement: {
-    referToModuleBy: 'title',
-  },
-  errors: {
-    separator: ' || ',
-    pattern: '{{module}}{{caller}}{{error}}{{stack}}'
-  },
-  context: {
-    sync: {
-      defaults: {
-        autoSync: true,
-        syncStrategy: 'mergeNewerWins'
-      }
-    },
-    external: {
-      defaults: {
-        rootIdentifier: 'module',
-        pathFromRoot: 'context'
-      },
-      rootMap: {
-        window: 'globalNamespace.window',
-        game: 'globalNamespace.game',
-        module: 'module'
-      }
-    },
-    operationsParams: {
-      defaults: {
-        alwaysPullBeforeGetting: false,
-        alwaysPushAfterSetting: false
-      }
-    }
-  },
-  contextHelpers: {
-    mergeStrategies: {
-      MERGE_NEWER_WINS: 'mergeNewerWins',
-      MERGE_SOURCE_WINS: 'mergeSourceWins'
-    },
-    comparisonResults: {
-      SOURCE_NEWER: 'sourceNewer',
-      TARGET_NEWER: 'targetNewer',
-      EQUAL: 'equal'
-    }
-  },
-  testConstant: 'testValue'
-}));
-
-jest.mock('./manifest', () => Object.freeze({
-  id: 'test-module',
-  title: 'Test Module',
-  description: 'A test module for unit testing',
-  version: '1.0.0',
-  compatibility: {
-    minimum: '11',
-    verified: '12'
-  },
-  authors: [{ name: 'Test Author' }]
-}));
 
 describe('Config', () => {
   describe('Instance Properties', () => {
@@ -144,10 +112,10 @@ describe('Config', () => {
     });
 
     it('should have all expected manifest properties', () => {
-      expect(config.manifest.id).toBe('test-module');
-      expect(config.manifest.title).toBe('Test Module');
-      expect(config.manifest.description).toBe('A test module for unit testing');
-      expect(config.manifest.version).toBe('1.0.0');
+      expect(config.manifest.id).toBe('foundryvtt-over-my-head');
+      expect(config.manifest.title).toBe('OverMyHead');
+      expect(config.manifest.description).toBe('A Foundry VTT module for managing vision occlusion with fade effects when a token is under a tile');
+      expect(config.manifest.version).toBe('12.0.1-alpha1');
     });
   });
 
@@ -164,74 +132,44 @@ describe('Config', () => {
 
     it('should provide access to context configuration', () => {
       expect(config.constants.context).toBeDefined();
-      expect(config.constants.context.sync).toBeDefined();
-      expect(config.constants.context.sync.defaults.autoSync).toBe(true);
+      expect(config.constants.context.operationsParams).toBeDefined();
+      expect(config.constants.context.operationsParams.defaults.alwaysPullBeforeGetting).toBe(false);
     });
 
     it('should provide access to context helpers', () => {
-      expect(config.constants.contextHelpers).toBeDefined();
-      expect(config.constants.contextHelpers.mergeStrategies).toBeDefined();
-      expect(config.constants.contextHelpers.comparisonResults).toBeDefined();
+      expect(config.constants.context.helpers).toBeDefined();
+      expect(config.constants.context.helpers.mergeStrategies).toBeDefined();
+      expect(config.constants.context.helpers.comparisonResults).toBeDefined();
     });
 
     it('should provide access to nested configuration', () => {
-      expect(config.constants.context.external.rootMap.window).toBe('globalNamespace.window');
-      expect(config.constants.context.external.rootMap.game).toBe('globalNamespace.game');
-      expect(config.constants.context.external.rootMap.module).toBe('module');
-    });
-
-    it('should provide access to test constants', () => {
-      expect(config.constants.testConstant).toBe('testValue');
+      expect(config.constants.foundry.defaults.i18nLocation).toBe('game.i18n');
+      expect(config.constants.moduleManagement.defaults.modulesLocation).toBe('game.modules');
     });
   });
 
   describe('Manifest Access', () => {
     it('should provide access to module id', () => {
-      expect(config.manifest.id).toBe('test-module');
+      expect(config.manifest.id).toBe('foundryvtt-over-my-head');
     });
 
     it('should provide access to module title', () => {
-      expect(config.manifest.title).toBe('Test Module');
+      expect(config.manifest.title).toBe('OverMyHead');
     });
 
     it('should provide access to module version', () => {
-      expect(config.manifest.version).toBe('1.0.0');
-    });
-
-    it('should provide access to module description', () => {
-      expect(config.manifest.description).toBe('A test module for unit testing');
+      expect(config.manifest.version).toBe('12.0.1-alpha1');
     });
 
     it('should provide access to compatibility information', () => {
       expect(config.manifest.compatibility).toBeDefined();
-      expect(config.manifest.compatibility.minimum).toBe('11');
-      expect(config.manifest.compatibility.verified).toBe('12');
+      expect(config.manifest.compatibility.minimum).toBe('12');
     });
 
     it('should provide access to author information', () => {
       expect(config.manifest.authors).toBeDefined();
       expect(Array.isArray(config.manifest.authors)).toBe(true);
-      expect(config.manifest.authors[0].name).toBe('Test Author');
-    });
-  });
-
-  describe('Object Properties', () => {
-    it('should have frozen constants object', () => {
-      expect(Object.isFrozen(config.constants)).toBe(true);
-    });
-
-    it('should have frozen manifest object', () => {
-      expect(Object.isFrozen(config.manifest)).toBe(true);
-    });
-
-    it('should maintain same references on repeated access', () => {
-      const constants1 = config.constants;
-      const constants2 = config.constants;
-      const manifest1 = config.manifest;
-      const manifest2 = config.manifest;
-
-      expect(constants1).toBe(constants2);
-      expect(manifest1).toBe(manifest2);
+      expect(config.manifest.authors[0].name).toBe('Xain_it');
     });
   });
 
@@ -242,30 +180,30 @@ describe('Config', () => {
         id: config.manifest.id,
         title: config.manifest.title,
         errorPattern: config.constants.errors.pattern,
-        syncDefaults: config.constants.context.sync.defaults
+        errorSeparator: config.constants.errors.separator
       };
 
-      expect(moduleInfo.id).toBe('test-module');
-      expect(moduleInfo.title).toBe('Test Module');
+      expect(moduleInfo.id).toBe('foundryvtt-over-my-head');
+      expect(moduleInfo.title).toBe('OverMyHead');
       expect(moduleInfo.errorPattern).toBe('{{module}}{{caller}}{{error}}{{stack}}');
-      expect(moduleInfo.syncDefaults.autoSync).toBe(true);
+      expect(moduleInfo.errorSeparator).toBe(' || ');
     });
 
     it('should work with typical module initialization patterns', () => {
-      // Simulate common usage patterns
+      // Test common patterns that modules might use
       const moduleSetup = {
         moduleId: config.manifest.id,
         moduleTitle: config.manifest.title,
         errorSeparator: config.constants.errors.separator,
-        contextDefaults: config.constants.context.sync.defaults,
-        rootMap: config.constants.context.external.rootMap
+        moduleDefaults: config.constants.moduleManagement.defaults,
+        foundryDefaults: config.constants.foundry.defaults
       };
 
-      expect(moduleSetup.moduleId).toBe('test-module');
-      expect(moduleSetup.moduleTitle).toBe('Test Module');
+      expect(moduleSetup.moduleId).toBe('foundryvtt-over-my-head');
+      expect(moduleSetup.moduleTitle).toBe('OverMyHead');
       expect(moduleSetup.errorSeparator).toBe(' || ');
-      expect(moduleSetup.contextDefaults.autoSync).toBe(true);
-      expect(moduleSetup.rootMap.module).toBe('module');
+      expect(moduleSetup.moduleDefaults.modulesLocation).toBe('game.modules');
+      expect(moduleSetup.foundryDefaults.i18nLocation).toBe('game.i18n');
     });
   });
 

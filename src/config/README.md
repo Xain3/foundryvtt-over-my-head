@@ -59,6 +59,10 @@ const moduleVersion = config.manifest.version; // Module version
 const manifestWithShortName = config.buildManifestWithShortName();
 console.log(manifestWithShortName.shortName); // Derived from constants or manifest
 
+// Export constants to global scope for external access
+config.exportConstants();
+console.log(globalThis.OMHconstants.errors.pattern); // Access constants globally
+
 // Use in module initialization
 console.log(`Initializing ${config.manifest.title} v${config.manifest.version}`);
 ```
@@ -72,6 +76,7 @@ console.log(`Initializing ${config.manifest.title} v${config.manifest.version}`)
 - **Future-Proof**: Easy to extend with additional configuration sources
 - **Dependency Simplification**: Reduces import complexity across the codebase
 - **Manifest Enhancement**: Provides `buildManifestWithShortName()` method for backwards compatibility
+- **Global Export**: Provides `exportConstants()` method for external module access
 
 #### buildManifestWithShortName() Method
 
@@ -99,6 +104,41 @@ console.log(manifestWithShortName.title);     // Original manifest properties pr
 - Module initialization requiring backwards-compatible shortName
 - Legacy code that expects shortName property on manifest
 - Consistent manifest format across different module versions
+
+#### exportConstants() Method
+
+The Config class includes an `exportConstants()` method that safely exports module constants to the global scope for external access.
+
+```javascript
+import config from './config/config.js';
+
+// Export constants to global scope
+config.exportConstants();
+
+// Access constants from anywhere in the application
+console.log(globalThis.OMHconstants.errors.pattern);
+console.log(globalThis.OMHconstants.context.sync.defaults);
+
+// Safe multiple calls - prevents duplicate exports
+config.exportConstants(); // "OverMyHead: Constants exported to global scope."
+config.exportConstants(); // "OverMyHead: Constants already exported to global scope."
+```
+
+**Behavior**:
+- **Safe Export**: Only exports if not already present in global scope
+- **Duplicate Prevention**: Warns if constants are already exported, prevents overwriting
+- **Same Reference**: Exports the exact same frozen object as `config.constants`
+- **Global Access**: Makes constants available as `globalThis.OMHconstants`
+- **Immutability Preserved**: Exported constants remain frozen and unmodifiable
+
+**Use Cases**:
+- Making constants accessible to external modules or scripts
+- Providing configuration access without requiring Config imports
+- Debugging and development console access to configuration
+- Integration with third-party modules that need configuration data
+- Legacy compatibility for modules expecting global constants
+
+**Migration Note**: This method was moved from the OverMyHead class to centralize configuration management and improve encapsulation.
 
 ### constants.js
 
@@ -250,6 +290,12 @@ const moduleInfo = {
 // Get enhanced manifest with shortName for backwards compatibility
 const manifestWithShortName = config.buildManifestWithShortName();
 
+// Export constants to global scope for external access
+config.exportConstants();
+
+// Access exported constants globally
+console.log(globalThis.OMHconstants.errors.pattern);
+
 // Pass config to other modules
 const contextManager = new ContextManager({
   moduleId: config.manifest.id,
@@ -306,6 +352,9 @@ import config from './config/config.js';
 // Use configuration directly in module lifecycle
 Hooks.once('init', () => {
   console.log(`Initializing ${config.manifest.title} v${config.manifest.version}`);
+
+  // Export constants for external access
+  config.exportConstants();
 
   // Initialize context with config data
   const contextManager = new ContextManager({
@@ -493,10 +542,41 @@ const moduleSetup = {
 };
 ```
 
+### Migrating exportConstants from OverMyHead to Config
+
+**Old Pattern**:
+
+```javascript
+import OverMyHead from './overMyHead.js';
+
+class MyModule extends OverMyHead {
+  async init() {
+    // exportConstants was called on the OverMyHead instance
+    this.exportConstants();
+  }
+}
+```
+
+**New Pattern**:
+
+```javascript
+import config from './config/config.js';
+
+class MyModule {
+  async init() {
+    // exportConstants is now called on the config instance
+    config.exportConstants();
+  }
+}
+```
+
 ### Benefits of Migration
 
 1. **Reduced Imports**: Single import instead of multiple
 2. **Consistent Interface**: Same access pattern across all modules
+3. **Better Encapsulation**: Configuration management centralized in Config class
+4. **Simplified Dependencies**: No need to extend OverMyHead for configuration access
+5. **Global Export Centralization**: exportConstants method now logically belongs with configuration
 3. **Future-Proof**: Easy to extend without changing imports
 4. **Better Encapsulation**: Implementation details are hidden
 5. **Simplified Testing**: Mock a single Config class instead of multiple modules
@@ -543,12 +623,16 @@ import ManifestParser from './config/helpers/manifestParser.js';
 const config = {
   constants: Object,               // Parsed and frozen constants from YAML
   manifest: Object,                // Validated and frozen manifest from module.json
-  buildManifestWithShortName: Function  // Returns manifest with shortName added
+  buildManifestWithShortName: Function,  // Returns manifest with shortName added
+  exportConstants: Function       // Exports constants to globalThis.OMHconstants
 }
 
 // Method usage
 const enhancedManifest = config.buildManifestWithShortName();
 // Returns: { ...manifest, shortName: string } (frozen object)
+
+config.exportConstants();
+// Exports constants to globalThis.OMHconstants for external access
 ```
 
 ### Type Information
@@ -559,6 +643,7 @@ interface Config {
   constants: Constants;
   manifest: Manifest;
   buildManifestWithShortName(): ManifestWithShortName;
+  exportConstants(): void;
 }
 
 interface Constants {
@@ -601,6 +686,14 @@ interface ManifestWithShortName extends Manifest {
 2. **Single Import Pattern**: Use one import for all configuration needs throughout your modules
 3. **Consistent Access Pattern**: Use `config.constants.x` and `config.manifest.y` throughout
 4. **Avoid Direct Imports**: Avoid importing constants.js and manifest.js directly in new code
+5. **Global Export**: Use `config.exportConstants()` early in module initialization for external access
+
+### Global Constants Export
+
+1. **Early Export**: Call `config.exportConstants()` during module initialization (Hooks.once('init'))
+2. **Single Call**: Only call exportConstants once per session - method handles duplicate calls safely
+3. **External Access**: Use for making constants available to external modules or debugging
+4. **Safe Usage**: Method prevents overwriting existing global constants
 
 ### Performance Optimization
 

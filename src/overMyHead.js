@@ -59,23 +59,14 @@ class OverMyHead {
    */
   async init() {
     try {
-      // Export constants to global scope
-      this.exportConstants();
+      // Export constants to global scope via config
+      config.exportConstants();
       // Initialization logic to go here
 
       console.log(`${this.title} v${this.version} initialized.`);
     } catch (error) {
       console.error(`Error initializing ${this.title} v${this.version}: `, error);
       throw error;
-    }
-  }
-
-  exportConstants() {
-    if (!globalThis.OMHconstants) {
-      globalThis.OMHconstants = this.constants;
-      console.log("OverMyHead: Constants exported to global scope.");
-    } else {
-      console.warn("OverMyHead: Constants already exported to global scope.");
     }
   }
 }

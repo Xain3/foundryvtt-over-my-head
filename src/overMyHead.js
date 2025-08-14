@@ -31,6 +31,19 @@ class OverMyHead {
 
     this.utils = new Utilities(this.constants, this.manifest);
     this.utils.static.unpack(this.manifest, this);
+
+    this.#enableDevFeatures(); // If dev flag is enabled in the manifest
+  }
+
+  /**
+   * @private
+   * @method #enableDevFeatures
+   * @description Enables development-specific features.
+   */
+  #enableDevFeatures() {
+    Hooks.once('init', () => {
+      this.utils.initializer.initializeDevFeatures(this.utils);
+    });
   }
 
   /**

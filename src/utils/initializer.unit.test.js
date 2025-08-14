@@ -37,6 +37,9 @@ const MOCK_CONSTANTS = {
     settings: {
         setting1: 'value1',
         setting2: 'value2'
+    },
+    moduleManagement: {
+        shortName: 'OMH'
     }
 };
 const MOCK_MANIFEST = { id: 'test-module' };
@@ -306,6 +309,142 @@ describe('Initializer', () => {
             initializer._localizeSettings(undefined);
             expect(mockLocalizeSettings).not.toHaveBeenCalled();
             expect(mockWarn).toHaveBeenCalledWith('No settings localization handler found');
+        });
+    });
+
+    describe('initializeDevFeatures', () => {
+        let mockUtils;
+        let mockHooksLogger;
+
+        beforeEach(() => {
+            mockHooksLogger = {
+                proxyFoundryHooks: jest.fn().mockReturnValue(true)
+            };
+            mockUtils = {
+                static: {
+                    HooksLogger: mockHooksLogger
+                }
+            };
+        });
+
+        it('should enable dev features when manifest.flags.dev is true', () => {
+            const devManifest = { flags: { dev: true } };
+            const devInitializer = new Initializer(
+                MOCK_CONSTANTS,
+                devManifest,
+                mockLogger,
+                mockFormatError,
+                mockFormatHook,
+                MockContextClass
+            );
+
+            devInitializer.initializeDevFeatures(mockUtils);
+
+            expect(mockHooksLogger.proxyFoundryHooks).toHaveBeenCalledWith({
+                enabled: true,
+                logLevel: 'debug',
+                moduleFilter: undefined
+            });
+            expect(mockLog).toHaveBeenCalledWith('Development features enabled.');
+        });
+
+        it('should apply module filter when filter is true', () => {
+            const devManifest = { flags: { dev: true } };
+            const devInitializer = new Initializer(
+                MOCK_CONSTANTS,
+                devManifest,
+                mockLogger,
+                mockFormatError,
+                mockFormatHook,
+                MockContextClass
+            );
+
+            devInitializer.initializeDevFeatures(mockUtils, true);
+
+            expect(mockHooksLogger.proxyFoundryHooks).toHaveBeenCalledWith({
+                enabled: true,
+                logLevel: 'debug',
+                moduleFilter: 'OMH'
+            });
+            expect(mockLog).toHaveBeenCalledWith('Development features enabled.');
+        });
+
+        it('should not enable dev features when manifest.flags.dev is false', () => {
+            const prodManifest = { flags: { dev: false } };
+            const prodInitializer = new Initializer(
+                MOCK_CONSTANTS,
+                prodManifest,
+                mockLogger,
+                mockFormatError,
+                mockFormatHook,
+                MockContextClass
+            );
+
+            prodInitializer.initializeDevFeatures(mockUtils);
+
+            expect(mockHooksLogger.proxyFoundryHooks).not.toHaveBeenCalled();
+            expect(mockLog).not.toHaveBeenCalledWith('Development features enabled.');
+        });
+
+        it('should not enable dev features when manifest.flags.dev is undefined', () => {
+            const noDevManifest = { flags: {} };
+            const noDevInitializer = new Initializer(
+                MOCK_CONSTANTS,
+                noDevManifest,
+                mockLogger,
+                mockFormatError,
+                mockFormatHook,
+                MockContextClass
+            );
+
+            noDevInitializer.initializeDevFeatures(mockUtils);
+
+            expect(mockHooksLogger.proxyFoundryHooks).not.toHaveBeenCalled();
+            expect(mockLog).not.toHaveBeenCalledWith('Development features enabled.');
+        });
+
+        it('should handle missing moduleManagement.shortName gracefully', () => {
+            const constantsWithoutShortName = {
+                ...MOCK_CONSTANTS,
+                moduleManagement: {}
+            };
+            const devManifest = { flags: { dev: true } };
+            const devInitializer = new Initializer(
+                constantsWithoutShortName,
+                devManifest,
+                mockLogger,
+                mockFormatError,
+                mockFormatHook,
+                MockContextClass
+            );
+
+            devInitializer.initializeDevFeatures(mockUtils, true);
+
+            expect(mockHooksLogger.proxyFoundryHooks).toHaveBeenCalledWith({
+                enabled: true,
+                logLevel: 'debug',
+                moduleFilter: undefined
+            });
+        });
+
+        it('should handle missing utils gracefully', () => {
+            const devManifest = { flags: { dev: true } };
+            const devInitializer = new Initializer(
+                MOCK_CONSTANTS,
+                devManifest,
+                mockLogger,
+                mockFormatError,
+                mockFormatHook,
+                MockContextClass
+            );
+
+            // Should not throw
+            expect(() => {
+                devInitializer.initializeDevFeatures(null);
+            }).not.toThrow();
+            
+            expect(mockWarn).toHaveBeenCalledWith('HooksLogger utility not available for development features.');
+            expect(mockLog).toHaveBeenCalledWith('Development features enabled.');
         });
     });
 });

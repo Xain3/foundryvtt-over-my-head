@@ -183,6 +183,35 @@ class Initializer {
             this._localizeSettings(handlers);
         });
     }
+
+    /**
+     * Initializes development-specific features if the manifest is flagged for development.
+     * Optionally filters features to a specific module.
+     *
+     * @param {Object} utils - Utility object containing static helpers and loggers.
+     * @param {boolean} [filter=false] - Whether to filter features to the current module.
+     */
+    initializeDevFeatures(utils, filter = false) {
+        let moduleFilter;
+        if (filter) {
+            moduleFilter = this.constants.moduleManagement?.shortName;
+        }
+        if (this.manifest.flags.dev === true) {
+            // Check if utils and required methods exist before calling
+            if (utils?.static?.HooksLogger?.proxyFoundryHooks) {
+                // Start Hooks proxying for debugging
+                utils.static.HooksLogger.proxyFoundryHooks({
+                    enabled: true,
+                    logLevel: 'debug', // Can be 'log', 'debug', 'info', 'warn', 'error'
+                    moduleFilter: moduleFilter
+                });
+            } else {
+                this.logger.warn('HooksLogger utility not available for development features.');
+            }
+            // Additional development-specific features can be enabled here
+            this.logger.log("Development features enabled.");
+        }
+    }
 }
 
 

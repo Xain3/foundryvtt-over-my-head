@@ -2,7 +2,7 @@
 
 This directory contains utility classes and functions that provide core functionality for module initialization, logging, hook formatting, and general utility operations. The utils are organized into specialized utilities for module lifecycle management and static utilities for data operations.
 
-## Overview
+## Overview (Updated for Multi-Function Proxy Mapping)
 
 The utils are organized into functional categories:
 
@@ -115,6 +115,7 @@ Orchestrates the complete module initialization workflow, including context setu
 - **Context Initialization**: Creates and configures context objects with validation
 - **Settings Registration**: Handles module settings registration and localization
 - **Hook Integration**: Properly integrates with Foundry VTT's hook system
+- **Development Features**: Enables development-specific features like hook logging
 - **Error Handling**: Comprehensive error handling with logging
 - **i18n Support**: Defers localization until i18n system is ready
 
@@ -124,6 +125,7 @@ Orchestrates the complete module initialization workflow, including context setu
 // Core initialization methods
 initializeContext(ContextClass, contextInitParams)
 initializeSettings(SettingsHandler)
+initializeDevFeatures(utils, filter)
 
 // Internal workflow methods (exposed for testing)
 _initializeContextObject(ContextClass, contextInitParams)
@@ -178,9 +180,36 @@ Hooks.once('i18nInit', async () => {
 });
 
 Hooks.once('ready', () => {
+  // Initialize development features if manifest flagged for dev
+  initializer.initializeDevFeatures(utils, true); // true = apply module filter
+  
   logger.log(`${manifest.title} v${manifest.version} is ready!`);
   logger.debug('Context:', initializer.context);
 });
+```
+
+#### Development Features Example
+
+```javascript
+// Enable development-specific features (hook logging, debug utilities, etc.)
+// This only activates if manifest.flags.dev === true
+
+// Without module filter
+initializer.initializeDevFeatures(utils);
+
+// With module filter (logs only hooks starting with module shortName)
+initializer.initializeDevFeatures(utils, true);
+
+// Example manifest.json setup for development
+{
+  "flags": {
+    "dev": true  // Enables development features
+  }
+}
+
+// Example constants.yaml for module filtering
+moduleManagement:
+  shortName: "OMH"  # Used as filter prefix when filter=true
 ```
 
 ### Logger
@@ -247,10 +276,8 @@ try {
 #### Debug Mode Configuration
 
 The Logger automatically detects debug mode from multiple sources:
-
-1. **Module Settings**: `game.settings.get(moduleId, 'debugMode')`
-2. **Module Flags**: `game.modules.get(moduleId).flags.debugMode`
-3. **Constants Default**: `constants.debug.enabled`
+**Unified Interface**: Single import point for all utility functionality, including multi-function proxy mapping
+**Factory Methods**: Convenient methods for creating utility instances, including multi-function proxies
 
 #### Message Format
 
@@ -324,7 +351,7 @@ The formatter follows these conventions:
 - **No Separators**: No hyphens, underscores, or dots in final hook name
 - **Context Suffix**: Context is appended as a capitalized suffix when provided
 
-### Utils Class
+const logger = Utils.createLogger(constants, manifest, formatError); // Updated for multi-function proxy mapping
 
 **File**: [`utils.js`](utils.js)
 **Dependencies**: All utils and static utilities
@@ -337,7 +364,7 @@ Central entry point providing unified access to all utility functionality, inclu
 - **Unified Interface**: Single import point for all utility functionality
 - **Factory Methods**: Convenient methods for creating utility instances
 - **Static Proxy**: Direct access to static utility methods
-- **Consistent API**: Standardized interface across all utilities
+const proxiedHooksCall = Utils.createHookProxy(Hooks.call, { 
 
 #### Public API
 
@@ -360,6 +387,11 @@ static getModuleObject(moduleIdentifier)
 static writeToModuleObject(moduleIdentifier, key, value)
 static readFromModuleObject(moduleIdentifier, key)
 static getAvailableValidationTypes()
+
+// Hook logging and debugging
+static createHookProxy(hookFunction, options)
+static createHookLogger(logLevel, prefix, filter)
+static proxyFoundryHooks(options)
 
 // Utility information
 static getUtilityInfo()
@@ -384,9 +416,22 @@ const initializer = Utils.createInitializer(
 const hookName = Utils.formatHook('module', 'ready');
 
 // Use static utilities
+// Hook formatting
+const hookName = Utils.formatHook('module', 'ready');
+
+// Use static utilities
 const isValid = Utils.validate('isString', { value: input });
 Utils.unpack(moduleData, instance);
 const module = Utils.getModuleObject('my-module');
+
+// Hook logging and debugging
+const proxiedHooksCall = Utils.createHookProxy(Hooks.call, { 
+  logLevel: 'debug',
+  filter: (hookName) => hookName.startsWith('OMH.')
+});
+const hookLogger = Utils.createHookLogger('debug', 'MyModule');
+
+// Localization
 
 // Localization
 const text = Utils.localize('MYMODULE.welcome');
@@ -547,28 +592,14 @@ function processModuleData(rawData, moduleName) {
   });
 
   // Validate required fields
-  Utils.validate('validateObjectKeysExist', {
-    value: rawData,
-    options: { keysToCheck: ['id', 'title', 'version'] }
-  });
-
   // Create and populate instance
   const moduleInstance = {};
   Utils.unpack(rawData, moduleInstance, 'module configuration');
 
   // Validate processed data
-  if (!Utils.validate('isString', { value: moduleInstance.id })) {
-    throw new Error('Module ID must be a string');
-  }
-
   logger.log(`Successfully processed data for module: ${moduleInstance.title}`);
   return moduleInstance;
 }
-```
-
-## Dependencies and Architecture
-
-### Dependency Graph
 
 ```text
 Utils (Entry Point)
@@ -618,10 +649,6 @@ Foundry VTT Hooks → Utils → Initializer → Context & Settings
 
 All utilities implement comprehensive error handling:
 
-- **Input Validation**: Type checking and parameter validation using static validators
-- **Graceful Degradation**: Fallback behavior when dependencies are unavailable
-- **Contextual Messages**: Error messages include module context and suggestions
-- **Logging Integration**: Errors are automatically logged with appropriate levels
 - **Debug Support**: Enhanced error information when debug mode is enabled
 
 ## Testing
@@ -636,10 +663,6 @@ The utils include comprehensive test coverage:
 ### Test Statistics
 
 - **Initializer**: 311 test lines covering initialization workflow, error handling, and edge cases
-- **Logger**: 393 test lines covering logging levels, debug mode, and settings integration
-- **HookFormatter**: Comprehensive tests for hook formatting and validation
-- **Utils**: Tests for entry point functionality and proxy methods
-- **Static Utilities**: See [`static/README.md`](static/README.md) for detailed test coverage
 
 ### Running Tests
 
@@ -657,11 +680,6 @@ npm test -- src/utils/static/
 
 # Run with coverage
 npm test -- src/utils/ --coverage
-```
-
-## Usage Recommendations
-
-### External Usage (Recommended)
 
 Use `Utils` as the single entry point when importing from outside the utils folder:
 
@@ -676,12 +694,6 @@ const initializer = Utils.createInitializer(constants, manifest, logger, formatE
 const validated = Utils.validate('isString', { value: input });
 const hookName = Utils.formatHook('module', 'ready');
 ```
-
-### Internal Usage (Within Utils)
-
-Use direct imports within the utils folder to avoid circular dependencies:
-
-```javascript
 import Logger from './logger.js';
 import { formatHook } from './hookFormatter.js';
 import StaticUtils from './static/static.js';

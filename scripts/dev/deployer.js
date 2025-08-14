@@ -55,7 +55,8 @@ class ModuleDeployer {
       throw new Error('Target directory not specified for deployment');
     }
 
-    console.log(`Syncing TO_DEPLOY items to ${this.#targetDir}`);
+  const deployTime = new Date().toLocaleString();
+  console.log(`Syncing TO_DEPLOY items to ${this.#targetDir} at ${deployTime}`);
     this.#ensureTargetDirectory();
     this.#syncDeployItems();
   }

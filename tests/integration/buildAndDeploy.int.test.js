@@ -24,7 +24,7 @@ describe('BuildAndDeploy Integration Tests', () => {
   beforeAll(() => {
     // Save original working directory
     originalCwd = process.cwd();
-    
+
     // Create temporary directories for testing
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'buildanddeploy-test-'));
     mockFoundryDir = path.join(tempDir, 'FoundryVTT');
@@ -58,7 +58,7 @@ describe('BuildAndDeploy Integration Tests', () => {
   afterAll(() => {
     // Restore original working directory
     process.chdir(originalCwd);
-    
+
     // Cleanup
     if (fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { recursive: true, force: true });
@@ -136,7 +136,7 @@ describe('BuildAndDeploy Integration Tests', () => {
       const { ModuleDirManager } = await import('../../scripts/dev/buildAndDeploy.js');
 
       const newModuleDir = path.join(mockModulesDir, 'new-test-module');
-      
+
       // Ensure directory doesn't exist
       if (fs.existsSync(newModuleDir)) {
         fs.rmSync(newModuleDir, { recursive: true });
@@ -170,7 +170,7 @@ describe('BuildAndDeploy Integration Tests', () => {
       // Verify large file was copied correctly
   const copiedFilePath = path.join(mockModuleDir, 'dist', 'large-file.js');
       expect(fs.existsSync(copiedFilePath)).toBe(true);
-      
+
       const copiedContent = fs.readFileSync(copiedFilePath, 'utf8');
       expect(copiedContent).toBe(largeContent);
       expect(copiedContent.length).toBe(1024 * 100);
@@ -183,12 +183,18 @@ describe('BuildAndDeploy Integration Tests', () => {
   const emptyAssetsDir = path.join(process.cwd(), 'assets');
   if (!fs.existsSync(emptyAssetsDir)) fs.mkdirSync(emptyAssetsDir);
 
+  // Mock the date string to assert timestamp in log deterministically
+  const dateSpy = jest.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
+
   const deployer = new ModuleDeployer(mockModuleDir);
   expect(() => deployer.deploy()).not.toThrow();
   // Expect that the empty directory is created at target
   expect(fs.existsSync(path.join(mockModuleDir, 'assets'))).toBe(true);
   // And log mentions syncing
   expect(console.log).toHaveBeenCalledWith(expect.stringContaining('Syncing TO_DEPLOY items to'));
+  expect(console.log).toHaveBeenCalledWith(expect.stringContaining(' at TEST_TIME'));
+
+  dateSpy.mockRestore();
     });
   });
 });

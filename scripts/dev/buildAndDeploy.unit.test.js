@@ -346,6 +346,7 @@ describe('ModuleDeployer', () => {
     it('should throw error when target directory not specified', () => {
       const deployer = new ModuleDeployer();
 
+
       expect(() => deployer.deploy()).toThrow('Target directory not specified for deployment');
     });
 
@@ -374,11 +375,16 @@ describe('ModuleDeployer', () => {
       path.join.mockImplementation((dir, file) => `${dir}/${file}`);
       path.basename.mockImplementation((filePath) => filePath.split('/').pop());
 
+      // Mock Date.prototype.toLocaleString to pass an arbitrary value
+      const dateSpy = jest.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
+
       deployer.deploy();
 
-      expect(console.log).toHaveBeenCalledWith('Syncing TO_DEPLOY items to /target');
+      expect(console.log).toHaveBeenCalledWith('Syncing TO_DEPLOY items to /target at TEST_TIME');
       expect(fs.copyFileSync).toHaveBeenCalledWith('./module.json', '/target/module.json');
       expect(console.log).toHaveBeenCalledWith('Synced: module.json');
+
+      dateSpy.mockRestore();
     });
 
     it('should skip non-existent TO_DEPLOY items', () => {

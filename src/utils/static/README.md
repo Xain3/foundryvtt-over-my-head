@@ -18,7 +18,9 @@ src/utils/static/
 ├── errorFormatter.js           # Error formatting utilities
 ├── errorFormatter.unit.test.js # ErrorFormatter tests
 ├── localizer.js                # Localization utilities
-└── localizer.unit.test.js      # Localizer tests
+├── localizer.unit.test.js      # Localizer tests
+├── hooksLogger.js              # Hook logging and debugging utilities
+└── hooksLogger.unit.test.js    # HooksLogger tests
 ```
 
 ## 🚀 Quick Start
@@ -62,7 +64,7 @@ if (StaticUtils.hasLocalization('MYMODULE.optionalText')) {
 
 // Get available utilities info
 const info = StaticUtils.getUtilityInfo();
-console.log(info.utilities); // ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer']
+console.log(info.utilities); // ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer', 'HooksLogger']
 ```
 
 ### Using Individual Classes
@@ -275,6 +277,84 @@ if (GameManager.moduleExists(manifest)) {
 }
 ```
 
+### 7. HooksLogger
+
+**File**: `hooksLogger.js`
+**Purpose**: Static utility class for logging and debugging Foundry VTT hook calls with proxy support and in-place modification.
+
+#### Key Features
+
+- ✅ **Hook Call Logging** - Log hook calls without modifying original functionality
+- ✅ **In-place Proxy Support** - Automatically modifies objects by assigning proxies to their properties
+- ✅ **Configurable Logging** - Control log levels, prefixes, and filtering
+- ✅ **Foundry VTT Integration** - Specialized support for Foundry VTT's hook system with duck typing
+- ✅ **Debug Filtering** - Filter hooks by name patterns for targeted debugging
+- ✅ **Robust Validation** - Duck typing validation for better compatibility
+
+#### Main Methods
+
+- `createHookProxy(hookObject, functionName, options)` - Create a proxy that logs hook calls and modifies object in-place
+- `createHookLogger(logLevel, prefix, filter)` - Create a logger function for hooks
+- `proxyFoundryHooks(options)` - Convenience method for proxying Foundry's Hooks functions in-place
+- `isHooksAvailable()` - Check if Foundry VTT Hooks object is available and functional
+- `getUtilityInfo()` - Get utility information
+
+#### Usage Examples
+
+```javascript
+import HooksLogger from '@/utils/static/hooksLogger.js';
+
+// Basic in-place hook proxy for debugging
+HooksLogger.createHookProxy(Hooks, 'call', {
+  logLevel: 'debug',
+  prefix: 'Hook Debug'
+});
+// Hooks.call is now proxied automatically
+
+// Get proxy without modifying original (for manual assignment)
+const proxy = HooksLogger.createHookProxy(Hooks, 'call', {
+  logLevel: 'debug',
+  prefix: 'OMH Hook',
+  filter: (hookName) => hookName.startsWith('OMH.'),
+  logResult: true,
+  returnProxy: true
+});
+// Hooks.call is unchanged, use 'proxy' manually
+
+// Create a simple logger function
+const hookLogger = HooksLogger.createHookLogger('debug', 'Custom Hook',
+  (hookName) => hookName.includes('ready')
+);
+
+// Use as a hook listener
+Hooks.on('ready', hookLogger);
+Hooks.on('init', hookLogger);
+
+// Convenience method for Foundry hook debugging (in-place modification)
+Hooks.once('init', () => {
+  if (debugMode) {
+    const success = HooksLogger.proxyFoundryHooks({
+      enabled: true,
+      logLevel: 'debug',
+      moduleFilter: 'OMH.',
+      functions: { call: true, callAll: true }
+    });
+
+    if (success) {
+      console.log('Hook logging enabled successfully');
+    }
+  }
+});
+
+// Check if Hooks is available before using
+if (HooksLogger.isHooksAvailable()) {
+  HooksLogger.proxyFoundryHooks({ moduleFilter: 'myModule.' });
+} else {
+  // Use Hooks.once('init') for proper timing
+  Hooks.once('init', () => HooksLogger.proxyFoundryHooks());
+}
+```
+
 ### 5. ErrorFormatter
 
 **File**: `errorFormatter.js`
@@ -383,6 +463,7 @@ npm test -- src/utils/static/ --coverage
 - **GameManager**: 25+ tests covering module management, error handling, and edge cases
 - **ErrorFormatter**: Unit tests covering error formatting, validation, and edge cases
 - **Localizer**: Unit tests covering localization methods, static methods, and error handling
+- **HooksLogger**: 50+ tests covering proxy creation, logging, filtering, and Foundry VTT integration
 - **StaticUtils**: Unit tests covering central entry point and utility integration
 - **Combined**: 100% line, branch, and function coverage
 

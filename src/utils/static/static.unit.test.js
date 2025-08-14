@@ -10,6 +10,7 @@ import Unpacker from './unpacker.js';
 import GameManager from './gameManager.js';
 import ErrorFormatter from './errorFormatter.js';
 import Localizer from './localizer.js';
+import HooksLogger from './hooksLogger.js';
 
 describe('StaticUtils', () => {
   describe('Class Properties', () => {
@@ -31,6 +32,10 @@ describe('StaticUtils', () => {
 
     it('should expose Localizer class', () => {
       expect(StaticUtils.Localizer).toBe(Localizer);
+    });
+
+    it('should expose HooksLogger class', () => {
+      expect(StaticUtils.HooksLogger).toBe(HooksLogger);
     });
   });
 
@@ -343,6 +348,7 @@ describe('StaticUtils', () => {
       expect(info.utilities).toContain('GameManager');
       expect(info.utilities).toContain('ErrorFormatter');
       expect(info.utilities).toContain('Localizer');
+      expect(info.utilities).toContain('HooksLogger');
     });
 
     it('should have descriptive information', () => {
@@ -416,6 +422,108 @@ describe('StaticUtils', () => {
         expect(error.message).toContain('testField');
         expect(error.message).toContain('string');
       }
+    });
+  });
+
+  describe('Hook Logging Methods', () => {
+    let mockHookFunction;
+    let mockLogger;
+    let mockProxy;
+
+    beforeEach(() => {
+      mockHookFunction = jest.fn();
+      mockLogger = jest.fn();
+      mockProxy = jest.fn();
+
+      // Mock HooksLogger methods
+      HooksLogger.createHookProxy = jest.fn().mockReturnValue(mockProxy);
+      HooksLogger.createHookLogger = jest.fn().mockReturnValue(mockLogger);
+      HooksLogger.proxyFoundryHooks = jest.fn().mockReturnValue(mockProxy);
+    });
+
+    describe('createHookProxy method', () => {
+      it('should proxy to HooksLogger.createHookProxy with default options', () => {
+        const result = StaticUtils.createHookProxy(mockHookFunction);
+
+        expect(HooksLogger.createHookProxy).toHaveBeenCalledWith(mockHookFunction, {});
+        expect(result).toBe(mockProxy);
+      });
+
+      it('should proxy to HooksLogger.createHookProxy with custom options', () => {
+        const options = {
+          logLevel: 'debug',
+          prefix: 'Test Hook',
+          filter: (hookName) => hookName.startsWith('test')
+        };
+
+        const result = StaticUtils.createHookProxy(mockHookFunction, options);
+
+        expect(HooksLogger.createHookProxy).toHaveBeenCalledWith(mockHookFunction, options);
+        expect(result).toBe(mockProxy);
+      });
+
+      it('should handle undefined hookFunction', () => {
+        StaticUtils.createHookProxy(undefined, { logLevel: 'debug' });
+
+        expect(HooksLogger.createHookProxy).toHaveBeenCalledWith(undefined, { logLevel: 'debug' });
+      });
+    });
+
+    describe('createHookLogger method', () => {
+      it('should proxy to HooksLogger.createHookLogger with default parameters', () => {
+        const result = StaticUtils.createHookLogger();
+
+        expect(HooksLogger.createHookLogger).toHaveBeenCalledWith('debug', 'Hook Call', null);
+        expect(result).toBe(mockLogger);
+      });
+
+      it('should proxy to HooksLogger.createHookLogger with custom parameters', () => {
+        const logLevel = 'info';
+        const prefix = 'Custom Hook';
+        const filter = jest.fn();
+
+        const result = StaticUtils.createHookLogger(logLevel, prefix, filter);
+
+        expect(HooksLogger.createHookLogger).toHaveBeenCalledWith(logLevel, prefix, filter);
+        expect(result).toBe(mockLogger);
+      });
+
+      it('should handle partial parameters', () => {
+        const result = StaticUtils.createHookLogger('warn');
+
+        expect(HooksLogger.createHookLogger).toHaveBeenCalledWith('warn', 'Hook Call', null);
+        expect(result).toBe(mockLogger);
+      });
+    });
+
+    describe('proxyFoundryHooks method', () => {
+      it('should proxy to HooksLogger.proxyFoundryHooks with default options', () => {
+        const result = StaticUtils.proxyFoundryHooks();
+
+        expect(HooksLogger.proxyFoundryHooks).toHaveBeenCalledWith({});
+        expect(result).toBe(mockProxy);
+      });
+
+      it('should proxy to HooksLogger.proxyFoundryHooks with custom options', () => {
+        const options = {
+          enabled: true,
+          logLevel: 'debug',
+          moduleFilter: 'OMH.'
+        };
+
+        const result = StaticUtils.proxyFoundryHooks(options);
+
+        expect(HooksLogger.proxyFoundryHooks).toHaveBeenCalledWith(options);
+        expect(result).toBe(mockProxy);
+      });
+
+      it('should handle null return from HooksLogger', () => {
+        HooksLogger.proxyFoundryHooks.mockReturnValue(null);
+
+        const result = StaticUtils.proxyFoundryHooks({ enabled: false });
+
+        expect(result).toBeNull();
+      });
     });
   });
 });

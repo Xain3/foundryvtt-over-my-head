@@ -9,10 +9,11 @@ import Unpacker from './unpacker.js';
 import GameManager from './gameManager.js';
 import ErrorFormatter from './errorFormatter.js';
 import Localizer from './localizer.js';
+import HooksLogger from './hooksLogger.js';
 
 /**
  * Central entry point for all static utility classes.
- * Provides a unified interface to access all static utilities including validation, unpacking, game management, error formatting, and localization.
+ * Provides a unified interface to access all static utilities including validation, unpacking, game management, error formatting, localization, and hook logging.
  * This class acts as a facade pattern, allowing easy access to all static utilities from a single import.
  *
  * @class StaticUtils
@@ -27,6 +28,9 @@ import Localizer from './localizer.js';
  * - writeToModuleObject(moduleIdentifier, key, value)
  * - readFromModuleObject(moduleIdentifier, key)
  * - getAvailableValidationTypes()
+ * - createHookProxy(hookFunction, options)
+ * - createHookLogger(logLevel, prefix, filter)
+ * - proxyFoundryHooks(options)
  */
 class StaticUtils {
   /**
@@ -63,6 +67,13 @@ class StaticUtils {
    * @type {typeof Localizer}
    */
   static Localizer = Localizer;
+
+  /**
+   * Static reference to the HooksLogger class for hook logging and debugging operations.
+   * @static
+   * @type {typeof HooksLogger}
+   */
+  static HooksLogger = HooksLogger;
 
   /**
    * Static instance of Unpacker for direct method access.
@@ -332,15 +343,78 @@ class StaticUtils {
    *
    * @example
    * const info = StaticUtils.getUtilityInfo();
-   * console.log(info.utilities); // ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer']
+   * console.log(info.utilities); // ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer', 'HooksLogger']
    */
   static getUtilityInfo() {
     return {
       name: 'StaticUtils',
-      utilities: ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer'],
+      utilities: ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer', 'HooksLogger'],
       description: 'Central entry point for all static utility classes',
       version: '1.0.0'
     };
+  }
+
+  /**
+   * Creates a proxy for a hook function that logs hook calls while preserving the original functionality.
+   * Acts as a convenient proxy to HooksLogger.createHookProxy().
+   *
+   * @static
+   * @param {Function} hookFunction - The original hook function to proxy
+   * @param {Object} [options={}] - Configuration options for the proxy
+   * @returns {Function} The proxied hook function that logs calls and preserves original behavior
+   * @throws {TypeError} If hookFunction is not a function
+   *
+   * @example
+   * // Create a proxy for debugging hook calls
+   * const proxiedHooksCall = StaticUtils.createHookProxy(Hooks.call, {
+   *   logLevel: 'debug',
+   *   filter: (hookName) => hookName.startsWith('OMH.')
+   * });
+   */
+  static createHookProxy(hookFunction, options = {}) {
+    return this.HooksLogger.createHookProxy(hookFunction, options);
+  }
+
+  /**
+   * Creates a simple hook logger that logs hook calls without modifying the original function.
+   * Acts as a convenient proxy to HooksLogger.createHookLogger().
+   *
+   * @static
+   * @param {string} [logLevel='debug'] - The console log level to use
+   * @param {string} [prefix='Hook Call'] - The prefix for log messages
+   * @param {Function} [filter] - Optional filter function to determine which hooks to log
+   * @returns {Function} A function that can be used as a hook listener to log hook calls
+   *
+   * @example
+   * // Create a logger for specific hooks
+   * const logger = StaticUtils.createHookLogger('debug', 'OMH Hook', 
+   *   (hookName) => hookName.startsWith('OMH.')
+   * );
+   */
+  static createHookLogger(logLevel = 'debug', prefix = 'Hook Call', filter = null) {
+    return this.HooksLogger.createHookLogger(logLevel, prefix, filter);
+  }
+
+  /**
+  * Convenience method for proxying Foundry VTT's Hooks functions with debugging options.
+  * Acts as a convenient proxy to HooksLogger.proxyFoundryHooks(). Returns a mapping of proxies.
+   *
+   * @static
+   * @param {Object} [options={}] - Configuration options for the proxy
+  * @returns {Object<string, Function>|null} Mapping of function names to proxies, or null if none created
+   *
+   * @example
+  * // Enable hook logging for debugging (multi-function)
+  * if (debugMode) {
+  *   const proxies = StaticUtils.proxyFoundryHooks({ moduleFilter: 'OMH.' });
+  *   if (proxies) {
+  *     if (proxies.call) Hooks.call = proxies.call;
+  *     if (proxies.callAll) Hooks.callAll = proxies.callAll;
+  *   }
+  * }
+   */
+  static proxyFoundryHooks(options = {}) {
+    return this.HooksLogger.proxyFoundryHooks(options);
   }
 }
 

@@ -26,12 +26,11 @@
  * @property {Object} contextInitParams - Parameters for context initialization
  * @property {Object} context - The initialized context instance
  *
- * @method #ensureConfig - Validates and returns configuration object
+ * @method #ensureInitParams - Validates and returns initialization params
  * @method _initializeContextObject - Creates and returns a new context instance
- * @method _registerSettings - Registers module settings using handlers
- * @method _localizeSettings - Localizes settings after i18n initialization
+ * @method _registerSettings - Registers module settings using SettingsHandler
  * @method initializeContext - Initializes context with i18n hook
- * @method initializeSettings - Initializes settings with i18n hook
+ * @method initializeSettings - Registers settings on init using SettingsHandler
  */
 class Initializer {
     /**
@@ -61,25 +60,25 @@ class Initializer {
      * Throws an error if no configuration is provided.
      *
      * @private
-     * @param {Object|null} config - The configuration object to validate
-     * @returns {Object} The validated configuration object
-     * @throws {Error} If no configuration is provided
+     * @param {Object|null} initParams - The initialization parameters to validate
+     * @returns {Object} The validated initialization parameters
+     * @throws {Error} If no parameters are provided and no defaults exist
      */
-    #ensureConfig(config) {
-        if (config === null && this.constants) {
-            config = this.constants;
-        } else if (config === null) {
-            throw new Error(this.formatError(`No configuration provided.\nConfig: ${config}\nThis.config: ${this.constants}`, { includeCaller: true, caller: 'Initializer' }));
+    #ensureInitParams(initParams) {
+        if (initParams === null && this.contextInitParams) {
+            initParams = this.contextInitParams;
+        } else if (initParams === null) {
+            throw new Error(this.formatError(`No initialization parameters provided.\nParams: ${initParams}\nDefaults: ${this.contextInitParams}`, { includeCaller: true, caller: 'Initializer' }));
         }
-        return config;
+        return initParams;
     }
 
     /**
      * Public wrapper for creating and initializing a context object.
      * Delegates to the protected _initializeContextObject to retain a clean facade.
      *
-     * @public
-     * @param {Object} [params=this.contextInitParams] - The parameters to initialize the context with
+    * @public
+    * @param {Object} [params=this.contextInitParams] - The parameters to initialize the context with
      * @returns {Object} The initialized context object
      */
     initializeContextObject(params = this.contextInitParams) {
@@ -107,53 +106,44 @@ class Initializer {
     }
 
     /**
-     * Registers the module settings using the provided handlers.
-     * This method registers the settings using the SettingsHandler.
+     * Registers the module settings using the provided SettingsHandler (class or instance).
+     * The modern SettingsHandler handles parsing and localization internally.
      *
      * @protected
-     * @param {Object} [handlers] - Optional settings handlers object
-     * @param {Object} [handlers.settings] - The settings handler with registerSettings method
+     * @param {Function|Object} handlerOrClass - SettingsHandler class (constructor) or instance with `register()`
+     * @param {Object} [utils] - Optional utilities object passed to SettingsHandler constructor
+     * @returns {Object|undefined} The SettingsHandler instance used for registration
      */
-    _registerSettings(handlers) {
+    _registerSettings(handlerOrClass, utils) {
         this.logger.log('Registering settings');
-        if (handlers && handlers.settings && handlers.settings.registerSettings) {
-            handlers.settings.registerSettings(this.constants.settings);
-            this.logger.log('Settings registered');
-        } else {
-            this.logger.error("No settings handler found. Skipping registration.");
+        let instance;
+        if (handlerOrClass && typeof handlerOrClass.register === 'function') {
+            instance = handlerOrClass;
+        } else if (typeof handlerOrClass === 'function') {
+            instance = new handlerOrClass({ constants: this.constants, manifest: this.manifest }, utils, this.context);
         }
-    }
-
-    /**
-     * Localizes settings after i18n initialization.
-     * This method ensures settings are properly localized once internationalization is ready.
-     *
-     * @protected
-     * @param {Object} [handlers] - Optional settings handlers object
-     * @param {Object} [handlers.settings] - The settings handler with localizeSettings method
-     */
-    _localizeSettings(handlers) {
-        if (handlers && handlers.settings && handlers.settings.localizeSettings) {
-            handlers.settings.localizeSettings();
-            this.logger.log('Settings localized');
-        } else {
-            this.logger.warn('No settings localization handler found');
+        if (!instance || typeof instance.register !== 'function') {
+            this.logger.error('No SettingsHandler provided or invalid handler. Skipping registration.');
+            return undefined;
         }
+        instance.register();
+        this.logger.log('Settings registered');
+        return instance;
     }
 
     /**
      * Initializes the context with the provided configuration.
      * Sets up a hook to initialize the context once i18n is ready.
      *
-     * @param {Object|null} [config=null] - The configuration object to initialize the context with. If null, uses instance constants
+     * @param {Object|null} [initParams=null] - The initialization parameters for the context. If null, uses instance defaults
      * @returns {Promise<Object>} A promise that resolves to the initialized context object
      * @fires contextReady - Fired when context initialization is complete
      */
-    initializeContext(config = null) {
-        config = this.#ensureConfig(config);
+    initializeContext(initParams = null) {
+        initParams = this.#ensureInitParams(initParams);
         return new Promise((resolve) => {
             Hooks.once('i18nInit', async () => {
-                this.context = this._initializeContextObject(config);
+                this.context = this._initializeContextObject(initParams);
                 Hooks.callAll(this.formatHook(this.constants.hooks.contextReady));
                 resolve(this.context);
             });
@@ -164,23 +154,21 @@ class Initializer {
      * Initializes the module settings.
      * This method sets up the necessary hooks and initializes settings once the 'init' hook fires.
      *
-     * @param {Object} handlers - The handlers object containing settings handler
-     * @param {Object} [handlers.settings] - The settings handler with registerSettings and localizeSettings methods
-     * @param {Object|null} [config=null] - An optional configuration object to override the default configuration
+     * @param {Function|Object} handlerOrClass - SettingsHandler class (constructor) or instance with `register()`
+     * @param {Object} [utils] - Optional utilities object passed to SettingsHandler constructor
      * @fires settingsReady - Fired when settings registration is complete
      */
-    initializeSettings(handlers, config = null) {
-        config = this.#ensureConfig(config);
+    initializeSettings(handlerOrClass, utils = undefined) {
         this.logger.log('Initializing module');
         Hooks.once('init', () => {
-            this._registerSettings(handlers);
+            this._registerSettings(handlerOrClass, utils);
             this.logger.log('Module initialized');
-            this.context.setFlags('settingsReady', true);
+            if (this.context && typeof this.context.setFlags === 'function') {
+                this.context.setFlags('settingsReady', true);
+            } else {
+                this.logger.warn('Context not available to set settingsReady flag during initialization.');
+            }
             Hooks.callAll(this.formatHook(this.constants.hooks.settingsReady));
-        });
-        // Ensure settings are localized after i18n is ready
-        Hooks.once('i18nInit', () => {
-            this._localizeSettings(handlers);
         });
     }
 

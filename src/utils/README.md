@@ -8,7 +8,7 @@ The utils are organized into functional categories:
 
 - **Module Lifecycle**: [`Initializer`](#initializer), [`Logger`](#logger)
 - **Hook Management**: [`HookFormatter`](#hookformatter)
-- **General Utilities**: [`Utils`](#utils-class)
+- **General Utilities**: Utils (entry point in `utils.js`)
 - **Static Utilities**: [`static/`](#static-utilities)
 
 Note: Static utilities now expose a convenience alias `localizer` for the Localizer class at `Utils.static.localizer`.
@@ -86,7 +86,7 @@ import StaticUtils from '@/utils/static/static.js';
 
 // Module initialization
 const initializer = new Initializer(constants, manifest, logger, formatError, formatHook);
-await initializer.initializeContext(ContextClass, contextInitParams);
+await initializer.initializeContext({ /* your Context params */ });
 await initializer.initializeSettings(SettingsHandler);
 
 // Logging
@@ -127,14 +127,14 @@ Orchestrates the complete module initialization workflow, including context setu
 
 ```javascript
 // Core initialization methods
-initializeContext(ContextClass, contextInitParams)
-initializeSettings(SettingsHandler)
+initializeContext(initParams)
+initializeSettings(SettingsHandlerOrInstance, utils?)
 initializeDevFeatures(utils, filter)
 
-// Internal workflow methods (exposed for testing)
-_initializeContextObject(ContextClass, contextInitParams)
-_registerSettings(SettingsHandler)
-_localizeSettings(SettingsHandler)
+// Internal/testing helpers
+initializeContextObject(params)
+_initializeContextObject(params)
+_registerSettings(SettingsHandlerOrInstance, utils?)
 ```
 
 #### Initializer Example Usage
@@ -153,18 +153,12 @@ const initializer = new Initializer(
   formatHook
 );
 
-// Initialize context (typically in 'init' hook)
-const contextInitParams = {
-  constants,
-  manifest,
-  logger,
-  formatError,
-  formatHook
-};
+// Initialize context (typically in 'i18nInit' hook)
+// Pass your Context constructor params object (as your Context expects)
+const contextInitParams = { /* your Context params */ };
+await initializer.initializeContext(contextInitParams);
 
-await initializer.initializeContext(Context, contextInitParams);
-
-// Initialize settings (typically in 'i18nInit' hook)
+// Initialize settings (on 'init') with SettingsHandler class or instance
 await initializer.initializeSettings(SettingsHandler);
 
 // Access initialized context
@@ -175,11 +169,11 @@ console.log(initializer.context); // Initialized context instance
 
 ```javascript
 // Typical Foundry VTT hook integration
-Hooks.once('init', async () => {
-  await initializer.initializeContext(Context, contextInitParams);
+Hooks.once('i18nInit', async () => {
+  await initializer.initializeContext(contextInitParams);
 });
 
-Hooks.once('i18nInit', async () => {
+Hooks.once('init', async () => {
   await initializer.initializeSettings(SettingsHandler);
 });
 
@@ -484,13 +478,13 @@ const initializer = Utils.createInitializer(
 );
 
 // Foundry VTT hook integration
-Hooks.once('init', async () => {
+Hooks.once('i18nInit', async () => {
   logger.log('Initializing module...');
 
   try {
     // Initialize context
-    const contextParams = { constants, manifest, logger, formatError, formatHook };
-    await initializer.initializeContext(Context, contextParams);
+  const contextParams = { /* your Context params */ };
+  await initializer.initializeContext(contextParams);
 
     logger.log('Context initialized successfully');
   } catch (error) {
@@ -499,7 +493,7 @@ Hooks.once('init', async () => {
   }
 });
 
-Hooks.once('i18nInit', async () => {
+Hooks.once('init', async () => {
   logger.log('Initializing settings...');
 
   try {
@@ -573,7 +567,7 @@ async function performOperation(operationName, operation) {
 
 // Usage
 await performOperation('Context Initialization', () =>
-  initializer.initializeContext(Context, contextParams)
+  initializer.initializeContext(contextParams)
 );
 
 await performOperation('Settings Registration', () =>

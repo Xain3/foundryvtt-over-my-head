@@ -22,16 +22,17 @@ class OverMyHead {
     /**
      * @property {object} constants - The module constants.
      */
-    this.constants = config.constants;
+  this.config = config;
+  this.constants = this.config.constants;
 
   /**
    * @property {object} manifest - The module manifest data with shortName added for backward compatibility.
    * The manifest is constructed by the central config via buildManifestWithShortName().
    */
-  this.manifest = config.buildManifestWithShortName();
+  this.manifest = this.config.buildManifestWithShortName();
 
-    this.utils = new Utilities(this.constants, this.manifest);
-    this.utils.static.unpack(this.manifest, this);
+  this.utils = new Utilities(this.constants, this.manifest);
+  this.utils.static.unpack(this.manifest, this);
   }
 
   /**
@@ -70,7 +71,8 @@ class OverMyHead {
       // Confirm initialization
       this.utils.initializer.confirmInitialization(this.config, this.context, this.utils);
     } catch (error) {
-      console.error(`Error initializing ${this.config.manifest.title} v${this.config.manifest.version}: `, error);
+  const manifestForLog = (this.config && this.config.manifest) || this.manifest || { title: 'Over My Head', version: 'unknown' };
+  console.error(`Error initializing ${manifestForLog.title} v${manifestForLog.version}: `, error);
       throw error;
     }
   }

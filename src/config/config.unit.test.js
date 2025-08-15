@@ -228,4 +228,60 @@ describe('Config', () => {
       }).not.toThrow();
     });
   });
+
+  describe('Derived shortName and export behavior', () => {
+    let originalConstants;
+
+    beforeEach(() => {
+      // Backup the original constants and clear any globallly exported constants
+      originalConstants = config.constants;
+      Object.keys(globalThis).forEach(key => {
+        if (key.endsWith('Constants')) delete globalThis[key];
+      });
+      jest.spyOn(console, 'info').mockImplementation(() => {});
+      jest.spyOn(console, 'log').mockImplementation(() => {});
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      // Restore original constants and console spies
+      config.constants = originalConstants;
+      console.info.mockRestore();
+      console.log.mockRestore();
+      console.warn.mockRestore();
+      Object.keys(globalThis).forEach(key => {
+        if (key.endsWith('Constants')) delete globalThis[key];
+      });
+    });
+
+    it('derives a shortName when constants.moduleManagement.shortName is missing', () => {
+      // Replace config.constants with a version that lacks shortName
+      config.constants = { ...originalConstants, moduleManagement: { ...originalConstants.moduleManagement } };
+      delete config.constants.moduleManagement.shortName;
+
+      const result = config.buildManifestWithShortName();
+
+      expect(result).toBeDefined();
+      expect(result.shortName).toBeDefined();
+      expect(typeof result.shortName).toBe('string');
+      expect(console.info).toHaveBeenCalled();
+    });
+
+    it('exports constants globally using the derived shortName when none is provided', () => {
+      // Ensure no explicit shortName exists and then export
+      config.constants = { ...originalConstants, moduleManagement: { ...originalConstants.moduleManagement } };
+      delete config.constants.moduleManagement.shortName;
+
+      const built = config.buildManifestWithShortName();
+      const variableName = `${built.shortName}Constants`;
+
+      expect(globalThis[variableName]).toBeUndefined();
+
+      config.exportConstants();
+
+      expect(globalThis[variableName]).toBeDefined();
+      expect(globalThis[variableName]).toBe(config.constants);
+      expect(console.log).toHaveBeenCalledWith(`${config.manifest.title}: Constants exported to global scope as ${variableName}.`);
+    });
+  });
 });

@@ -65,11 +65,11 @@ class Initializer {
      * @throws {Error} If no parameters are provided and no defaults exist
      */
     #ensureInitParams(initParams) {
-        if (initParams === null && this.contextInitParams) {
-            initParams = this.contextInitParams;
-        } else if (initParams === null) {
-            throw new Error(this.formatError(`No initialization parameters provided.\nParams: ${initParams}\nDefaults: ${this.contextInitParams}`, { includeCaller: true, caller: 'Initializer' }));
+        // If caller didn't provide params (null/undefined), prefer the instance default
+        if (initParams == null) { // covers null and undefined
+            return this.contextInitParams;
         }
+        // Otherwise return whatever was provided (could be an object)
         return initParams;
     }
 

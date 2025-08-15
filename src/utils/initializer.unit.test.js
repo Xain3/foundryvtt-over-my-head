@@ -180,7 +180,7 @@ describe('Initializer', () => {
             expect(MockContextClass).toHaveBeenCalledWith({ foo: 'bar' });
         });
 
-        it('should throw error when initParams is null and no defaults available', async () => {
+        it('should allow null initParams when no defaults available and let Context use its defaults', async () => {
             const badInitializer = new Initializer(
                 MOCK_CONSTANTS,
                 MOCK_MANIFEST,
@@ -189,12 +189,17 @@ describe('Initializer', () => {
                 mockFormatHook,
                 MockContextClass
             );
+            // Ensure there are no defaults
             badInitializer.contextInitParams = undefined;
-            expect(() => badInitializer.initializeContext(null)).toThrow(/Formatted:/);
-            expect(mockFormatError).toHaveBeenCalledWith(
-                expect.stringContaining('No initialization parameters provided.'),
-                expect.objectContaining({ includeCaller: true, caller: 'Initializer' })
-            );
+            const promise = badInitializer.initializeContext(null);
+            // Simulate i18nInit
+            await hooks.i18nInit();
+            const ctx = await promise;
+            // Context should be constructed with undefined so it can use its own defaults
+            expect(MockContextClass).toHaveBeenCalledWith(undefined);
+            expect(ctx).toBe(mockContextInstance);
+            // Should not have formatted an error
+            expect(mockFormatError).not.toHaveBeenCalled();
         });
     });
 

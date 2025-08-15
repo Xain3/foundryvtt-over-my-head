@@ -37,24 +37,29 @@ class HookFormatter {
    */
   #validateArgs(constants, manifest) {
     if (!constants || !manifest) {
-      throw new Error(this.formatError('Invalid arguments provided', {includeCaller: true, caller: 'HookFormatter'}));
+  throw new Error(this.formatError('Invalid arguments provided', {includeCaller: true, caller: 'HookFormatter'}));
     }
     if (!manifest.shortName || typeof manifest.shortName !== 'string') {
-      throw new Error(this.formatError('Invalid manifest provided. It must have a shortName property of type string', {includeCaller: true, caller: 'HookFormatter'}));
+  throw new Error(this.formatError('Invalid manifest provided. It must have a shortName property of type string', {includeCaller: true, caller: 'HookFormatter'}));
     }
     if (!constants.hooks || typeof constants.hooks !== 'object' || Array.isArray(constants.hooks)) {
-      throw new Error(this.formatError('Constants must have a hooks property of type object', {includeCaller: true, caller: 'HookFormatter'}));
+  throw new Error(this.formatError('Constants must have a hooks property of type object', {includeCaller: true, caller: 'HookFormatter'}));
     }
   }
 
   /**
    * @private
-   * @method #validateHookName
-   * @description Validates that the hook name is valid and exists in constants
-   * @param {string} hookName - The hook name to validate
-   * @throws {Error} When hookName is invalid or not found in constants
+   * @method #resolveHookValue
+   * @description Resolves an input hook identifier (key or value) to a hook value.
+   * Accepts:
+   *  - a key present in constants.hooks (e.g., "contextReady")
+   *  - a value present in constants.hooks (e.g., "ContextReady" or ".setting")
+   *  - a dynamic settings variant starting with constants.hooks.setting (e.g., ".settingMyKey")
+   * @param {string} hookName - The hook name key or value to resolve
+   * @returns {string} The resolved hook value to append after manifest.shortName
+   * @throws {Error} When hookName is invalid or cannot be resolved
    */
-  #validateHookName(hookName) {
+  #resolveHookValue(hookName) {
     if (typeof hookName !== 'string') {
       throw new Error(this.formatError('Invalid hookName provided', {includeCaller: true, caller: 'HookFormatter'}));
     }
@@ -64,14 +69,22 @@ class HookFormatter {
       throw new Error(this.formatError('Hook name cannot be empty or whitespace only', {includeCaller: true, caller: 'HookFormatter'}));
     }
 
-    // Validate hook name contains only alphanumeric characters and underscores
+    const hooks = this.constants.hooks || {};
+    const hasKey = Object.prototype.hasOwnProperty.call(hooks, trimmedHookName);
+    if (hasKey) return hooks[trimmedHookName];
+
+    const values = Object.values(hooks);
+    if (values.includes(trimmedHookName)) return trimmedHookName;
+
+    const settingPrefix = typeof hooks.setting === 'string' ? hooks.setting : null;
+    if (settingPrefix && trimmedHookName.startsWith(settingPrefix)) return trimmedHookName;
+
+    // If it's neither a known key nor a recognized value/prefix, enforce key character rules
     if (!/^[a-zA-Z0-9_]+$/.test(trimmedHookName)) {
       throw new Error(this.formatError('Hook name must contain only alphanumeric characters and underscores', {includeCaller: true, caller: 'HookFormatter'}));
     }
 
-    if (!this.constants.hooks.hasOwnProperty(trimmedHookName)) {
-      throw new Error(this.formatError(`Hook "${trimmedHookName}" is not defined in constants`, {includeCaller: true, caller: 'HookFormatter'}));
-    }
+    throw new Error(this.formatError(`Hook "${trimmedHookName}" is not defined in constants`, {includeCaller: true, caller: 'HookFormatter'}));
   }
 
   /**
@@ -83,9 +96,8 @@ class HookFormatter {
    * @throws {Error} When hookName is invalid, contains invalid characters, or not found in constants
    */
   formatHookName(hookName) {
-    this.#validateHookName(hookName);
-    const trimmedHookName = hookName.trim();
-    return `${this.manifest.shortName}${this.constants.hooks[trimmedHookName]}`;
+  const resolved = this.#resolveHookValue(hookName);
+  return `${this.manifest.shortName}${resolved}`;
   }
 }
 

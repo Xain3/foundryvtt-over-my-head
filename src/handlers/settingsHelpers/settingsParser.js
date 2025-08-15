@@ -69,7 +69,7 @@ class SettingsParser extends Handler {
         if (setting.key) {
           hookName = setting.key;
         } else {
-          this.utils.logger.warn(`Unknown hook name for setting ${setting.key}`);
+          this.utils.logWarning && this.utils.logWarning(`Unknown hook name for setting ${setting.key}`);
           return null;
         }
       }
@@ -80,7 +80,7 @@ class SettingsParser extends Handler {
       const formattedHookName = this.utils.formatHookName(`${settingHook}${hookName}`);
       return formattedHookName;
     } catch (error) {
-      this.utils.logger.warn(`Failed to format hook name for setting ${setting.key}: ${error.message}`);
+      this.utils.logWarning && this.utils.logWarning(`Failed to format hook name for setting ${setting.key}: ${error.message}`);
       return null;
     }
   }
@@ -119,7 +119,7 @@ class SettingsParser extends Handler {
       const hookName = this.#formatHookName(setting);
       if (!hookName) {
         // Skip hook setup if hook name formatting failed
-        this.utils.logger.warn(`Skipping hook setup for setting ${settingKey} due to invalid hook name`);
+        this.utils.logWarning && this.utils.logWarning(`Skipping hook setup for setting ${settingKey} due to invalid hook name`);
       } else {
         const scope = setting.config.scope || 'world'; // Default to 'world' if not specified
 
@@ -227,7 +227,7 @@ class SettingsParser extends Handler {
 - ${parsedSettings.parsed.join("\n- ")}
         The following settings failed to parse:
 - ${parsedSettings.failed.join("\n- ")}`;
-      this.utils.logger.warn(warningMessage);
+  this.utils.logWarning && this.utils.logWarning(warningMessage);
     }
     return parsedSettings;
   }

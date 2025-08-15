@@ -106,7 +106,7 @@ class SettingsRegistrar extends Handler {
    */
   #getSettingName(setting) {
     if (!setting || typeof setting !== 'object' || !setting.key) {
-      this.utils.logger.warn("Invalid setting object provided, using default name.");
+  this.utils.logWarning && this.utils.logWarning("Invalid setting object provided, using default name.");
       return "Unknown Setting";
     }
     if (setting && setting.key !== undefined && setting.key !== null) {
@@ -163,7 +163,7 @@ class SettingsRegistrar extends Handler {
    */
   register(settings) {
     if (!settings || typeof settings !== 'object') {
-      throw new Error(this.utils.formatError("Settings cannot be registered: invalid format"));
+  throw new Error(this.utils.formatError("Settings cannot be registered: invalid format"));
     }
 
     const { counter = 0, successCounter = 0, errorMessages = [] } = this.#processSettings(settings);

@@ -173,10 +173,9 @@ describe('ErrorFormatter', () => {
 
   describe('input validation', () => {
     describe('error parameter validation', () => {
-      it('should throw TypeError if error is not an object', () => {
+  it('should throw TypeError if error is not an object or string', () => {
         expect(() => ErrorFormatter.formatError(null, {})).toThrow(TypeError);
         expect(() => ErrorFormatter.formatError(undefined, {})).toThrow(TypeError);
-        expect(() => ErrorFormatter.formatError('string', {})).toThrow(TypeError);
         expect(() => ErrorFormatter.formatError(123, {})).toThrow(TypeError);
         expect(() => ErrorFormatter.formatError(true, {})).toThrow(TypeError);
       });
@@ -258,6 +257,25 @@ describe('ErrorFormatter', () => {
         // Should not break with extra properties
         expect(typeof result).toBe('string');
       });
+    });
+  });
+
+  describe('string input coercion', () => {
+    it('should accept a string and format it as an error', () => {
+      const result = ErrorFormatter.formatError('Something went wrong', {});
+      expect(result).toMatch(/Something went wrong/);
+    });
+
+    it('should include stack when includeStack is true with string input', () => {
+      const result = ErrorFormatter.formatError('Boom', { includeStack: true });
+      expect(result).toMatch(/Boom/);
+      expect(result).toMatch(/Call Stack:/);
+    });
+
+    it('should include caller when requested with string input', () => {
+      const result = ErrorFormatter.formatError('Oops', { includeCaller: true, caller: 'myFunc' });
+      expect(result).toMatch(/Oops/);
+      expect(result).toMatch(/myFunc/);
     });
   });
 

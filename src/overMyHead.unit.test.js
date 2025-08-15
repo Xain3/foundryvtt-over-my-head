@@ -66,7 +66,7 @@ describe('OverMyHead (unit)', () => {
 
     expect(exportSpy).toHaveBeenCalledTimes(1);
     expect(instance.utils.initializer.initializeContext).toHaveBeenCalled();
-    expect(instance.utils.initializer.initializeHandlers).toHaveBeenCalledWith(instance.config, instance.context, instance.utils);
+  expect(instance.utils.initializer.initializeHandlers).toHaveBeenCalledWith(instance.config, instance.utils, instance.context);
     expect(instance.utils.initializer.initializeSettings).toHaveBeenCalledWith(instance.handlers.settings, instance.utils);
     expect(instance.utils.initializer.confirmInitialization).toHaveBeenCalledWith(instance.config, instance.context, instance.utils);
 

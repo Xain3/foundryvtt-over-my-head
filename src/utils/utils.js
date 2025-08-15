@@ -106,6 +106,15 @@ class Utilities {
      */
     this.hookFormatter = new HookFormatter(this.constants, this.manifest, this.formatError);
 
+    // Convenience methods for frequently used operations
+
+    /**
+     * Convenience method for formatting hook names.
+     * Bound to hookFormatter.formatHookName for consistent hook naming.
+     * @type {Function}
+     */
+    this.formatHookName = this.hookFormatter.formatHookName.bind(this.hookFormatter);
+
     /**
      * Initializer instance for context and settings initialization.
      * @type {Initializer}
@@ -115,18 +124,10 @@ class Utilities {
       this.manifest,
       this.logger,
       this.formatError,
-      this.hookFormatter.formatHookName.bind(this.hookFormatter),
+      this.formatHookName,
       Context
     );
 
-    // Convenience methods for frequently used operations
-
-    /**
-     * Convenience method for formatting hook names.
-     * Bound to hookFormatter.formatHookName for consistent hook naming.
-     * @type {Function}
-     */
-    this.formatHookName = this.hookFormatter.formatHookName.bind(this.hookFormatter);
 
     /**
      * Convenience method for initializing context objects.
@@ -427,7 +428,7 @@ class Utils {
    * @returns {Function} A function that can be used as a hook listener
    *
    * @example
-   * const logger = Utils.createHookLogger('debug', 'OMH Hook', 
+   * const logger = Utils.createHookLogger('debug', 'OMH Hook',
    *   (hookName) => hookName.startsWith('OMH.')
    * );
    */

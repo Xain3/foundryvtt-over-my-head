@@ -207,9 +207,9 @@ describe('Initializer', () => {
             initializer._registerSettings = jest.fn();
             initializer.context = mockContextInstance;
             initializer.initializeSettings(MockSettingsHandlerClass, {});
-            expect(Hooks.once).toHaveBeenCalledWith('init', expect.any(Function));
+            expect(Hooks.once).toHaveBeenCalledWith('i18nInit', expect.any(Function));
             // Simulate init
-            hooks.init();
+            hooks.i18nInit();
             expect(initializer._registerSettings).toHaveBeenCalledWith(MockSettingsHandlerClass, {});
             expect(mockLog).toHaveBeenCalledWith('Initializing module');
             expect(mockLog).toHaveBeenCalledWith('Module initialized');
@@ -221,7 +221,7 @@ describe('Initializer', () => {
             initializer._registerSettings = jest.fn();
             initializer.context = null;
             initializer.initializeSettings(MockSettingsHandlerClass, {});
-            hooks.init();
+            hooks.i18nInit();
             expect(mockWarn).toHaveBeenCalledWith('Context not available to set settingsReady flag during initialization.');
         });
     });
@@ -356,7 +356,7 @@ describe('Initializer', () => {
             expect(() => {
                 devInitializer.initializeDevFeatures(null);
             }).not.toThrow();
-            
+
             expect(mockWarn).toHaveBeenCalledWith('HooksLogger utility not available for development features.');
             expect(mockLog).toHaveBeenCalledWith('Development features enabled.');
         });

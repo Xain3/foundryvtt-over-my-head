@@ -152,7 +152,7 @@ class Initializer {
 
     /**
      * Initializes the module settings.
-     * This method sets up the necessary hooks and initializes settings once the 'init' hook fires.
+     * This method sets up the necessary hooks and initializes settings once the 'i18nInit' hook fires.
      *
      * @param {Function|Object} handlerOrClass - SettingsHandler class (constructor) or instance with `register()`
      * @param {Object} [utils] - Optional utilities object passed to SettingsHandler constructor
@@ -160,7 +160,7 @@ class Initializer {
      */
     initializeSettings(handlerOrClass, utils = undefined) {
         this.logger.log('Initializing module');
-        Hooks.once('init', () => {
+        Hooks.once('i18nInit', () => {
             this._registerSettings(handlerOrClass, utils);
             this.logger.log('Module initialized');
             if (this.context && typeof this.context.setFlags === 'function') {
@@ -199,6 +199,16 @@ class Initializer {
             // Additional development-specific features can be enabled here
             this.logger.log("Development features enabled.");
         }
+    }
+
+    confirmInitialization(config, context, utils) {
+        utils.logger.log(`Module initialized (${config.manifest.version})`);
+        if (context && typeof context.setFlags === 'function') {
+            context.setFlags('ready', true);
+        } else {
+            utils.logger.warn('Context not available to set ready flag during initialization.');
+        }
+        Hooks.callAll(this.formatHook(this.constants.hooks.ready));
     }
 }
 

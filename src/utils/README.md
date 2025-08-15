@@ -158,7 +158,7 @@ const initializer = new Initializer(
 const contextInitParams = { /* your Context params */ };
 await initializer.initializeContext(contextInitParams);
 
-// Initialize settings (on 'init') with SettingsHandler class or instance
+// Initialize settings (on 'i18nInit') with SettingsHandler class or instance
 await initializer.initializeSettings(SettingsHandler);
 
 // Access initialized context
@@ -180,7 +180,6 @@ Hooks.once('init', async () => {
 Hooks.once('ready', () => {
   // Initialize development features if manifest flagged for dev
   initializer.initializeDevFeatures(utils, true); // true = apply module filter
-  
   logger.log(`${manifest.title} v${manifest.version} is ready!`);
   logger.debug('Context:', initializer.context);
 });
@@ -423,7 +422,7 @@ Utils.unpack(moduleData, instance);
 const module = Utils.getModuleObject('my-module');
 
 // Hook logging and debugging
-const proxiedHooksCall = Utils.createHookProxy(Hooks.call, { 
+const proxiedHooksCall = Utils.createHookProxy(Hooks.call, {
   logLevel: 'debug',
   filter: (hookName) => hookName.startsWith('OMH.')
 });
@@ -692,7 +691,7 @@ const initializer = Utils.createInitializer(constants, manifest, logger, formatE
 const validated = Utils.validate('isString', { value: input });
 const hookName = Utils.formatHook('module', 'ready');
 ```
- 
+
 ```javascript
 import Logger from './logger.js';
 import { formatHook } from './hookFormatter.js';

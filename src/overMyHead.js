@@ -60,11 +60,17 @@ class OverMyHead {
     try {
       // Export constants to global scope via config
       config.exportConstants();
-      // Initialization logic to go here
-
-      console.log(`${this.title} v${this.version} initialized.`);
+      // Initialize context
+      this.context = this.utils.initializer.initializeContext();
+      // Initialize handlers
+      this.handlers = this.utils.initializer.initializeHandlers(this.config, this.context, this.utils);
+      // Initialize settings
+      const settingsHandler = this.handlers.settings;
+      this.utils.initializer.initializeSettings(settingsHandler, this.utils);
+      // Confirm initialization
+      this.utils.initializer.confirmInitialization(this.config, this.context, this.utils);
     } catch (error) {
-      console.error(`Error initializing ${this.title} v${this.version}: `, error);
+      console.error(`Error initializing ${this.config.manifest.title} v${this.config.manifest.version}: `, error);
       throw error;
     }
   }

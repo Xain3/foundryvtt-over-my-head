@@ -22,12 +22,16 @@ const mockFormatHook = jest.fn((hook) => hook);
 const mockContextInstance = { setFlags: jest.fn() };
 const MockContextClass = jest.fn(() => mockContextInstance);
 
-const mockRegisterSettings = jest.fn();
-const mockLocalizeSettings = jest.fn();
-const mockSettingsHandler = { 
-    registerSettings: mockRegisterSettings,
-    localizeSettings: mockLocalizeSettings
-};
+const mockRegister = jest.fn();
+class MockSettingsHandlerClass {
+    constructor(cfg, utils, context) {
+        this.cfg = cfg;
+        this.utils = utils;
+        this.context = context;
+    }
+    register() { mockRegister(); }
+}
+const mockSettingsHandlerInstance = new MockSettingsHandlerClass({}, {}, {});
 
 const MOCK_CONSTANTS = {
     hooks: {
@@ -68,7 +72,7 @@ describe('Initializer', () => {
             { foo: 'bar' }
         );
         mockContextInstance.setFlags.mockClear();
-        mockLocalizeSettings.mockClear();
+    mockRegister.mockClear();
     });
 
     describe('constructor', () => {
@@ -128,45 +132,26 @@ describe('Initializer', () => {
     });
 
     describe('_registerSettings', () => {
-        it('should call registerSettings with constants.settings', () => {
-            initializer._registerSettings({ settings: mockSettingsHandler });
-            expect(mockRegisterSettings).toHaveBeenCalledWith(MOCK_CONSTANTS.settings);
+        it('should instantiate SettingsHandler class and call register', () => {
+            initializer.context = mockContextInstance;
+            const instance = initializer._registerSettings(MockSettingsHandlerClass, {});
             expect(mockLog).toHaveBeenCalledWith('Registering settings');
+            expect(mockRegister).toHaveBeenCalledTimes(1);
             expect(mockLog).toHaveBeenCalledWith('Settings registered');
+            expect(instance).toBeInstanceOf(MockSettingsHandlerClass);
         });
 
-        it('should handle missing handlers gracefully', () => {
-            initializer._registerSettings();
-            expect(mockRegisterSettings).not.toHaveBeenCalled();
-            expect(mockLog).toHaveBeenCalledWith('Registering settings');
-            expect(mockError).toHaveBeenCalledWith('No settings handler found. Skipping registration.');
+        it('should accept SettingsHandler instance and call register', () => {
+            initializer.context = mockContextInstance;
+            const instance = initializer._registerSettings(mockSettingsHandlerInstance, {});
+            expect(mockRegister).toHaveBeenCalledTimes(1);
+            expect(instance).toBe(mockSettingsHandlerInstance);
         });
 
-        it('should handle handlers without settings property', () => {
-            initializer._registerSettings({ otherHandler: {} });
-            expect(mockRegisterSettings).not.toHaveBeenCalled();
-            expect(mockLog).toHaveBeenCalledWith('Registering settings');
-            expect(mockError).toHaveBeenCalledWith('No settings handler found. Skipping registration.');
-        });
-
-        it('should call registerSettings with provided config parameter', () => {
-            const config = { foo: 'bar' };
-            initializer._registerSettings({ settings: mockSettingsHandler }, config);
-            expect(mockRegisterSettings).toHaveBeenCalledWith(MOCK_CONSTANTS.settings);
-        });
-
-        it('should handle handlers with settings but no registerSettings method', () => {
-            initializer._registerSettings({ settings: { someOtherMethod: jest.fn() } });
-            expect(mockRegisterSettings).not.toHaveBeenCalled();
-            expect(mockLog).toHaveBeenCalledWith('Registering settings');
-            expect(mockError).toHaveBeenCalledWith('No settings handler found. Skipping registration.');
-        });
-
-        it('should handle null handlers', () => {
+        it('should handle invalid handler gracefully', () => {
             initializer._registerSettings(null);
-            expect(mockRegisterSettings).not.toHaveBeenCalled();
-            expect(mockLog).toHaveBeenCalledWith('Registering settings');
-            expect(mockError).toHaveBeenCalledWith('No settings handler found. Skipping registration.');
+            expect(mockError).toHaveBeenCalledWith('No SettingsHandler provided or invalid handler. Skipping registration.');
+            expect(mockRegister).not.toHaveBeenCalled();
         });
     });
 
@@ -182,31 +167,32 @@ describe('Initializer', () => {
             expect(Hooks.callAll).toHaveBeenCalledWith('contextReady');
         });
 
-        it('should use provided config when initializing context', async () => {
-            const config = { foo: 'baz' };
-            const promise = initializer.initializeContext(config);
+        it('should use provided initParams when initializing context', async () => {
+            const initParams = { foo: 'baz' };
+            const promise = initializer.initializeContext(initParams);
             await hooks.i18nInit();
-            expect(MockContextClass).toHaveBeenCalledWith(config);
+            expect(MockContextClass).toHaveBeenCalledWith(initParams);
         });
 
-        it('should use constants when config is null and constants available', async () => {
+        it('should use contextInitParams when null and defaults available', async () => {
             const promise = initializer.initializeContext(null);
             await hooks.i18nInit();
-            expect(MockContextClass).toHaveBeenCalledWith(MOCK_CONSTANTS);
+            expect(MockContextClass).toHaveBeenCalledWith({ foo: 'bar' });
         });
 
-        it('should throw error when config is null and no constants available', async () => {
+        it('should throw error when initParams is null and no defaults available', async () => {
             const badInitializer = new Initializer(
-                null,
+                MOCK_CONSTANTS,
                 MOCK_MANIFEST,
                 mockLogger,
                 mockFormatError,
                 mockFormatHook,
                 MockContextClass
             );
+            badInitializer.contextInitParams = undefined;
             expect(() => badInitializer.initializeContext(null)).toThrow(/Formatted:/);
             expect(mockFormatError).toHaveBeenCalledWith(
-                expect.stringContaining('No configuration provided.'),
+                expect.stringContaining('No initialization parameters provided.'),
                 expect.objectContaining({ includeCaller: true, caller: 'Initializer' })
             );
         });
@@ -219,96 +205,24 @@ describe('Initializer', () => {
 
         it('should set up init hook and call settingsReady', () => {
             initializer._registerSettings = jest.fn();
-            const handlers = { settings: mockSettingsHandler };
-            initializer.initializeSettings(handlers);
+            initializer.context = mockContextInstance;
+            initializer.initializeSettings(MockSettingsHandlerClass, {});
             expect(Hooks.once).toHaveBeenCalledWith('init', expect.any(Function));
-            expect(Hooks.once).toHaveBeenCalledWith('i18nInit', expect.any(Function));
             // Simulate init
             hooks.init();
-            expect(initializer._registerSettings).toHaveBeenCalledWith(handlers);
+            expect(initializer._registerSettings).toHaveBeenCalledWith(MockSettingsHandlerClass, {});
             expect(mockLog).toHaveBeenCalledWith('Initializing module');
             expect(mockLog).toHaveBeenCalledWith('Module initialized');
             expect(mockContextInstance.setFlags).toHaveBeenCalledWith('settingsReady', true);
             expect(Hooks.callAll).toHaveBeenCalledWith('settingsReady');
         });
 
-        it('should call _localizeSettings on i18nInit hook', () => {
-            initializer._localizeSettings = jest.fn();
-            const handlers = { settings: mockSettingsHandler };
-            initializer.initializeSettings(handlers);
-            expect(Hooks.once).toHaveBeenCalledWith('i18nInit', expect.any(Function));
-            // Simulate i18nInit
-            hooks.i18nInit();
-            expect(initializer._localizeSettings).toHaveBeenCalledWith(handlers);
-        });
-
-        it('should use provided config parameter', () => {
+        it('should warn if context not available to set flag', () => {
             initializer._registerSettings = jest.fn();
-            const config = { foo: 'baz' };
-            const handlers = { settings: mockSettingsHandler };
-            initializer.initializeSettings(handlers, config);
+            initializer.context = null;
+            initializer.initializeSettings(MockSettingsHandlerClass, {});
             hooks.init();
-            expect(initializer._registerSettings).toHaveBeenCalledWith(handlers);
-        });
-
-        it('should use constants when config is null and constants available', () => {
-            initializer._registerSettings = jest.fn();
-            const handlers = { settings: mockSettingsHandler };
-            initializer.initializeSettings(handlers, null);
-            hooks.init();
-            expect(initializer._registerSettings).toHaveBeenCalledWith(handlers);
-        });
-
-        it('should throw error when config is null and no constants available', () => {
-            const badInitializer = new Initializer(
-                null,
-                MOCK_MANIFEST,
-                mockLogger,
-                mockFormatError,
-                mockFormatHook,
-                MockContextClass
-            );
-            const handlers = { settings: mockSettingsHandler };
-            expect(() => badInitializer.initializeSettings(handlers, null)).toThrow(/Formatted:/);
-            expect(mockFormatError).toHaveBeenCalledWith(
-                expect.stringContaining('No configuration provided.'),
-                expect.objectContaining({ includeCaller: true, caller: 'Initializer' })
-            );
-        });
-    });
-
-    describe('_localizeSettings', () => {
-        it('should call localizeSettings and log success when handler exists', () => {
-            const handlers = { settings: mockSettingsHandler };
-            initializer._localizeSettings(handlers);
-            expect(mockLocalizeSettings).toHaveBeenCalledTimes(1);
-            expect(mockLog).toHaveBeenCalledWith('Settings localized');
-        });
-
-        it('should warn when handlers is null', () => {
-            initializer._localizeSettings(null);
-            expect(mockLocalizeSettings).not.toHaveBeenCalled();
-            expect(mockWarn).toHaveBeenCalledWith('No settings localization handler found');
-        });
-
-        it('should warn when handlers has no settings property', () => {
-            const handlersWithoutSettings = { otherHandler: {} };
-            initializer._localizeSettings(handlersWithoutSettings);
-            expect(mockLocalizeSettings).not.toHaveBeenCalled();
-            expect(mockWarn).toHaveBeenCalledWith('No settings localization handler found');
-        });
-
-        it('should warn when settings has no localizeSettings method', () => {
-            const handlersWithoutLocalize = { settings: { registerSettings: mockRegisterSettings } };
-            initializer._localizeSettings(handlersWithoutLocalize);
-            expect(mockLocalizeSettings).not.toHaveBeenCalled();
-            expect(mockWarn).toHaveBeenCalledWith('No settings localization handler found');
-        });
-
-        it('should handle undefined handlers gracefully', () => {
-            initializer._localizeSettings(undefined);
-            expect(mockLocalizeSettings).not.toHaveBeenCalled();
-            expect(mockWarn).toHaveBeenCalledWith('No settings localization handler found');
+            expect(mockWarn).toHaveBeenCalledWith('Context not available to set settingsReady flag during initialization.');
         });
     });
 

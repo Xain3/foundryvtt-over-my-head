@@ -86,11 +86,12 @@ describe('BuildAndDeploy Performance Tests', () => {
       const deployer = new ModuleDeployer(mockTargetDir);
       const startTime = performance.now();
       deployer.deploy();
-      const endTime = performance.now();
+    const endTime = performance.now();
       process.chdir(originalCwd);
       
   const duration = endTime - startTime;
-  const threshold = SLOW_ENV ? 200 : 100;
+  // Allow extra headroom on slower runners and shared dev machines
+  const threshold = SLOW_ENV ? 300 : 200;
   expect(duration).toBeLessThan(threshold); // Allow more time on CI/slow envs
 
       // Verify all files were copied

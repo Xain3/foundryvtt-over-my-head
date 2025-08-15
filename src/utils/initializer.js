@@ -4,6 +4,8 @@
  * @path src/utils/initializer.js
  */
 
+import Handlers from "@/handlers/handlers.js";
+
 /**
  * Class representing an Initializer.
  * This class is responsible for initializing the context and registering settings for a module.
@@ -199,6 +201,12 @@ class Initializer {
             // Additional development-specific features can be enabled here
             this.logger.log("Development features enabled.");
         }
+    }
+
+    initializeHandlers(config, utils, context) {
+        // Initialize any necessary handlers here
+        this.handlers = new Handlers(config, utils, context);
+        return this.handlers;
     }
 
     confirmInitialization(config, context, utils) {

@@ -64,7 +64,7 @@ class OverMyHead {
       // Initialize context
       this.context = this.utils.initializer.initializeContext();
       // Initialize handlers
-      this.handlers = this.utils.initializer.initializeHandlers(this.config, this.context, this.utils);
+      this.handlers = this.utils.initializer.initializeHandlers(this.config, this.utils, this.context);
       // Initialize settings
       const settingsHandler = this.handlers.settings;
       this.utils.initializer.initializeSettings(settingsHandler, this.utils);

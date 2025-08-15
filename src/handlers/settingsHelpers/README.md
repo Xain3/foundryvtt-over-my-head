@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD024 -->
 # Settings Helpers Module
 
 ## Overview
@@ -10,12 +11,14 @@ The Settings Helpers module provides a comprehensive toolkit for managing Foundr
 - **`SettingsChecker`**: Validates setting objects against required keys and nested properties
 - **`SettingsParser`**: Parses settings definitions and sets up automatic hook triggering
 - **`SettingsRegistrar`**: Registers settings with the Foundry VTT game settings system
+- **`SettingLocalizer`**: Localizes setting names, hints, and choices using Foundry's i18n
 
 ### Workflow
 1. **Validation**: `SettingsChecker` validates setting format and required fields
 2. **Parsing**: `SettingsParser` processes settings and configures hook triggers
 3. **Registration**: `SettingsRegistrar` registers settings with Foundry VTT
-andler
+4. **Localization**: `SettingLocalizer` localizes setting labels, hints, and choices
+
 ## Classes Documentation
 
 ### 1. SettingsChecker
@@ -176,6 +179,40 @@ const settings = [
 const result = registrar.register(settings);
 console.log(`Registered ${result.successCounter} out of ${result.counter} settings`);
 ```
+
+### 4. SettingLocalizer
+
+Localizes settings definitions (name, hint, choices) using Foundry VTT's i18n system.
+
+#### Features
+- Safely localizes `config.name`, `config.hint`, and `config.choices` values
+- No-ops when `game.i18n` is missing (e.g., in tests or non-Foundry environments)
+- Immutable approach: returns shallow-copied objects with localized values
+
+#### Usage
+```javascript
+import SettingLocalizer from './settingLocalizer';
+
+const settings = [
+  {
+    key: 'debugMode',
+    config: {
+      name: 'foundryvtt-over-my-head.settings.debugMode.name',
+      hint: 'foundryvtt-over-my-head.settings.debugMode.hint',
+      type: Boolean,
+      default: false
+    }
+  }
+];
+
+const localized = SettingLocalizer.localizeSettings(settings);
+```
+
+#### API
+- `SettingLocalizer.localizeSetting(setting)` → Localize a single setting
+- `SettingLocalizer.localizeSettings(settings[])` → Localize an array of settings
+
+Note: `SettingsHandler.register()` automatically localizes all settings via `SettingLocalizer.localizeSettings(settings, this.utils)` so that `utils.static.localizer` is preferred with fallback to `game.i18n`.
 
 ## Implementation Details
 

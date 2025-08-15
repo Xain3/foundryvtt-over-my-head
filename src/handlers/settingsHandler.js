@@ -7,6 +7,7 @@
 import Handler from "../baseClasses/handler.js";
 import SettingsParser from "./settingsHelpers/settingsParser.js";
 import SettingsRegistrar from "./settingsHelpers/settingsRegistrar.js";
+import SettingLocalizer from "./settingsHelpers/settingLocalizer.js";
 
 /**
  * SettingsHandler orchestrates the complete settings management workflow for Foundry VTT modules.
@@ -117,7 +118,7 @@ class SettingsHandler extends Handler {
      * @public
      */
     this.parsedSettings = this.settingsConfig.settingsList;
-    
+
     // Parse the settings to set up hooks and validation
     this.parseResult = this.parse(this.parsedSettings);
   }
@@ -171,6 +172,8 @@ class SettingsHandler extends Handler {
     return this.#parser.parse(settings);
   }
 
+  // Localization helpers moved to SettingLocalizer
+
   /**
    * Registers settings with Foundry VTT's settings system.
    *
@@ -211,7 +214,9 @@ class SettingsHandler extends Handler {
    * ```
    */
   register(settings = this.parsedSettings) {
-    return this.#registrar.register(settings);
+    // Localize settings before registering them
+  const localizedSettings = SettingLocalizer.localizeSettings(settings, this.utils); // Pass utils instead of localizer instance
+    return this.#registrar.register(localizedSettings);
   }
 }
 

@@ -188,8 +188,8 @@ settings:
   settingsList:
     - key: "useModule"
       config:
-        name: "Use Module"
-        hint: "Enable or disable the use of modules"
+        name: "foundryvtt-over-my-head.settings.useModule.name"
+        hint: "foundryvtt-over-my-head.settings.useModule.hint"
         scope: "world"
         config: true
         type: Boolean
@@ -202,8 +202,8 @@ settings:
 
     - key: "debugMode"
       config:
-        name: "Debug Mode"
-        hint: "Enable or disable debug mode"
+        name: "foundryvtt-over-my-head.settings.debugMode.name"
+        hint: "foundryvtt-over-my-head.settings.debugMode.hint"
         scope: "user"
         config: true
         type: Boolean
@@ -214,12 +214,12 @@ settings:
 
     - key: "behaviorTokens"
       config:
-        name: "Behavior"
-        hint: "Configure what tokens the module should consider to determine occlusion mode.\nDefault is to include tokens that are both active and controlled."
+        name: "foundryvtt-over-my-head.settings.behaviorTokens.name"
+        hint: "foundryvtt-over-my-head.settings.behaviorTokens.hint"
         choices: {
-          default: "Active and Controlled",
-          onlyActive: "Only Active Tokens",
-          onlyControlled: "Only Controlled Tokens"
+          default: "foundryvtt-over-my-head.settings.behaviorTokens.choices.default",
+          onlyActive: "foundryvtt-over-my-head.settings.behaviorTokens.choices.onlyActive",
+          onlyControlled: "foundryvtt-over-my-head.settings.behaviorTokens.choices.onlyControlled"
         }
         scope: "world"
         config: true
@@ -231,8 +231,8 @@ settings:
 
     - key: "behaviorParty"
       config:
-        name: "Behavior Party"
-        hint: "Configure if the module should consider party members for occlusion mode, or only the controlled tokens."
+        name: "foundryvtt-over-my-head.settings.behaviorParty.name"
+        hint: "foundryvtt-over-my-head.settings.behaviorParty.hint"
         scope: "world"
         config: true
         type: Boolean
@@ -243,12 +243,12 @@ settings:
 
     - key: "behaviorGM"
       config:
-        name: "Behavior GM"
-        hint: "Configure if the module should be active for the GM as well"
+        name: "foundryvtt-over-my-head.settings.behaviorGM.name"
+        hint: "foundryvtt-over-my-head.settings.behaviorGM.hint"
         choices: {
-          default: "Active, Only Active Tokens",
-          onlyNPCs: "Active, only NPCs",
-          inactive: "Inactive"
+          default: "foundryvtt-over-my-head.settings.behaviorGM.choices.default",
+          onlyNPCs: "foundryvtt-over-my-head.settings.behaviorGM.choices.onlyNPCs",
+          inactive: "foundryvtt-over-my-head.settings.behaviorGM.choices.inactive"
         }
         scope: "world"
         config: true

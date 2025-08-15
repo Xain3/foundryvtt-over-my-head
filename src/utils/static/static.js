@@ -69,6 +69,14 @@ class StaticUtils {
   static Localizer = Localizer;
 
   /**
+   * Alias to the Localizer class for convenience access.
+   * Allows using `utils.static.localizer` in addition to `utils.static.Localizer`.
+   * @static
+   * @type {typeof Localizer}
+   */
+  static localizer = Localizer;
+
+  /**
    * Static reference to the HooksLogger class for hook logging and debugging operations.
    * @static
    * @type {typeof HooksLogger}

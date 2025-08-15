@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD022 MD026 MD032 MD024 MD031 MD040 -->
 # Static Utilities
 
 This folder contains static utility classes that provide common functionality for data validation, object manipulation, and other utility operations. All utilities are designed to be stateless and can be used throughout the application without instantiation (except where noted).
@@ -46,6 +47,8 @@ StaticUtils.unpack(data, instance);
 const module = StaticUtils.getModuleObject('my-module-id');
 StaticUtils.writeToModuleObject('my-module', 'customData', { setting: true });
 const data = StaticUtils.readFromModuleObject('my-module', 'customData');
+// Read a setting directly via StaticUtils (proxy to GameManager)
+const debugMode = StaticUtils.getSetting('foundryvtt-over-my-head', 'debugMode');
 
 // Error formatting
 try {
@@ -61,6 +64,8 @@ const greeting = StaticUtils.formatLocalized('MYMODULE.greeting', { name: 'Playe
 if (StaticUtils.hasLocalization('MYMODULE.optionalText')) {
   const optionalText = StaticUtils.localize('MYMODULE.optionalText');
 }
+// Localizer alias is available at StaticUtils.localizer (class reference)
+const fromAlias = StaticUtils.localizer.localize('MYMODULE.title');
 
 // Get available utilities info
 const info = StaticUtils.getUtilityInfo();
@@ -120,6 +125,7 @@ const staticText = Localizer.localize('MYMODULE.greeting');
 - `formatLocalized(stringId, data, i18nInstance)` - Localized string formatting with variables
 - `hasLocalization(stringId, i18nInstance)` - Check if localization key exists
 - `getModuleObject(moduleIdentifier)` - Get module object
+- `getSetting(moduleId, key)` - Read a module setting value
 - `writeToModuleObject(moduleIdentifier, key, value)` - Write to module object
 - `readFromModuleObject(moduleIdentifier, key)` - Read from module object
 - `getAvailableValidationTypes()` - Get list of validation types

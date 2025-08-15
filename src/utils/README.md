@@ -11,6 +11,8 @@ The utils are organized into functional categories:
 - **General Utilities**: [`Utils`](#utils-class)
 - **Static Utilities**: [`static/`](#static-utilities)
 
+Note: Static utilities now expose a convenience alias `localizer` for the Localizer class at `Utils.static.localizer`.
+
 ## 📁 Folder Structure
 
 ```text
@@ -98,6 +100,8 @@ const contextHook = formatHook('context', 'updated', 'player');
 
 // Static utilities
 const validated = StaticUtils.validate('isObject', { value: config });
+// Localizer alias (class) is also available via StaticUtils
+const textFromAlias = StaticUtils.localizer.localize('MYMODULE.title');
 ```
 
 ## Core Utilities
@@ -364,7 +368,7 @@ Central entry point providing unified access to all utility functionality, inclu
 - **Unified Interface**: Single import point for all utility functionality
 - **Factory Methods**: Convenient methods for creating utility instances
 - **Static Proxy**: Direct access to static utility methods
-const proxiedHooksCall = Utils.createHookProxy(Hooks.call, { 
+const proxiedHooksCall = Utils.createHookProxy(Hooks.call, {
 
 #### Public API
 
@@ -694,10 +698,13 @@ const initializer = Utils.createInitializer(constants, manifest, logger, formatE
 const validated = Utils.validate('isString', { value: input });
 const hookName = Utils.formatHook('module', 'ready');
 ```
+ 
+```javascript
 import Logger from './logger.js';
 import { formatHook } from './hookFormatter.js';
 import StaticUtils from './static/static.js';
 ```
+
 
 ### Performance Considerations
 

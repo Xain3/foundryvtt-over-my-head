@@ -22,8 +22,8 @@ class Handlers extends Handler {
      * Create a Handlers instance.
      *
      * @param {Object} config - Module configuration object.
-     * @param {Object} context - Execution context object.
      * @param {Object} utils - Utilities facade providing logging and error formatting.
+     * @param {Object} context - Execution context object.
      * @throws {Error} If any required parameter is missing or invalid.
      */
     constructor(config, utils, context) {
@@ -34,7 +34,7 @@ class Handlers extends Handler {
          * @type {SettingsHandler}
          * @public
          */
-        this.settings = new SettingsHandler(this.config, this.context, this.utils);
+        this.settings = new SettingsHandler(this.config, this.utils, this.context);
     }
 
     /**

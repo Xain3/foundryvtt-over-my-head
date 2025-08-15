@@ -59,7 +59,9 @@ describe('StaticUtils', () => {
     });
 
     it('should handle non-Error objects', () => {
-      expect(() => StaticUtils.formatError('not an error')).toThrow();
+  const result = StaticUtils.formatError('not an error');
+  expect(typeof result).toBe('string');
+  expect(result).toContain('not an error');
     });
   });
 

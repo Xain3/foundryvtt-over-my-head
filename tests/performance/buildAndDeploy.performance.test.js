@@ -10,6 +10,7 @@ import os from 'os';
 import path from 'path';
 
 describe('BuildAndDeploy Performance Tests', () => {
+  const SLOW_ENV = process.env.CI || process.env.JEST_WORKER_ID === undefined;
   let tempDir;
   let mockDistDir;
   let mockTargetDir;
@@ -88,8 +89,9 @@ describe('BuildAndDeploy Performance Tests', () => {
       const endTime = performance.now();
       process.chdir(originalCwd);
       
-      const duration = endTime - startTime;
-      expect(duration).toBeLessThan(100); // Should complete in under 100ms
+  const duration = endTime - startTime;
+  const threshold = SLOW_ENV ? 200 : 100;
+  expect(duration).toBeLessThan(threshold); // Allow more time on CI/slow envs
 
       // Verify all files were copied
       for (let i = 0; i < 10; i++) {

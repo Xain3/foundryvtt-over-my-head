@@ -216,7 +216,14 @@ class Initializer {
         } else {
             utils.logger.warn('Context not available to set ready flag during initialization.');
         }
-        Hooks.callAll(this.formatHook(this.constants.hooks.ready));
+            const readyLike = this.constants.hooks?.ready
+                || this.constants.hooks?.settingsReady
+                || this.constants.hooks?.contextReady;
+            if (readyLike) {
+                Hooks.callAll(this.formatHook(readyLike));
+            } else {
+                utils.logger.warn('No ready-like hook defined in constants; skipping final hook call.');
+            }
     }
 }
 

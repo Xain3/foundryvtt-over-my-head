@@ -111,7 +111,7 @@ class ErrorFormatter {
 
   /**
    * Formats an error message with module context and optional stack trace
-   * @param {Error} error - The error object to format
+  * @param {Error|string} error - The error object to format, or a string message coerced to an Error
    * @param {Object} options - Formatting options
    * @param {boolean} [options.includeStack=false] - Whether to include stack trace
    * @param {boolean} [options.includeCaller=false] - Whether to include caller information
@@ -125,6 +125,9 @@ class ErrorFormatter {
       includeCaller = false,
       caller = '',
     }) {
+      if (typeof error === 'string') {
+        error = new Error(error);
+      }
       validateArgs(error, includeStack);
 
       const errorContext = buildErrorContext(error, includeStack, includeCaller, caller);
@@ -135,7 +138,7 @@ class ErrorFormatter {
 /**
  * Formats an error message with module context and optional stack trace
  * @export
- * @param {Error} error - The error object to format
+ * @param {Error|string} error - The error object to format, or a string message coerced to an Error
  * @param {Object} options - Formatting options
  * @returns {string} The formatted error message
  */

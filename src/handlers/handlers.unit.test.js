@@ -1,6 +1,7 @@
 import Handlers from './handlers.js';
 
 import Handler from '../baseClasses/handler.js';
+import SettingsHandler from './settingsHandler.js';
 
 describe('Handlers', () => {
   const fakeConfig = {
@@ -46,5 +47,10 @@ describe('Handlers', () => {
     expect(() => new Handlers(null, fakeUtils, fakeContext)).toThrow();
     expect(() => new Handlers(fakeConfig, null, fakeContext)).toThrow();
     expect(() => new Handlers(fakeConfig, fakeUtils, null)).toThrow();
+  });
+
+  it('should create a settings handler instance', () => {
+    const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+    expect(handlers.settings).toBeInstanceOf(SettingsHandler);
   });
 });

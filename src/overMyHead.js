@@ -61,15 +61,17 @@ class OverMyHead {
     try {
       // Export constants to global scope via config
       config.exportConstants();
-      // Initialize context
-      this.context = this.utils.initializer.initializeContext();
-      // Initialize handlers
-      this.handlers = this.utils.initializer.initializeHandlers(this.config, this.utils, this.context);
-      // Initialize settings
+      Hooks.once('i18nInit',  () => {
+        // Initialize context
+        this.context = this.utils.initializer.initializeContext();
+        // Initialize handlers
+        this.handlers = this.utils.initializer.initializeHandlers(this.config, this.utils, this.context);
+        // Initialize settings
       const settingsHandler = this.handlers.settings;
       this.utils.initializer.initializeSettings(settingsHandler, this.utils);
       // Confirm initialization
       this.utils.initializer.confirmInitialization(this.config, this.context, this.utils);
+      });
     } catch (error) {
   const manifestForLog = (this.config && this.config.manifest) || this.manifest || { title: 'Over My Head', version: 'unknown' };
   console.error(`Error initializing ${manifestForLog.title} v${manifestForLog.version}: `, error);

@@ -66,8 +66,8 @@ const utils = new Utilities(constants, manifest);
 // Hook name formatting via Utilities facade
 const hookName = utils.formatHookName('ready'); // e.g., 'OMH.ready'
 
-// Initialize context objects via initializer shortcut
-await utils.initializeContext({ constants, manifest, logger: utils.logger, formatError: utils.formatError });
+// Initialize context objects via initializer shortcut (immediate)
+utils.initializeContext({ constants, manifest, logger: utils.logger, formatError: utils.formatError });
 
 // Convenience logging methods
 utils.log('Info message');
@@ -86,22 +86,8 @@ import StaticUtils from '@/utils/static/static.js';
 
 // Module initialization
 const initializer = new Initializer(constants, manifest, logger, formatError, formatHook);
-await initializer.initializeContext({ /* your Context params */ });
-await initializer.initializeSettings(SettingsHandler);
-
-// Logging
-const logger = new Logger(constants, manifest, formatError);
-logger.log('Module started');
-logger.debug('Debug information');
-
-// Hook formatting
-const hookName = formatHook('myModule', 'ready');
-const contextHook = formatHook('context', 'updated', 'player');
-
-// Static utilities
-const validated = StaticUtils.validate('isObject', { value: config });
-// Localizer alias (class) is also available via StaticUtils
-const textFromAlias = StaticUtils.localizer.localize('MYMODULE.title');
+// Initialize immediately
+initializer.initializeContext({ /* your Context params */ });
 ```
 
 ## Core Utilities
@@ -121,14 +107,14 @@ Orchestrates the complete module initialization workflow, including context setu
 - **Hook Integration**: Properly integrates with Foundry VTT's hook system
 - **Development Features**: Enables development-specific features like hook logging
 - **Error Handling**: Comprehensive error handling with logging
-- **i18n Support**: Defers localization until i18n system is ready
+- **i18n Support**: Can defer until i18n system is ready using `waitHook`
 
 #### Initializer Public API
 
 ```javascript
 // Core initialization methods
-initializeContext(initParams)
-initializeSettings(SettingsHandlerOrInstance, utils?)
+initializeContext(initParams?, waitHook=false)
+initializeSettings(SettingsHandlerOrInstance, utils?, waitHook=false)
 initializeDevFeatures(utils, filter)
 
 // Internal/testing helpers
@@ -153,60 +139,44 @@ const initializer = new Initializer(
   formatHook
 );
 
-// Initialize context (typically in 'i18nInit' hook)
-// Pass your Context constructor params object (as your Context expects)
+// Initialize context immediately
 const contextInitParams = { /* your Context params */ };
-await initializer.initializeContext(contextInitParams);
+initializer.initializeContext(contextInitParams);
 
-// Initialize settings (on 'i18nInit') with SettingsHandler class or instance
-await initializer.initializeSettings(SettingsHandler);
+// Defer initialization until i18nInit
+initializer.initializeContext(contextInitParams, true);
 
-// Access initialized context
-console.log(initializer.context); // Initialized context instance
+// Initialize settings immediately with SettingsHandler class or instance
+initializer.initializeSettings(SettingsHandler);
+
+// Defer settings registration until i18nInit
+initializer.initializeSettings(SettingsHandler, undefined, true);
+
+// Access initialized context (after immediate init, or after i18nInit fires)
+console.log(initializer.context);
 ```
 
 #### Workflow Integration
 
 ```javascript
-// Typical Foundry VTT hook integration
-Hooks.once('i18nInit', async () => {
-  await initializer.initializeContext(contextInitParams);
+// Defer context init until i18n is ready
+Hooks.once('i18nInit', () => {
+  initializer.initializeContext(contextInitParams, true);
 });
 
-Hooks.once('init', async () => {
-  await initializer.initializeSettings(SettingsHandler);
-});
+Hooks.once('init', () => {
+  logger.log('Initializing settings...');
 
-Hooks.once('ready', () => {
-  // Initialize development features if manifest flagged for dev
-  initializer.initializeDevFeatures(utils, true); // true = apply module filter
-  logger.log(`${manifest.title} v${manifest.version} is ready!`);
-  logger.debug('Context:', initializer.context);
-});
-```
+  try {
+    // Initialize settings with localization (defer until i18nInit)
+    initializer.initializeSettings(SettingsHandler, undefined, true);
 
-#### Development Features Example
-
-```javascript
-// Enable development-specific features (hook logging, debug utilities, etc.)
-// This only activates if manifest.flags.dev === true
-
-// Without module filter
-initializer.initializeDevFeatures(utils);
-
-// With module filter (logs only hooks starting with module shortName)
-initializer.initializeDevFeatures(utils, true);
-
-// Example manifest.json setup for development
-{
-  "flags": {
-    "dev": true  // Enables development features
+    logger.log('Settings initialized successfully');
+  } catch (error) {
+    logger.error(`Settings initialization failed: ${Utils.formatError(error)}`);
+    throw error;
   }
-}
-
-// Example constants.yaml for module filtering
-moduleManagement:
-  shortName: "OMH"  # Used as filter prefix when filter=true
+});
 ```
 
 ### Logger
@@ -477,13 +447,13 @@ const initializer = Utils.createInitializer(
 );
 
 // Foundry VTT hook integration
-Hooks.once('i18nInit', async () => {
+Hooks.once('i18nInit', () => {
   logger.log('Initializing module...');
 
   try {
     // Initialize context
   const contextParams = { /* your Context params */ };
-  await initializer.initializeContext(contextParams);
+  initializer.initializeContext(contextParams, true);
 
     logger.log('Context initialized successfully');
   } catch (error) {
@@ -492,12 +462,12 @@ Hooks.once('i18nInit', async () => {
   }
 });
 
-Hooks.once('init', async () => {
+Hooks.once('init', () => {
   logger.log('Initializing settings...');
 
   try {
-    // Initialize settings with localization
-    await initializer.initializeSettings(SettingsHandler);
+  // Initialize settings with localization (defer until i18nInit)
+  initializer.initializeSettings(SettingsHandler, undefined, true);
 
     logger.log('Settings initialized successfully');
   } catch (error) {
@@ -564,14 +534,9 @@ async function performOperation(operationName, operation) {
   }
 }
 
-// Usage
-await performOperation('Context Initialization', () =>
-  initializer.initializeContext(contextParams)
-);
-
-await performOperation('Settings Registration', () =>
-  initializer.initializeSettings(SettingsHandler)
-);
+// Usage (immediate)
+initializer.initializeContext(contextParams);
+initializer.initializeSettings(SettingsHandler);
 ```
 
 ### Validation and Data Processing

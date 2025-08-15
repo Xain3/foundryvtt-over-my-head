@@ -134,44 +134,72 @@ class Initializer {
     }
 
     /**
-     * Initializes the context with the provided initialization parameters.
-     * Sets up a hook to initialize the context once i18n is ready.
-     *
-     * @param {Object|null} [initParams=null] - The initialization parameters for the context. If null, uses instance defaults
-     * @returns {Promise<Object>} A promise that resolves to the initialized context object
-     * @fires contextReady - Fired when context initialization is complete
+    * Initializes the context with the provided initialization parameters.
+    * When `waitHook` is false (default), the context is created immediately and
+    * the ready hook is fired synchronously. When `waitHook` is true, defers
+    * initialization until the Foundry `i18nInit` hook fires.
+    *
+    * @param {Object|null} [initParams=null] - Parameters for the Context constructor. If null/undefined, uses the instance defaults when available; otherwise lets the Context use its own defaults.
+    * @param {boolean} [waitHook=false] - Whether to defer initialization until `i18nInit`.
+    * @returns {Object|undefined} Returns the initialized context when `waitHook` is false; returns undefined when deferring.
+    * @fires contextReady - Fired when context initialization is complete
      */
-    initializeContext(initParams = null) {
+    initializeContext(initParams = null, waitHook = false) {
         initParams = this.#ensureInitParams(initParams);
-        return new Promise((resolve) => {
+        if (!waitHook) {
+            this.readyContext(initParams);
+        } else {
             Hooks.once('i18nInit', async () => {
-                this.context = this._initializeContextObject(initParams);
-                Hooks.callAll(this.formatHook(this.constants.hooks.contextReady));
-                resolve(this.context);
+                this.readyContext(initParams);
             });
-        });
+        }
+        return this.context;
     }
 
     /**
-     * Initializes the module settings.
-     * This method sets up the necessary hooks and initializes settings once the 'i18nInit' hook fires.
-     *
-     * @param {Function|Object} handlerOrClass - SettingsHandler class (constructor) or instance with `register()`
-     * @param {Object} [utils] - Optional utilities object passed to SettingsHandler constructor
-     * @fires settingsReady - Fired when settings registration is complete
+    * Finalizes context initialization and emits the ready hook.
+    *
+    * @param {Object|undefined} initParams - Parameters to pass to the Context constructor
+    * @returns {Object} The initialized context object
+    * @fires contextReady
+    */
+    readyContext(initParams) {
+        this.context = this._initializeContextObject(initParams);
+        Hooks.callAll(this.formatHook(this.constants.hooks.contextReady));
+        return this.context;
+    }
+
+    /**
+    * Initializes the module settings via the provided SettingsHandler.
+    * When `waitHook` is false (default), registers settings immediately and fires
+    * the settings-ready hook. When `waitHook` is true, defers registration until
+    * the Foundry `i18nInit` hook fires.
+    *
+    * @param {Function|Object} handlerOrClass - SettingsHandler class (constructor) or instance with `register()`
+    * @param {Object} [utils] - Optional utilities object passed to SettingsHandler constructor
+    * @param {boolean} [waitHook=false] - Whether to defer registration until `i18nInit`.
+    * @fires settingsReady - Fired when settings registration is complete
      */
-    initializeSettings(handlerOrClass, utils = undefined) {
+    initializeSettings(handlerOrClass, utils = undefined, waitHook = false) {
         this.logger.log('Initializing module');
-        Hooks.once('i18nInit', () => {
-            this._registerSettings(handlerOrClass, utils);
-            this.logger.log('Module initialized');
-            if (this.context && typeof this.context.setFlags === 'function') {
-                this.context.setFlags('settingsReady', true);
-            } else {
-                this.logger.warn('Context not available to set settingsReady flag during initialization.');
-            }
-            Hooks.callAll(this.formatHook(this.constants.hooks.settingsReady));
-        });
+        if (waitHook) {
+            Hooks.once('i18nInit', () => {
+                this.invokeSettingsInitialization(handlerOrClass, utils);
+            });
+        } else {
+            this.invokeSettingsInitialization(handlerOrClass, utils);
+        }
+    }
+
+    invokeSettingsInitialization(handlerOrClass, utils) {
+        this._registerSettings(handlerOrClass, utils);
+        this.logger.log('Module initialized');
+        if (this.context && typeof this.context.setFlags === 'function') {
+            this.context.setFlags('settingsReady', true);
+        } else {
+            this.logger.warn('Context not available to set settingsReady flag during initialization.');
+        }
+        Hooks.callAll(this.formatHook(this.constants.hooks.settingsReady));
     }
 
     /**

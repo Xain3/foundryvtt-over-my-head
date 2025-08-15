@@ -156,31 +156,37 @@ describe('Initializer', () => {
     });
 
     describe('initializeContext', () => {
-        it('should resolve with context after i18nInit hook', async () => {
-            const promise = initializer.initializeContext();
+        it('initializes context immediately when waitHook=false (default)', () => {
+            const ctx = initializer.initializeContext();
+            expect(Hooks.once).not.toHaveBeenCalledWith('i18nInit', expect.any(Function));
+            expect(initializer.context).toBe(mockContextInstance);
+            expect(ctx).toBe(mockContextInstance);
+            expect(Hooks.callAll).toHaveBeenCalledWith('contextReady');
+        });
+
+        it('defers initialization until i18nInit when waitHook=true', () => {
+            const ctxBefore = initializer.initializeContext(undefined, true);
+            expect(ctxBefore).toBeUndefined();
             expect(Hooks.once).toHaveBeenCalledWith('i18nInit', expect.any(Function));
             // Simulate i18nInit
-            await hooks.i18nInit();
-            const ctx = await promise;
-            expect(ctx).toBe(mockContextInstance);
+            hooks.i18nInit();
             expect(initializer.context).toBe(mockContextInstance);
             expect(Hooks.callAll).toHaveBeenCalledWith('contextReady');
         });
 
-        it('should use provided initParams when initializing context', async () => {
+        it('uses provided initParams when initializing context (immediate)', () => {
             const initParams = { foo: 'baz' };
-            const promise = initializer.initializeContext(initParams);
-            await hooks.i18nInit();
+            initializer.initializeContext(initParams);
             expect(MockContextClass).toHaveBeenCalledWith(initParams);
         });
 
-        it('should use contextInitParams when null and defaults available', async () => {
-            const promise = initializer.initializeContext(null);
-            await hooks.i18nInit();
+        it('uses contextInitParams when null and defaults available (deferred)', () => {
+            initializer.initializeContext(null, true);
+            hooks.i18nInit();
             expect(MockContextClass).toHaveBeenCalledWith({ foo: 'bar' });
         });
 
-        it('should allow null initParams when no defaults available and let Context use its defaults', async () => {
+        it('allows undefined params when no defaults available so Context uses its defaults (deferred)', () => {
             const badInitializer = new Initializer(
                 MOCK_CONSTANTS,
                 MOCK_MANIFEST,
@@ -189,16 +195,12 @@ describe('Initializer', () => {
                 mockFormatHook,
                 MockContextClass
             );
-            // Ensure there are no defaults
             badInitializer.contextInitParams = undefined;
-            const promise = badInitializer.initializeContext(null);
-            // Simulate i18nInit
-            await hooks.i18nInit();
-            const ctx = await promise;
-            // Context should be constructed with undefined so it can use its own defaults
+            const ctxBefore = badInitializer.initializeContext(null, true);
+            expect(ctxBefore).toBeUndefined();
+            hooks.i18nInit();
             expect(MockContextClass).toHaveBeenCalledWith(undefined);
-            expect(ctx).toBe(mockContextInstance);
-            // Should not have formatted an error
+            expect(badInitializer.context).toBe(mockContextInstance);
             expect(mockFormatError).not.toHaveBeenCalled();
         });
     });
@@ -208,13 +210,10 @@ describe('Initializer', () => {
             initializer.context = mockContextInstance;
         });
 
-        it('should set up init hook and call settingsReady', () => {
+        it('registers immediately when waitHook=false (default)', () => {
             initializer._registerSettings = jest.fn();
-            initializer.context = mockContextInstance;
             initializer.initializeSettings(MockSettingsHandlerClass, {});
-            expect(Hooks.once).toHaveBeenCalledWith('i18nInit', expect.any(Function));
-            // Simulate init
-            hooks.i18nInit();
+            expect(Hooks.once).not.toHaveBeenCalledWith('i18nInit', expect.any(Function));
             expect(initializer._registerSettings).toHaveBeenCalledWith(MockSettingsHandlerClass, {});
             expect(mockLog).toHaveBeenCalledWith('Initializing module');
             expect(mockLog).toHaveBeenCalledWith('Module initialized');
@@ -222,11 +221,22 @@ describe('Initializer', () => {
             expect(Hooks.callAll).toHaveBeenCalledWith('settingsReady');
         });
 
-        it('should warn if context not available to set flag', () => {
+        it('defers registration until i18nInit when waitHook=true', () => {
+            initializer._registerSettings = jest.fn();
+            initializer.initializeSettings(MockSettingsHandlerClass, {}, true);
+            expect(Hooks.once).toHaveBeenCalledWith('i18nInit', expect.any(Function));
+            // Simulate i18nInit
+            hooks.i18nInit();
+            expect(initializer._registerSettings).toHaveBeenCalledWith(MockSettingsHandlerClass, {});
+            expect(mockLog).toHaveBeenCalledWith('Module initialized');
+            expect(mockContextInstance.setFlags).toHaveBeenCalledWith('settingsReady', true);
+            expect(Hooks.callAll).toHaveBeenCalledWith('settingsReady');
+        });
+
+        it('warns if context not available to set flag (immediate)', () => {
             initializer._registerSettings = jest.fn();
             initializer.context = null;
             initializer.initializeSettings(MockSettingsHandlerClass, {});
-            hooks.i18nInit();
             expect(mockWarn).toHaveBeenCalledWith('Context not available to set settingsReady flag during initialization.');
         });
     });

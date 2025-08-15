@@ -225,7 +225,7 @@ class Utils {
    * const initializer = Utils.createInitializer(
    *   constants, manifest, logger, formatError, formatHook
    * );
-  * await initializer.initializeContext(contextParams);
+   * initializer.initializeContext(contextParams);
    */
   static createInitializer(constants, manifest, logger, formatError, formatHook) {
     return new Initializer(constants, manifest, logger, formatError, formatHook, Context);

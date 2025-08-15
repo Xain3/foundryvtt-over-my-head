@@ -257,7 +257,7 @@ describe('Context Performance Tests', () => {
       const totalTime = endTime - startTime;
 
       console.log(`Bulk operations (${iterations * 2} ops) - Total: ${totalTime.toFixed(3)}ms, Average: ${(totalTime / (iterations * 2)).toFixed(3)}ms per op`);
-      
+
       // Note: Bulk operations can vary significantly due to GC pressure and system factors
       // This threshold allows for reasonable variance while catching major performance regressions
       expect(totalTime).toBeLessThan(PERFORMANCE_THRESHOLDS.bulkOperations);
@@ -508,8 +508,8 @@ describe('Context Performance Tests', () => {
       sizeTests.forEach(size => {
         // Populate context with items
         for (let i = 0; i < size; i++) {
-          context.setItem(`data.scale.item${i}`, { 
-            id: i, 
+          context.setItem(`data.scale.item${i}`, {
+            id: i,
             content: `content_${i}`,
             info: { created: Date.now() }
           });

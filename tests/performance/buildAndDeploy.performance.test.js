@@ -88,7 +88,7 @@ describe('BuildAndDeploy Performance Tests', () => {
       deployer.deploy();
     const endTime = performance.now();
       process.chdir(originalCwd);
-      
+
   const duration = endTime - startTime;
   // Allow extra headroom on slower runners and shared dev machines
   const threshold = SLOW_ENV ? 300 : 200;
@@ -124,7 +124,7 @@ describe('BuildAndDeploy Performance Tests', () => {
       deployer.deploy();
       const endTime = performance.now();
       process.chdir(originalCwd);
-      
+
       const duration = endTime - startTime;
       expect(duration).toBeLessThan(1000); // Should complete in under 1 second
 
@@ -153,7 +153,7 @@ describe('BuildAndDeploy Performance Tests', () => {
       deployer.deploy();
       const endTime = performance.now();
       process.chdir(originalCwd);
-      
+
       const duration = endTime - startTime;
       expect(duration).toBeLessThan(5000); // Should complete in under 5 seconds
 
@@ -168,17 +168,17 @@ describe('BuildAndDeploy Performance Tests', () => {
       const { UserDataDirFinder } = await import('../../scripts/dev/buildAndDeploy.js');
 
       const finder = new UserDataDirFinder('linux', 'testuser');
-      
+
       const startTime = performance.now();
-      
+
       // Run multiple times to test consistency
       for (let i = 0; i < 10; i++) {
         finder.find();
       }
-      
+
       const endTime = performance.now();
       const avgDuration = (endTime - startTime) / 10;
-      
+
       expect(avgDuration).toBeLessThan(10); // Should average under 10ms per call
     });
 
@@ -234,7 +234,7 @@ describe('BuildAndDeploy Performance Tests', () => {
         const deployer = new ModuleDeployer(mockTargetDir);
         deployer.deploy();
         process.chdir(originalCwd);
-        
+
         // Clear target directory for next iteration
         for (let j = 0; j < 10; j++) {
           const targetFile = path.join(mockTargetDir, 'dist', `test${j}.js`);

@@ -55,9 +55,9 @@ class Initializer {
     }
 
     /**
-     * Validates and returns the provided configuration.
-     * If the provided configuration is null, it uses the instance's configuration.
-     * Throws an error if no configuration is provided.
+     * Validates and returns the provided initialization parameters.
+     * If the provided parameters are null, it uses the instance's default parameters.
+     * Throws an error if no parameters are provided and no defaults exist.
      *
      * @private
      * @param {Object|null} initParams - The initialization parameters to validate
@@ -132,7 +132,7 @@ class Initializer {
     }
 
     /**
-     * Initializes the context with the provided configuration.
+     * Initializes the context with the provided initialization parameters.
      * Sets up a hook to initialize the context once i18n is ready.
      *
      * @param {Object|null} [initParams=null] - The initialization parameters for the context. If null, uses instance defaults

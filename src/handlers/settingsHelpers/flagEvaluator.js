@@ -8,8 +8,10 @@
  * FlagEvaluator class for evaluating conditional flags to control setting visibility
  * Supports multiple context resolution based on path prefixes:
  * - 'manifest.*' -> config.manifest (module manifest data)
+ * - 'constants.*' -> config.manifest (same as manifest, for backward compatibility)
  * - 'game.*' -> globalThis.game (Foundry game object)
  * - 'user.*' -> globalThis.game.user (current user object)
+ * - 'world.*' -> globalThis.game.world (Foundry world object)
  * - 'config.*' -> config (module config object)
  * - other paths -> config (backward compatibility)
  * @export
@@ -44,10 +46,20 @@ class FlagEvaluator {
           context: globalThis.game?.user || null,
           adjustedPath: parts.slice(1).join('.') || firstPart  // Remove 'user.' prefix
         };
+      case 'world':
+        return {
+          context: globalThis.game?.world || null,
+          adjustedPath: parts.slice(1).join('.') || firstPart  // Remove 'world.' prefix
+        };
       case 'manifest':
         return {
           context: config || null,
           adjustedPath: path  // Keep full path for backward compatibility
+        };
+      case 'constants':
+        return {
+          context: config || null,
+          adjustedPath: `manifest.${parts.slice(1).join('.')}`  // Map constants.* to manifest.*
         };
       case 'config':
         return {

@@ -453,6 +453,11 @@ describe('FlagEvaluator', () => {
             name: 'testuser'
           },
           version: '10.0.0',
+          world: {
+            id: 'test-world',
+            title: 'Test World',
+            system: 'dnd5e'
+          },
           settings: {
             get: () => 'test'
           }
@@ -473,6 +478,20 @@ describe('FlagEvaluator', () => {
         expect(FlagEvaluator.evaluate('user.isGM', testContext)).toBe(false);
         expect(FlagEvaluator.evaluate('user.name', testContext)).toBe(true);
         expect(FlagEvaluator.evaluate('user.nonexistent', testContext)).toBe(false);
+      });
+
+      it('should resolve world.* paths to globalThis.game.world', () => {
+        expect(FlagEvaluator.evaluate('world.id', testContext)).toBe(true);
+        expect(FlagEvaluator.evaluate('world.title', testContext)).toBe(true);
+        expect(FlagEvaluator.evaluate('world.system', testContext)).toBe(true);
+        expect(FlagEvaluator.evaluate('world.nonexistent', testContext)).toBe(false);
+      });
+
+      it('should resolve constants.* paths to config.manifest (same as manifest.*)', () => {
+        expect(FlagEvaluator.evaluate('constants.debugMode', testContext)).toBe(true);
+        expect(FlagEvaluator.evaluate('constants.dev', testContext)).toBe(false);
+        expect(FlagEvaluator.evaluate('constants.id', testContext)).toBe(true);
+        expect(FlagEvaluator.evaluate('constants.nonexistent', testContext)).toBe(false);
       });
 
       it('should handle mixed contexts in OR conditions', () => {
@@ -508,6 +527,18 @@ describe('FlagEvaluator', () => {
         expect(FlagEvaluator.evaluate(flag2, testContext)).toBe(true);
       });
 
+      it('should handle mixed contexts including constants and world', () => {
+        const flag = {
+          or: ['constants.debugMode', 'world.id', 'user.isGM'] // true, true, false
+        };
+        expect(FlagEvaluator.evaluate(flag, testContext)).toBe(true);
+
+        const flag2 = {
+          and: ['world.system', 'constants.dev'] // true, false
+        };
+        expect(FlagEvaluator.evaluate(flag2, testContext)).toBe(false);
+      });
+
       it('should gracefully handle missing globalThis.game', () => {
         globalThis.game = null;
         expect(FlagEvaluator.evaluate('user.isAdmin', testContext)).toBe(false);
@@ -518,6 +549,13 @@ describe('FlagEvaluator', () => {
         globalThis.game = { version: '10.0.0' }; // no user property
         expect(FlagEvaluator.evaluate('user.isAdmin', testContext)).toBe(false);
         expect(FlagEvaluator.evaluate('game.version', testContext)).toBe(true);
+      });
+
+      it('should gracefully handle missing globalThis.game.world', () => {
+        globalThis.game = { version: '10.0.0', user: { isAdmin: true } }; // no world property
+        expect(FlagEvaluator.evaluate('world.id', testContext)).toBe(false);
+        expect(FlagEvaluator.evaluate('game.version', testContext)).toBe(true);
+        expect(FlagEvaluator.evaluate('user.isAdmin', testContext)).toBe(true);
       });
 
       it('should work in shouldShow with mixed contexts', () => {

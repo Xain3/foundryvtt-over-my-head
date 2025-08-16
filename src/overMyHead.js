@@ -36,13 +36,47 @@ class OverMyHead {
   }
 
   /**
+   * Private post-localization initialization routine.
+   *
+   * This method performs the final initialization steps that must occur after localization:
+   * - Initializes and assigns the execution context to this.context.
+   * - Initializes and assigns the handlers collection to this.handlers.
+   * - Initializes module settings via the settings handler.
+   * - Confirms that initialization completed successfully.
+   *
+   * All work is delegated to this.utils.initializer and may reference this.config and this.utils.
+   * Any error raised by the initializer is logged to the console and rethrown so that callers can
+   * take appropriate action.
+   *
+   * @private
+   * @returns {void}
+   * @throws {Error} If any initialization step fails.
+   */
+  #postLocalizationInit() {
+    try {
+      // Initialize context
+      this.context = this.utils.initializer.initializeContext();
+      // Initialize handlers
+      this.handlers = this.utils.initializer.initializeHandlers(this.config, this.utils, this.context);
+      // Initialize settings
+      const settingsHandler = this.handlers.settings;
+      this.utils.initializer.initializeSettings(settingsHandler, this.utils);
+      // Confirm initialization
+      this.utils.initializer.confirmInitialization(this.config, this.context, this.utils);
+    } catch (error) {
+      console.error(`Error during post-localization initialization: `, error);
+      throw error;
+    }
+  }
+
+  /**
    * @private
    * @method #enableDevFeatures
    * @description Enables development-specific features if the dev flag is set in the manifest.
    */
   enableDevFeatures() {
+    if (!this.manifest?.flags?.dev) return;
     Hooks.once('init', () => {
-      // Method already checks for the dev flag in the manifest
       this.utils.initializer.initializeDevFeatures(this.utils);
     });
   }
@@ -62,19 +96,11 @@ class OverMyHead {
       // Export constants to global scope via config
       config.exportConstants();
       Hooks.once('i18nInit',  () => {
-        // Initialize context
-        this.context = this.utils.initializer.initializeContext();
-        // Initialize handlers
-        this.handlers = this.utils.initializer.initializeHandlers(this.config, this.utils, this.context);
-        // Initialize settings
-        const settingsHandler = this.handlers.settings;
-        this.utils.initializer.initializeSettings(settingsHandler, this.utils);
-        // Confirm initialization
-        this.utils.initializer.confirmInitialization(this.config, this.context, this.utils);
+        this.#postLocalizationInit();
       });
     } catch (error) {
-  const manifestForLog = (this.config && this.config.manifest) || this.manifest || { title: 'Over My Head', version: 'unknown' };
-  console.error(`Error initializing ${manifestForLog.title} v${manifestForLog.version}: `, error);
+      const manifestForLog = (this.config && this.config.manifest) || this.manifest || { title: 'Over My Head', version: 'unknown' };
+      console.error(`Error initializing ${manifestForLog.title} v${manifestForLog.version}: `, error);
       throw error;
     }
   }

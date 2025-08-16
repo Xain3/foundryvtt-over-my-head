@@ -53,9 +53,31 @@ describe('OverMyHead (unit)', () => {
 
   it('enableDevFeatures registers an init hook and calls initializer.initializeDevFeatures', () => {
     const instance = new OverMyHead();
+  // Ensure manifest indicates dev mode so the hook is registered
+  instance.manifest = { ...instance.manifest, flags: { dev: true } };
     instance.enableDevFeatures();
     expect(global.Hooks.once).toHaveBeenCalledWith('init', expect.any(Function));
     expect(instance.utils.initializer.initializeDevFeatures).toHaveBeenCalledWith(instance.utils);
+  });
+
+  it('enableDevFeatures does not register hook when dev flag is false', () => {
+    const instance = new OverMyHead();
+  instance.manifest = { ...instance.manifest, flags: { dev: false } };
+    instance.enableDevFeatures();
+    expect(global.Hooks.once).not.toHaveBeenCalledWith('init', expect.any(Function));
+    expect(instance.utils.initializer.initializeDevFeatures).not.toHaveBeenCalled();
+  });
+
+  it('enableDevFeatures is a no-op when manifest.flags is missing', () => {
+    const instance = new OverMyHead();
+    // Ensure there's no flags property at all
+    instance.manifest = { ...instance.manifest };
+    delete instance.manifest.flags;
+
+    instance.enableDevFeatures();
+
+    expect(global.Hooks.once).not.toHaveBeenCalledWith('init', expect.any(Function));
+    expect(instance.utils.initializer.initializeDevFeatures).not.toHaveBeenCalled();
   });
 
   it('init exports constants and runs initializer workflow', async () => {
@@ -69,6 +91,28 @@ describe('OverMyHead (unit)', () => {
   expect(instance.utils.initializer.initializeHandlers).toHaveBeenCalledWith(instance.config, instance.utils, instance.context);
     expect(instance.utils.initializer.initializeSettings).toHaveBeenCalledWith(instance.handlers.settings, instance.utils);
     expect(instance.utils.initializer.confirmInitialization).toHaveBeenCalledWith(instance.config, instance.context, instance.utils);
+
+    exportSpy.mockRestore();
+  });
+
+  it('init rejects when config.exportConstants throws', async () => {
+    const instance = new OverMyHead();
+    const exportSpy = jest.spyOn(config, 'exportConstants').mockImplementation(() => { throw new Error('export failed'); });
+
+    await expect(instance.init()).rejects.toThrow('export failed');
+
+    exportSpy.mockRestore();
+  });
+
+  it('init rejects when post-localization initialization throws', async () => {
+    const instance = new OverMyHead();
+    // Make exportConstants succeed
+    const exportSpy = jest.spyOn(config, 'exportConstants').mockImplementation(() => {});
+
+    // Force initializer.initializeContext to throw when called from postLocalization
+    instance.utils.initializer.initializeContext.mockImplementation(() => { throw new Error('post-init failed'); });
+
+    await expect(instance.init()).rejects.toThrow('post-init failed');
 
     exportSpy.mockRestore();
   });

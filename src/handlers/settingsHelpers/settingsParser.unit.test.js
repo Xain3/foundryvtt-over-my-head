@@ -6,9 +6,11 @@
 
 import SettingsParser from './settingsParser.js';
 import SettingsChecker from './settingsChecker.js';
+import FlagEvaluator from './flagEvaluator.js';
 
 // Jest Mocks
 jest.mock('./settingsChecker.js');
+jest.mock('./flagEvaluator.js');
 jest.mock('@/baseClasses/handler', () => {
   return class MockHandler {
     constructor(config, utils, context) {
@@ -37,6 +39,8 @@ describe('SettingsParser type normalization', () => {
     delete globalThis.foundry;
   // Ensure validation passes in this suite
   SettingsChecker.check.mockReturnValue(true);
+  // Ensure flag evaluation passes in this suite
+  FlagEvaluator.shouldShow = jest.fn().mockReturnValue(true);
   });
 
   const makeSetting = (typeVal) => ({
@@ -130,6 +134,8 @@ const context = {};
 describe('SettingsParser', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Ensure flag evaluation passes by default for existing tests
+    FlagEvaluator.shouldShow = jest.fn().mockReturnValue(true);
   });
 
   it('parses an array of valid settings successfully', () => {
@@ -273,6 +279,8 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
 
     // Mock SettingsChecker to return true by default
     SettingsChecker.check.mockReturnValue(true);
+    // Mock FlagEvaluator to return true by default for existing tests
+    FlagEvaluator.shouldShow = jest.fn().mockReturnValue(true);
   });
 
   describe('onChange hook functionality', () => {
@@ -515,6 +523,142 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       expect(result.successful).toBe(1);
       expect(setting.config.onChange).toBeUndefined(); // onChange is removed when sendHook is false/missing
       expect(mockUtils.formatHookName).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Flag conditional parsing', () => {
+    let parser;
+    const mockConfig = { 
+      constants: { settings: { requiredKeys: ['key', 'config.name', 'config.type'] } },
+      manifest: { debugMode: true, dev: false }
+    };
+    const mockUtils = { 
+      formatError: (e) => String(e), 
+      logWarning: jest.fn(), 
+      logDebug: jest.fn() 
+    };
+    const mockContext = {};
+
+    beforeEach(() => {
+      parser = new SettingsParser(mockConfig, mockUtils, mockContext);
+      SettingsChecker.check.mockReturnValue(true);
+      FlagEvaluator.shouldShow = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should parse settings when flags allow showing', () => {
+      FlagEvaluator.shouldShow.mockReturnValue(true);
+
+      const setting = {
+        key: 'testSetting',
+        showOnlyIfFlag: 'manifest.debugMode',
+        dontShowIfFlag: null,
+        config: { name: 'Test', type: Boolean }
+      };
+
+      const result = parser.parse([setting]);
+
+      expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
+        'manifest.debugMode',
+        null,
+        mockConfig
+      );
+      expect(result.successful).toBe(1);
+      expect(result.parsed).toContain('testSetting');
+    });
+
+    it('should skip settings when flags prevent showing', () => {
+      FlagEvaluator.shouldShow.mockReturnValue(false);
+
+      const setting = {
+        key: 'hiddenSetting',
+        showOnlyIfFlag: 'manifest.dev',
+        dontShowIfFlag: null,
+        config: { name: 'Hidden', type: Boolean }
+      };
+
+      expect(() => parser.parse([setting])).toThrow('all settings are invalid');
+
+      expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
+        'manifest.dev',
+        null,
+        mockConfig
+      );
+    });
+
+    it('should handle complex flag conditions', () => {
+      FlagEvaluator.shouldShow.mockReturnValue(true);
+
+      const setting = {
+        key: 'complexSetting',
+        showOnlyIfFlag: { or: ['manifest.debugMode', 'manifest.dev'] },
+        dontShowIfFlag: { and: ['someFlag', 'anotherFlag'] },
+        config: { name: 'Complex', type: Boolean }
+      };
+
+      const result = parser.parse([setting]);
+
+      expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
+        { or: ['manifest.debugMode', 'manifest.dev'] },
+        { and: ['someFlag', 'anotherFlag'] },
+        mockConfig
+      );
+      expect(result.successful).toBe(1);
+    });
+
+    it('should parse settings without flags normally', () => {
+      FlagEvaluator.shouldShow.mockReturnValue(true);
+
+      const setting = {
+        key: 'normalSetting',
+        showOnlyIfFlag: null,
+        dontShowIfFlag: null,
+        config: { name: 'Normal', type: Boolean }
+      };
+
+      const result = parser.parse([setting]);
+
+      expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
+        null,
+        null,
+        mockConfig
+      );
+      expect(result.successful).toBe(1);
+    });
+
+    it('should handle mixed settings with different flag results', () => {
+      FlagEvaluator.shouldShow
+        .mockReturnValueOnce(true)  // First setting should show
+        .mockReturnValueOnce(false) // Second setting should hide
+        .mockReturnValueOnce(true); // Third setting should show
+
+      const settings = [
+        {
+          key: 'visibleSetting',
+          showOnlyIfFlag: 'manifest.debugMode',
+          config: { name: 'Visible', type: Boolean }
+        },
+        {
+          key: 'hiddenSetting',
+          showOnlyIfFlag: 'manifest.dev',
+          config: { name: 'Hidden', type: Boolean }
+        },
+        {
+          key: 'anotherVisibleSetting',
+          showOnlyIfFlag: null,
+          config: { name: 'Another Visible', type: Boolean }
+        }
+      ];
+
+      const result = parser.parse(settings);
+
+      expect(result.processed).toBe(3);
+      expect(result.successful).toBe(2);
+      expect(result.parsed).toEqual(['visibleSetting', 'anotherVisibleSetting']);
+      expect(result.failed).toEqual(['hiddenSetting']);
     });
   });
 });

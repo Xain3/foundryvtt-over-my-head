@@ -6,6 +6,10 @@
 
 import SettingsRegistrar from './settingsRegistrar.js';
 import MockSettings from '../../../tests/mocks/MockSettings.js';
+import FlagEvaluator from './flagEvaluator.js';
+
+// Jest Mocks
+jest.mock('./flagEvaluator.js');
 
 describe('SettingsRegistrar', () => {
   let registrar;
@@ -38,6 +42,9 @@ describe('SettingsRegistrar', () => {
     globalThis.game = {
       settings: mockGameSettings
     };
+
+    // Setup FlagEvaluator mock to return true by default (existing tests expect settings to register)
+    FlagEvaluator.shouldShow = jest.fn().mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -777,6 +784,165 @@ describe('SettingsRegistrar', () => {
       expect(registrar.namespace).toBeDefined();
       expect(typeof registrar.registerSetting).toBe('function');
       expect(typeof registrar.register).toBe('function');
+    });
+  });
+
+  describe('Flag conditional registration', () => {
+    beforeEach(() => {
+      registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils);
+      FlagEvaluator.shouldShow = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should register settings when flags allow showing', () => {
+      FlagEvaluator.shouldShow.mockReturnValue(true);
+
+      const setting = {
+        key: 'testSetting',
+        showOnlyIfFlag: 'manifest.debugMode',
+        dontShowIfFlag: null,
+        config: { name: 'Test', default: 'test' }
+      };
+
+      const result = registrar.registerSetting(setting);
+
+      expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
+        'manifest.debugMode',
+        null,
+        mockConfig
+      );
+      expect(result.success).toBe(true);
+      expect(result.message).toContain('registered successfully');
+    });
+
+    it('should not register settings when flags prevent showing', () => {
+      FlagEvaluator.shouldShow.mockReturnValue(false);
+
+      const setting = {
+        key: 'hiddenSetting',
+        showOnlyIfFlag: 'manifest.dev',
+        dontShowIfFlag: null,
+        config: { name: 'Hidden', default: 'hidden' }
+      };
+
+      const result = registrar.registerSetting(setting);
+
+      expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
+        'manifest.dev',
+        null,
+        mockConfig
+      );
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('not registered due to flag conditions');
+    });
+
+    it('should handle complex flag conditions', () => {
+      FlagEvaluator.shouldShow.mockReturnValue(true);
+
+      const setting = {
+        key: 'complexSetting',
+        showOnlyIfFlag: { or: ['manifest.debugMode', 'manifest.dev'] },
+        dontShowIfFlag: { and: ['someFlag', 'anotherFlag'] },
+        config: { name: 'Complex', default: 'complex' }
+      };
+
+      const result = registrar.registerSetting(setting);
+
+      expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
+        { or: ['manifest.debugMode', 'manifest.dev'] },
+        { and: ['someFlag', 'anotherFlag'] },
+        mockConfig
+      );
+      expect(result.success).toBe(true);
+    });
+
+    it('should register settings without flags normally', () => {
+      FlagEvaluator.shouldShow.mockReturnValue(true);
+
+      const setting = {
+        key: 'normalSetting',
+        showOnlyIfFlag: null,
+        dontShowIfFlag: null,
+        config: { name: 'Normal', default: 'normal' }
+      };
+
+      const result = registrar.registerSetting(setting);
+
+      expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
+        null,
+        null,
+        mockConfig
+      );
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle mixed settings with different flag results in batch registration', () => {
+      FlagEvaluator.shouldShow
+        .mockReturnValueOnce(true)  // First setting should register
+        .mockReturnValueOnce(false) // Second setting should not register
+        .mockReturnValueOnce(true); // Third setting should register
+
+      const settings = [
+        {
+          key: 'visibleSetting',
+          showOnlyIfFlag: 'manifest.debugMode',
+          config: { name: 'Visible', default: 'visible' }
+        },
+        {
+          key: 'hiddenSetting',
+          showOnlyIfFlag: 'manifest.dev',
+          config: { name: 'Hidden', default: 'hidden' }
+        },
+        {
+          key: 'anotherVisibleSetting',
+          showOnlyIfFlag: null,
+          config: { name: 'Another Visible', default: 'anotherVisible' }
+        }
+      ];
+
+      const result = registrar.register(settings);
+
+      expect(result.counter).toBe(3);
+      expect(result.successCounter).toBe(2);
+      expect(result.errorMessages).toHaveLength(1);
+      expect(result.errorMessages[0]).toContain('not registered due to flag conditions');
+      
+      // Verify only the allowed settings were registered
+      expect(mockGameSettings.get('test-module', 'visibleSetting')).toBe('visible');
+      expect(mockGameSettings.get('test-module', 'anotherVisibleSetting')).toBe('anotherVisible');
+      expect(mockGameSettings.get('test-module', 'hiddenSetting')).toBeUndefined();
+    });
+
+    it('should handle flag evaluation with real context structure', () => {
+      const contextWithManifest = {
+        manifest: { 
+          debugMode: true, 
+          dev: false, 
+          id: 'test-module' 
+        }
+      };
+      
+      const registrarWithContext = new SettingsRegistrar(contextWithManifest, mockContext, mockUtils);
+      FlagEvaluator.shouldShow.mockReturnValue(true);
+
+      const setting = {
+        key: 'debugSetting',
+        showOnlyIfFlag: { or: ['manifest.debugMode', 'manifest.dev'] },
+        dontShowIfFlag: null,
+        config: { name: 'Debug Setting', default: false }
+      };
+
+      const result = registrarWithContext.registerSetting(setting);
+
+      expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
+        { or: ['manifest.debugMode', 'manifest.dev'] },
+        null,
+        contextWithManifest
+      );
+      expect(result.success).toBe(true);
     });
   });
 });

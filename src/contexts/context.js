@@ -1000,6 +1000,49 @@ class Context extends ContextContainer {
     return ContextHelpers.Merger.analyze(this, target, strategy, options);
   }
 
+    /**
+     * Sets one or more flags on the context's `flags` component.
+     * Accepts either a single key/value pair or an object map of flags.
+     * Keys may be plain (e.g., 'settingsReady') or prefixed with 'flags.'
+     * Returns the Context instance for chaining.
+     *
+     * @public
+     * @param {string|Object} flagKeyOrMap - A flag key (string) or a map of key/value pairs.
+     * @param {*} [value] - The value to set when using a string key.
+     * @param {object} [options={}] - Optional options forwarded to `setItem`.
+     * @returns {Context} The Context instance.
+     * @throws {TypeError} If the first argument is neither a string nor an object.
+     *
+     * @example
+     * // Single flag
+     * context.setFlags('settingsReady', true);
+     *
+     * // Multiple flags
+     * context.setFlags({ settingsReady: true, initializedAt: Date.now() });
+     *
+     * // Dotted paths are supported and will be scoped under flags
+     * context.setFlags('ui.theme', 'dark'); // sets flags.ui.theme = 'dark'
+     */
+    setFlags(flagKeyOrMap, value, options = {}) {
+      const toFlagsPath = (key) => (typeof key === 'string' && key.startsWith('flags.')) ? key : `flags.${key}`;
+
+      if (flagKeyOrMap == null) return this;
+
+      if (typeof flagKeyOrMap === 'string') {
+        this.setItem(toFlagsPath(flagKeyOrMap), value, options);
+        return this;
+      }
+
+      if (typeof flagKeyOrMap === 'object') {
+        for (const [k, v] of Object.entries(flagKeyOrMap)) {
+          this.setItem(toFlagsPath(k), v, options);
+        }
+        return this;
+      }
+
+      throw new TypeError('setFlags expects a string key or an object map');
+    }
+
   /**
    * Reinitializes the Context with new parameters.
    * @param {object} [params={}] - New configuration parameters.

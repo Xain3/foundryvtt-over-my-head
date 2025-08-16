@@ -183,29 +183,37 @@ describe('FlagEvaluator', () => {
         });
 
         it('should handle complex nested conditions', () => {
-          const complexContext = {
-            ...testContext,
-            features: {
-              advanced: true,
-              experimental: false
-            },
+          // Mock globalThis.game for context resolution
+          const originalGame = globalThis.game;
+          globalThis.game = {
             user: {
               isAdmin: true,
               isDeveloper: false
             }
           };
 
+          const complexContext = {
+            ...testContext,
+            features: {
+              advanced: true,
+              experimental: false
+            }
+          };
+
           const combinedFlag = {
-            and: ['manifest.debugMode', 'features.advanced', 'user.isAdmin'], // all true
-            or: ['features.experimental', 'user.isDeveloper']                 // both false
+            and: ['manifest.debugMode', 'features.advanced'], // all true
+            or: ['features.experimental', 'user.isDeveloper']                 // both false (user.isDeveloper = false)
           };
           expect(FlagEvaluator.evaluate(combinedFlag, complexContext)).toBe(false);
 
           const combinedFlag2 = {
             and: ['manifest.debugMode', 'features.advanced'], // both true
-            or: ['features.experimental', 'user.isAdmin']     // at least one true
+            or: ['features.experimental', 'user.isAdmin']     // at least one true (user.isAdmin = true)
           };
           expect(FlagEvaluator.evaluate(combinedFlag2, complexContext)).toBe(true);
+
+          // Restore original globalThis.game
+          globalThis.game = originalGame;
         });
 
         it('should handle empty arrays in combined conditions', () => {
@@ -430,6 +438,101 @@ describe('FlagEvaluator', () => {
         // Most settings have both flags as null
         expect(FlagEvaluator.shouldShow(null, null, testContext)).toBe(true);
         expect(FlagEvaluator.shouldShow(undefined, undefined, testContext)).toBe(true);
+      });
+    });
+
+    describe('multi-context support', () => {
+      let originalGame;
+
+      beforeEach(() => {
+        originalGame = globalThis.game;
+        globalThis.game = {
+          user: {
+            isAdmin: true,
+            isGM: false,
+            name: 'testuser'
+          },
+          version: '10.0.0',
+          settings: {
+            get: () => 'test'
+          }
+        };
+      });
+
+      afterEach(() => {
+        globalThis.game = originalGame;
+      });
+
+      it('should resolve game.* paths to globalThis.game', () => {
+        expect(FlagEvaluator.evaluate('game.version', testContext)).toBe(true);
+        expect(FlagEvaluator.evaluate('game.nonexistent', testContext)).toBe(false);
+      });
+
+      it('should resolve user.* paths to globalThis.game.user', () => {
+        expect(FlagEvaluator.evaluate('user.isAdmin', testContext)).toBe(true);
+        expect(FlagEvaluator.evaluate('user.isGM', testContext)).toBe(false);
+        expect(FlagEvaluator.evaluate('user.name', testContext)).toBe(true);
+        expect(FlagEvaluator.evaluate('user.nonexistent', testContext)).toBe(false);
+      });
+
+      it('should handle mixed contexts in OR conditions', () => {
+        const flag = {
+          or: ['manifest.dev', 'user.isAdmin'] // false, true
+        };
+        expect(FlagEvaluator.evaluate(flag, testContext)).toBe(true);
+      });
+
+      it('should handle mixed contexts in AND conditions', () => {
+        const flag = {
+          and: ['manifest.debugMode', 'user.isAdmin'] // true, true
+        };
+        expect(FlagEvaluator.evaluate(flag, testContext)).toBe(true);
+
+        const flag2 = {
+          and: ['manifest.dev', 'user.isAdmin'] // false, true
+        };
+        expect(FlagEvaluator.evaluate(flag2, testContext)).toBe(false);
+      });
+
+      it('should handle mixed contexts in combined AND + OR conditions', () => {
+        const flag = {
+          and: ['manifest.debugMode', 'user.isAdmin'], // both true
+          or: ['manifest.dev', 'user.isGM'] // both false
+        };
+        expect(FlagEvaluator.evaluate(flag, testContext)).toBe(false);
+
+        const flag2 = {
+          and: ['manifest.debugMode'], // true
+          or: ['user.isAdmin'] // true
+        };
+        expect(FlagEvaluator.evaluate(flag2, testContext)).toBe(true);
+      });
+
+      it('should gracefully handle missing globalThis.game', () => {
+        globalThis.game = null;
+        expect(FlagEvaluator.evaluate('user.isAdmin', testContext)).toBe(false);
+        expect(FlagEvaluator.evaluate('game.version', testContext)).toBe(false);
+      });
+
+      it('should gracefully handle missing globalThis.game.user', () => {
+        globalThis.game = { version: '10.0.0' }; // no user property
+        expect(FlagEvaluator.evaluate('user.isAdmin', testContext)).toBe(false);
+        expect(FlagEvaluator.evaluate('game.version', testContext)).toBe(true);
+      });
+
+      it('should work in shouldShow with mixed contexts', () => {
+        const showFlag = {
+          or: ['manifest.debugMode', 'user.isAdmin'] // both true
+        };
+        const dontShowFlag = {
+          and: ['manifest.dev', 'user.isGM'] // both false
+        };
+        expect(FlagEvaluator.shouldShow(showFlag, dontShowFlag, testContext)).toBe(true);
+
+        const showFlag2 = {
+          and: ['manifest.dev', 'user.isAdmin'] // false, true = false
+        };
+        expect(FlagEvaluator.shouldShow(showFlag2, null, testContext)).toBe(false);
       });
     });
   });

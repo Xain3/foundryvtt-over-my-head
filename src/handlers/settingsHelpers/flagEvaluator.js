@@ -6,24 +6,77 @@
 
 /**
  * FlagEvaluator class for evaluating conditional flags to control setting visibility
+ * Supports multiple context resolution based on path prefixes:
+ * - 'manifest.*' -> config.manifest (module manifest data)
+ * - 'game.*' -> globalThis.game (Foundry game object)
+ * - 'user.*' -> globalThis.game.user (current user object)
+ * - 'config.*' -> config (module config object)
+ * - other paths -> config (backward compatibility)
  * @export
  *
  * Public API:
- * - static evaluate(flag, context) - Evaluates a flag condition against the provided context
- * - static shouldShow(showOnlyIfFlag, dontShowIfFlag, context) - Determines if a setting should be shown
+ * - static evaluate(flag, config) - Evaluates a flag condition against the provided config
+ * - static shouldShow(showOnlyIfFlag, dontShowIfFlag, config) - Determines if a setting should be shown
  */
 class FlagEvaluator {
   /**
-   * Evaluates a single property path against the context
+   * Resolves the appropriate context and adjusted path based on the path prefix
    * @private
-   * @param {string} path - Dot-notation path to evaluate (e.g., 'manifest.debugMode')
-   * @param {Object} context - Context object to evaluate against
-   * @returns {boolean} True if the path exists and is truthy, false otherwise
+   * @param {string} path - Dot-notation path to evaluate (e.g., 'manifest.debugMode', 'user.isAdmin')
+   * @param {Object} config - Base config object containing manifest and other module data
+   * @returns {Object} Object with resolved context and adjusted path
    */
-  static #evaluatePath(path, context) {
-    if (!path || !context) return false;
+  static #resolveContextAndPath(path, config) {
+    if (!path || !config) return { context: null, adjustedPath: path };
     
     const parts = path.split('.');
+    const firstPart = parts[0];
+    
+    // Map path prefixes to their corresponding contexts
+    switch (firstPart) {
+      case 'game':
+        return {
+          context: globalThis.game || null,
+          adjustedPath: parts.slice(1).join('.') || firstPart  // Remove 'game.' prefix
+        };
+      case 'user':
+        return {
+          context: globalThis.game?.user || null,
+          adjustedPath: parts.slice(1).join('.') || firstPart  // Remove 'user.' prefix
+        };
+      case 'manifest':
+        return {
+          context: config || null,
+          adjustedPath: path  // Keep full path for backward compatibility
+        };
+      case 'config':
+        return {
+          context: config || null,
+          adjustedPath: path  // Keep full path for backward compatibility
+        };
+      default:
+        // For backward compatibility, try the provided config first
+        return {
+          context: config || null,
+          adjustedPath: path
+        };
+    }
+  }
+
+  /**
+   * Evaluates a single property path against the appropriate context
+   * @private
+   * @param {string} path - Dot-notation path to evaluate (e.g., 'manifest.debugMode', 'user.isAdmin')
+   * @param {Object} config - Base config object containing manifest and other module data
+   * @returns {boolean} True if the path exists and is truthy, false otherwise
+   */
+  static #evaluatePath(path, config) {
+    if (!path || !config) return false;
+    
+    const { context, adjustedPath } = this.#resolveContextAndPath(path, config);
+    if (!context) return false;
+    
+    const parts = adjustedPath.split('.');
     let current = context;
     
     for (const part of parts) {
@@ -40,33 +93,33 @@ class FlagEvaluator {
    * Evaluates a logical OR condition
    * @private
    * @param {Array<string>} paths - Array of paths to evaluate
-   * @param {Object} context - Context object to evaluate against
+   * @param {Object} config - Base config object containing manifest and other module data
    * @returns {boolean} True if any path evaluates to true
    */
-  static #evaluateOr(paths, context) {
+  static #evaluateOr(paths, config) {
     if (!Array.isArray(paths)) return false;
-    return paths.some(path => this.#evaluatePath(path, context));
+    return paths.some(path => this.#evaluatePath(path, config));
   }
 
   /**
    * Evaluates a logical AND condition
    * @private
    * @param {Array<string>} paths - Array of paths to evaluate
-   * @param {Object} context - Context object to evaluate against
+   * @param {Object} config - Base config object containing manifest and other module data
    * @returns {boolean} True if all paths evaluate to true
    */
-  static #evaluateAnd(paths, context) {
+  static #evaluateAnd(paths, config) {
     if (!Array.isArray(paths)) return false;
-    return paths.every(path => this.#evaluatePath(path, context));
+    return paths.every(path => this.#evaluatePath(path, config));
   }
 
   /**
-   * Evaluates a flag condition against the provided context
+   * Evaluates a flag condition against the provided config
    * @param {null|string|Object} flag - The flag condition to evaluate
-   * @param {Object} context - Context object containing manifest, config, etc.
+   * @param {Object} config - Base config object containing manifest and other module data
    * @returns {boolean} The result of the flag evaluation
    */
-  static evaluate(flag, context) {
+  static evaluate(flag, config) {
     // null flags are considered as "no condition" and return true
     if (flag === null || flag === undefined) {
       return true;
@@ -74,7 +127,7 @@ class FlagEvaluator {
 
     // String flags are treated as simple property paths
     if (typeof flag === 'string') {
-      return this.#evaluatePath(flag, context);
+      return this.#evaluatePath(flag, config);
     }
 
     // Object flags support logical operators
@@ -84,17 +137,17 @@ class FlagEvaluator {
       
       // If both OR and AND are present, both conditions must be true
       if (hasOr && hasAnd) {
-        return this.#evaluateOr(flag.or, context) && this.#evaluateAnd(flag.and, context);
+        return this.#evaluateOr(flag.or, config) && this.#evaluateAnd(flag.and, config);
       }
       
       // If only OR is present
       if (hasOr) {
-        return this.#evaluateOr(flag.or, context);
+        return this.#evaluateOr(flag.or, config);
       }
       
       // If only AND is present
       if (hasAnd) {
-        return this.#evaluateAnd(flag.and, context);
+        return this.#evaluateAnd(flag.and, config);
       }
       
       // Object with unknown structure, treat as falsy
@@ -109,20 +162,20 @@ class FlagEvaluator {
    * Determines if a setting should be shown based on showOnlyIfFlag and dontShowIfFlag
    * @param {null|string|Object} showOnlyIfFlag - Condition that must be true to show the setting
    * @param {null|string|Object} dontShowIfFlag - Condition that must be false to show the setting
-   * @param {Object} context - Context object containing manifest, config, etc.
+   * @param {Object} config - Base config object containing manifest and other module data
    * @returns {boolean} True if the setting should be shown, false otherwise
    */
-  static shouldShow(showOnlyIfFlag, dontShowIfFlag, context) {
+  static shouldShow(showOnlyIfFlag, dontShowIfFlag, config) {
     // If showOnlyIfFlag is defined and evaluates to false, don't show
     if (showOnlyIfFlag !== null && showOnlyIfFlag !== undefined) {
-      if (!this.evaluate(showOnlyIfFlag, context)) {
+      if (!this.evaluate(showOnlyIfFlag, config)) {
         return false;
       }
     }
 
     // If dontShowIfFlag is defined and evaluates to true, don't show
     if (dontShowIfFlag !== null && dontShowIfFlag !== undefined) {
-      if (this.evaluate(dontShowIfFlag, context)) {
+      if (this.evaluate(dontShowIfFlag, config)) {
         return false;
       }
     }

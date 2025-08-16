@@ -18,7 +18,7 @@ moduleManagement:
   # How to refer to the module in the logs
   # Can be "title", "id", "name", or "shortName"
   referToModuleBy: "title"
-  
+
   # Short name for the module
   shortName: "OMH"
 
@@ -187,6 +187,8 @@ settings:
     - "config.type"
   settingsList:
     - key: "useModule"
+      showOnlyIfFlag: null
+      dontShowIfFlag: null
       config:
         name: "foundryvtt-over-my-head.settings.useModule.name"
         hint: "foundryvtt-over-my-head.settings.useModule.hint"
@@ -201,6 +203,8 @@ settings:
 
 
     - key: "debugMode"
+      showOnlyIfFlag: {or: ["manifest.debugMode", "manifest.dev"]}
+      dontShowIfFlag: null
       config:
         name: "foundryvtt-over-my-head.settings.debugMode.name"
         hint: "foundryvtt-over-my-head.settings.debugMode.hint"
@@ -213,6 +217,8 @@ settings:
           hookName: "debugMode"
 
     - key: "behaviorTokens"
+      showOnlyIfFlag: null
+      dontShowIfFlag: null
       config:
         name: "foundryvtt-over-my-head.settings.behaviorTokens.name"
         hint: "foundryvtt-over-my-head.settings.behaviorTokens.hint"
@@ -230,6 +236,8 @@ settings:
           hookName: "behaviorTokens"
 
     - key: "behaviorParty"
+      showOnlyIfFlag: null
+      dontShowIfFlag: null
       config:
         name: "foundryvtt-over-my-head.settings.behaviorParty.name"
         hint: "foundryvtt-over-my-head.settings.behaviorParty.hint"
@@ -242,6 +250,8 @@ settings:
           hookName: "behaviorParty"
 
     - key: "behaviorGM"
+      showOnlyIfFlag: null
+      dontShowIfFlag: null
       config:
         name: "foundryvtt-over-my-head.settings.behaviorGM.name"
         hint: "foundryvtt-over-my-head.settings.behaviorGM.hint"

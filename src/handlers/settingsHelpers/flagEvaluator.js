@@ -79,10 +79,21 @@ class FlagEvaluator {
 
     // Object flags support logical operators
     if (typeof flag === 'object' && flag !== null) {
-      if ('or' in flag) {
+      const hasOr = 'or' in flag;
+      const hasAnd = 'and' in flag;
+      
+      // If both OR and AND are present, both conditions must be true
+      if (hasOr && hasAnd) {
+        return this.#evaluateOr(flag.or, context) && this.#evaluateAnd(flag.and, context);
+      }
+      
+      // If only OR is present
+      if (hasOr) {
         return this.#evaluateOr(flag.or, context);
       }
-      if ('and' in flag) {
+      
+      // If only AND is present
+      if (hasAnd) {
         return this.#evaluateAnd(flag.and, context);
       }
       

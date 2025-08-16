@@ -148,6 +148,100 @@ describe('FlagEvaluator', () => {
       it('should return false for empty objects', () => {
         expect(FlagEvaluator.evaluate({}, testContext)).toBe(false);
       });
+
+      describe('Combined AND + OR operators', () => {
+        it('should return true when both AND and OR conditions are true', () => {
+          const combinedFlag = {
+            and: ['manifest.debugMode', 'flags.feature'], // both true
+            or: ['manifest.debugMode', 'manifest.dev']    // at least one true
+          };
+          expect(FlagEvaluator.evaluate(combinedFlag, testContext)).toBe(true);
+        });
+
+        it('should return false when AND is true but OR is false', () => {
+          const combinedFlag = {
+            and: ['manifest.debugMode', 'flags.feature'], // both true
+            or: ['manifest.dev', 'flags.enabled']         // both false
+          };
+          expect(FlagEvaluator.evaluate(combinedFlag, testContext)).toBe(false);
+        });
+
+        it('should return false when OR is true but AND is false', () => {
+          const combinedFlag = {
+            and: ['manifest.debugMode', 'manifest.dev'],  // one false
+            or: ['manifest.debugMode', 'flags.feature']   // at least one true
+          };
+          expect(FlagEvaluator.evaluate(combinedFlag, testContext)).toBe(false);
+        });
+
+        it('should return false when both AND and OR conditions are false', () => {
+          const combinedFlag = {
+            and: ['manifest.dev', 'flags.enabled'],       // both false
+            or: ['manifest.dev', 'flags.enabled']         // both false
+          };
+          expect(FlagEvaluator.evaluate(combinedFlag, testContext)).toBe(false);
+        });
+
+        it('should handle complex nested conditions', () => {
+          const complexContext = {
+            ...testContext,
+            features: {
+              advanced: true,
+              experimental: false
+            },
+            user: {
+              isAdmin: true,
+              isDeveloper: false
+            }
+          };
+
+          const combinedFlag = {
+            and: ['manifest.debugMode', 'features.advanced', 'user.isAdmin'], // all true
+            or: ['features.experimental', 'user.isDeveloper']                 // both false
+          };
+          expect(FlagEvaluator.evaluate(combinedFlag, complexContext)).toBe(false);
+
+          const combinedFlag2 = {
+            and: ['manifest.debugMode', 'features.advanced'], // both true
+            or: ['features.experimental', 'user.isAdmin']     // at least one true
+          };
+          expect(FlagEvaluator.evaluate(combinedFlag2, complexContext)).toBe(true);
+        });
+
+        it('should handle empty arrays in combined conditions', () => {
+          const combinedFlag1 = {
+            and: [],                                    // empty array (true)
+            or: ['manifest.debugMode']                  // true
+          };
+          expect(FlagEvaluator.evaluate(combinedFlag1, testContext)).toBe(true);
+
+          const combinedFlag2 = {
+            and: ['manifest.debugMode'],                // true
+            or: []                                      // empty array (false)
+          };
+          expect(FlagEvaluator.evaluate(combinedFlag2, testContext)).toBe(false);
+
+          const combinedFlag3 = {
+            and: [],                                    // empty array (true)
+            or: []                                      // empty array (false)
+          };
+          expect(FlagEvaluator.evaluate(combinedFlag3, testContext)).toBe(false);
+        });
+
+        it('should handle invalid array values in combined conditions', () => {
+          const combinedFlag1 = {
+            and: 'manifest.debugMode',                  // invalid (false)
+            or: ['manifest.debugMode']                  // true
+          };
+          expect(FlagEvaluator.evaluate(combinedFlag1, testContext)).toBe(false);
+
+          const combinedFlag2 = {
+            and: ['manifest.debugMode'],                // true
+            or: 'manifest.debugMode'                    // invalid (false)
+          };
+          expect(FlagEvaluator.evaluate(combinedFlag2, testContext)).toBe(false);
+        });
+      });
     });
 
     describe('invalid flag types', () => {
@@ -263,6 +357,57 @@ describe('FlagEvaluator', () => {
         const showFlag = { or: ['manifest.debugMode', 'manifest.dev'] };
         const dontShowFlag = { and: ['flags.enabled', 'manifest.dev'] };
         expect(FlagEvaluator.shouldShow(showFlag, dontShowFlag, testContext)).toBe(true);
+      });
+
+      it('should handle combined AND + OR conditions in showOnlyIfFlag', () => {
+        const combinedShowFlag = {
+          and: ['manifest.debugMode', 'flags.feature'], // both true
+          or: ['manifest.debugMode', 'manifest.dev']    // at least one true
+        };
+        expect(FlagEvaluator.shouldShow(combinedShowFlag, null, testContext)).toBe(true);
+
+        const combinedShowFlagFalse = {
+          and: ['manifest.debugMode', 'flags.feature'], // both true
+          or: ['manifest.dev', 'flags.enabled']         // both false
+        };
+        expect(FlagEvaluator.shouldShow(combinedShowFlagFalse, null, testContext)).toBe(false);
+      });
+
+      it('should handle combined AND + OR conditions in dontShowIfFlag', () => {
+        const combinedDontShowFlag = {
+          and: ['manifest.debugMode', 'flags.feature'], // both true
+          or: ['manifest.debugMode', 'manifest.dev']    // at least one true
+        };
+        expect(FlagEvaluator.shouldShow(null, combinedDontShowFlag, testContext)).toBe(false);
+
+        const combinedDontShowFlagFalse = {
+          and: ['manifest.debugMode', 'flags.feature'], // both true
+          or: ['manifest.dev', 'flags.enabled']         // both false
+        };
+        expect(FlagEvaluator.shouldShow(null, combinedDontShowFlagFalse, testContext)).toBe(true);
+      });
+
+      it('should handle complex real-world combined flag scenarios', () => {
+        // Scenario: Show setting only in debug mode AND when user is admin, 
+        // OR when in development mode
+        const complexShowFlag = {
+          and: ['manifest.debugMode', 'config.someFlag'], // debug + admin
+          or: ['manifest.dev']                             // or dev mode
+        };
+        
+        // Current context: debugMode=true, someFlag=true, dev=false
+        // AND: true && true = true, OR: false = false
+        // Combined: true && false = false
+        expect(FlagEvaluator.shouldShow(complexShowFlag, null, testContext)).toBe(false);
+
+        // Update context to make OR condition true
+        const devContext = {
+          ...testContext,
+          manifest: { ...testContext.manifest, dev: true }
+        };
+        // AND: true && true = true, OR: true = true
+        // Combined: true && true = true
+        expect(FlagEvaluator.shouldShow(complexShowFlag, null, devContext)).toBe(true);
       });
     });
 

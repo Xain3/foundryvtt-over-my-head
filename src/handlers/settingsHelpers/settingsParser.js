@@ -47,6 +47,102 @@ const onChangeActions = {
  */
 class SettingsParser extends Handler {
   /**
+   * Normalize config.type when loaded from YAML where primitives are strings.
+   * Converts 'Boolean'|'Number'|'String'|'Object'|'Array' into constructors.
+   * Leaves DataField/DataModel/function values untouched.
+   * @private
+   * @param {Object} setting - The setting to normalize
+   */
+  #normalizeType(setting) {
+    if (!setting || !setting.config) return;
+    const { type } = setting.config;
+    if (!type) return;
+
+    if (typeof type === 'string') {
+      const trimmed = type.trim();
+      const lc = trimmed.toLowerCase();
+
+      // Case-insensitive primitives and common synonyms
+      const primitiveMap = {
+        boolean: Boolean,
+        number: Number,
+        string: String,
+        object: Object,
+        array: Array,
+        int: Number,
+        integer: Number,
+        float: Number,
+        double: Number
+      };
+      if (primitiveMap[lc]) {
+        setting.config.type = primitiveMap[lc];
+        return;
+      }
+
+      // Try resolving Foundry paths (e.g., 'foundry.data.fields.BooleanField')
+      const resolveFromGlobal = (pathStr) => {
+        try {
+          const parts = pathStr.split('.').filter(Boolean);
+          let ref = globalThis;
+          for (const p of parts) {
+            if (ref == null) return undefined;
+            ref = ref[p];
+          }
+          return ref;
+        } catch {
+          return undefined;
+        }
+      };
+
+      // Direct dotted path
+      let resolved = trimmed.includes('.') ? resolveFromGlobal(trimmed) : undefined;
+
+      // Aliases for DataField classes when only class name is provided
+      if (!resolved && /field$/i.test(trimmed)) {
+        const className = trimmed.replace(/^.*\./, ''); // strip any prefix
+        const fieldsRoot = globalThis?.foundry?.data?.fields;
+        const candidate = fieldsRoot?.[className];
+        if (typeof candidate === 'function') {
+          resolved = candidate;
+        } else if (fieldsRoot) {
+          // Try common canonical names mapping to Foundry fields when user wrote primitive names
+          const canonicalMap = {
+            booleanfield: fieldsRoot.BooleanField,
+            stringfield: fieldsRoot.StringField,
+            numberfield: fieldsRoot.NumberField,
+            arrayfield: fieldsRoot.ArrayField,
+            objectfield: fieldsRoot.ObjectField,
+            schemafield: fieldsRoot.SchemaField
+          };
+          const lk = className.toLowerCase();
+          if (typeof canonicalMap[lk] === 'function') resolved = canonicalMap[lk];
+        }
+      }
+
+      // Prefix notations like 'datafield:boolean' or 'field:boolean'
+      if (!resolved && /^(datafield|field):/i.test(trimmed)) {
+        const name = trimmed.split(':')[1] || '';
+        const className = `${name.charAt(0).toUpperCase()}${name.slice(1).toLowerCase()}Field`;
+        const candidate = globalThis?.foundry?.data?.fields?.[className];
+        if (typeof candidate === 'function') resolved = candidate;
+      }
+
+      // DataModel path alias
+      if (!resolved && /^datamodel:/i.test(trimmed)) {
+        const mm = trimmed.split(':')[1];
+        if (mm) {
+          resolved = resolveFromGlobal(mm) || globalThis?.foundry?.abstract?.DataModel;
+        } else {
+          resolved = globalThis?.foundry?.abstract?.DataModel;
+        }
+      }
+
+      if (typeof resolved === 'function') {
+        setting.config.type = resolved;
+      }
+    }
+  }
+  /**
    * Create a SettingsParser.
    *
    * @param {Object} config - Module configuration object.
@@ -113,6 +209,9 @@ class SettingsParser extends Handler {
     }
 
     const settingKey = setting.key || "Unknown";
+
+  // Ensure the type is in a Foundry-acceptable format (constructor/function/DataField)
+  this.#normalizeType(setting);
 
     // Check if setting should trigger hooks on change
     if (setting.config && setting.config.onChange && setting.config.onChange.sendHook) {

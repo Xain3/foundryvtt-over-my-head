@@ -45,6 +45,7 @@ class MyModule extends OverMyHead {
 }
 
 // New pattern (recommended)
+
 import config from './config/config.js';
 class MyModule {
   async init() {
@@ -55,7 +56,50 @@ class MyModule {
 
 For detailed configuration documentation, see [`src/config/README.md`](src/config/README.md).
 
+### Settings Type Normalization (Foundry v13)
+
+The settings pipeline accepts multiple formats for the `config.type` field and normalizes them to Foundry-compatible constructors/classes at runtime:
+
+- Primitives (case-insensitive): `boolean` → `Boolean`, `number`/`int`/`integer`/`float`/`double` → `Number`, `string` → `String`, `object` → `Object`, `array` → `Array`
+- Foundry DataFields:
+  - Dotted path: `foundry.data.fields.BooleanField`
+  - Class name: `BooleanField`, `NumberField`, `StringField`, `ArrayField`, `ObjectField`, `SchemaField`
+  - Prefix: `datafield:boolean` or `field:boolean`
+- Foundry DataModels:
+  - Prefix: `datamodel:` (falls back to `foundry.abstract.DataModel`)
+  - With path: `datamodel:Your.Namespace.Model`
+
+Notes:
+
+- Normalization only replaces `config.type` when the resolved value is a function (constructor/DataField/DataModel). Unknown strings are left unchanged.
+- This helps keep YAML readable while meeting Foundry v13’s requirement that `type` be a callable/class.
+
+Example (`constants.yaml`):
+
+```yaml
+settings:
+  settingsList:
+    - key: "useModule"
+      config:
+        name: "..."
+        hint: "..."
+        scope: "world"
+        config: true
+        type: boolean        # normalized to Boolean
+        default: true
+
+    - key: "advancedFlag"
+      config:
+        name: "..."
+        scope: "world"
+        config: true
+        type: datafield:boolean  # normalized to foundry.data.fields.BooleanField (if available)
+        default: true
+```
+
+
 ## Usage
+
 Open the tile configuration. Select the overhead tab and set occlusion mode to Vision. A checkbox will appear to toggle also fade. Example of how to do this is shown bellow
 
 ![Roof Occlusion Vision And Fade](README-img/TileConfig.gif)

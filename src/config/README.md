@@ -274,6 +274,51 @@ contextHelpers:
     EQUAL: "equal"
 ```
 
+### Settings Type Normalization (Foundry v13)
+
+The settings subsystem normalizes `config.type` from YAML into Foundry-acceptable constructors/classes prior to registration.
+
+- Primitives (case-insensitive):
+  - `boolean` → `Boolean`
+  - `number`/`int`/`integer`/`float`/`double` → `Number`
+  - `string` → `String`
+  - `object` → `Object`
+  - `array` → `Array`
+- Foundry DataFields:
+  - Dotted path: `foundry.data.fields.BooleanField`
+  - Class name: `BooleanField`, `NumberField`, `StringField`, `ArrayField`, `ObjectField`, `SchemaField`
+  - Prefix: `datafield:boolean` or `field:boolean`
+- Foundry DataModels:
+  - Prefix: `datamodel:` (falls back to `foundry.abstract.DataModel`)
+  - Path form: `datamodel:Your.Namespace.Model`
+
+Behavior:
+
+- Only replaces `config.type` if resolution yields a function (constructor/DataField/DataModel). Unknown strings remain unchanged.
+- Performed in `SettingsParser` during parsing, before `game.settings.register()`.
+
+Example YAML:
+
+```yaml
+settings:
+  settingsList:
+    - key: "useModule"
+      config:
+        name: "..."
+        scope: "world"
+        config: true
+        type: boolean        # normalized to Boolean
+        default: true
+
+    - key: "advancedFlag"
+      config:
+        name: "..."
+        scope: "world"
+        config: true
+        type: datafield:boolean  # normalized to foundry.data.fields.BooleanField (if available)
+        default: true
+```
+
 ## 🚀 Usage Patterns
 
 ### Recommended Pattern: Config Instance (NEW)

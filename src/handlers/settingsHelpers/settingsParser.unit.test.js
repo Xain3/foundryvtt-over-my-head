@@ -19,11 +19,97 @@ jest.mock('@/baseClasses/handler', () => {
   };
 });
 
-// Mock global Hooks
+// Mock global Hooks early for all tests
 global.Hooks = {
   call: jest.fn(),
   callAll: jest.fn()
 };
+
+// --- Type Normalization Tests (merged) ---
+describe('SettingsParser type normalization', () => {
+  let parser;
+  const baseConfig = { constants: { settings: { requiredKeys: ['key', 'config.name', 'config.type'] } } };
+  const smallUtils = { formatError: (e) => String(e), logWarning: jest.fn(), logDebug: jest.fn(), formatHookName: (x) => x };
+  const smallContext = {};
+
+  beforeEach(() => {
+    parser = new SettingsParser(baseConfig, smallUtils, smallContext);
+    delete globalThis.foundry;
+  // Ensure validation passes in this suite
+  SettingsChecker.check.mockReturnValue(true);
+  });
+
+  const makeSetting = (typeVal) => ({
+    key: 't',
+    config: { name: 'T', type: typeVal }
+  });
+
+  it('normalizes case-insensitive primitives', () => {
+    const cases = [
+      { in: 'boolean', out: Boolean },
+      { in: 'BOOLEAN', out: Boolean },
+      { in: 'number', out: Number },
+      { in: 'INTEGER', out: Number },
+      { in: 'float', out: Number },
+      { in: 'string', out: String },
+      { in: 'object', out: Object },
+      { in: 'array', out: Array }
+    ];
+
+    for (const c of cases) {
+      const s = makeSetting(c.in);
+      const res = parser.parse([s]);
+      expect(res.successful).toBe(1);
+      expect(s.config.type).toBe(c.out);
+    }
+  });
+
+  it('resolves DataField by dotted path', () => {
+    globalThis.foundry = { data: { fields: { BooleanField: function BooleanField() {} } } };
+    const s = makeSetting('foundry.data.fields.BooleanField');
+    parser.parse([s]);
+    expect(typeof s.config.type).toBe('function');
+    expect(s.config.type.name).toBe('BooleanField');
+  });
+
+  it('resolves DataField by class name', () => {
+    globalThis.foundry = { data: { fields: { NumberField: function NumberField() {} } } };
+    const s = makeSetting('NumberField');
+    parser.parse([s]);
+    expect(typeof s.config.type).toBe('function');
+    expect(s.config.type.name).toBe('NumberField');
+  });
+
+  it('resolves DataField by prefix form datafield:boolean', () => {
+    globalThis.foundry = { data: { fields: { BooleanField: function BooleanField() {} } } };
+    const s = makeSetting('datafield:boolean');
+    parser.parse([s]);
+    expect(typeof s.config.type).toBe('function');
+    expect(s.config.type.name).toBe('BooleanField');
+  });
+
+  it('resolves DataModel via datamodel: prefix and falls back when no path given', () => {
+    function DummyModel() {}
+    globalThis.foundry = { abstract: { DataModel: DummyModel } };
+
+    const s1 = makeSetting('datamodel:');
+    parser.parse([s1]);
+    expect(s1.config.type).toBe(DummyModel);
+
+    globalThis.Some = { Deep: { Model: function Model() {} } };
+    const s2 = makeSetting('datamodel:Some.Deep.Model');
+    parser.parse([s2]);
+    expect(s2.config.type.name).toBe('Model');
+
+    delete globalThis.Some;
+  });
+
+  it('does not throw when unknown type strings are provided', () => {
+    const s = makeSetting('unknownThing');
+    expect(() => parser.parse([s])).not.toThrow();
+    expect(typeof s.config.type).toBe('string');
+  });
+});
 
 // --- Original Unit Tests ---
 const makeUtils = () => ({

@@ -67,10 +67,10 @@ class OverMyHead {
         // Initialize handlers
         this.handlers = this.utils.initializer.initializeHandlers(this.config, this.utils, this.context);
         // Initialize settings
-      const settingsHandler = this.handlers.settings;
-      this.utils.initializer.initializeSettings(settingsHandler, this.utils);
-      // Confirm initialization
-      this.utils.initializer.confirmInitialization(this.config, this.context, this.utils);
+        const settingsHandler = this.handlers.settings;
+        this.utils.initializer.initializeSettings(settingsHandler, this.utils);
+        // Confirm initialization
+        this.utils.initializer.confirmInitialization(this.config, this.context, this.utils);
       });
     } catch (error) {
   const manifestForLog = (this.config && this.config.manifest) || this.manifest || { title: 'Over My Head', version: 'unknown' };

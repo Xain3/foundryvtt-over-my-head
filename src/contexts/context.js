@@ -536,13 +536,13 @@ class Context extends ContextContainer {
 
       // Route to appropriate component
       switch (componentName) {
-        case 'schema':
+    case 'schema':
           if (this.#components.schema.isFrozen() && !options.ignoreFrozen) {
             throw new Error(`Cannot modify frozen schema component. Item path: ${itemPath}`);
           }
           // For ContextItem, we need to update the entire value
           if (remainingPath) {
-            const currentValue = { ...this.#components.schema.value };
+      const currentValue = JSON.parse(JSON.stringify(this.#components.schema.value));
             this.#setValueAtPath(currentValue, remainingPath, itemValue);
             this.#components.schema.value = currentValue;
           } else {
@@ -555,7 +555,7 @@ class Context extends ContextContainer {
           }
           // For ContextItem, we need to update the entire value
           if (remainingPath) {
-            const currentValue = { ...this.#components.constants.value };
+      const currentValue = JSON.parse(JSON.stringify(this.#components.constants.value));
             this.#setValueAtPath(currentValue, remainingPath, itemValue);
             this.#components.constants.value = currentValue;
           } else {
@@ -568,7 +568,7 @@ class Context extends ContextContainer {
           }
           // For ContextItem, we need to update the entire value
           if (remainingPath) {
-            const currentValue = { ...this.#components.manifest.value };
+      const currentValue = JSON.parse(JSON.stringify(this.#components.manifest.value));
             this.#setValueAtPath(currentValue, remainingPath, itemValue);
             this.#components.manifest.value = currentValue;
           } else {

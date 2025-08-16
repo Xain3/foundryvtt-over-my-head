@@ -257,12 +257,12 @@ describe('Context', () => {
       // Should find top-level items in components
       expect(context.hasItem('data.player')).toBe(true);
       expect(context.hasItem('settings.ui')).toBe(true);
-      
+
       // Should NOT find nested paths in plain objects with default behavior (enhanced checking disabled)
       expect(context.hasItem('data.player.name')).toBe(false);
       expect(context.hasItem('data.player.stats.level')).toBe(false);
       expect(context.hasItem('settings.ui.theme')).toBe(false);
-      
+
       // Should not find nonexistent paths
       expect(context.hasItem('data.player.nonexistent')).toBe(false);
       expect(context.hasItem('nonexistent.path')).toBe(false);
@@ -1037,6 +1037,93 @@ describe('Context', () => {
       expect(naming.value.settings).toBe(constants.context.naming.settings);
       expect(naming.value.flags).toBe(constants.context.naming.flags);
       expect(naming.value.data).toBe(constants.context.naming.data);
+    });
+  });
+
+  describe('Additional Coverage', () => {
+    it('throws on pull error when configured to throw', () => {
+      const helpers = require('./helpers/contextHelpers.js').default;
+      const err = new Error('pull boom');
+      helpers.Sync.syncItem.mockImplementationOnce(() => { throw err; });
+
+      const throwing = new Context({
+        operationsParams: { errorHandling: { onPullError: 'throw', onPushError: 'warn', onValidationError: 'silent' } }
+      });
+
+      expect(() => throwing.pullAndGetItem({ itemPath: 'data.x', pullFrom: [new Context()] })).toThrow('pull boom');
+    });
+
+    it('warns (does not throw) on pull error when configured to warn', () => {
+      const helpers = require('./helpers/contextHelpers.js').default;
+      const err = new Error('pull warn');
+      helpers.Sync.syncItem.mockImplementationOnce(() => { throw err; });
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const warnCtx = new Context({
+        operationsParams: { errorHandling: { onPullError: 'warn', onPushError: 'warn', onValidationError: 'silent' } }
+      });
+
+      expect(() => warnCtx.pullAndGetItem({ itemPath: 'data.x', pullFrom: [new Context()] })).not.toThrow();
+      expect(warnSpy).toHaveBeenCalled();
+      warnSpy.mockRestore();
+    });
+
+    it('throws on push error when configured to throw', () => {
+      const helpers = require('./helpers/contextHelpers.js').default;
+      helpers.Sync.syncItem.mockImplementationOnce(() => { throw new Error('push boom'); });
+
+      const pushing = new Context({
+        operationsParams: {
+          alwaysPushAfterSetting: true,
+          pushTo: [new Context()],
+          errorHandling: { onPullError: 'warn', onPushError: 'throw', onValidationError: 'silent' }
+        }
+      });
+
+      expect(() => pushing.setItem('data.k', 1)).toThrow('push boom');
+    });
+
+    it('warns (does not throw) on push error when configured to warn', () => {
+      const helpers = require('./helpers/contextHelpers.js').default;
+      helpers.Sync.syncItem.mockImplementationOnce(() => { throw new Error('push warn'); });
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const warnPush = new Context({
+        operationsParams: {
+          alwaysPushAfterSetting: true,
+          pushTo: [new Context()],
+          errorHandling: { onPullError: 'warn', onPushError: 'warn', onValidationError: 'silent' }
+        }
+      });
+
+      expect(() => warnPush.setItem('data.k', 1)).not.toThrow();
+      expect(warnSpy).toHaveBeenCalled();
+      warnSpy.mockRestore();
+    });
+
+    it('enforces frozen components and does not allow bypass even with ignoreFrozen', () => {
+      const ctx = new Context({
+        initializationParams: {
+          constants: { app: { version: '1.0' } },
+          manifest: { id: 'm1' },
+          contextSchema: { rules: {} }
+        }
+      });
+
+      // Throws for schema regardless of ignoreFrozen due to ContextItem immutability
+      expect(() => ctx.setItem('schema.rules.enabled', true)).toThrow('Cannot modify frozen schema component');
+      expect(() => ctx.setItem('schema.rules.enabled', true, { ignoreFrozen: true })).toThrow('Cannot modify a frozen ContextItem.');
+      expect(ctx.getItem('schema.rules.enabled')).toBeUndefined();
+
+      // Throws for constants regardless of ignoreFrozen
+      expect(() => ctx.setItem('constants.app.version', '2.0')).toThrow('Cannot modify frozen constants component');
+      expect(() => ctx.setItem('constants.app.version', '2.0', { ignoreFrozen: true })).toThrow('Cannot modify a frozen ContextItem.');
+      expect(ctx.getItem('constants.app.version')).toBe('1.0');
+
+      // Throws for manifest regardless of ignoreFrozen
+      expect(() => ctx.setItem('manifest.id', 'm2')).toThrow('Cannot modify frozen manifest component');
+      expect(() => ctx.setItem('manifest.id', 'm2', { ignoreFrozen: true })).toThrow('Cannot modify a frozen ContextItem.');
+      expect(ctx.getItem('manifest.id')).toBe('m1');
     });
   });
 });

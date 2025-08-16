@@ -23,10 +23,10 @@ jest.mock('./utils/utils.js', () => {
   }));
 });
 
-// Hooks mock that immediately calls 'init' callbacks
+// Hooks mock that immediately calls 'init' and 'i18nInit' callbacks
 global.Hooks = {
   once: jest.fn((event, callback) => {
-    if (event === 'init' && typeof callback === 'function') callback();
+    if ((event === 'init' || event === 'i18nInit') && typeof callback === 'function') callback();
   }),
   callAll: jest.fn()
 };

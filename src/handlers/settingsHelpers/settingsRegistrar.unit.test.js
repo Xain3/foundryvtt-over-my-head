@@ -950,4 +950,154 @@ describe('SettingsRegistrar', () => {
       expect(result.success).toBe(true);
     });
   });
+
+  describe('Enhanced Failure Reporting', () => {
+    beforeEach(() => {
+      registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils);
+      FlagEvaluator.shouldShow = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should differentiate between planned exclusions and unplanned failures', () => {
+      // Set up mixed scenario: one setting hidden by flags, one with validation error
+      FlagEvaluator.shouldShow = jest.fn()
+        .mockReturnValueOnce(false) // first setting hidden by flags (planned)
+        .mockReturnValueOnce(true); // second setting passes flags but fails validation (unplanned)
+
+      const settings = [
+        {
+          key: 'hiddenSetting',
+          showOnlyIfFlag: 'manifest.dev',
+          config: { name: 'Hidden Setting', default: false }
+        },
+        {
+          key: 'invalidSetting',
+          // missing config causes validation failure
+        }
+      ];
+
+      const result = registrar.register(settings);
+
+      expect(result.success).toBe(false);
+      expect(result.processed).toBe(2);
+      expect(result.successful).toBe(0);
+      expect(result.failed).toEqual(['hiddenSetting', 'invalidSetting']);
+      expect(result.plannedExcluded).toEqual(['hiddenSetting']);
+      expect(result.unplannedFailed).toEqual(['invalidSetting']);
+      expect(result.registered).toEqual([]);
+    });
+
+    it('should handle planned-only exclusions', () => {
+      FlagEvaluator.shouldShow = jest.fn().mockReturnValue(false);
+
+      const settings = [
+        {
+          key: 'hiddenSetting1',
+          showOnlyIfFlag: 'manifest.dev',
+          config: { name: 'Hidden Setting 1', default: false }
+        },
+        {
+          key: 'hiddenSetting2',
+          dontShowIfFlag: 'manifest.production',
+          config: { name: 'Hidden Setting 2', default: true }
+        }
+      ];
+
+      const result = registrar.register(settings);
+
+      expect(result.success).toBe(false);
+      expect(result.processed).toBe(2);
+      expect(result.successful).toBe(0);
+      expect(result.failed).toEqual(['hiddenSetting1', 'hiddenSetting2']);
+      expect(result.plannedExcluded).toEqual(['hiddenSetting1', 'hiddenSetting2']);
+      expect(result.unplannedFailed).toEqual([]);
+      expect(result.registered).toEqual([]);
+    });
+
+    it('should handle all-success cases', () => {
+      FlagEvaluator.shouldShow = jest.fn().mockReturnValue(true);
+
+      const settings = [
+        {
+          key: 'setting1',
+          config: { name: 'Setting 1', default: 'value1' }
+        },
+        {
+          key: 'setting2',
+          config: { name: 'Setting 2', default: 'value2' }
+        }
+      ];
+
+      const result = registrar.register(settings);
+
+      expect(result.success).toBe(true);
+      expect(result.processed).toBe(2);
+      expect(result.successful).toBe(2);
+      expect(result.failed).toEqual([]);
+      expect(result.plannedExcluded).toEqual([]);
+      expect(result.unplannedFailed).toEqual([]);
+      expect(result.registered).toEqual(['setting1', 'setting2']);
+    });
+
+    it('should handle unplanned-only failures', () => {
+      FlagEvaluator.shouldShow = jest.fn().mockReturnValue(true);
+
+      const settings = [
+        {
+          key: 'invalidSetting1'
+          // missing config
+        },
+        {
+          // missing key
+          config: { name: 'Invalid Setting 2', default: 'value' }
+        }
+      ];
+
+      const result = registrar.register(settings);
+
+      expect(result.success).toBe(false);
+      expect(result.processed).toBe(2);
+      expect(result.successful).toBe(0);
+      expect(result.failed).toEqual(['invalidSetting1', 'Unknown Setting']);
+      expect(result.plannedExcluded).toEqual([]);
+      expect(result.unplannedFailed).toEqual(['invalidSetting1', 'Unknown Setting']);
+      expect(result.registered).toEqual([]);
+    });
+
+    it('should handle mixed scenarios with both success and failures', () => {
+      FlagEvaluator.shouldShow = jest.fn()
+        .mockReturnValueOnce(true)  // setting1: success
+        .mockReturnValueOnce(false) // setting2: planned exclusion
+        .mockReturnValueOnce(true); // setting3: unplanned failure
+
+      const settings = [
+        {
+          key: 'setting1',
+          config: { name: 'Setting 1', default: 'value1' }
+        },
+        {
+          key: 'setting2',
+          showOnlyIfFlag: 'manifest.dev',
+          config: { name: 'Setting 2', default: 'value2' }
+        },
+        {
+          key: 'setting3'
+          // missing config causes unplanned failure
+        }
+      ];
+
+      const result = registrar.register(settings);
+
+      expect(result.success).toBe(true); // Has at least one success
+      expect(result.processed).toBe(3);
+      expect(result.successful).toBe(1);
+      expect(result.failed).toEqual(['setting2', 'setting3']);
+      expect(result.plannedExcluded).toEqual(['setting2']);
+      expect(result.unplannedFailed).toEqual(['setting3']);
+      expect(result.registered).toEqual(['setting1']);
+    });
+  });
 });

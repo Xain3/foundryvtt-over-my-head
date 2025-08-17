@@ -193,7 +193,10 @@ class SettingsParser extends Handler {
       processed: 0,
       successful: 0,
       parsed: [],
-      failed: []
+  failed: [],
+  // planned exclusions (e.g., hidden by flags) vs unplanned failures (errors)
+  plannedExcluded: [],
+  unplannedFailed: []
     };
   }
 
@@ -206,7 +209,7 @@ class SettingsParser extends Handler {
    */
   #parseSingleSetting(setting) {
     if (!SettingsChecker.check(setting, this.requiredKeys)) {
-      return { success: false, data: null, message: `Failed to parse setting: invalid format` };
+  return { success: false, key: (setting && setting.key) || "Unknown", data: null, planned: false, reason: 'invalid-format', message: `Failed to parse setting: invalid format` };
     }
 
     const settingKey = setting.key || "Unknown";
@@ -221,11 +224,13 @@ class SettingsParser extends Handler {
     );
 
     if (!shouldShow) {
-      return { 
-        success: false, 
-        key: settingKey, 
-        data: null, 
-        message: `Setting ${settingKey} hidden due to flag conditions` 
+      return {
+        success: false,
+        key: settingKey,
+        data: null,
+        planned: true,
+        reason: 'flag-hidden',
+        message: `Setting ${settingKey} hidden due to flag conditions`
       };
     }
 
@@ -256,7 +261,7 @@ class SettingsParser extends Handler {
       this.utils.logDebug && this.utils.logDebug(`Removed onChange config for setting "${settingKey}" (sendHook is false)`);
     }
 
-    return { success: true, key: settingKey, data: setting, message: `Successfully parsed setting ${settingKey}` };
+  return { success: true, key: settingKey, data: setting, reason: 'ok', message: `Successfully parsed setting ${settingKey}` };
   }
 
   /**
@@ -277,7 +282,13 @@ class SettingsParser extends Handler {
         output.successful++;
         output.parsed.push(parsedSetting.key || "Unknown");
       } else {
-        output.failed.push(parsedSetting.key || "Unknown");
+        const key = parsedSetting.key || "Unknown";
+        output.failed.push(key);
+        if (parsedSetting.planned) {
+          output.plannedExcluded.push(key);
+        } else {
+          output.unplannedFailed.push(key);
+        }
       }
     });
     return output;
@@ -301,10 +312,73 @@ class SettingsParser extends Handler {
         output.successful++;
         output.parsed.push(parsedSetting.key || "Unknown");
       } else {
-        output.failed.push(parsedSetting.key || "Unknown");
+        const k = parsedSetting.key || "Unknown";
+        output.failed.push(k);
+        if (parsedSetting.planned) {
+          output.plannedExcluded.push(k);
+        } else {
+          output.unplannedFailed.push(k);
+        }
       }
     });
     return output;
+  }
+
+  /**
+   * Analyze parsed settings and log messages depending on planned/unplanned failures.
+   * @private
+   * @param {Object} parsedSettings Aggregate parse result returned by parsers
+   */
+  #analyzeParsedSettings(parsedSettings) {
+    const report = this.#generateSettingsReport(parsedSettings);
+    if (report.unplanned.length > 0) {
+      // Warn only about true failures, but also list planned exclusions distinctly
+      this.#warnAboutParsingIssues(report);
+    } else if (report.planned.length > 0) {
+      // Only planned exclusions: log at debug level at most
+      this.#logParsingExclusions(report);
+    }
+  }
+
+  /**
+   * Generate a human-friendly report structure for parsed settings.
+   * @private
+   * @param {Object} parsedSettings Aggregate parse result
+   * @returns {{unplanned: string[], header: string, parsedList: string, planned: string[]}}
+   */
+  #generateSettingsReport(parsedSettings) {
+    const planned = parsedSettings.plannedExcluded || [];
+    const unplanned = parsedSettings.unplannedFailed || [];
+    const header = `SettingsParser: ${parsedSettings.successful} out of ${parsedSettings.processed} settings were successfully parsed.`;
+    const parsedList = parsedSettings.parsed.length ? `Successfully parsed settings:\n- ${parsedSettings.parsed.join("\n- ")}` : "";
+    return { unplanned, header, parsedList, planned };
+  }
+
+  /**
+   * Log only planned parsing exclusions at debug level.
+   * @private
+   * @param {{header:string,parsedList:string,planned:string[]}} report
+   */
+  #logParsingExclusions(report) {
+    const sections = [report.header];
+    if (report.parsedList) sections.push(report.parsedList);
+    sections.push(`Intentionally excluded (flag conditions):\n- ${report.planned.join("\n- ")}`);
+    const debugMessage = sections.join("\n        ");
+    if (this.utils.logDebug) this.utils.logDebug(debugMessage);
+  }
+
+  /**
+   * Warn about unplanned parsing failures (and include planned exclusions for context).
+   * @private
+   * @param {{header:string,parsedList:string,planned:string[],unplanned:string[]}} report
+   */
+  #warnAboutParsingIssues(report) {
+    const sections = [report.header];
+    if (report.parsedList) sections.push(report.parsedList);
+    if (report.planned.length > 0) sections.push(`Intentionally excluded (flag conditions):\n- ${report.planned.join("\n- ")}`);
+    sections.push(`Failed to parse (errors):\n- ${report.unplanned.join("\n- ")}`);
+    const warningMessage = sections.join("\n        ");
+    this.utils.logWarning && this.utils.logWarning(warningMessage);
   }
 
   /**
@@ -317,7 +391,7 @@ class SettingsParser extends Handler {
    *
    * @public
    * @param {Object|Array} settings - Settings provided as array or object map.
-   * @returns {{ processed: number, successful: number, parsed: string[], failed: string[] }} Aggregate parse result.
+   * @returns {{ processed: number, successful: number, parsed: string[], failed: string[], plannedExcluded: string[], unplannedFailed: string[] }} Aggregate parse result with failure breakdown.
    * @throws {Error} When settings input is invalid or contains no valid entries.
    */
   parse(settings) {
@@ -340,13 +414,13 @@ class SettingsParser extends Handler {
       throw new Error(this.utils.formatError("Settings cannot be parsed: all settings are invalid"));
     }
     if (parsedSettings.successful < parsedSettings.processed) {
-      const warningMessage = `SettingsParser: ${parsedSettings.successful} out of ${parsedSettings.processed} settings were successfully parsed.
-        Successfully parsed settings:
-- ${parsedSettings.parsed.join("\n- ")}
-        The following settings failed to parse:
-- ${parsedSettings.failed.join("\n- ")}`;
-  this.utils.logWarning && this.utils.logWarning(warningMessage);
+      this.#analyzeParsedSettings(parsedSettings);
     }
+
+    // Ensure callers receive the detailed breakdown
+    parsedSettings.plannedExcluded = parsedSettings.plannedExcluded || [];
+    parsedSettings.unplannedFailed = parsedSettings.unplannedFailed || [];
+
     return parsedSettings;
   }
 }

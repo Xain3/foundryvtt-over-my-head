@@ -423,42 +423,6 @@ class SettingsParser extends Handler {
 
     return parsedSettings;
   }
-
-  #analyzeParsedSettings(parsedSettings) {
-    const report = this.#generateSettingsReport(parsedSettings);
-    if (report.unplanned.length > 0) {
-      // Warn only about true failures, but also list planned exclusions distinctly
-      this.#warnAboutParsingIssues(report);
-    } else if (report.planned.length > 0) {
-      // Only planned exclusions: log at debug level at most
-      this.#logParsingExclusions(report);
-    }
-  }
-
-  #generateSettingsReport(parsedSettings) {
-    const planned = parsedSettings.plannedExcluded || [];
-    const unplanned = parsedSettings.unplannedFailed || [];
-    const header = `SettingsParser: ${parsedSettings.successful} out of ${parsedSettings.processed} settings were successfully parsed.`;
-    const parsedList = parsedSettings.parsed.length ? `Successfully parsed settings:\n- ${parsedSettings.parsed.join("\n- ")}` : "";
-    return { unplanned, header, parsedList, planned };
-  }
-
-  #logParsingExclusions(report) {
-    const sections = [report.header];
-    if (report.parsedList) sections.push(report.parsedList);
-    sections.push(`Intentionally excluded (flag conditions):\n- ${report.planned.join("\n- ")}`);
-    const debugMessage = sections.join("\n        ");
-    if (this.utils.logDebug) this.utils.logDebug(debugMessage);
-  }
-
-  #warnAboutParsingIssues(report) {
-    const sections = [report.header];
-    if (report.parsedList) sections.push(report.parsedList);
-    if (report.planned.length > 0) sections.push(`Intentionally excluded (flag conditions):\n- ${report.planned.join("\n- ")}`);
-    sections.push(`Failed to parse (errors):\n- ${report.unplanned.join("\n- ")}`);
-    const warningMessage = sections.join("\n        ");
-    this.utils.logWarning && this.utils.logWarning(warningMessage);
-  }
 }
 
 export default SettingsParser;

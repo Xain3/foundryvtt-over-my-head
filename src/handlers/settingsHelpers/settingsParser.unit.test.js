@@ -665,4 +665,190 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       expect(result.failed).toEqual(['hiddenSetting']);
     });
   });
+
+  describe('Planned vs Unplanned failure reporting', () => {
+    let parser;
+    const mockConfig = { 
+      constants: { settings: { requiredKeys: ['key', 'config.name', 'config.type'] } },
+      manifest: { debugMode: true, dev: false }
+    };
+    const mockUtils = { 
+      formatError: (e) => String(e), 
+      logWarning: jest.fn(), 
+      logDebug: jest.fn() 
+    };
+    const mockContext = {};
+
+    beforeEach(() => {
+      parser = new SettingsParser(mockConfig, mockUtils, mockContext);
+      jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should differentiate mixed planned and unplanned failures', () => {
+      // First setting: valid and should show
+      SettingsChecker.check.mockReturnValueOnce(true);
+      FlagEvaluator.shouldShow.mockReturnValueOnce(true);
+      
+      // Second setting: valid but flag-hidden (planned exclusion)
+      SettingsChecker.check.mockReturnValueOnce(true);
+      FlagEvaluator.shouldShow.mockReturnValueOnce(false);
+      
+      // Third setting: invalid format (unplanned failure)
+      SettingsChecker.check.mockReturnValueOnce(false);
+      FlagEvaluator.shouldShow.mockReturnValueOnce(true);
+
+      const settings = [
+        {
+          key: 'validSetting',
+          showOnlyIfFlag: 'manifest.debugMode',
+          config: { name: 'Valid', type: Boolean }
+        },
+        {
+          key: 'plannedExcluded',
+          showOnlyIfFlag: 'manifest.dev',
+          config: { name: 'Planned', type: Boolean }
+        },
+        {
+          key: 'unplannedFailed',
+          config: { name: 'Invalid' } // Missing type - invalid
+        }
+      ];
+
+      const result = parser.parse(settings);
+
+      expect(result.processed).toBe(3);
+      expect(result.successful).toBe(1);
+      expect(result.parsed).toEqual(['validSetting']);
+      expect(result.failed).toEqual(['plannedExcluded', 'unplannedFailed']);
+      expect(result.plannedExcluded).toEqual(['plannedExcluded']);
+      expect(result.unplannedFailed).toEqual(['unplannedFailed']);
+      
+      // Should log warning for mixed failures
+      expect(mockUtils.logWarning).toHaveBeenCalledTimes(1);
+      expect(mockUtils.logDebug).not.toHaveBeenCalled();
+    });
+
+    it('should handle planned-only exclusions with debug logging', () => {
+      // First setting: valid and should show
+      SettingsChecker.check.mockReturnValueOnce(true);
+      FlagEvaluator.shouldShow.mockReturnValueOnce(true);
+      
+      // Second setting: valid but flag-hidden (planned exclusion)
+      SettingsChecker.check.mockReturnValueOnce(true);
+      FlagEvaluator.shouldShow.mockReturnValueOnce(false);
+
+      const settings = [
+        {
+          key: 'validSetting',
+          showOnlyIfFlag: 'manifest.debugMode',
+          config: { name: 'Valid', type: Boolean }
+        },
+        {
+          key: 'plannedExcluded',
+          showOnlyIfFlag: 'manifest.dev',
+          config: { name: 'Planned', type: Boolean }
+        }
+      ];
+
+      const result = parser.parse(settings);
+
+      expect(result.processed).toBe(2);
+      expect(result.successful).toBe(1);
+      expect(result.parsed).toEqual(['validSetting']);
+      expect(result.failed).toEqual(['plannedExcluded']);
+      expect(result.plannedExcluded).toEqual(['plannedExcluded']);
+      expect(result.unplannedFailed).toEqual([]);
+      
+      // Should log debug for planned-only exclusions
+      expect(mockUtils.logDebug).toHaveBeenCalledTimes(1);
+      expect(mockUtils.logWarning).not.toHaveBeenCalled();
+    });
+
+    it('should handle all-success scenarios without logging', () => {
+      SettingsChecker.check.mockReturnValue(true);
+      FlagEvaluator.shouldShow.mockReturnValue(true);
+
+      const settings = [
+        {
+          key: 'validSetting1',
+          config: { name: 'Valid1', type: Boolean }
+        },
+        {
+          key: 'validSetting2',
+          config: { name: 'Valid2', type: String }
+        }
+      ];
+
+      const result = parser.parse(settings);
+
+      expect(result.processed).toBe(2);
+      expect(result.successful).toBe(2);
+      expect(result.parsed).toEqual(['validSetting1', 'validSetting2']);
+      expect(result.failed).toEqual([]);
+      expect(result.plannedExcluded).toEqual([]);
+      expect(result.unplannedFailed).toEqual([]);
+      
+      // No logging for all-success scenarios
+      expect(mockUtils.logDebug).not.toHaveBeenCalled();
+      expect(mockUtils.logWarning).not.toHaveBeenCalled();
+    });
+
+    it('should handle unplanned-only failures with warning logging', () => {
+      // First setting: valid and should show
+      SettingsChecker.check.mockReturnValueOnce(true);
+      FlagEvaluator.shouldShow.mockReturnValueOnce(true);
+      
+      // Second setting: invalid format (unplanned failure)
+      SettingsChecker.check.mockReturnValueOnce(false);
+      FlagEvaluator.shouldShow.mockReturnValueOnce(true);
+
+      const settings = [
+        {
+          key: 'validSetting',
+          config: { name: 'Valid', type: Boolean }
+        },
+        {
+          key: 'unplannedFailed',
+          config: { name: 'Invalid' } // Missing type - invalid
+        }
+      ];
+
+      const result = parser.parse(settings);
+
+      expect(result.processed).toBe(2);
+      expect(result.successful).toBe(1);
+      expect(result.parsed).toEqual(['validSetting']);
+      expect(result.failed).toEqual(['unplannedFailed']);
+      expect(result.plannedExcluded).toEqual([]);
+      expect(result.unplannedFailed).toEqual(['unplannedFailed']);
+      
+      // Should warn about unplanned failures
+      expect(mockUtils.logWarning).toHaveBeenCalledTimes(1);
+      expect(mockUtils.logDebug).not.toHaveBeenCalled();
+    });
+
+    it('should ensure return object always includes planned and unplanned arrays', () => {
+      SettingsChecker.check.mockReturnValue(true);
+      FlagEvaluator.shouldShow.mockReturnValue(true);
+
+      const settings = [
+        {
+          key: 'validSetting',
+          config: { name: 'Valid', type: Boolean }
+        }
+      ];
+
+      const result = parser.parse(settings);
+
+      // Ensure arrays are always present even when empty
+      expect(result).toHaveProperty('plannedExcluded');
+      expect(result).toHaveProperty('unplannedFailed');
+      expect(Array.isArray(result.plannedExcluded)).toBe(true);
+      expect(Array.isArray(result.unplannedFailed)).toBe(true);
+    });
+  });
 });

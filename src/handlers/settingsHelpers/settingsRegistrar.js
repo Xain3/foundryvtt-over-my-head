@@ -75,18 +75,22 @@ class SettingsRegistrar extends Handler {
    * @param {Object} setting - The setting object to register
    * @param {string} setting.key - The unique key for the setting
    * @param {Object} setting.config - The configuration object for the setting
-   * @returns {Object} Registration result with success status and message
+   * @returns {Object} Registration result with success status, message, and failure categorization
    */
   registerSetting(setting) {
     let success = true;
     let message = "";
+    let planned = false;
+    let reason = 'ok';
     let settingName = this.#getSettingName(setting);
 
     const checks = this.#runChecks(setting);
     if (!checks.success) {
       success = false;
+      planned = false;
+      reason = 'invalid-format';
       message = `Failed to register ${settingName}: ${checks.message}`;
-      return { success, message };
+      return { success, message, planned, reason, key: settingName };
     }
 
     // Check flag conditions to determine if setting should be registered
@@ -100,8 +104,10 @@ class SettingsRegistrar extends Handler {
 
     if (!shouldShow) {
       success = false;
+      planned = true;
+      reason = 'flag-hidden';
       message = `Setting ${settingName} not registered due to flag conditions`;
-      return { success, message };
+      return { success, message, planned, reason, key: settingName };
     }
 
     try {
@@ -109,10 +115,12 @@ class SettingsRegistrar extends Handler {
       message = `Setting ${settingName} registered successfully.`;
     } catch (error) {
       success = false;
+      planned = false;
+      reason = 'registration-error';
       message = `Failed to register ${settingName}: ${error.message}`;
     }
 
-    return { success, message };
+    return { success, message, planned, reason, key: settingName };
   }
 
   /**
@@ -132,28 +140,54 @@ class SettingsRegistrar extends Handler {
   }
 
   /**
+   * Initialize an empty aggregate registration result object.
+   *
+   * @private
+   * @returns {{ processed: number, successful: number, registered: string[], failed: string[], plannedExcluded: string[], unplannedFailed: string[], errorMessages: string[] }} Empty result container.
+   */
+  #initializeRegistrationResult() {
+    return {
+      processed: 0,
+      successful: 0,
+      registered: [],
+      failed: [],
+      // planned exclusions (e.g., hidden by flags) vs unplanned failures (errors)
+      plannedExcluded: [],
+      unplannedFailed: [],
+      errorMessages: []
+    };
+  }
+
+  /**
    * Registers multiple settings using a provided iterator.
    * @param {Iterable} iterable - The iterable of settings.
    * @param {Function} getSetting - Function to extract the setting from the iterable element.
    * @returns {Object} Registration result summary.
    */
   #registerMultipleSettings(iterable, getSetting) {
-    let counter = 0;
-    let successCounter = 0;
-    let errorMessages = [];
+    const output = this.#initializeRegistrationResult();
 
     for (const element of iterable) {
       const setting = getSetting(element);
-      const output = this.registerSetting(setting);
-      counter++;
-      if (output.success) {
-        successCounter++;
+      const result = this.registerSetting(setting);
+      output.processed++;
+      
+      if (result.success) {
+        output.successful++;
+        output.registered.push(result.key || "Unknown");
       } else {
-        errorMessages.push(output.message);
+        const key = result.key || "Unknown";
+        output.failed.push(key);
+        output.errorMessages.push(result.message);
+        if (result.planned) {
+          output.plannedExcluded.push(key);
+        } else {
+          output.unplannedFailed.push(key);
+        }
       }
     }
 
-    return { counter, successCounter, errorMessages };
+    return output;
   }
 
 
@@ -163,34 +197,116 @@ class SettingsRegistrar extends Handler {
    * @returns {Object} - The result of the processing
    */
   #processSettings(settings) {
-    let result;
     if (Array.isArray(settings)) {
-      result = this.#registerMultipleSettings(settings, element => element);
+      return this.#registerMultipleSettings(settings, element => element);
     } else if (typeof settings === 'object') {
-      result = this.#registerMultipleSettings(Object.entries(settings), ([, value]) => value);
+      return this.#registerMultipleSettings(Object.entries(settings), ([, value]) => value);
     }
-    return result;
+    return this.#initializeRegistrationResult();
+  }
+
+  /**
+   * Analyze registration results and log messages depending on planned/unplanned failures.
+   * @private
+   * @param {Object} registrationResults Aggregate registration result returned by processors
+   */
+  #analyzeRegistrationResults(registrationResults) {
+    const report = this.#generateRegistrationReport(registrationResults);
+    if (report.unplanned.length > 0) {
+      // Warn only about true failures, but also list planned exclusions distinctly
+      this.#warnAboutRegistrationIssues(report);
+    } else if (report.planned.length > 0) {
+      // Only planned exclusions: log at debug level at most
+      this.#logRegistrationExclusions(report);
+    }
+  }
+
+  /**
+   * Generate a human-friendly report structure for registration results.
+   * @private
+   * @param {Object} registrationResults Aggregate registration result
+   * @returns {{unplanned: string[], header: string, registeredList: string, planned: string[]}}
+   */
+  #generateRegistrationReport(registrationResults) {
+    const planned = registrationResults.plannedExcluded || [];
+    const unplanned = registrationResults.unplannedFailed || [];
+    const header = `SettingsRegistrar: ${registrationResults.successful} out of ${registrationResults.processed} settings were successfully registered.`;
+    const registeredList = registrationResults.registered.length ? `Successfully registered settings:\n- ${registrationResults.registered.join("\n- ")}` : "";
+    return { unplanned, header, registeredList, planned };
+  }
+
+  /**
+   * Log only planned registration exclusions at debug level.
+   * @private
+   * @param {{header:string,registeredList:string,planned:string[]}} report
+   */
+  #logRegistrationExclusions(report) {
+    const sections = [report.header];
+    if (report.registeredList) sections.push(report.registeredList);
+    sections.push(`Intentionally excluded (flag conditions):\n- ${report.planned.join("\n- ")}`);
+    const debugMessage = sections.join("\n        ");
+    if (this.utils.logDebug) this.utils.logDebug(debugMessage);
+  }
+
+  /**
+   * Warn about unplanned registration failures (and include planned exclusions for context).
+   * @private
+   * @param {{header:string,registeredList:string,planned:string[],unplanned:string[]}} report
+   */
+  #warnAboutRegistrationIssues(report) {
+    const sections = [report.header];
+    if (report.registeredList) sections.push(report.registeredList);
+    if (report.planned.length > 0) sections.push(`Intentionally excluded (flag conditions):\n- ${report.planned.join("\n- ")}`);
+    sections.push(`Failed to register (errors):\n- ${report.unplanned.join("\n- ")}`);
+    const warningMessage = sections.join("\n        ");
+    this.utils.logWarning && this.utils.logWarning(warningMessage);
   }
 
   /**
    * Registers multiple settings from an array or object
    * @param {Array|Object} settings - Array of setting objects or object with setting values
-   * @returns {Object} Registration result summary with counters and error messages
+   * @returns {Object} Registration result summary with counters, detailed breakdown, and error messages
    */
   register(settings) {
     if (!settings || typeof settings !== 'object') {
-  throw new Error(this.utils.formatError("Settings cannot be registered: invalid format"));
+      throw new Error(this.utils.formatError("Settings cannot be registered: invalid format"));
     }
 
-    const { counter = 0, successCounter = 0, errorMessages = [] } = this.#processSettings(settings);
-    const success = successCounter > 0;
-    let message = `Registered ${successCounter} out of ${counter} settings successfully.`;
+    const registrationResults = this.#processSettings(settings);
+    
+    // Unlike SettingsParser, SettingsRegistrar doesn't throw on empty/failed cases
+    // It returns failure results for backward compatibility
+    if (registrationResults.successful < registrationResults.processed) {
+      this.#analyzeRegistrationResults(registrationResults);
+    }
+
+    // Ensure callers receive the detailed breakdown
+    registrationResults.plannedExcluded = registrationResults.plannedExcluded || [];
+    registrationResults.unplannedFailed = registrationResults.unplannedFailed || [];
+
+    // For backward compatibility, also include legacy format
+    const success = registrationResults.successful > 0;
+    let message = `Registered ${registrationResults.successful} out of ${registrationResults.processed} settings successfully.`;
+    const errorMessages = registrationResults.errorMessages || [];
 
     if (errorMessages.length > 0) {
       message += ` Errors: ${errorMessages.join('; ')}`;
     }
 
-    return { success, message, counter, successCounter, errorMessages };
+    return {
+      success,
+      message,
+      counter: registrationResults.processed,
+      successCounter: registrationResults.successful,
+      errorMessages,
+      // Enhanced breakdown for programmatic inspection
+      processed: registrationResults.processed,
+      successful: registrationResults.successful,
+      registered: registrationResults.registered,
+      failed: registrationResults.failed,
+      plannedExcluded: registrationResults.plannedExcluded,
+      unplannedFailed: registrationResults.unplannedFailed
+    };
   }
 }
 

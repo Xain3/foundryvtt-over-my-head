@@ -6,6 +6,7 @@
 
 import Handler from "@/baseClasses/handler";
 import SettingsChecker from "./settingsChecker";
+import FlagEvaluator from "./flagEvaluator";
 
 /**
  * Factory for creating onChange callbacks that trigger hooks when settings change.
@@ -209,6 +210,24 @@ class SettingsParser extends Handler {
     }
 
     const settingKey = setting.key || "Unknown";
+
+    // Check flag conditions to determine if setting should be shown
+    const flagEvaluatorConfig = this.config?.constants?.flagEvaluator?.contextMapping;
+    const shouldShow = FlagEvaluator.shouldShow(
+      setting.showOnlyIfFlag,
+      setting.dontShowIfFlag,
+      this.config,
+      flagEvaluatorConfig
+    );
+
+    if (!shouldShow) {
+      return { 
+        success: false, 
+        key: settingKey, 
+        data: null, 
+        message: `Setting ${settingKey} hidden due to flag conditions` 
+      };
+    }
 
   // Ensure the type is in a Foundry-acceptable format (constructor/function/DataField)
   this.#normalizeType(setting);

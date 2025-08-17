@@ -5,6 +5,7 @@
 */
 
 import Handler from "@/baseClasses/handler";
+import FlagEvaluator from "./flagEvaluator";
 
 /**
  * SettingsRegistrar class for registering Foundry VTT settings
@@ -85,6 +86,21 @@ class SettingsRegistrar extends Handler {
     if (!checks.success) {
       success = false;
       message = `Failed to register ${settingName}: ${checks.message}`;
+      return { success, message };
+    }
+
+    // Check flag conditions to determine if setting should be registered
+    const flagEvaluatorConfig = this.config?.constants?.flagEvaluator?.contextMapping;
+    const shouldShow = FlagEvaluator.shouldShow(
+      setting.showOnlyIfFlag,
+      setting.dontShowIfFlag,
+      this.config,
+      flagEvaluatorConfig
+    );
+
+    if (!shouldShow) {
+      success = false;
+      message = `Setting ${settingName} not registered due to flag conditions`;
       return { success, message };
     }
 

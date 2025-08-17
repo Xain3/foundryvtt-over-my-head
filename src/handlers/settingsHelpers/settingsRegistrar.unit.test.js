@@ -812,7 +812,8 @@ describe('SettingsRegistrar', () => {
       expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
         'manifest.debugMode',
         null,
-        mockConfig
+        mockConfig,
+        undefined
       );
       expect(result.success).toBe(true);
       expect(result.message).toContain('registered successfully');
@@ -833,7 +834,8 @@ describe('SettingsRegistrar', () => {
       expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
         'manifest.dev',
         null,
-        mockConfig
+        mockConfig,
+        undefined
       );
       expect(result.success).toBe(false);
       expect(result.message).toContain('not registered due to flag conditions');
@@ -854,7 +856,8 @@ describe('SettingsRegistrar', () => {
       expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
         { or: ['manifest.debugMode', 'manifest.dev'] },
         { and: ['someFlag', 'anotherFlag'] },
-        mockConfig
+        mockConfig,
+        undefined
       );
       expect(result.success).toBe(true);
     });
@@ -874,7 +877,8 @@ describe('SettingsRegistrar', () => {
       expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
         null,
         null,
-        mockConfig
+        mockConfig,
+        undefined
       );
       expect(result.success).toBe(true);
     });
@@ -940,7 +944,8 @@ describe('SettingsRegistrar', () => {
       expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
         { or: ['manifest.debugMode', 'manifest.dev'] },
         null,
-        contextWithManifest
+        contextWithManifest,
+        undefined
       );
       expect(result.success).toBe(true);
     });

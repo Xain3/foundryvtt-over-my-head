@@ -212,10 +212,12 @@ class SettingsParser extends Handler {
     const settingKey = setting.key || "Unknown";
 
     // Check flag conditions to determine if setting should be shown
+    const flagEvaluatorConfig = this.config?.constants?.flagEvaluator?.contextMapping;
     const shouldShow = FlagEvaluator.shouldShow(
       setting.showOnlyIfFlag,
       setting.dontShowIfFlag,
-      this.config
+      this.config,
+      flagEvaluatorConfig
     );
 
     if (!shouldShow) {

@@ -90,10 +90,12 @@ class SettingsRegistrar extends Handler {
     }
 
     // Check flag conditions to determine if setting should be registered
+    const flagEvaluatorConfig = this.config?.constants?.flagEvaluator?.contextMapping;
     const shouldShow = FlagEvaluator.shouldShow(
       setting.showOnlyIfFlag,
       setting.dontShowIfFlag,
-      this.config
+      this.config,
+      flagEvaluatorConfig
     );
 
     if (!shouldShow) {

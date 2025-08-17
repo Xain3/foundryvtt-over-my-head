@@ -564,7 +564,8 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
         'manifest.debugMode',
         null,
-        mockConfig
+        mockConfig,
+        undefined
       );
       expect(result.successful).toBe(1);
       expect(result.parsed).toContain('testSetting');
@@ -585,7 +586,8 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
         'manifest.dev',
         null,
-        mockConfig
+        mockConfig,
+        undefined
       );
     });
 
@@ -604,7 +606,8 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
         { or: ['manifest.debugMode', 'manifest.dev'] },
         { and: ['someFlag', 'anotherFlag'] },
-        mockConfig
+        mockConfig,
+        undefined
       );
       expect(result.successful).toBe(1);
     });
@@ -624,7 +627,8 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       expect(FlagEvaluator.shouldShow).toHaveBeenCalledWith(
         null,
         null,
-        mockConfig
+        mockConfig,
+        undefined
       );
       expect(result.successful).toBe(1);
     });

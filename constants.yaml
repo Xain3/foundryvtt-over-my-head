@@ -275,5 +275,61 @@ requiredManifestAttributes:
 - "description"
 - "version"
 
+# Configuration for the FlagEvaluator system
+flagEvaluator:
+  # Context mapping configuration - defines how path prefixes resolve to contexts
+  contextMapping:
+    # Foundry game object contexts
+    game:
+      globalPath: "globalThis.game"
+      pathAdjustment: "removePrefix"  # Remove the prefix from the path
+      description: "Global Foundry game object"
+    
+    user:
+      globalPath: "globalThis.game.user"
+      pathAdjustment: "removePrefix"  # Remove the prefix from the path
+      description: "Current user object"
+    
+    world:
+      globalPath: "globalThis.game.world"
+      pathAdjustment: "removePrefix"  # Remove the prefix from the path
+      description: "Foundry world object"
+    
+    # Module configuration contexts
+    manifest:
+      globalPath: "config"
+      pathAdjustment: "keepFull"  # Keep the full path for backward compatibility
+      description: "Module manifest data"
+    
+    constants:
+      globalPath: "config"
+      pathAdjustment: "mapToManifest"  # Map constants.* to manifest.*
+      description: "Module constants (same as manifest, for backward compatibility)"
+    
+    config:
+      globalPath: "config"
+      pathAdjustment: "keepFull"  # Keep the full path for backward compatibility
+      description: "Module configuration object"
+  
+  # Path adjustment strategies
+  pathAdjustment:
+    removePrefix:
+      description: "Remove the first part of the path (prefix) and use the rest"
+      # Example: "user.isAdmin" becomes "isAdmin"
+    
+    keepFull:
+      description: "Keep the full original path unchanged"
+      # Example: "manifest.debugMode" stays "manifest.debugMode"
+    
+    mapToManifest:
+      description: "Replace the first part with 'manifest'"
+      # Example: "constants.debugMode" becomes "manifest.debugMode"
+  
+  # Default fallback configuration
+  defaults:
+    globalPath: "config"  # Default context when no prefix matches
+    pathAdjustment: "keepFull"  # Default path handling for backward compatibility
+    description: "Default fallback context for backward compatibility"
+
 # The following constant is used only for testing purposes
 testConstant: "testValue" # DO NOT CHANGE THIS VALUE

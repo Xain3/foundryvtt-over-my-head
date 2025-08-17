@@ -203,7 +203,7 @@ settings:
 
 
     - key: "debugMode"
-      showOnlyIfFlag: {or: ["manifest.debugMode", "manifest.dev"]}
+      showOnlyIfFlag: {or: ["manifest.flags.debugMode", "manifest.flags.dev"]}
       dontShowIfFlag: null
       config:
         name: "foundryvtt-over-my-head.settings.debugMode.name"
@@ -284,47 +284,47 @@ flagEvaluator:
       globalPath: "globalThis.game"
       pathAdjustment: "removePrefix"  # Remove the prefix from the path
       description: "Global Foundry game object"
-    
+
     user:
       globalPath: "globalThis.game.user"
       pathAdjustment: "removePrefix"  # Remove the prefix from the path
       description: "Current user object"
-    
+
     world:
       globalPath: "globalThis.game.world"
       pathAdjustment: "removePrefix"  # Remove the prefix from the path
       description: "Foundry world object"
-    
+
     # Module configuration contexts
     manifest:
       globalPath: "config.manifest"
       pathAdjustment: "removePrefix"  # Remove the prefix from the path
       description: "Module manifest data"
-    
+
     constants:
       globalPath: "config.constants"
       pathAdjustment: "removePrefix"  # Remove the prefix from the path
       description: "Module constants from constants.yaml"
-    
+
     config:
       globalPath: "config"
       pathAdjustment: "keepFull"  # Keep the full path for backward compatibility
       description: "Module configuration object"
-  
+
   # Path adjustment strategies
   pathAdjustment:
     removePrefix:
       description: "Remove the first part of the path (prefix) and use the rest"
       # Example: "user.isAdmin" becomes "isAdmin"
-    
+
     keepFull:
       description: "Keep the full original path unchanged"
       # Example: "manifest.debugMode" stays "manifest.debugMode"
-    
+
     mapToManifest:
       description: "Replace the first part with 'manifest'"
       # Example: "constants.debugMode" becomes "manifest.debugMode"
-  
+
   # Default fallback configuration
   defaults:
     globalPath: "config"  # Default context when no prefix matches

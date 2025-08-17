@@ -181,7 +181,7 @@ class Initializer {
     * @fires settingsReady - Fired when settings registration is complete
      */
     initializeSettings(handlerOrClass, utils = undefined, waitHook = false) {
-        this.logger.log('Initializing module');
+    this.logger.log('Initializing settings');
         if (waitHook) {
             Hooks.once('i18nInit', () => {
                 this.invokeSettingsInitialization(handlerOrClass, utils);
@@ -193,7 +193,7 @@ class Initializer {
 
     invokeSettingsInitialization(handlerOrClass, utils) {
         this._registerSettings(handlerOrClass, utils);
-        this.logger.log('Module initialized');
+    this.logger.log('Settings initialized');
         if (this.context && typeof this.context.setFlags === 'function') {
             this.context.setFlags('settingsReady', true);
         } else {

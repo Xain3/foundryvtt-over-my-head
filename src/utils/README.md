@@ -448,7 +448,7 @@ const initializer = Utils.createInitializer(
 
 // Foundry VTT hook integration
 Hooks.once('i18nInit', () => {
-  logger.log('Initializing module...');
+  logger.log('Initializing settings...');
 
   try {
     // Initialize context

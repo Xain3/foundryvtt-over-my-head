@@ -215,8 +215,8 @@ describe('Initializer', () => {
             initializer.initializeSettings(MockSettingsHandlerClass, {});
             expect(Hooks.once).not.toHaveBeenCalledWith('i18nInit', expect.any(Function));
             expect(initializer._registerSettings).toHaveBeenCalledWith(MockSettingsHandlerClass, {});
-            expect(mockLog).toHaveBeenCalledWith('Initializing module');
-            expect(mockLog).toHaveBeenCalledWith('Module initialized');
+                expect(mockLog).toHaveBeenCalledWith('Initializing settings');
+            expect(mockLog).toHaveBeenCalledWith('Settings initialized');
             expect(mockContextInstance.setFlags).toHaveBeenCalledWith('settingsReady', true);
             expect(Hooks.callAll).toHaveBeenCalledWith('settingsReady');
         });
@@ -228,7 +228,7 @@ describe('Initializer', () => {
             // Simulate i18nInit
             hooks.i18nInit();
             expect(initializer._registerSettings).toHaveBeenCalledWith(MockSettingsHandlerClass, {});
-            expect(mockLog).toHaveBeenCalledWith('Module initialized');
+            expect(mockLog).toHaveBeenCalledWith('Settings initialized');
             expect(mockContextInstance.setFlags).toHaveBeenCalledWith('settingsReady', true);
             expect(Hooks.callAll).toHaveBeenCalledWith('settingsReady');
         });

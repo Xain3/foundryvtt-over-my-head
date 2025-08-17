@@ -35,12 +35,12 @@ class FlagEvaluator {
         pathAdjustment: "removePrefix"
       },
       manifest: {
-        globalPath: "config",
-        pathAdjustment: "keepFull"
+        globalPath: "config.manifest",
+        pathAdjustment: "removePrefix"
       },
       constants: {
-        globalPath: "config",
-        pathAdjustment: "mapToManifest"
+        globalPath: "config.constants",
+        pathAdjustment: "removePrefix"
       },
       config: {
         globalPath: "config",
@@ -83,6 +83,12 @@ class FlagEvaluator {
         break;
       case 'globalThis.game.world':
         context = globalThis.game?.world || null;
+        break;
+      case 'config.manifest':
+        context = config?.manifest || null;
+        break;
+      case 'config.constants':
+        context = config?.constants || null;
         break;
       case 'config':
       default:

@@ -297,14 +297,14 @@ flagEvaluator:
     
     # Module configuration contexts
     manifest:
-      globalPath: "config"
-      pathAdjustment: "keepFull"  # Keep the full path for backward compatibility
+      globalPath: "config.manifest"
+      pathAdjustment: "removePrefix"  # Remove the prefix from the path
       description: "Module manifest data"
     
     constants:
-      globalPath: "config"
-      pathAdjustment: "mapToManifest"  # Map constants.* to manifest.*
-      description: "Module constants (same as manifest, for backward compatibility)"
+      globalPath: "config.constants"
+      pathAdjustment: "removePrefix"  # Remove the prefix from the path
+      description: "Module constants from constants.yaml"
     
     config:
       globalPath: "config"

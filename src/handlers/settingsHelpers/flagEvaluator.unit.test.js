@@ -17,6 +17,11 @@ describe('FlagEvaluator', () => {
         dev: false,
         id: 'test-module'
       },
+      constants: {
+        debugMode: true,
+        dev: false,
+        id: 'test-module'
+      },
       config: {
         someFlag: true,
         nested: {
@@ -46,12 +51,12 @@ describe('FlagEvaluator', () => {
         pathAdjustment: "removePrefix"
       },
       manifest: {
-        globalPath: "config",
-        pathAdjustment: "keepFull"
+        globalPath: "config.manifest",
+        pathAdjustment: "removePrefix"
       },
       constants: {
-        globalPath: "config",
-        pathAdjustment: "mapToManifest"
+        globalPath: "config.constants",
+        pathAdjustment: "removePrefix"
       },
       config: {
         globalPath: "config",

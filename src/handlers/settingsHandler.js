@@ -383,6 +383,109 @@ class SettingsHandler extends Handler {
   getSettingConfigByKey(key) {
     return this.parsedSettings.find(setting => setting.key === key) || null;
   }
+
+  /**
+   * Checks if a setting exists in Foundry VTT's game.settings system.
+   *
+   * This method queries the actual Foundry VTT settings system to determine if a setting
+   * with the given key has been registered for this module's namespace.
+   *
+   * @param {string} key - The key of the setting to check for
+   * @returns {boolean} True if the setting exists in game.settings, false otherwise
+   *
+   * @example
+   * ```javascript
+   * const handler = new SettingsHandler(config, utils, context);
+   * if (handler.hasSetting('debugMode')) {
+   *   console.log('Debug mode setting is available');
+   * }
+   * ```
+   */
+  hasSetting(key) {
+    if (!globalThis.game || !globalThis.game.settings) {
+      return false;
+    }
+
+    try {
+      // Try to get the setting - if it doesn't exist, this will return undefined
+      const settingValue = globalThis.game.settings.get(this.config.manifest.id, key);
+      return settingValue !== undefined;
+    } catch (error) {
+      // Setting doesn't exist or there was an error accessing it
+      return false;
+    }
+  }
+
+  /**
+   * Gets the value of a setting from Foundry VTT's game.settings system.
+   *
+   * This method retrieves the current value of a setting from Foundry VTT's settings system.
+   * Returns undefined if the setting doesn't exist or if there's an error accessing it.
+   *
+   * @param {string} key - The key of the setting to retrieve
+   * @returns {any|undefined} The setting value if it exists, undefined otherwise
+   *
+   * @example
+   * ```javascript
+   * const handler = new SettingsHandler(config, utils, context);
+   * const debugMode = handler.getSettingValue('debugMode');
+   * if (debugMode !== undefined) {
+   *   console.log('Debug mode is:', debugMode);
+   * }
+   * ```
+   */
+  getSettingValue(key) {
+    if (!globalThis.game || !globalThis.game.settings) {
+      return undefined;
+    }
+
+    try {
+      return globalThis.game.settings.get(this.config.manifest.id, key);
+    } catch (error) {
+      // Setting doesn't exist or there was an error accessing it
+      return undefined;
+    }
+  }
+
+  /**
+   * Checks if the debugMode setting exists in Foundry VTT's game.settings system.
+   *
+   * This is a convenience method that specifically checks for the debugMode setting.
+   *
+   * @returns {boolean} True if the debugMode setting exists in game.settings, false otherwise
+   *
+   * @example
+   * ```javascript
+   * const handler = new SettingsHandler(config, utils, context);
+   * if (handler.hasDebugModeSetting()) {
+   *   const value = handler.getDebugModeSettingValue();
+   *   console.log('Debug mode:', value);
+   * }
+   * ```
+   */
+  hasDebugModeSetting() {
+    return this.hasSetting('debugMode');
+  }
+
+  /**
+   * Gets the value of the debugMode setting from Foundry VTT's game.settings system.
+   *
+   * This is a convenience method that specifically retrieves the debugMode setting value.
+   *
+   * @returns {boolean|undefined} The debugMode setting value if it exists, undefined otherwise
+   *
+   * @example
+   * ```javascript
+   * const handler = new SettingsHandler(config, utils, context);
+   * const debugMode = handler.getDebugModeSettingValue();
+   * if (debugMode) {
+   *   console.log('Debug mode is enabled');
+   * }
+   * ```
+   */
+  getDebugModeSettingValue() {
+    return this.getSettingValue('debugMode');
+  }
 }
 
 export default SettingsHandler;

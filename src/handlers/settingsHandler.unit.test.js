@@ -31,7 +31,7 @@ describe('SettingsHandler', () => {
         ]
       }
     },
-    manifest: { id: 'test-module' }
+    manifest: { id: 'foundryvtt-over-my-head' }
   };
 
   const mockConfigWithoutDebug = {
@@ -46,7 +46,7 @@ describe('SettingsHandler', () => {
         ]
       }
     },
-    manifest: { id: 'test-module' }
+    manifest: { id: 'foundryvtt-over-my-head' }
   };
 
   const mockUtils = {
@@ -265,6 +265,236 @@ describe('SettingsHandler', () => {
         const result = handler.getSettingConfigByKey('nonExistentSetting');
         
         expect(result).toBe(null);
+      });
+    });
+
+    describe('hasSetting', () => {
+      beforeEach(() => {
+        global.game = {
+          settings: {
+            get: jest.fn()
+          }
+        };
+      });
+
+      afterEach(() => {
+        delete global.game;
+      });
+
+      it('should return true when setting exists in game.settings', () => {
+        global.game.settings.get.mockReturnValue(true);
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.hasSetting('testSetting');
+        
+        expect(result).toBe(true);
+        expect(global.game.settings.get).toHaveBeenCalledWith('foundryvtt-over-my-head', 'testSetting');
+      });
+
+      it('should return false when setting does not exist in game.settings', () => {
+        global.game.settings.get.mockReturnValue(undefined);
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.hasSetting('nonExistentSetting');
+        
+        expect(result).toBe(false);
+      });
+
+      it('should return false when setting throws error', () => {
+        global.game.settings.get.mockImplementation(() => {
+          throw new Error('Setting not found');
+        });
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.hasSetting('errorSetting');
+        
+        expect(result).toBe(false);
+      });
+
+      it('should return false when game.settings is not available', () => {
+        delete global.game;
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.hasSetting('testSetting');
+        
+        expect(result).toBe(false);
+      });
+
+      it('should return false when game is not available', () => {
+        global.game = null;
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.hasSetting('testSetting');
+        
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('getSettingValue', () => {
+      beforeEach(() => {
+        global.game = {
+          settings: {
+            get: jest.fn()
+          }
+        };
+      });
+
+      afterEach(() => {
+        delete global.game;
+      });
+
+      it('should return setting value when it exists', () => {
+        const expectedValue = true;
+        global.game.settings.get.mockReturnValue(expectedValue);
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.getSettingValue('testSetting');
+        
+        expect(result).toBe(expectedValue);
+        expect(global.game.settings.get).toHaveBeenCalledWith('foundryvtt-over-my-head', 'testSetting');
+      });
+
+      it('should return undefined when setting does not exist', () => {
+        global.game.settings.get.mockReturnValue(undefined);
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.getSettingValue('nonExistentSetting');
+        
+        expect(result).toBe(undefined);
+      });
+
+      it('should return undefined when setting throws error', () => {
+        global.game.settings.get.mockImplementation(() => {
+          throw new Error('Setting not found');
+        });
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.getSettingValue('errorSetting');
+        
+        expect(result).toBe(undefined);
+      });
+
+      it('should return undefined when game.settings is not available', () => {
+        delete global.game;
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.getSettingValue('testSetting');
+        
+        expect(result).toBe(undefined);
+      });
+
+      it('should return values of different types correctly', () => {
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        // Test boolean
+        global.game.settings.get.mockReturnValue(false);
+        expect(handler.getSettingValue('boolSetting')).toBe(false);
+        
+        // Test string
+        global.game.settings.get.mockReturnValue('test string');
+        expect(handler.getSettingValue('stringSetting')).toBe('test string');
+        
+        // Test number
+        global.game.settings.get.mockReturnValue(42);
+        expect(handler.getSettingValue('numberSetting')).toBe(42);
+        
+        // Test object
+        const testObject = { key: 'value' };
+        global.game.settings.get.mockReturnValue(testObject);
+        expect(handler.getSettingValue('objectSetting')).toBe(testObject);
+      });
+    });
+
+    describe('hasDebugModeSetting', () => {
+      beforeEach(() => {
+        global.game = {
+          settings: {
+            get: jest.fn()
+          }
+        };
+      });
+
+      afterEach(() => {
+        delete global.game;
+      });
+
+      it('should return true when debugMode setting exists', () => {
+        global.game.settings.get.mockReturnValue(false);
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.hasDebugModeSetting();
+        
+        expect(result).toBe(true);
+        expect(global.game.settings.get).toHaveBeenCalledWith('foundryvtt-over-my-head', 'debugMode');
+      });
+
+      it('should return false when debugMode setting does not exist', () => {
+        global.game.settings.get.mockReturnValue(undefined);
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.hasDebugModeSetting();
+        
+        expect(result).toBe(false);
+      });
+
+      it('should return false when game.settings is not available', () => {
+        delete global.game;
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.hasDebugModeSetting();
+        
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('getDebugModeSettingValue', () => {
+      beforeEach(() => {
+        global.game = {
+          settings: {
+            get: jest.fn()
+          }
+        };
+      });
+
+      afterEach(() => {
+        delete global.game;
+      });
+
+      it('should return debugMode value when it exists', () => {
+        global.game.settings.get.mockReturnValue(true);
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.getDebugModeSettingValue();
+        
+        expect(result).toBe(true);
+        expect(global.game.settings.get).toHaveBeenCalledWith('foundryvtt-over-my-head', 'debugMode');
+      });
+
+      it('should return false value correctly', () => {
+        global.game.settings.get.mockReturnValue(false);
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.getDebugModeSettingValue();
+        
+        expect(result).toBe(false);
+      });
+
+      it('should return undefined when debugMode setting does not exist', () => {
+        global.game.settings.get.mockReturnValue(undefined);
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.getDebugModeSettingValue();
+        
+        expect(result).toBe(undefined);
+      });
+
+      it('should return undefined when game.settings is not available', () => {
+        delete global.game;
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.getDebugModeSettingValue();
+        
+        expect(result).toBe(undefined);
       });
     });
   });

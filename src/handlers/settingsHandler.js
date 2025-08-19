@@ -49,13 +49,6 @@ import SettingLocalizer from "./settingsHelpers/settingLocalizer.js";
  * - `registerDebugModeSetting()` - Register only the debugMode setting if present
  * - `hasDebugModeSetting()` - Check if debugMode setting exists in parsed settings
  * - `getDebugModeSetting()` - Get the debugMode setting configuration if available
- * - `registerSettingByKey(key)` - Register a single setting by its key
- * - `hasSettingByKey(key)` - Check if a setting with the given key exists
- * - `getSettingByKey(key)` - Get a setting configuration by its key
- * - `registerSettingHook(eventName, callback)` - Register a hook for setting registration events
- * - `triggerSettingHook(eventName, data)` - Trigger a setting registration hook
- * - `removeSettingHook(eventName, callback)` - Remove a setting registration hook
- * - `getRegisteredHooks()` - Get all registered hooks for debugging purposes
  * - `settingsConfig` - Reference to the settings configuration from constants
  * - `parsedSettings` - The parsed and processed settings ready for registration
  *
@@ -78,13 +71,6 @@ class SettingsHandler extends Handler {
    * @private
    */
   #registrar;
-
-  /**
-   * Private map to store setting registration hooks
-   * @type {Map<string, Function[]>}
-   * @private
-   */
-  #settingHooks;
 
   /**
    * Creates a new SettingsHandler instance and automatically parses the default settings.
@@ -119,7 +105,6 @@ class SettingsHandler extends Handler {
     super(config, utils, context);
     this.#parser = new SettingsParser(config, utils, context);
     this.#registrar = new SettingsRegistrar(config, utils, context);
-    this.#settingHooks = new Map();
 
     /**
      * Reference to the settings configuration from constants.
@@ -139,9 +124,6 @@ class SettingsHandler extends Handler {
 
     // Parse the settings to set up hooks and validation
     this.parseResult = this.parse(this.parsedSettings);
-
-    // Initialize setting registration hooks
-    this.#initializeSettingHooks();
   }
 
   /**
@@ -204,7 +186,6 @@ class SettingsHandler extends Handler {
    * - Namespace management using the module's manifest ID
    * - Error handling and recovery for failed registrations
    * - Detailed reporting of registration results
-   * - Triggering setting registration hooks
    *
    * The registrar ensures that all settings are properly registered with Foundry VTT
    * and provides comprehensive feedback about the registration process.
@@ -237,25 +218,8 @@ class SettingsHandler extends Handler {
    */
   register(settings = this.parsedSettings) {
     // Localize settings before registering them
-    const localizedSettings = SettingLocalizer.localizeSettings(settings, this.utils);
-    const result = this.#registrar.register(localizedSettings);
-
-    // Trigger hooks for registered settings
-    if (result.success && Array.isArray(localizedSettings)) {
-      for (const setting of localizedSettings) {
-        this.triggerSettingHook('settingRegistered', {
-          key: setting.key,
-          config: setting.config,
-          success: true
-        });
-      }
-      this.triggerSettingHook('settingsReady', {
-        registeredCount: result.successCounter,
-        totalCount: result.counter
-      });
-    }
-
-    return result;
+  const localizedSettings = SettingLocalizer.localizeSettings(settings, this.utils); // Pass utils instead of localizer instance
+    return this.#registrar.register(localizedSettings);
   }
 
   /**
@@ -264,7 +228,6 @@ class SettingsHandler extends Handler {
    * This method filters the parsed settings to find and register only the debugMode setting.
    * It's useful when you need to register the debug mode setting independently of other
    * settings, such as during early module initialization or for development purposes.
-   * Also triggers setting registration hooks upon successful registration.
    *
    * @returns {Object} Registration result object
    * @returns {boolean} returns.success - Whether the debugMode setting was registered successfully
@@ -299,18 +262,7 @@ class SettingsHandler extends Handler {
 
     // Localize the debug setting before registering
     const localizedSetting = SettingLocalizer.localizeSettings([debugSetting], this.utils);
-    const result = this.#registrar.register(localizedSetting);
-
-    // Trigger hooks for registered setting
-    if (result.success) {
-      this.triggerSettingHook('settingRegistered', {
-        key: debugSetting.key,
-        config: debugSetting.config,
-        success: true
-      });
-    }
-
-    return result;
+    return this.#registrar.register(localizedSetting);
   }
 
   /**
@@ -346,272 +298,6 @@ class SettingsHandler extends Handler {
    */
   getDebugModeSetting() {
     return this.parsedSettings.find(setting => setting.key === 'debugMode') || null;
-  }
-
-  /**
-   * Registers a setting by its key if it exists in the parsed settings.
-   *
-   * This method filters the parsed settings to find and register only the setting with
-   * the specified key. It's useful when you need to register individual settings
-   * independently, such as during conditional initialization or for specific features.
-   * Also triggers setting registration hooks upon successful registration.
-   *
-   * @param {string} key - The key of the setting to register
-   * @returns {Object} Registration result object
-   * @returns {boolean} returns.success - Whether the setting was registered successfully
-   * @returns {number} returns.counter - Number of settings processed (0 or 1)
-   * @returns {number} returns.successCounter - Number of settings successfully registered (0 or 1)
-   * @returns {string[]} returns.errorMessages - Array of error messages if registration failed
-   * @returns {string} returns.message - Summary message of registration result
-   *
-   * @example
-   * ```javascript
-   * const handler = new SettingsHandler(config, utils, context);
-   * const result = handler.registerSettingByKey('myCustomSetting');
-   * if (result.success) {
-   *   console.log('Setting registered successfully');
-   * } else {
-   *   console.warn('Setting not found or failed to register:', result.message);
-   * }
-   * ```
-   */
-  registerSettingByKey(key) {
-    const setting = this.parsedSettings.find(setting => setting.key === key);
-    
-    if (!setting) {
-      return {
-        success: false,
-        counter: 0,
-        successCounter: 0,
-        errorMessages: [`Setting with key '${key}' not found in parsed settings`],
-        message: `Setting with key '${key}' not found in parsed settings`
-      };
-    }
-
-    // Localize the setting before registering
-    const localizedSetting = SettingLocalizer.localizeSettings([setting], this.utils);
-    const result = this.#registrar.register(localizedSetting);
-
-    // Trigger hooks for registered setting
-    if (result.success) {
-      this.triggerSettingHook('settingRegistered', {
-        key: setting.key,
-        config: setting.config,
-        success: true
-      });
-    }
-
-    return result;
-  }
-
-  /**
-   * Convenience method to check if a setting with the specified key exists in parsed settings.
-   *
-   * @param {string} key - The key of the setting to check for
-   * @returns {boolean} True if setting with the key exists in parsed settings, false otherwise
-   *
-   * @example
-   * ```javascript
-   * const handler = new SettingsHandler(config, utils, context);
-   * if (handler.hasSettingByKey('myCustomSetting')) {
-   *   handler.registerSettingByKey('myCustomSetting');
-   * }
-   * ```
-   */
-  hasSettingByKey(key) {
-    return this.parsedSettings.some(setting => setting.key === key);
-  }
-
-  /**
-   * Convenience method to get a setting configuration by its key if it exists.
-   *
-   * @param {string} key - The key of the setting to retrieve
-   * @returns {Object|null} The setting object if found, null otherwise
-   *
-   * @example
-   * ```javascript
-   * const handler = new SettingsHandler(config, utils, context);
-   * const customSetting = handler.getSettingByKey('myCustomSetting');
-   * if (customSetting) {
-   *   console.log('Setting default value:', customSetting.config.default);
-   * }
-   * ```
-   */
-  getSettingByKey(key) {
-    return this.parsedSettings.find(setting => setting.key === key) || null;
-  }
-
-  /**
-   * Initialize the setting registration hook system.
-   * Sets up listeners for common setting registration events.
-   *
-   * @private
-   */
-  #initializeSettingHooks() {
-    // Register hook for when settings are ready
-    const settingsReadyHook = this.config.constants.hooks?.settingsReady;
-    if (settingsReadyHook) {
-      try {
-        const formattedHookName = this.utils.formatHookName(settingsReadyHook);
-        this.registerSettingHook('settingsReady', (data) => {
-          this.utils.logDebug && this.utils.logDebug(`Settings ready hook triggered: ${formattedHookName}`);
-          if (globalThis.Hooks) {
-            globalThis.Hooks.callAll(formattedHookName, data);
-          }
-        });
-      } catch (error) {
-        this.utils.logWarning && this.utils.logWarning(`Failed to initialize settingsReady hook: ${error.message}`);
-      }
-    }
-  }
-
-  /**
-   * Register a hook for setting registration events.
-   *
-   * This method allows registering callbacks that will be triggered when specific setting
-   * registration events occur. This enables event-driven setting registration and allows
-   * modules to react to setting registration events.
-   *
-   * @param {string} eventName - The name of the event to listen for
-   * @param {Function} callback - The callback function to execute when the event occurs
-   * @returns {boolean} True if the hook was registered successfully, false otherwise
-   *
-   * @example
-   * ```javascript
-   * const handler = new SettingsHandler(config, utils, context);
-   * 
-   * // Register hook for when a setting is registered
-   * handler.registerSettingHook('settingRegistered', (data) => {
-   *   console.log(`Setting ${data.key} was registered successfully`);
-   * });
-   * 
-   * // Register hook for when all settings are ready
-   * handler.registerSettingHook('settingsReady', () => {
-   *   console.log('All settings have been initialized');
-   * });
-   * ```
-   */
-  registerSettingHook(eventName, callback) {
-    if (typeof eventName !== 'string' || typeof callback !== 'function') {
-      this.utils.logWarning && this.utils.logWarning('Invalid parameters for registerSettingHook: eventName must be string, callback must be function');
-      return false;
-    }
-
-    if (!this.#settingHooks.has(eventName)) {
-      this.#settingHooks.set(eventName, []);
-    }
-
-    this.#settingHooks.get(eventName).push(callback);
-    this.utils.logDebug && this.utils.logDebug(`Registered setting hook for event: ${eventName}`);
-    return true;
-  }
-
-  /**
-   * Trigger a setting registration hook.
-   *
-   * This method executes all registered callbacks for the specified event name.
-   * It's used internally to trigger events during setting registration but can
-   * also be used externally to trigger custom setting registration events.
-   *
-   * @param {string} eventName - The name of the event to trigger
-   * @param {*} data - Optional data to pass to the hook callbacks
-   * @returns {number} The number of callbacks that were executed
-   *
-   * @example
-   * ```javascript
-   * const handler = new SettingsHandler(config, utils, context);
-   * 
-   * // Trigger a custom setting event
-   * handler.triggerSettingHook('customEvent', { 
-   *   message: 'Custom setting event triggered',
-   *   timestamp: Date.now()
-   * });
-   * ```
-   */
-  triggerSettingHook(eventName, data = null) {
-    if (!this.#settingHooks.has(eventName)) {
-      return 0;
-    }
-
-    const callbacks = this.#settingHooks.get(eventName);
-    let executedCount = 0;
-
-    for (const callback of callbacks) {
-      try {
-        callback(data);
-        executedCount++;
-      } catch (error) {
-        this.utils.logWarning && this.utils.logWarning(`Error executing setting hook callback for ${eventName}: ${error.message}`);
-      }
-    }
-
-    this.utils.logDebug && this.utils.logDebug(`Triggered ${executedCount} callbacks for setting hook: ${eventName}`);
-    return executedCount;
-  }
-
-  /**
-   * Remove a setting registration hook.
-   *
-   * This method removes a previously registered callback for the specified event.
-   * Useful for cleanup or when the callback is no longer needed.
-   *
-   * @param {string} eventName - The name of the event to remove the callback from
-   * @param {Function} callback - The specific callback function to remove
-   * @returns {boolean} True if the callback was removed, false if not found
-   *
-   * @example
-   * ```javascript
-   * const handler = new SettingsHandler(config, utils, context);
-   * 
-   * const myCallback = (data) => console.log('Setting registered:', data.key);
-   * handler.registerSettingHook('settingRegistered', myCallback);
-   * 
-   * // Later, remove the callback
-   * handler.removeSettingHook('settingRegistered', myCallback);
-   * ```
-   */
-  removeSettingHook(eventName, callback) {
-    if (!this.#settingHooks.has(eventName)) {
-      return false;
-    }
-
-    const callbacks = this.#settingHooks.get(eventName);
-    const index = callbacks.indexOf(callback);
-    
-    if (index === -1) {
-      return false;
-    }
-
-    callbacks.splice(index, 1);
-    
-    // Remove the event entry if no callbacks remain
-    if (callbacks.length === 0) {
-      this.#settingHooks.delete(eventName);
-    }
-
-    this.utils.logDebug && this.utils.logDebug(`Removed setting hook callback for event: ${eventName}`);
-    return true;
-  }
-
-  /**
-   * Get all registered hooks for debugging purposes.
-   *
-   * @returns {Object} Object containing event names as keys and callback counts as values
-   *
-   * @example
-   * ```javascript
-   * const handler = new SettingsHandler(config, utils, context);
-   * const hooks = handler.getRegisteredHooks();
-   * console.log('Registered hooks:', hooks);
-   * // Output: { settingsReady: 1, settingRegistered: 2 }
-   * ```
-   */
-  getRegisteredHooks() {
-    const result = {};
-    for (const [eventName, callbacks] of this.#settingHooks.entries()) {
-      result[eventName] = callbacks.length;
-    }
-    return result;
   }
 }
 

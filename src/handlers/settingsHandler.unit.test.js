@@ -189,4 +189,83 @@ describe('SettingsHandler', () => {
       expect(result.success).toBe(true);
     });
   });
+
+  describe('Generic setting methods', () => {
+    describe('registerSettingByKey', () => {
+      it('should register a setting by key when it exists', () => {
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const mockRegisterResult = {
+          success: true,
+          counter: 1,
+          successCounter: 1,
+          errorMessages: [],
+          message: 'Setting registered successfully'
+        };
+        
+        // Mock the registrar's register method to return success
+        const mockRegistrarInstance = SettingsRegistrar.mock.instances[0];
+        mockRegistrarInstance.register.mockReturnValue(mockRegisterResult);
+        
+        const result = handler.registerSettingByKey('testSetting');
+        
+        expect(SettingLocalizer.localizeSettings).toHaveBeenCalledWith([{
+          key: 'testSetting',
+          config: { name: 'Test Setting', type: Boolean, default: true }
+        }], mockUtils);
+        expect(result.success).toBe(true);
+      });
+
+      it('should return failure result when setting does not exist', () => {
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.registerSettingByKey('nonExistentSetting');
+        
+        expect(result.success).toBe(false);
+        expect(result.counter).toBe(0);
+        expect(result.successCounter).toBe(0);
+        expect(result.errorMessages).toEqual(["Setting with key 'nonExistentSetting' not found in parsed settings"]);
+        expect(result.message).toBe("Setting with key 'nonExistentSetting' not found in parsed settings");
+      });
+    });
+
+    describe('hasSettingByKey', () => {
+      it('should return true when setting exists', () => {
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.hasSettingByKey('testSetting');
+        
+        expect(result).toBe(true);
+      });
+
+      it('should return false when setting does not exist', () => {
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.hasSettingByKey('nonExistentSetting');
+        
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('getSettingByKey', () => {
+      it('should return setting when it exists', () => {
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.getSettingByKey('testSetting');
+        
+        expect(result).toEqual({
+          key: 'testSetting',
+          config: { name: 'Test Setting', type: Boolean, default: true }
+        });
+      });
+
+      it('should return null when setting does not exist', () => {
+        const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
+        
+        const result = handler.getSettingByKey('nonExistentSetting');
+        
+        expect(result).toBe(null);
+      });
+    });
+  });
 });

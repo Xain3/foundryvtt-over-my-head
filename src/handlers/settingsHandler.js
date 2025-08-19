@@ -49,6 +49,9 @@ import SettingLocalizer from "./settingsHelpers/settingLocalizer.js";
  * - `registerDebugModeSetting()` - Register only the debugMode setting if present
  * - `hasDebugModeSetting()` - Check if debugMode setting exists in parsed settings
  * - `getDebugModeSetting()` - Get the debugMode setting configuration if available
+ * - `registerSettingByKey(key)` - Register a single setting by its key
+ * - `hasSettingByKey(key)` - Check if a setting with the given key exists
+ * - `getSettingByKey(key)` - Get a setting configuration by its key
  * - `settingsConfig` - Reference to the settings configuration from constants
  * - `parsedSettings` - The parsed and processed settings ready for registration
  *
@@ -298,6 +301,87 @@ class SettingsHandler extends Handler {
    */
   getDebugModeSetting() {
     return this.parsedSettings.find(setting => setting.key === 'debugMode') || null;
+  }
+
+  /**
+   * Registers a setting by its key if it exists in the parsed settings.
+   *
+   * This method filters the parsed settings to find and register only the setting with
+   * the specified key. It's useful when you need to register individual settings
+   * independently, such as during conditional initialization or for specific features.
+   *
+   * @param {string} key - The key of the setting to register
+   * @returns {Object} Registration result object
+   * @returns {boolean} returns.success - Whether the setting was registered successfully
+   * @returns {number} returns.counter - Number of settings processed (0 or 1)
+   * @returns {number} returns.successCounter - Number of settings successfully registered (0 or 1)
+   * @returns {string[]} returns.errorMessages - Array of error messages if registration failed
+   * @returns {string} returns.message - Summary message of registration result
+   *
+   * @example
+   * ```javascript
+   * const handler = new SettingsHandler(config, utils, context);
+   * const result = handler.registerSettingByKey('myCustomSetting');
+   * if (result.success) {
+   *   console.log('Setting registered successfully');
+   * } else {
+   *   console.warn('Setting not found or failed to register:', result.message);
+   * }
+   * ```
+   */
+  registerSettingByKey(key) {
+    const setting = this.parsedSettings.find(setting => setting.key === key);
+    
+    if (!setting) {
+      return {
+        success: false,
+        counter: 0,
+        successCounter: 0,
+        errorMessages: [`Setting with key '${key}' not found in parsed settings`],
+        message: `Setting with key '${key}' not found in parsed settings`
+      };
+    }
+
+    // Localize the setting before registering
+    const localizedSetting = SettingLocalizer.localizeSettings([setting], this.utils);
+    return this.#registrar.register(localizedSetting);
+  }
+
+  /**
+   * Convenience method to check if a setting with the specified key exists in parsed settings.
+   *
+   * @param {string} key - The key of the setting to check for
+   * @returns {boolean} True if setting with the key exists in parsed settings, false otherwise
+   *
+   * @example
+   * ```javascript
+   * const handler = new SettingsHandler(config, utils, context);
+   * if (handler.hasSettingByKey('myCustomSetting')) {
+   *   handler.registerSettingByKey('myCustomSetting');
+   * }
+   * ```
+   */
+  hasSettingByKey(key) {
+    return this.parsedSettings.some(setting => setting.key === key);
+  }
+
+  /**
+   * Convenience method to get a setting configuration by its key if it exists.
+   *
+   * @param {string} key - The key of the setting to retrieve
+   * @returns {Object|null} The setting object if found, null otherwise
+   *
+   * @example
+   * ```javascript
+   * const handler = new SettingsHandler(config, utils, context);
+   * const customSetting = handler.getSettingByKey('myCustomSetting');
+   * if (customSetting) {
+   *   console.log('Setting default value:', customSetting.config.default);
+   * }
+   * ```
+   */
+  getSettingByKey(key) {
+    return this.parsedSettings.find(setting => setting.key === key) || null;
   }
 }
 

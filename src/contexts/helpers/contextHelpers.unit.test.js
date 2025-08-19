@@ -125,6 +125,74 @@ describe('ContextHelpers', () => {
         wrapSpy.mockRestore();
       });
     });
+
+    describe('merge()', () => {
+      it('should delegate to ContextMerger.merge', () => {
+        const mergeSpy = jest.spyOn(ContextHelpers.Merger, 'merge')
+          .mockReturnValue({ success: true });
+
+        const result = ContextHelpers.merge(sourceItem, targetItem, 'mergeNewerWins', { test: true });
+
+        expect(mergeSpy).toHaveBeenCalledWith(sourceItem, targetItem, 'mergeNewerWins', { test: true });
+        expect(result).toEqual({ success: true });
+
+        mergeSpy.mockRestore();
+      });
+
+      it('should use default parameters when not provided', () => {
+        const mergeSpy = jest.spyOn(ContextHelpers.Merger, 'merge')
+          .mockReturnValue({ success: true });
+
+        const result = ContextHelpers.merge(sourceItem, targetItem);
+
+        expect(mergeSpy).toHaveBeenCalledWith(sourceItem, targetItem, 'mergeNewerWins', {});
+        expect(result).toEqual({ success: true });
+
+        mergeSpy.mockRestore();
+      });
+    });
+
+    describe('resolveMixedPath()', () => {
+      it('should delegate to ContextPathUtils.resolveMixedPath', () => {
+        const resolveSpy = jest.spyOn(ContextHelpers.PathUtils, 'resolveMixedPath')
+          .mockReturnValue({ success: true, value: 'resolved' });
+
+        const result = ContextHelpers.resolveMixedPath({ test: 'value' }, 'test');
+
+        expect(resolveSpy).toHaveBeenCalledWith({ test: 'value' }, 'test');
+        expect(result).toEqual({ success: true, value: 'resolved' });
+
+        resolveSpy.mockRestore();
+      });
+    });
+
+    describe('pathExists()', () => {
+      it('should delegate to ContextPathUtils.pathExistsInMixedStructure', () => {
+        const pathExistsSpy = jest.spyOn(ContextHelpers.PathUtils, 'pathExistsInMixedStructure')
+          .mockReturnValue(true);
+
+        const result = ContextHelpers.pathExists({ test: 'value' }, 'test');
+
+        expect(pathExistsSpy).toHaveBeenCalledWith({ test: 'value' }, 'test');
+        expect(result).toBe(true);
+
+        pathExistsSpy.mockRestore();
+      });
+    });
+
+    describe('getValueFromMixedPath()', () => {
+      it('should delegate to ContextPathUtils.getValueFromMixedPath', () => {
+        const getValueSpy = jest.spyOn(ContextHelpers.PathUtils, 'getValueFromMixedPath')
+          .mockReturnValue('resolved value');
+
+        const result = ContextHelpers.getValueFromMixedPath({ test: 'value' }, 'test');
+
+        expect(getValueSpy).toHaveBeenCalledWith({ test: 'value' }, 'test');
+        expect(result).toBe('resolved value');
+
+        getValueSpy.mockRestore();
+      });
+    });
   });
 
   describe('Context Creation Convenience', () => {

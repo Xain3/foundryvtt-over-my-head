@@ -19,6 +19,25 @@ describe('Handlers', () => {
     manifest: { id: 'foundryvtt-over-my-head' }
   };
 
+  const fakeConfigWithDebug = {
+    constants: {
+      settings: {
+        requiredKeys: ['key', 'config'],
+        settingsList: [
+          {
+            key: 'testSetting',
+            config: { name: 'Test Setting', type: Boolean, default: true }
+          },
+          {
+            key: 'debugMode',
+            config: { name: 'Debug Mode', type: Boolean, default: false }
+          }
+        ]
+      }
+    },
+    manifest: { id: 'foundryvtt-over-my-head' }
+  };
+
   const fakeUtils = {
     formatError: (m) => m,
     formatHookName: (n) => `formatted.${n}`,
@@ -52,5 +71,106 @@ describe('Handlers', () => {
   it('should create a settings handler instance', () => {
     const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
     expect(handlers.settings).toBeInstanceOf(SettingsHandler);
+  });
+
+  describe('Debug Mode convenience methods', () => {
+    it('should delegate hasDebugModeSettingConfig to settings handler', () => {
+      const handlers = new Handlers(fakeConfigWithDebug, fakeUtils, fakeContext);
+      jest.spyOn(handlers.settings, 'hasDebugModeSettingConfig').mockReturnValue(true);
+      
+      const result = handlers.hasDebugModeSettingConfig();
+      
+      expect(handlers.settings.hasDebugModeSettingConfig).toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
+
+    it('should delegate getDebugModeSettingConfig to settings handler', () => {
+      const handlers = new Handlers(fakeConfigWithDebug, fakeUtils, fakeContext);
+      const mockDebugSetting = { key: 'debugMode', config: { name: 'Debug Mode' } };
+      jest.spyOn(handlers.settings, 'getDebugModeSettingConfig').mockReturnValue(mockDebugSetting);
+      
+      const result = handlers.getDebugModeSettingConfig();
+      
+      expect(handlers.settings.getDebugModeSettingConfig).toHaveBeenCalled();
+      expect(result).toBe(mockDebugSetting);
+    });
+
+    it('should delegate registerDebugModeSetting to settings handler', () => {
+      const handlers = new Handlers(fakeConfigWithDebug, fakeUtils, fakeContext);
+      const mockResult = { success: true, counter: 1, successCounter: 1 };
+      jest.spyOn(handlers.settings, 'registerDebugModeSetting').mockReturnValue(mockResult);
+      
+      const result = handlers.registerDebugModeSetting();
+      
+      expect(handlers.settings.registerDebugModeSetting).toHaveBeenCalled();
+      expect(result).toBe(mockResult);
+    });
+
+    it('should return false when no debug setting exists', () => {
+      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      
+      const hasDebug = handlers.hasDebugModeSettingConfig();
+      const debugSetting = handlers.getDebugModeSettingConfig();
+      
+      expect(hasDebug).toBe(false);
+      expect(debugSetting).toBe(null);
+    });
+  });
+
+  describe('Generic setting convenience methods', () => {
+    it('should delegate hasSettingConfigByKey to settings handler', () => {
+      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      jest.spyOn(handlers.settings, 'hasSettingConfigByKey').mockReturnValue(true);
+      
+      const result = handlers.hasSettingConfigByKey('testSetting');
+      
+      expect(handlers.settings.hasSettingConfigByKey).toHaveBeenCalledWith('testSetting');
+      expect(result).toBe(true);
+    });
+
+    it('should delegate getSettingConfigByKey to settings handler', () => {
+      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const mockSetting = { key: 'testSetting', config: { name: 'Test Setting' } };
+      jest.spyOn(handlers.settings, 'getSettingConfigByKey').mockReturnValue(mockSetting);
+      
+      const result = handlers.getSettingConfigByKey('testSetting');
+      
+      expect(handlers.settings.getSettingConfigByKey).toHaveBeenCalledWith('testSetting');
+      expect(result).toBe(mockSetting);
+    });
+
+    it('should delegate registerSettingByKey to settings handler', () => {
+      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const mockResult = { success: true, counter: 1, successCounter: 1 };
+      jest.spyOn(handlers.settings, 'registerSettingByKey').mockReturnValue(mockResult);
+      
+      const result = handlers.registerSettingByKey('testSetting');
+      
+      expect(handlers.settings.registerSettingByKey).toHaveBeenCalledWith('testSetting');
+      expect(result).toBe(mockResult);
+    });
+
+    it('should return false when setting does not exist', () => {
+      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      
+      const hasSetting = handlers.hasSettingConfigByKey('nonExistentSetting');
+      const setting = handlers.getSettingConfigByKey('nonExistentSetting');
+      
+      expect(hasSetting).toBe(false);
+      expect(setting).toBe(null);
+    });
+
+    it('should return true for existing setting', () => {
+      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      
+      const hasSetting = handlers.hasSettingConfigByKey('testSetting');
+      const setting = handlers.getSettingConfigByKey('testSetting');
+      
+      expect(hasSetting).toBe(true);
+      expect(setting).toEqual({
+        key: 'testSetting',
+        config: { name: 'Test Setting', type: Boolean, default: true }
+      });
+    });
   });
 });

@@ -43,6 +43,8 @@ module.exports = {
     // Exclude test files and manifest from coverage
     '!**/*.test.js',
     '!**/module.json',
+    // Exclude re-export files that are just compatibility layers
+    '!src/helpers/errorFormatter.js',
   ],
   testSequencer: '@jest/test-sequencer', // Explicitly set the default
 };

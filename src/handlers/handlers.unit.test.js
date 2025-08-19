@@ -74,24 +74,24 @@ describe('Handlers', () => {
   });
 
   describe('Debug Mode convenience methods', () => {
-    it('should delegate hasDebugModeSetting to settings handler', () => {
+    it('should delegate hasDebugModeSettingConfig to settings handler', () => {
       const handlers = new Handlers(fakeConfigWithDebug, fakeUtils, fakeContext);
-      jest.spyOn(handlers.settings, 'hasDebugModeSetting').mockReturnValue(true);
+      jest.spyOn(handlers.settings, 'hasDebugModeSettingConfig').mockReturnValue(true);
       
-      const result = handlers.hasDebugModeSetting();
+      const result = handlers.hasDebugModeSettingConfig();
       
-      expect(handlers.settings.hasDebugModeSetting).toHaveBeenCalled();
+      expect(handlers.settings.hasDebugModeSettingConfig).toHaveBeenCalled();
       expect(result).toBe(true);
     });
 
-    it('should delegate getDebugModeSetting to settings handler', () => {
+    it('should delegate getDebugModeSettingConfig to settings handler', () => {
       const handlers = new Handlers(fakeConfigWithDebug, fakeUtils, fakeContext);
       const mockDebugSetting = { key: 'debugMode', config: { name: 'Debug Mode' } };
-      jest.spyOn(handlers.settings, 'getDebugModeSetting').mockReturnValue(mockDebugSetting);
+      jest.spyOn(handlers.settings, 'getDebugModeSettingConfig').mockReturnValue(mockDebugSetting);
       
-      const result = handlers.getDebugModeSetting();
+      const result = handlers.getDebugModeSettingConfig();
       
-      expect(handlers.settings.getDebugModeSetting).toHaveBeenCalled();
+      expect(handlers.settings.getDebugModeSettingConfig).toHaveBeenCalled();
       expect(result).toBe(mockDebugSetting);
     });
 
@@ -109,8 +109,8 @@ describe('Handlers', () => {
     it('should return false when no debug setting exists', () => {
       const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
       
-      const hasDebug = handlers.hasDebugModeSetting();
-      const debugSetting = handlers.getDebugModeSetting();
+      const hasDebug = handlers.hasDebugModeSettingConfig();
+      const debugSetting = handlers.getDebugModeSettingConfig();
       
       expect(hasDebug).toBe(false);
       expect(debugSetting).toBe(null);
@@ -118,24 +118,24 @@ describe('Handlers', () => {
   });
 
   describe('Generic setting convenience methods', () => {
-    it('should delegate hasSettingByKey to settings handler', () => {
+    it('should delegate hasSettingConfigByKey to settings handler', () => {
       const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
-      jest.spyOn(handlers.settings, 'hasSettingByKey').mockReturnValue(true);
+      jest.spyOn(handlers.settings, 'hasSettingConfigByKey').mockReturnValue(true);
       
-      const result = handlers.hasSettingByKey('testSetting');
+      const result = handlers.hasSettingConfigByKey('testSetting');
       
-      expect(handlers.settings.hasSettingByKey).toHaveBeenCalledWith('testSetting');
+      expect(handlers.settings.hasSettingConfigByKey).toHaveBeenCalledWith('testSetting');
       expect(result).toBe(true);
     });
 
-    it('should delegate getSettingByKey to settings handler', () => {
+    it('should delegate getSettingConfigByKey to settings handler', () => {
       const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
       const mockSetting = { key: 'testSetting', config: { name: 'Test Setting' } };
-      jest.spyOn(handlers.settings, 'getSettingByKey').mockReturnValue(mockSetting);
+      jest.spyOn(handlers.settings, 'getSettingConfigByKey').mockReturnValue(mockSetting);
       
-      const result = handlers.getSettingByKey('testSetting');
+      const result = handlers.getSettingConfigByKey('testSetting');
       
-      expect(handlers.settings.getSettingByKey).toHaveBeenCalledWith('testSetting');
+      expect(handlers.settings.getSettingConfigByKey).toHaveBeenCalledWith('testSetting');
       expect(result).toBe(mockSetting);
     });
 
@@ -153,8 +153,8 @@ describe('Handlers', () => {
     it('should return false when setting does not exist', () => {
       const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
       
-      const hasSetting = handlers.hasSettingByKey('nonExistentSetting');
-      const setting = handlers.getSettingByKey('nonExistentSetting');
+      const hasSetting = handlers.hasSettingConfigByKey('nonExistentSetting');
+      const setting = handlers.getSettingConfigByKey('nonExistentSetting');
       
       expect(hasSetting).toBe(false);
       expect(setting).toBe(null);
@@ -163,8 +163,8 @@ describe('Handlers', () => {
     it('should return true for existing setting', () => {
       const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
       
-      const hasSetting = handlers.hasSettingByKey('testSetting');
-      const setting = handlers.getSettingByKey('testSetting');
+      const hasSetting = handlers.hasSettingConfigByKey('testSetting');
+      const setting = handlers.getSettingConfigByKey('testSetting');
       
       expect(hasSetting).toBe(true);
       expect(setting).toEqual({

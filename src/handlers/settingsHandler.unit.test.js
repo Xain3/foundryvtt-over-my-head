@@ -98,11 +98,11 @@ describe('SettingsHandler', () => {
     });
   });
 
-  describe('hasDebugModeSetting', () => {
+  describe('hasDebugModeSettingConfig', () => {
     it('should return true when debugMode setting exists', () => {
       const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
       
-      const result = handler.hasDebugModeSetting();
+      const result = handler.hasDebugModeSettingConfig();
       
       expect(result).toBe(true);
     });
@@ -110,17 +110,17 @@ describe('SettingsHandler', () => {
     it('should return false when debugMode setting does not exist', () => {
       const handler = new SettingsHandler(mockConfigWithoutDebug, mockUtils, mockContext);
       
-      const result = handler.hasDebugModeSetting();
+      const result = handler.hasDebugModeSettingConfig();
       
       expect(result).toBe(false);
     });
   });
 
-  describe('getDebugModeSetting', () => {
+  describe('getDebugModeSettingConfig', () => {
     it('should return debugMode setting when it exists', () => {
       const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
       
-      const result = handler.getDebugModeSetting();
+      const result = handler.getDebugModeSettingConfig();
       
       expect(result).toEqual({
         key: 'debugMode',
@@ -131,7 +131,7 @@ describe('SettingsHandler', () => {
     it('should return null when debugMode setting does not exist', () => {
       const handler = new SettingsHandler(mockConfigWithoutDebug, mockUtils, mockContext);
       
-      const result = handler.getDebugModeSetting();
+      const result = handler.getDebugModeSettingConfig();
       
       expect(result).toBe(null);
     });
@@ -229,11 +229,11 @@ describe('SettingsHandler', () => {
       });
     });
 
-    describe('hasSettingByKey', () => {
+    describe('hasSettingConfigByKey', () => {
       it('should return true when setting exists', () => {
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
         
-        const result = handler.hasSettingByKey('testSetting');
+        const result = handler.hasSettingConfigByKey('testSetting');
         
         expect(result).toBe(true);
       });
@@ -241,17 +241,17 @@ describe('SettingsHandler', () => {
       it('should return false when setting does not exist', () => {
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
         
-        const result = handler.hasSettingByKey('nonExistentSetting');
+        const result = handler.hasSettingConfigByKey('nonExistentSetting');
         
         expect(result).toBe(false);
       });
     });
 
-    describe('getSettingByKey', () => {
+    describe('getSettingConfigByKey', () => {
       it('should return setting when it exists', () => {
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
         
-        const result = handler.getSettingByKey('testSetting');
+        const result = handler.getSettingConfigByKey('testSetting');
         
         expect(result).toEqual({
           key: 'testSetting',
@@ -262,7 +262,7 @@ describe('SettingsHandler', () => {
       it('should return null when setting does not exist', () => {
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
         
-        const result = handler.getSettingByKey('nonExistentSetting');
+        const result = handler.getSettingConfigByKey('nonExistentSetting');
         
         expect(result).toBe(null);
       });

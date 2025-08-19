@@ -47,11 +47,11 @@ import SettingLocalizer from "./settingsHelpers/settingLocalizer.js";
  * - `parse(settings)` - Parse settings with optional custom settings object
  * - `register(settings)` - Register settings with Foundry VTT (uses parsed settings by default)
  * - `registerDebugModeSetting()` - Register only the debugMode setting if present
- * - `hasDebugModeSetting()` - Check if debugMode setting exists in parsed settings
- * - `getDebugModeSetting()` - Get the debugMode setting configuration if available
+ * - `hasDebugModeSettingConfig()` - Check if debugMode setting exists in parsed settings
+ * - `getDebugModeSettingConfig()` - Get the debugMode setting configuration if available
  * - `registerSettingByKey(key)` - Register a single setting by its key
- * - `hasSettingByKey(key)` - Check if a setting with the given key exists
- * - `getSettingByKey(key)` - Get a setting configuration by its key
+ * - `hasSettingConfigByKey(key)` - Check if a setting with the given key exists
+ * - `getSettingConfigByKey(key)` - Get a setting configuration by its key
  * - `settingsConfig` - Reference to the settings configuration from constants
  * - `parsedSettings` - The parsed and processed settings ready for registration
  *
@@ -269,19 +269,19 @@ class SettingsHandler extends Handler {
   }
 
   /**
-   * Convenience method to check if debugMode setting exists in parsed settings.
+   * Convenience method to check if debugMode setting exists in parsed settings configuration.
    *
    * @returns {boolean} True if debugMode setting exists in parsed settings, false otherwise
    *
    * @example
    * ```javascript
    * const handler = new SettingsHandler(config, utils, context);
-   * if (handler.hasDebugModeSetting()) {
+   * if (handler.hasDebugModeSettingConfig()) {
    *   handler.registerDebugModeSetting();
    * }
    * ```
    */
-  hasDebugModeSetting() {
+  hasDebugModeSettingConfig() {
     return this.parsedSettings.some(setting => setting.key === 'debugMode');
   }
 
@@ -293,13 +293,13 @@ class SettingsHandler extends Handler {
    * @example
    * ```javascript
    * const handler = new SettingsHandler(config, utils, context);
-   * const debugSetting = handler.getDebugModeSetting();
+   * const debugSetting = handler.getDebugModeSettingConfig();
    * if (debugSetting) {
    *   console.log('Debug mode default value:', debugSetting.config.default);
    * }
    * ```
    */
-  getDebugModeSetting() {
+  getDebugModeSettingConfig() {
     return this.parsedSettings.find(setting => setting.key === 'debugMode') || null;
   }
 
@@ -348,7 +348,7 @@ class SettingsHandler extends Handler {
   }
 
   /**
-   * Convenience method to check if a setting with the specified key exists in parsed settings.
+   * Convenience method to check if a setting with the specified key exists in parsed settings configuration.
    *
    * @param {string} key - The key of the setting to check for
    * @returns {boolean} True if setting with the key exists in parsed settings, false otherwise
@@ -356,12 +356,12 @@ class SettingsHandler extends Handler {
    * @example
    * ```javascript
    * const handler = new SettingsHandler(config, utils, context);
-   * if (handler.hasSettingByKey('myCustomSetting')) {
+   * if (handler.hasSettingConfigByKey('myCustomSetting')) {
    *   handler.registerSettingByKey('myCustomSetting');
    * }
    * ```
    */
-  hasSettingByKey(key) {
+  hasSettingConfigByKey(key) {
     return this.parsedSettings.some(setting => setting.key === key);
   }
 
@@ -374,13 +374,13 @@ class SettingsHandler extends Handler {
    * @example
    * ```javascript
    * const handler = new SettingsHandler(config, utils, context);
-   * const customSetting = handler.getSettingByKey('myCustomSetting');
+   * const customSetting = handler.getSettingConfigByKey('myCustomSetting');
    * if (customSetting) {
    *   console.log('Setting default value:', customSetting.config.default);
    * }
    * ```
    */
-  getSettingByKey(key) {
+  getSettingConfigByKey(key) {
     return this.parsedSettings.find(setting => setting.key === key) || null;
   }
 }

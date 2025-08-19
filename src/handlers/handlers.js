@@ -21,11 +21,11 @@ import SettingsHandler from "./settingsHandler.js";
  * **Public API:**
  * - `constructor(config, utils, context)` - Creates handlers instance with settings handler
  * - `registerDebugModeSetting()` - Register only the debugMode setting if present
- * - `hasDebugModeSetting()` - Check if debugMode setting exists in parsed settings
- * - `getDebugModeSetting()` - Get the debugMode setting configuration if available
+ * - `hasDebugModeSettingConfig()` - Check if debugMode setting exists in parsed settings
+ * - `getDebugModeSettingConfig()` - Get the debugMode setting configuration if available
  * - `registerSettingByKey(key)` - Register a single setting by its key
- * - `hasSettingByKey(key)` - Check if a setting with the given key exists
- * - `getSettingByKey(key)` - Get a setting configuration by its key
+ * - `hasSettingConfigByKey(key)` - Check if a setting with the given key exists
+ * - `getSettingConfigByKey(key)` - Get a setting configuration by its key
  * - `settings` - SettingsHandler instance for complete settings management
  */
 class Handlers extends Handler {
@@ -69,39 +69,39 @@ class Handlers extends Handler {
 
     /**
      * Convenience method to check if debugMode setting exists.
-     * Delegates to the settings handler's hasDebugModeSetting method.
+     * Delegates to the settings handler's hasDebugModeSettingConfig method.
      *
      * @returns {boolean} True if debugMode setting exists, false otherwise
      *
      * @example
      * ```javascript
      * const handlers = new Handlers(config, utils, context);
-     * if (handlers.hasDebugModeSetting()) {
+     * if (handlers.hasDebugModeSettingConfig()) {
      *   handlers.registerDebugModeSetting();
      * }
      * ```
      */
-    hasDebugModeSetting() {
-        return this.settings.hasDebugModeSetting();
+    hasDebugModeSettingConfig() {
+        return this.settings.hasDebugModeSettingConfig();
     }
 
     /**
      * Convenience method to get the debugMode setting configuration.
-     * Delegates to the settings handler's getDebugModeSetting method.
+     * Delegates to the settings handler's getDebugModeSettingConfig method.
      *
      * @returns {Object|null} The debugMode setting object if found, null otherwise
      *
      * @example
      * ```javascript
      * const handlers = new Handlers(config, utils, context);
-     * const debugSetting = handlers.getDebugModeSetting();
+     * const debugSetting = handlers.getDebugModeSettingConfig();
      * if (debugSetting) {
      *   console.log('Debug mode setting found with default:', debugSetting.config.default);
      * }
      * ```
      */
-    getDebugModeSetting() {
-        return this.settings.getDebugModeSetting();
+    getDebugModeSettingConfig() {
+        return this.settings.getDebugModeSettingConfig();
     }
 
     /**
@@ -126,7 +126,7 @@ class Handlers extends Handler {
 
     /**
      * Convenience method to check if a setting with the specified key exists.
-     * Delegates to the settings handler's hasSettingByKey method.
+     * Delegates to the settings handler's hasSettingConfigByKey method.
      *
      * @param {string} key - The key of the setting to check for
      * @returns {boolean} True if setting with the key exists, false otherwise
@@ -134,18 +134,18 @@ class Handlers extends Handler {
      * @example
      * ```javascript
      * const handlers = new Handlers(config, utils, context);
-     * if (handlers.hasSettingByKey('myCustomSetting')) {
+     * if (handlers.hasSettingConfigByKey('myCustomSetting')) {
      *   handlers.registerSettingByKey('myCustomSetting');
      * }
      * ```
      */
-    hasSettingByKey(key) {
-        return this.settings.hasSettingByKey(key);
+    hasSettingConfigByKey(key) {
+        return this.settings.hasSettingConfigByKey(key);
     }
 
     /**
      * Convenience method to get a setting configuration by its key.
-     * Delegates to the settings handler's getSettingByKey method.
+     * Delegates to the settings handler's getSettingConfigByKey method.
      *
      * @param {string} key - The key of the setting to retrieve
      * @returns {Object|null} The setting object if found, null otherwise
@@ -153,14 +153,14 @@ class Handlers extends Handler {
      * @example
      * ```javascript
      * const handlers = new Handlers(config, utils, context);
-     * const customSetting = handlers.getSettingByKey('myCustomSetting');
+     * const customSetting = handlers.getSettingConfigByKey('myCustomSetting');
      * if (customSetting) {
      *   console.log('Setting found with default:', customSetting.config.default);
      * }
      * ```
      */
-    getSettingByKey(key) {
-        return this.settings.getSettingByKey(key);
+    getSettingConfigByKey(key) {
+        return this.settings.getSettingConfigByKey(key);
     }
 
     /**

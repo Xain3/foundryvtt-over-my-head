@@ -8,6 +8,7 @@ import Handler from "../baseClasses/handler.js";
 import SettingsParser from "./settingsHelpers/settingsParser.js";
 import SettingsRegistrar from "./settingsHelpers/settingsRegistrar.js";
 import SettingLocalizer from "./settingsHelpers/settingLocalizer.js";
+import SettingsRetriever from "../helpers/settingsRetriever.js";
 
 /**
  * SettingsHandler orchestrates the complete settings management workflow for Foundry VTT modules.
@@ -76,6 +77,13 @@ class SettingsHandler extends Handler {
   #registrar;
 
   /**
+   * Private retriever instance for handling settings retrieval from Foundry VTT
+   * @type {SettingsRetriever}
+   * @private
+   */
+  #retriever;
+
+  /**
    * Creates a new SettingsHandler instance and automatically parses the default settings.
    *
    * The constructor initializes the parser and registrar helper classes, stores a reference
@@ -108,6 +116,7 @@ class SettingsHandler extends Handler {
     super(config, utils, context);
     this.#parser = new SettingsParser(config, utils, context);
     this.#registrar = new SettingsRegistrar(config, utils, context);
+    this.#retriever = new SettingsRetriever(config.manifest.id);
 
     /**
      * Reference to the settings configuration from constants.
@@ -387,7 +396,7 @@ class SettingsHandler extends Handler {
   /**
    * Checks if a setting exists in Foundry VTT's game.settings system.
    *
-   * This method queries the actual Foundry VTT settings system to determine if a setting
+   * This method delegates to the SettingsRetriever to determine if a setting
    * with the given key has been registered for this module's namespace.
    *
    * @param {string} key - The key of the setting to check for
@@ -402,25 +411,14 @@ class SettingsHandler extends Handler {
    * ```
    */
   hasSetting(key) {
-    if (!globalThis.game || !globalThis.game.settings) {
-      return false;
-    }
-
-    try {
-      // Try to get the setting - if it doesn't exist, this will return undefined
-      const settingValue = globalThis.game.settings.get(this.config.manifest.id, key);
-      return settingValue !== undefined;
-    } catch (error) {
-      // Setting doesn't exist or there was an error accessing it
-      return false;
-    }
+    return this.#retriever.hasSetting(key);
   }
 
   /**
    * Gets the value of a setting from Foundry VTT's game.settings system.
    *
-   * This method retrieves the current value of a setting from Foundry VTT's settings system.
-   * Returns undefined if the setting doesn't exist or if there's an error accessing it.
+   * This method delegates to the SettingsRetriever to retrieve the current value
+   * of a setting from Foundry VTT's settings system.
    *
    * @param {string} key - The key of the setting to retrieve
    * @returns {any|undefined} The setting value if it exists, undefined otherwise
@@ -435,22 +433,14 @@ class SettingsHandler extends Handler {
    * ```
    */
   getSettingValue(key) {
-    if (!globalThis.game || !globalThis.game.settings) {
-      return undefined;
-    }
-
-    try {
-      return globalThis.game.settings.get(this.config.manifest.id, key);
-    } catch (error) {
-      // Setting doesn't exist or there was an error accessing it
-      return undefined;
-    }
+    return this.#retriever.getSettingValue(key);
   }
 
   /**
    * Checks if the debugMode setting exists in Foundry VTT's game.settings system.
    *
-   * This is a convenience method that specifically checks for the debugMode setting.
+   * This is a convenience method that delegates to the SettingsRetriever to specifically
+   * check for the debugMode setting.
    *
    * @returns {boolean} True if the debugMode setting exists in game.settings, false otherwise
    *
@@ -464,13 +454,14 @@ class SettingsHandler extends Handler {
    * ```
    */
   hasDebugModeSetting() {
-    return this.hasSetting('debugMode');
+    return this.#retriever.hasDebugModeSetting();
   }
 
   /**
    * Gets the value of the debugMode setting from Foundry VTT's game.settings system.
    *
-   * This is a convenience method that specifically retrieves the debugMode setting value.
+   * This is a convenience method that delegates to the SettingsRetriever to specifically
+   * retrieve the debugMode setting value.
    *
    * @returns {boolean|undefined} The debugMode setting value if it exists, undefined otherwise
    *
@@ -484,7 +475,7 @@ class SettingsHandler extends Handler {
    * ```
    */
   getDebugModeSettingValue() {
-    return this.getSettingValue('debugMode');
+    return this.#retriever.getDebugModeSettingValue();
   }
 }
 

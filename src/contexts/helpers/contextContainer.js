@@ -595,22 +595,24 @@ class ContextContainer {
       return undefined;
     }
 
-    // Check if the user is manually accessing a renamed reserved key
+    // Check if the user is manually accessing a renamed reserved key (only in debug mode)
     const reservedKeys = ['value', 'metadata', 'size', 'createdAt', 'modifiedAt', 'lastAccessedAt'];
     
-    // Check for direct renamed key access (e.g., "_value")
-    if (key.startsWith('_') && reservedKeys.includes(key.substring(1))) {
-      console.debug(`[ContextContainer.getItem] Direct renamed reserved key access: ${key} (original: ${key.substring(1)})`);
-    }
-    
-    // Check for nested renamed key access in dot notation
-    if (key.includes('.')) {
-      const pathParts = key.split('.');
-      for (let i = 0; i < pathParts.length; i++) {
-        const part = pathParts[i];
-        if (part.startsWith('_') && reservedKeys.includes(part.substring(1))) {
-          console.debug(`[ContextContainer.getItem] Nested renamed reserved key access: ${key} (renamed part: ${part} → ${part.substring(1)})`);
-          break;
+    if (process && process.env && process.env.DEBUG_CONTEXT_CONTAINER) {
+      // Check for direct renamed key access (e.g., "_value")
+      if (key.startsWith('_') && reservedKeys.includes(key.substring(1))) {
+        console.debug(`[ContextContainer.getItem] Direct renamed reserved key access: ${key} (original: ${key.substring(1)})`);
+      }
+      
+      // Check for nested renamed key access in dot notation
+      if (key.includes('.')) {
+        const pathParts = key.split('.');
+        for (let i = 0; i < pathParts.length; i++) {
+          const part = pathParts[i];
+          if (part.startsWith('_') && reservedKeys.includes(part.substring(1))) {
+            console.debug(`[ContextContainer.getItem] Nested renamed reserved key access: ${key} (renamed part: ${part} → ${part.substring(1)})`);
+            break;
+          }
         }
       }
     }

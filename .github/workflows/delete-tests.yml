@@ -1,0 +1,34 @@
+name: Delete Tests
+
+on:
+  workflow_run:
+    workflows: ["Run Tests"]
+    types:
+      - completed
+
+jobs:
+  delete-tests:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Remove test directories
+      run: |
+        rm -rf tests
+
+    - name: Commit changes
+      run: |
+        git config --global user.name 'github-actions'
+        git config --global user.email 'github-actions@github.com'
+        git add .
+        git commit -m 'Remove tests'
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Delete integration tests
+      run: |
+        rm -rf tests/integration

@@ -1,0 +1,335 @@
+# Constants for the module
+# This file contains constants that are used throughout the module.
+# It is recommended to use this file to define constants that are used in multiple places.
+# This file will be parsed into a JavaScript object (in constants.js), which can be used in the module.
+
+
+# Configuration constants for Foundry VTT system integration
+foundry:
+  defaults:
+    # Description: Specifies the default path where Foundry VTT i18n (internationalization) system is located
+    # Type: String
+    # Default: "game.i18n"
+    # Usage: Used as a reference point for localization operations. Path is relative to the global namespace.
+    i18nLocation: "game.i18n"
+
+# Configuration constants for module management and identification
+moduleManagement:
+  # How to refer to the module in the logs
+  # Can be "title", "id", "name", or "shortName"
+  referToModuleBy: "title"
+
+  # Short name for the module
+  shortName: "OMH"
+
+  defaults:
+    # Description: Specifies the default path where Foundry VTT modules are located within the game system
+    # Type: String
+    # Default: "game.modules"
+    # Usage: Used as a reference point for module discovery and management operations. Path is relative to the global namespace.
+    modulesLocation: "game.modules"
+
+# How to structure error messages
+errors:
+  separator: " || " # The separator used to join multiple error messages
+  pattern: "{{module}}{{caller}}{{error}}{{stack}}"  # The pattern used to format error messages. Not all elements are guaranteed to be present.
+
+# Hooks for module events
+hooks:
+  settingsReady: "SettingsReady"  # The hook called when settings are ready
+  contextReady: "ContextReady"  # The hook called when context is ready
+  setting: ".setting"  # Base hook for setting changes - will become "OMH.setting.{settingKey}"
+
+
+# Constants relative to context and state management
+context:
+  operationsParams:
+    # Default parameters for context operations
+    defaults:
+      alwaysPullBeforeGetting: false
+      alwaysPullBeforeSetting: false
+      pullFrom: []
+      alwaysPushAfterSetting: false
+      pushTo: []
+      errorHandling: {
+      # Possible values: warn, throw, silent
+        onPullError: 'warn',
+        onPushError: 'warn',
+        onValidationError: 'throw'
+      }
+
+  sync:
+    # Default synchronization configuration
+    defaults:
+      autoSync: true  # Whether to automatically synchronize data with the remote context
+      pullBeforeGet: true  # Whether to pull data from the remote context before getting it
+      pushAfterSet: true  # Whether to push data to the remote context after setting it
+      syncStrategy: "mergeNewerWins"  # The default synchronization strategy to use
+      syncThrottleMs: 1000  # The default throttle time in milliseconds for synchronization operations
+      deepSync: true  # Whether to perform deep synchronization of objects
+      compareBy: "modifiedAt"  # The default method to compare objects for synchronization
+
+    # Available sync strategies
+    strategies:
+      - "mergeNewerWins"  # Merge changes from the remote context, preferring newer values
+      - "mergeOlderWins"  # Merge changes from the remote context, preferring older values
+      - "overwriteLocal"  # Overwrite local data with remote data
+      - "overwriteRemote"  # Overwrite remote data with local data
+      - "manual"  # Manual synchronization, no automatic merging or overwriting
+
+    # Available comparison methods
+    comparisonMethods:
+      - "modifiedAt"  # Compare objects based on their last modified timestamp
+      - "createdAt"  # Compare objects based on their creation timestamp
+      - "version"  # Compare objects based on their version number
+      - "hash"  # Compare objects based on their hash value
+
+  # NOTE: The "naming" and "schema" values above are for backwards compatibility only.
+  # Do not change these unless absolutely necessary, as doing so will likely cause errors.
+  # They are not intended for modification.
+  naming:
+    # The name of the state object
+    state: "state"
+    # The name of the settings object
+    settings: "settings"
+    # The name of the flags object
+    flags: "flags"
+    # The name of the data object
+    data: "data"
+    # The name of the manifest object
+    manifest: "manifest"
+    # The name of the timestamp
+    timestamp: "timestamp"
+
+  # The schema for the context object to be used in validations
+  schema:
+    manifest: 'object'
+    constants: 'object'
+    flags: 'object'
+    data: 'object'
+    settings: 'object'
+    timestamp: 'number'
+
+    # Constants for context helpers
+  helpers:
+    mergeStrategies:
+      MERGE_NEWER_WINS: "mergeNewerWins"
+      MERGE_SOURCE_PRIORITY: "mergeSourcePriority"
+      MERGE_TARGET_PRIORITY: "mergeTargetPriority"
+      UPDATE_SOURCE_TO_TARGET: "updateSourceToTarget"
+      UPDATE_TARGET_TO_SOURCE: "updateTargetToSource"
+      REPLACE: "replace"
+      NO_ACTION: "noAction"
+
+    comparisonResults:
+      SOURCE_NEWER: "sourceNewer"
+      TARGET_NEWER: "targetNewer"
+      EQUAL: "equal"
+      SOURCE_MISSING: "sourceMissing"
+      TARGET_MISSING: "targetMissing"
+      BOTH_MISSING: "bothMissing"
+      CONTAINER_A_NEWER: "containerANewer"
+      CONTAINER_B_NEWER: "containerBNewer"
+      CONTAINER_A_MISSING: "containerAMissing"
+      CONTAINER_B_MISSING: "containerBMissing"
+
+    defaultComponents:
+      - "schema"
+      - "constants"
+      - "manifest"
+      - "flags"
+      - "state"
+      - "data"
+      - "settings"
+
+    errorMessages:
+      invalidSourceTarget: "Source and target contexts must be provided"
+      emptyItemPaths: "Item paths must be a non-empty array"
+      emptySources: "Sources must be a non-empty array of contexts"
+      emptyTargets: "Targets must be a non-empty array of contexts"
+      emptyTarget: "Target context must be provided"
+      unsupportedObjectType: "Unsupported object type for synchronization"
+      unsupportedObjectTypes: "Unsupported object types for synchronization"
+      incompatibleTypes: "Incompatible object types: type mismatch between source and target"
+      invalidMergeContext: "Invalid source or target context for merge operation"
+      unknownSyncOperation: "Unknown synchronization operation: {operation}"
+      cannotOverwriteFrozen: "Cannot overwrite frozen item at key \"{key}\". Use ignoreFrozen option to force overwrite."
+      keyRenamed: "Key \"{key}\" is reserved. It will been renamed to \"_{key}\"."
+
+# Constants relative to placeables
+placeables:
+  token:
+    type: "token"
+    name: "Token"
+    class: "TokenDocument"
+    allowedCorners:
+      - "top-left"
+      - "top-right"
+      - "bottom-left"
+      - "bottom-right"
+  tile:
+    type: "tile"
+    name: "Tile"
+    class: "TileDocument"
+    allowedCorners:
+      - "top-left"
+      - "top-right"
+      - "bottom-left"
+      - "bottom-right"
+
+# Settings for the module
+settings:
+  requiredKeys:
+    - "key"
+    - "config.name"
+    - "config.hint"
+    - "config.scope"
+    - "config.type"
+  settingsList:
+    - key: "useModule"
+      showOnlyIfFlag: null
+      dontShowIfFlag: null
+      config:
+        name: "foundryvtt-over-my-head.settings.useModule.name"
+        hint: "foundryvtt-over-my-head.settings.useModule.hint"
+        scope: "world"
+        config: true
+        type: Boolean
+        requireReload: true
+        default: true
+        onChange:
+          sendHook: false
+          hookName: "useModule"
+
+
+    - key: "debugMode"
+      showOnlyIfFlag: {or: ["manifest.flags.debugMode", "manifest.flags.dev"]}
+      dontShowIfFlag: null
+      config:
+        name: "foundryvtt-over-my-head.settings.debugMode.name"
+        hint: "foundryvtt-over-my-head.settings.debugMode.hint"
+        scope: "user"
+        config: true
+        type: Boolean
+        default: {{manifest.debugMode}}
+        onChange:
+          sendHook: true
+          hookName: "debugMode"
+
+    - key: "behaviorTokens"
+      showOnlyIfFlag: null
+      dontShowIfFlag: null
+      config:
+        name: "foundryvtt-over-my-head.settings.behaviorTokens.name"
+        hint: "foundryvtt-over-my-head.settings.behaviorTokens.hint"
+        choices: {
+          default: "foundryvtt-over-my-head.settings.behaviorTokens.choices.default",
+          onlyActive: "foundryvtt-over-my-head.settings.behaviorTokens.choices.onlyActive",
+          onlyControlled: "foundryvtt-over-my-head.settings.behaviorTokens.choices.onlyControlled"
+        }
+        scope: "world"
+        config: true
+        type: String
+        default: "default"
+        onChange:
+          sendHook: true
+          hookName: "behaviorTokens"
+
+    - key: "behaviorParty"
+      showOnlyIfFlag: null
+      dontShowIfFlag: null
+      config:
+        name: "foundryvtt-over-my-head.settings.behaviorParty.name"
+        hint: "foundryvtt-over-my-head.settings.behaviorParty.hint"
+        scope: "world"
+        config: true
+        type: Boolean
+        default: "default"
+        onChange:
+          sendHook: true
+          hookName: "behaviorParty"
+
+    - key: "behaviorGM"
+      showOnlyIfFlag: null
+      dontShowIfFlag: null
+      config:
+        name: "foundryvtt-over-my-head.settings.behaviorGM.name"
+        hint: "foundryvtt-over-my-head.settings.behaviorGM.hint"
+        choices: {
+          default: "foundryvtt-over-my-head.settings.behaviorGM.choices.default",
+          onlyNPCs: "foundryvtt-over-my-head.settings.behaviorGM.choices.onlyNPCs",
+          inactive: "foundryvtt-over-my-head.settings.behaviorGM.choices.inactive"
+        }
+        scope: "world"
+        config: true
+        type: String
+        default: "default"
+        onChange:
+          sendHook: true
+          hookName: "behaviorGM"
+
+# Required attributes for a valid manifest (from https://foundryvtt.com/article/module-development/)
+requiredManifestAttributes:
+- "id"
+- "title"
+- "description"
+- "version"
+
+# Configuration for the FlagEvaluator system
+flagEvaluator:
+  # Context mapping configuration - defines how path prefixes resolve to contexts
+  contextMapping:
+    # Foundry game object contexts
+    game:
+      globalPath: "globalThis.game"
+      pathAdjustment: "removePrefix"  # Remove the prefix from the path
+      description: "Global Foundry game object"
+
+    user:
+      globalPath: "globalThis.game.user"
+      pathAdjustment: "removePrefix"  # Remove the prefix from the path
+      description: "Current user object"
+
+    world:
+      globalPath: "globalThis.game.world"
+      pathAdjustment: "removePrefix"  # Remove the prefix from the path
+      description: "Foundry world object"
+
+    # Module configuration contexts
+    manifest:
+      globalPath: "config.manifest"
+      pathAdjustment: "removePrefix"  # Remove the prefix from the path
+      description: "Module manifest data"
+
+    constants:
+      globalPath: "config.constants"
+      pathAdjustment: "removePrefix"  # Remove the prefix from the path
+      description: "Module constants from constants.yaml"
+
+    config:
+      globalPath: "config"
+      pathAdjustment: "keepFull"  # Keep the full path for backward compatibility
+      description: "Module configuration object"
+
+  # Path adjustment strategies
+  pathAdjustment:
+    removePrefix:
+      description: "Remove the first part of the path (prefix) and use the rest"
+      # Example: "user.isAdmin" becomes "isAdmin"
+
+    keepFull:
+      description: "Keep the full original path unchanged"
+      # Example: "manifest.debugMode" stays "manifest.debugMode"
+
+    mapToManifest:
+      description: "Replace the first part with 'manifest'"
+      # Example: "constants.debugMode" becomes "manifest.debugMode"
+
+  # Default fallback configuration
+  defaults:
+    globalPath: "config"  # Default context when no prefix matches
+    pathAdjustment: "keepFull"  # Default path handling for backward compatibility
+    description: "Default fallback context for backward compatibility"
+
+# The following constant is used only for testing purposes
+testConstant: "testValue" # DO NOT CHANGE THIS VALUE

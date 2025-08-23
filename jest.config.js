@@ -3,13 +3,22 @@ const path = require('path');
 module.exports = {
   rootDir: path.resolve(__dirname),
   testEnvironment: 'node',
-  // Update testMatch to recognize different test types if using naming conventions
-  testMatch: ['**/*.unit.test.js', '**/*.int.test.js'],
+  // Update testMatch to recognize different test types including setup tests
+  testMatch: [
+    '**/*.unit.test.js',
+    '**/*.int.test.js',
+    '**/*.setup.test.js',
+    '**/*.performance.test.js'
+  ],
   setupFilesAfterEnv: [],
   transform: {
     '^.+\\.js$': 'babel-jest',
   },
-  roots: ['<rootDir>/src', '<rootDir>/tests'],
+  moduleNameMapper: {
+    '^(.+)\\.yaml\\?raw$': '<rootDir>/tests/yaml-transformer.js',
+  },
+  // Include project root for setup tests
+  roots: ['<rootDir>/src', '<rootDir>/tests', '<rootDir>'],
   // Enforce minimum coverage thresholds
   coverageThreshold: {
     global: {
@@ -31,6 +40,11 @@ module.exports = {
     'src/**/*.js',
     '!src/**/index.js', // Example: Exclude index files if needed
     '!**/node_modules/**',
+    // Exclude test files and manifest from coverage
+    '!**/*.test.js',
+    '!**/module.json',
+    // Exclude re-export files that are just compatibility layers
+    '!src/helpers/errorFormatter.js',
   ],
   testSequencer: '@jest/test-sequencer', // Explicitly set the default
 };

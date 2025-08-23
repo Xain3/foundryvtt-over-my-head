@@ -1,0 +1,71 @@
+# .github/workflows/pr-checks.yml
+name: CI Checks
+
+on:
+  # Trigger on pushes to master and release branches
+  push:
+    branches:
+      - master
+      - 'release-*' # Matches release-alpha, release-beta, etc.
+  # Trigger on pull requests targeting dev or master branches
+  pull_request:
+    branches: [ dev, master ]
+    types: [ opened, synchronize ] # Run on creation and updates
+
+jobs:
+  test:
+    name: Run Tests & Check Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x' # Specify your project's Node.js version
+          cache: 'npm' # Enable caching for faster dependency installation
+
+      - name: Install dependencies
+        run: npm ci # Use 'ci' for clean installs in CI environments
+
+      # --- Tests that run for ALL triggers ---
+      - name: Run Unit Tests
+        # Run unit tests without coverage collection
+        run: npm run test:unit -- --coverage=false
+
+      - name: Run Integration Tests
+        # Replace 'npm run test:integration' with your actual integration test command
+        run: npm run test:integration -- --coverage=false
+
+      - name: Run All Tests & Generate Coverage
+        # Run all tests and generate coverage report to enforce thresholds
+        run: npm test
+
+      # --- Additional tests that run ONLY for master/release pushes or master PRs ---
+      - name: Run Functional Tests (Placeholder)
+        # Run only on pushes to master/release-* or PRs targeting master
+        if: |
+          (github.event_name == 'pull_request' && github.base_ref == 'master') ||
+          (github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release-')))
+        run: |
+          echo "Running functional tests... (placeholder)"
+          # Replace with your actual functional test command, e.g.:
+          # npm run test:functional
+          exit 0 # Remove this line once you have a real command
+
+      - name: Run Performance Tests (Placeholder)
+        # Run only on pushes to master/release-* or PRs targeting master
+        if: |
+          (github.event_name == 'pull_request' && github.base_ref == 'master') ||
+          (github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release-')))
+        run: |
+          echo "Running performance tests... (placeholder)"
+          # Replace with your actual performance test command, e.g.:
+          # npm run test:performance
+          exit 0 # Remove this line once you have a real command
+
+      # --- Coverage Check (Implicit via Jest Config) ---
+      # Jest will automatically enforce coverage thresholds defined in jest.config.js
+      # If the thresholds are not met, the 'Run Unit Tests & Generate Coverage' step will fail.

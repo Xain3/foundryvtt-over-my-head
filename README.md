@@ -28,7 +28,7 @@ The module source code is in the `src/` directory and gets bundled into `dist/ma
 
 The module uses a centralized configuration system located in `src/config/`. Key changes in recent versions:
 
-#### Config Centralization (v12.0.1-alpha1+)
+#### Config Centralization (v13.0.1-alpha1+)
 
 - **Unified Access**: All configuration is now accessed through a single `config` instance
 - **Global Constants Export**: Constants are exported globally via `config.exportConstants()` instead of the OverMyHead class
@@ -56,7 +56,7 @@ class MyModule {
 
 For detailed configuration documentation, see [`src/config/README.md`](src/config/README.md).
 
-### Settings Type Normalization (Foundry v13)
+### Settings Type Normalization (Foundry v13.347)
 
 The settings pipeline accepts multiple formats for the `config.type` field and normalizes them to Foundry-compatible constructors/classes at runtime:
 

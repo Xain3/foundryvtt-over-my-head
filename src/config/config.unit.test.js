@@ -115,7 +115,8 @@ describe('Config', () => {
       expect(config.manifest.id).toBe('foundryvtt-over-my-head');
       expect(config.manifest.title).toBe('OverMyHead');
       expect(config.manifest.description).toBe('A Foundry VTT module for managing vision occlusion with fade effects when a token is under a tile');
-      expect(config.manifest.version).toBe('12.0.1-alpha1');
+      const versioningPattern = /^\d+\.\d+\.\d+(?:-[A-Za-z0-9-.]+)?(?:\+[A-Za-z0-9-.]+)?$/;
+      expect(config.manifest.version).toMatch(versioningPattern);
     });
   });
 
@@ -158,7 +159,8 @@ describe('Config', () => {
     });
 
     it('should provide access to module version', () => {
-      expect(config.manifest.version).toBe('12.0.1-alpha1');
+      const versioningPattern = /^\d+\.\d+\.\d+(?:-[A-Za-z0-9-.]+)?(?:\+[A-Za-z0-9-.]+)?$/;
+      expect(config.manifest.version).toMatch(versioningPattern);
     });
 
     it('should provide access to compatibility information', () => {

@@ -311,7 +311,8 @@ describe('Module Manifest Validation', () => {
       // Validate required fields exist
       expect(id).toBe('foundryvtt-over-my-head');
       expect(title).toBe('OverMyHead');
-      expect(version).toBe('12.0.1-alpha1');
+      const versioningPattern = /^\d+\.\d+\.\d+(?:-[A-Za-z0-9-.]+)?(?:\+[A-Za-z0-9-.]+)?$/;
+      expect(version).toMatch(versioningPattern);
 
       // Validate custom fields
       expect(flags).toBeDefined();

@@ -164,6 +164,82 @@ class Handlers extends Handler {
     }
 
     /**
+     * Convenience method to check if a setting exists in Foundry VTT's game.settings system.
+     * Delegates to the settings handler's hasSetting method.
+     *
+     * @param {string} key - The key of the setting to check for
+     * @returns {boolean} True if the setting exists in game.settings, false otherwise
+     *
+     * @example
+     * ```javascript
+     * const handlers = new Handlers(config, utils, context);
+     * if (handlers.hasSetting('debugMode')) {
+     *   console.log('Debug mode setting is available');
+     * }
+     * ```
+     */
+    hasSetting(key) {
+        return this.settings.hasSetting(key);
+    }
+
+    /**
+     * Convenience method to get the value of a setting from Foundry VTT's game.settings system.
+     * Delegates to the settings handler's getSettingValue method.
+     *
+     * @param {string} key - The key of the setting to retrieve
+     * @returns {any|undefined} The setting value if it exists, undefined otherwise
+     *
+     * @example
+     * ```javascript
+     * const handlers = new Handlers(config, utils, context);
+     * const debugMode = handlers.getSettingValue('debugMode');
+     * if (debugMode !== undefined) {
+     *   console.log('Debug mode is:', debugMode);
+     * }
+     * ```
+     */
+    getSettingValue(key) {
+        return this.settings.getSettingValue(key);
+    }
+
+    /**
+     * Convenience method to check if the debugMode setting exists in game.settings.
+     * Delegates to the settings handler's hasDebugModeSetting method.
+     *
+     * @returns {boolean} True if the debugMode setting exists in game.settings, false otherwise
+     *
+     * @example
+     * ```javascript
+     * const handlers = new Handlers(config, utils, context);
+     * if (handlers.hasDebugModeSetting()) {
+     *   console.log('Debug mode setting is available');
+     * }
+     * ```
+     */
+    hasDebugModeSetting() {
+        return this.settings.hasDebugModeSetting();
+    }
+
+    /**
+     * Convenience method to get the debugMode setting value from game.settings.
+     * Delegates to the settings handler's getDebugModeSettingValue method.
+     *
+     * @returns {boolean|undefined} The debugMode setting value if it exists, undefined otherwise
+     *
+     * @example
+     * ```javascript
+     * const handlers = new Handlers(config, utils, context);
+     * const debugMode = handlers.getDebugModeSettingValue();
+     * if (debugMode) {
+     *   console.log('Debug mode is enabled');
+     * }
+     * ```
+     */
+    getDebugModeSettingValue() {
+        return this.settings.getDebugModeSettingValue();
+    }
+
+    /**
      * Validate constructor parameters for Handlers.
      *
      * @private

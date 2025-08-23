@@ -399,4 +399,134 @@ describe('SettingsHandler Integration Tests', () => {
       expect(endTime - startTime).toBeLessThan(1000);
     });
   });
+
+  describe('Settings Retrieval Integration', () => {
+    let settingsHandler;
+
+    beforeEach(() => {
+      // Ensure clean setup of global.game for retrieval tests
+      global.game = {
+        settings: {
+          register: jest.fn(),
+          get: jest.fn(),
+          set: jest.fn()
+        }
+      };
+
+      global.Hooks = {
+        call: jest.fn(),
+        callAll: jest.fn()
+      };
+
+      settingsHandler = new SettingsHandler(config, utils, context);
+      
+      // Mock settings values for retrieval testing
+      global.game.settings.get.mockImplementation((namespace, key) => {
+        const mockValues = {
+          'test-module': {
+            debugMode: true,
+            maxTokens: 25,
+            hiddenSetting: 'secret-value'
+          }
+        };
+        return mockValues[namespace]?.[key];
+      });
+    });
+
+    describe('hasSetting method', () => {
+      it('should correctly identify existing settings', () => {
+        expect(settingsHandler.hasSetting('debugMode')).toBe(true);
+        expect(settingsHandler.hasSetting('maxTokens')).toBe(true);
+        expect(settingsHandler.hasSetting('hiddenSetting')).toBe(true);
+      });
+
+      it('should return false for non-existent settings', () => {
+        expect(settingsHandler.hasSetting('nonExistentSetting')).toBe(false);
+      });
+
+      it('should handle game settings API unavailability', () => {
+        delete global.game;
+        expect(settingsHandler.hasSetting('debugMode')).toBe(false);
+      });
+    });
+
+    describe('getSettingValue method', () => {
+      it('should retrieve correct setting values', () => {
+        expect(settingsHandler.getSettingValue('debugMode')).toBe(true);
+        expect(settingsHandler.getSettingValue('maxTokens')).toBe(25);
+        expect(settingsHandler.getSettingValue('hiddenSetting')).toBe('secret-value');
+      });
+
+      it('should return undefined for non-existent settings', () => {
+        expect(settingsHandler.getSettingValue('nonExistentSetting')).toBe(undefined);
+      });
+
+      it('should handle game settings API unavailability', () => {
+        delete global.game;
+        expect(settingsHandler.getSettingValue('debugMode')).toBe(undefined);
+      });
+    });
+
+    describe('Debug mode convenience methods', () => {
+      it('should correctly check for debug mode setting existence', () => {
+        expect(settingsHandler.hasDebugModeSetting()).toBe(true);
+      });
+
+      it('should correctly retrieve debug mode setting value', () => {
+        expect(settingsHandler.getDebugModeSettingValue()).toBe(true);
+      });
+
+      it('should handle disabled debug mode correctly', () => {
+        global.game.settings.get.mockImplementation((namespace, key) => {
+          if (namespace === 'test-module' && key === 'debugMode') return false;
+          return undefined;
+        });
+
+        expect(settingsHandler.hasDebugModeSetting()).toBe(true);
+        expect(settingsHandler.getDebugModeSettingValue()).toBe(false);
+      });
+    });
+
+    describe('Integration with Handlers class', () => {
+      it('should provide access to settings retrieval through Handlers convenience methods', () => {
+        const handlers = { settings: settingsHandler };
+        
+        // Simulate the Handlers class delegation methods
+        const hasSetting = (key) => handlers.settings.hasSetting(key);
+        const getSettingValue = (key) => handlers.settings.getSettingValue(key);
+        const hasDebugModeSetting = () => handlers.settings.hasDebugModeSetting();
+        const getDebugModeSettingValue = () => handlers.settings.getDebugModeSettingValue();
+
+        expect(hasSetting('debugMode')).toBe(true);
+        expect(getSettingValue('maxTokens')).toBe(25);
+        expect(hasDebugModeSetting()).toBe(true);
+        expect(getDebugModeSettingValue()).toBe(true);
+      });
+    });
+
+    describe('Mixed configuration and value retrieval workflow', () => {
+      it('should handle complete workflow of checking config, registering, and retrieving values', () => {
+        // 1. Check if setting exists in configuration
+        expect(settingsHandler.hasSettingConfigByKey('debugMode')).toBe(true);
+        expect(settingsHandler.hasSettingConfigByKey('nonExistentSetting')).toBe(false);
+
+        // 2. Get setting configuration details
+        const debugConfig = settingsHandler.getSettingConfigByKey('debugMode');
+        expect(debugConfig).toBeTruthy();
+        expect(debugConfig.config.type).toBe(Boolean);
+        expect(debugConfig.config.default).toBe(false);
+
+        // 3. Register the settings with Foundry VTT
+        const registerResult = settingsHandler.register();
+        expect(registerResult.success).toBe(true);
+
+        // 4. Retrieve actual values from Foundry VTT
+        expect(settingsHandler.hasSetting('debugMode')).toBe(true);
+        expect(settingsHandler.getSettingValue('debugMode')).toBe(true);
+
+        // 5. Compare config default vs actual value
+        expect(settingsHandler.getSettingValue('debugMode')).not.toBe(debugConfig.config.default);
+      });
+    });
+  });
 });

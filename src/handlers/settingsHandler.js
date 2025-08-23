@@ -8,6 +8,7 @@ import Handler from "../baseClasses/handler.js";
 import SettingsParser from "./settingsHelpers/settingsParser.js";
 import SettingsRegistrar from "./settingsHelpers/settingsRegistrar.js";
 import SettingLocalizer from "./settingsHelpers/settingLocalizer.js";
+import SettingsRetriever from "../helpers/settingsRetriever.js";
 
 /**
  * SettingsHandler orchestrates the complete settings management workflow for Foundry VTT modules.
@@ -76,6 +77,13 @@ class SettingsHandler extends Handler {
   #registrar;
 
   /**
+   * Private retriever instance for handling settings retrieval from Foundry VTT
+   * @type {SettingsRetriever}
+   * @private
+   */
+  #retriever;
+
+  /**
    * Creates a new SettingsHandler instance and automatically parses the default settings.
    *
    * The constructor initializes the parser and registrar helper classes, stores a reference
@@ -108,6 +116,7 @@ class SettingsHandler extends Handler {
     super(config, utils, context);
     this.#parser = new SettingsParser(config, utils, context);
     this.#registrar = new SettingsRegistrar(config, utils, context);
+    this.#retriever = new SettingsRetriever(config.manifest.id);
 
     /**
      * Reference to the settings configuration from constants.
@@ -382,6 +391,91 @@ class SettingsHandler extends Handler {
    */
   getSettingConfigByKey(key) {
     return this.parsedSettings.find(setting => setting.key === key) || null;
+  }
+
+  /**
+   * Checks if a setting exists in Foundry VTT's game.settings system.
+   *
+   * This method delegates to the SettingsRetriever to determine if a setting
+   * with the given key has been registered for this module's namespace.
+   *
+   * @param {string} key - The key of the setting to check for
+   * @returns {boolean} True if the setting exists in game.settings, false otherwise
+   *
+   * @example
+   * ```javascript
+   * const handler = new SettingsHandler(config, utils, context);
+   * if (handler.hasSetting('debugMode')) {
+   *   console.log('Debug mode setting is available');
+   * }
+   * ```
+   */
+  hasSetting(key) {
+    return this.#retriever.hasSetting(key);
+  }
+
+  /**
+   * Gets the value of a setting from Foundry VTT's game.settings system.
+   *
+   * This method delegates to the SettingsRetriever to retrieve the current value
+   * of a setting from Foundry VTT's settings system.
+   *
+   * @param {string} key - The key of the setting to retrieve
+   * @returns {any|undefined} The setting value if it exists, undefined otherwise
+   *
+   * @example
+   * ```javascript
+   * const handler = new SettingsHandler(config, utils, context);
+   * const debugMode = handler.getSettingValue('debugMode');
+   * if (debugMode !== undefined) {
+   *   console.log('Debug mode is:', debugMode);
+   * }
+   * ```
+   */
+  getSettingValue(key) {
+    return this.#retriever.getSettingValue(key);
+  }
+
+  /**
+   * Checks if the debugMode setting exists in Foundry VTT's game.settings system.
+   *
+   * This is a convenience method that delegates to the SettingsRetriever to specifically
+   * check for the debugMode setting.
+   *
+   * @returns {boolean} True if the debugMode setting exists in game.settings, false otherwise
+   *
+   * @example
+   * ```javascript
+   * const handler = new SettingsHandler(config, utils, context);
+   * if (handler.hasDebugModeSetting()) {
+   *   const value = handler.getDebugModeSettingValue();
+   *   console.log('Debug mode:', value);
+   * }
+   * ```
+   */
+  hasDebugModeSetting() {
+    return this.#retriever.hasDebugModeSetting();
+  }
+
+  /**
+   * Gets the value of the debugMode setting from Foundry VTT's game.settings system.
+   *
+   * This is a convenience method that delegates to the SettingsRetriever to specifically
+   * retrieve the debugMode setting value.
+   *
+   * @returns {boolean|undefined} The debugMode setting value if it exists, undefined otherwise
+   *
+   * @example
+   * ```javascript
+   * const handler = new SettingsHandler(config, utils, context);
+   * const debugMode = handler.getDebugModeSettingValue();
+   * if (debugMode) {
+   *   console.log('Debug mode is enabled');
+   * }
+   * ```
+   */
+  getDebugModeSettingValue() {
+    return this.#retriever.getDebugModeSettingValue();
   }
 }
 

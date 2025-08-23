@@ -173,4 +173,112 @@ describe('Handlers', () => {
       });
     });
   });
+
+  describe('Settings Value Retrieval Methods', () => {
+    beforeEach(() => {
+      global.game = {
+        settings: {
+          get: jest.fn()
+        }
+      };
+    });
+
+    afterEach(() => {
+      delete global.game;
+    });
+
+    describe('hasSetting', () => {
+      it('should delegate to settings handler hasSetting method', () => {
+        global.game.settings.get.mockReturnValue(true);
+        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        
+        const result = handlers.hasSetting('testSetting');
+        
+        expect(result).toBe(true);
+        expect(global.game.settings.get).toHaveBeenCalledWith('foundryvtt-over-my-head', 'testSetting');
+      });
+
+      it('should return false when setting does not exist', () => {
+        global.game.settings.get.mockReturnValue(undefined);
+        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        
+        const result = handlers.hasSetting('nonExistentSetting');
+        
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('getSettingValue', () => {
+      it('should delegate to settings handler getSettingValue method', () => {
+        const expectedValue = 'test value';
+        global.game.settings.get.mockReturnValue(expectedValue);
+        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        
+        const result = handlers.getSettingValue('testSetting');
+        
+        expect(result).toBe(expectedValue);
+        expect(global.game.settings.get).toHaveBeenCalledWith('foundryvtt-over-my-head', 'testSetting');
+      });
+
+      it('should return undefined when setting does not exist', () => {
+        global.game.settings.get.mockReturnValue(undefined);
+        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        
+        const result = handlers.getSettingValue('nonExistentSetting');
+        
+        expect(result).toBe(undefined);
+      });
+    });
+
+    describe('hasDebugModeSetting', () => {
+      it('should delegate to settings handler hasDebugModeSetting method', () => {
+        global.game.settings.get.mockReturnValue(false);
+        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        
+        const result = handlers.hasDebugModeSetting();
+        
+        expect(result).toBe(true);
+        expect(global.game.settings.get).toHaveBeenCalledWith('foundryvtt-over-my-head', 'debugMode');
+      });
+
+      it('should return false when debugMode setting does not exist', () => {
+        global.game.settings.get.mockReturnValue(undefined);
+        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        
+        const result = handlers.hasDebugModeSetting();
+        
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('getDebugModeSettingValue', () => {
+      it('should delegate to settings handler getDebugModeSettingValue method', () => {
+        global.game.settings.get.mockReturnValue(true);
+        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        
+        const result = handlers.getDebugModeSettingValue();
+        
+        expect(result).toBe(true);
+        expect(global.game.settings.get).toHaveBeenCalledWith('foundryvtt-over-my-head', 'debugMode');
+      });
+
+      it('should return false when debugMode is disabled', () => {
+        global.game.settings.get.mockReturnValue(false);
+        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        
+        const result = handlers.getDebugModeSettingValue();
+        
+        expect(result).toBe(false);
+      });
+
+      it('should return undefined when debugMode setting does not exist', () => {
+        global.game.settings.get.mockReturnValue(undefined);
+        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        
+        const result = handlers.getDebugModeSettingValue();
+        
+        expect(result).toBe(undefined);
+      });
+    });
+  });
 });

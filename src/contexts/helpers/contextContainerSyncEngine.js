@@ -297,7 +297,7 @@ class ContextContainerSyncEngine {
     if (this._isPlainObject(sourceValue) && this._isPlainObject(targetValue)) {
       const mergedValue = this._deepMergeObjects(sourceValue, targetValue);
       targetItem.value = mergedValue;
-      
+
       // Sync metadata if enabled
       if (this.syncMetadata) {
         targetItem.setMetadata(sourceItem.metadata, false);
@@ -316,7 +316,7 @@ class ContextContainerSyncEngine {
    */
   _updateItemToContainer(sourceItem, targetContainer) {
     const sourceValue = sourceItem.value;
-    
+
     if (this._isPlainObject(sourceValue)) {
       // If source is a plain object, sync its properties to the container
       for (const [key, value] of Object.entries(sourceValue)) {
@@ -363,11 +363,11 @@ class ContextContainerSyncEngine {
    */
   _updateItemToPlainObject(sourceItem, targetObject) {
     const sourceValue = sourceItem.value;
-    
+
     // Preserve metadata function before any modifications
     const preservedSetMetadata = targetObject.setMetadata;
     const shouldSyncMetadata = this.syncMetadata && sourceItem.metadata && typeof preservedSetMetadata === 'function';
-    
+
     if (this._isPlainObject(sourceValue)) {
       // Deep merge source object into target
       Object.assign(targetObject, this._deepMergeObjects(sourceValue, targetObject));
@@ -404,7 +404,7 @@ class ContextContainerSyncEngine {
    */
   _updatePlainObjectToItem(sourceObject, targetItem) {
     const targetValue = targetItem.value;
-    
+
     if (this._isPlainObject(targetValue)) {
       // Deep merge source into target value
       const mergedValue = this._deepMergeObjects(sourceObject, targetValue);
@@ -423,7 +423,7 @@ class ContextContainerSyncEngine {
    */
   _updateContainerToPlainObject(sourceContainer, targetObject) {
     const sourceValue = sourceContainer.value;
-    
+
     // Deep merge container value into target object
     Object.assign(targetObject, this._deepMergeObjects(sourceValue, targetObject));
   }
@@ -454,14 +454,8 @@ class ContextContainerSyncEngine {
    * @private
    */
   _isPlainObject(value) {
-    return (
-      value !== null &&
-      typeof value === 'object' &&
-      !Array.isArray(value) &&
-      value.constructor === Object &&
-      !value.isContextItem &&
-      !value.isContextContainer
-    );
+
+    return Validator.isPlainObject(value) && !value?.isContextItem && !value?.isContextContainer;
   }
 
   /**
@@ -476,7 +470,7 @@ class ContextContainerSyncEngine {
       if (obj === null || typeof obj !== 'object') return obj;
       if (obj instanceof Date) return new Date(obj);
       if (Array.isArray(obj)) return obj.map(cloneDeep);
-      
+
       const cloned = {};
       for (const [key, value] of Object.entries(obj)) {
         cloned[key] = cloneDeep(value);
@@ -486,7 +480,7 @@ class ContextContainerSyncEngine {
 
     // Start with a deep clone of the target to preserve its existing structure
     const result = cloneDeep(targetObject);
-    
+
     // Recursively merge source properties into the result
     for (const [key, sourceValue] of Object.entries(sourceObject)) {
       if (result.hasOwnProperty(key)) {
@@ -502,7 +496,7 @@ class ContextContainerSyncEngine {
         result[key] = cloneDeep(sourceValue);
       }
     }
-    
+
     return result;
   }
 

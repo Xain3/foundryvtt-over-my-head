@@ -11,9 +11,9 @@ import { ContextItemSetter } from './contextItemSetter.js';
 import { Validator } from '../../utils/static/validator.js';
 import PathUtils from '../../helpers/pathUtils.js';
 
-const RESERVED_KEYS = [
+const RESERVED_KEYS = Object.freeze([
   'value', 'metadata', 'createdAt', 'modifiedAt', 'lastAccessedAt', 'size'
-];
+]);
 
 /**
  * @class ContextContainer

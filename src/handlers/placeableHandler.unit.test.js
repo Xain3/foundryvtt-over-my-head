@@ -66,7 +66,7 @@ describe('PlaceableHandler', () => {
 
     describe('constructor', () => {
         it('should initialize with the provided parameters', () => {
-            expect(Handler).toHaveBeenCalledWith(mockConfig, mockContext, mockUtils);
+            expect(Handler).toHaveBeenCalledWith(mockConfig, mockUtils, mockContext);
             expect(PlaceableGetter).toHaveBeenCalledWith(mockConfig, mockContext, mockUtils);
             expect(PlaceableSetter).toHaveBeenCalledWith(mockConfig, mockContext, mockUtils);
             expect(PlaceableChecker).toHaveBeenCalledWith(mockConfig, mockContext, mockUtils, expect.any(Object));

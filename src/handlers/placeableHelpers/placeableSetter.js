@@ -18,7 +18,9 @@ class PlaceableSetter extends Handler {
      * @param {Object} utils - Utility functions.
      */
     constructor(config, context, utils) {
-        super(config, context, utils);
+        super(config, utils, context);
+        // Ensure the original context reference is preserved for tests/consumers
+        this.context = context;
         this.current = null;
     }
 

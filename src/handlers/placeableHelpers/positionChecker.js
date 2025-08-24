@@ -23,7 +23,7 @@ class PositionChecker extends Handler {
    * @param {Object} utils - Utility functions.
    */
   constructor(config, context, utils) {
-    super(config, context, utils);
+    super(config, utils, context);
     this.utils = utils;
     this.context = context;
     this.logger = utils.logger;

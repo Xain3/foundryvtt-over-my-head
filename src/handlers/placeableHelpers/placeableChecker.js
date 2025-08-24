@@ -23,7 +23,7 @@ class PlaceableChecker extends Handler {
      * @param {PlaceableGetter} placeableGetter - Instance of PlaceableGetter.
      */
     constructor(config, context, utils, placeableGetter) {
-        super(config, context, utils);
+        super(config, utils, context);
     this.positionChecker = new PositionChecker(config, context, utils);
         this.getter = placeableGetter;
 

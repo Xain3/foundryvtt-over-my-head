@@ -39,7 +39,7 @@ class PlaceableHandler extends Handler {
      * @property {Object} context - The execution context.
     */
     constructor(config, context, utils) {
-        super(config, context, utils);
+        super(config, utils, context);
         this.placeableType = null;
         this.getter = new PlaceableGetter(config, context, utils);
         this.setter = new PlaceableSetter(config, context, utils);

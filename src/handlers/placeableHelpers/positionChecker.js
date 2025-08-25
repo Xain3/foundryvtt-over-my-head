@@ -4,7 +4,7 @@
  * @path src/handlers/placeableHelpers/positionChecker.js
  */
 
-import { CHECK_TYPES, POSITION_USES, METHOD_KEYS, makeMethodKey } from './positionChecker.constants.js';
+import { CHECK_TYPES, POSITION_USES, METHOD_KEYS, makeMethodKey } from './positionChecker.fallbacks.js';
 import Handler from '../../baseClasses/handler.js';
 
 /**

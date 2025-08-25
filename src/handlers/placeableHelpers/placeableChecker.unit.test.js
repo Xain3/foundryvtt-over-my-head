@@ -49,7 +49,6 @@ describe('PlaceableChecker', () => {
         
         placeableChecker = new PlaceableChecker(mockConfig, mockContext, mockUtils, mockPlaceableGetter);
         placeableChecker.logger = mockLogger;
-        placeableChecker.getDebugMode = jest.fn().mockReturnValue(false);
     });
 
     afterEach(() => {
@@ -173,6 +172,38 @@ describe('PlaceableChecker', () => {
             expect(result).toBe(false);
         });
         
+        it('should treat elevation 0 as valid', () => {
+            const target = { id: 'target' };
+            const reference = { id: 'reference' };
+            const targetManager = { id: 'targetManager' };
+            const referenceManager = { id: 'referenceManager' };
+            
+            mockPlaceableGetter.getPosition.mockImplementation((obj) => {
+                if (obj.id === 'target') return { x: 10, y: 20 };
+                if (obj.id === 'reference') return { x: 15, y: 25 };
+                return null;
+            });
+            
+            mockPlaceableGetter.getElevation.mockImplementation((obj) => {
+                if (obj.id === 'target') return 0; // Elevation 0 should be valid
+                if (obj.id === 'reference') return 10;
+                return null;
+            });
+            
+            mockPositionChecker.check.mockReturnValue(true);
+            
+            const result = placeableChecker.isUnder(
+                target,
+                reference,
+                targetManager,
+                referenceManager
+            );
+            
+            expect(mockLogger.warn).not.toHaveBeenCalled();
+            expect(mockPositionChecker.check).toHaveBeenCalled();
+            expect(result).toBe(true);
+        });
+        
         it('should log debug message if debug mode is enabled', () => {
             const target = { id: 'target' };
             const reference = { id: 'reference' };
@@ -181,7 +212,9 @@ describe('PlaceableChecker', () => {
             
             mockPlaceableGetter.getPosition.mockReturnValue({ x: 10, y: 20 });
             mockPlaceableGetter.getElevation.mockReturnValue(5);
-            placeableChecker.getDebugMode.mockReturnValue(true);
+            
+            // Enable debug mode via config
+            placeableChecker.debugEnabled = true;
             
             placeableChecker.isUnder(
                 target,
@@ -190,13 +223,12 @@ describe('PlaceableChecker', () => {
                 referenceManager
             );
             
-            expect(placeableChecker.getDebugMode).toHaveBeenCalled();
             expect(mockLogger.log).toHaveBeenCalledWith(`Checking if target ${target} is under reference ${reference}`);
         });
     });
 
     describe('isOver', () => {
-        it('should call isUnder with the checkType "above"', () => {
+        it('should call isUnder with the checkType from CHECK_TYPES.OVER', () => {
             const target = { id: 'target' };
             const reference = { id: 'reference' };
             const targetManager = { id: 'targetManager' };
@@ -222,7 +254,7 @@ describe('PlaceableChecker', () => {
                 referenceManager,
                 targetUse,
                 referenceUse,
-                'above'
+                CHECK_TYPES.OVER
             );
             expect(result).toBe(true);
         });

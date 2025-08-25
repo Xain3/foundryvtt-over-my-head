@@ -4,10 +4,9 @@
  * @path src/handlers/placeableHelpers/placeableChecker.js
  */
 
-// ./src/handlers/placeableFunctions/placeableChecker.js
-
 import Handler from '../../baseClasses/handler.js';
 import PositionChecker from './positionChecker.js';
+import { CHECK_TYPES, POSITION_USES } from './config.js';
 
 /**
  * @class PlaceableChecker
@@ -24,9 +23,20 @@ class PlaceableChecker extends Handler {
      */
     constructor(config, context, utils, placeableGetter) {
         super(config, utils, context);
-    this.positionChecker = new PositionChecker(config, context, utils);
+        this.positionChecker = new PositionChecker(config, context, utils);
         this.getter = placeableGetter;
+        this.logger = utils?.logger;
+    }
 
+    /**
+     * Gets the debug mode setting.
+     * @returns {boolean} True if debug mode is enabled, false otherwise.
+     */
+    getDebugMode() {
+        // Access debug mode from config or context, with fallback to false
+        return this.config?.constants?.debugMode || 
+               this.context?.debugMode || 
+               false;
     }
 
     /**
@@ -60,11 +70,12 @@ class PlaceableChecker extends Handler {
 
     /**
      * Determines if a placeable is selected.
+     * Uses the public controlled property instead of private _controlled for better Foundry API alignment.
      * @param {Object} placeable
      * @returns {boolean} True if selected, else false.
      */
     isSelected(placeable) {
-        return placeable._controlled;
+        return placeable.controlled || placeable._controlled;
     }
 
     /**
@@ -79,16 +90,16 @@ class PlaceableChecker extends Handler {
      * @param {string} [checkType='under'] - The type of check to perform.
      * @returns {boolean} True if the target is under the reference, else false.
      */
-    isUnder(target, reference, targetManager, referenceManager, targetUse, referenceUse, checkType = 'under') {
+    isUnder(target, reference, targetManager, referenceManager, targetUse = POSITION_USES.CENTER, referenceUse = POSITION_USES.RECTANGLE, checkType = CHECK_TYPES.UNDER) {
         if (this.getDebugMode()) this.logger.log(`Checking if target ${target} is under reference ${reference}`);
         // position of the target
         let targetPosition = this.getter.getPosition(target, targetManager, targetUse);
-        let targetElevation = this.getter.getElevation(target, targetManager);
+        let targetElevation = this.getter.getElevation(target);
         // position of the reference
         let referencePosition = this.getter.getPosition(reference, referenceManager, referenceUse);
-        let referenceElevation = this.getter.getElevation(reference, referenceManager);
+        let referenceElevation = this.getter.getElevation(reference);
         // check if the target is under the reference
-        if (!targetPosition || !targetElevation || !referencePosition || !referenceElevation) {
+        if (!targetPosition || targetElevation == null || !referencePosition || referenceElevation == null) {
             this.logger.warn('Invalid target or reference');
             return false;
         }
@@ -105,6 +116,9 @@ class PlaceableChecker extends Handler {
 
     /**
      * Determines if a placeable is over another placeable.
+     * 
+     * This method is a thin alias to isUnder that delegates with CHECK_TYPES.OVER
+     * to check if the target placeable has a higher elevation than the reference.
      *
      * @param {Object} target - The target placeable.
      * @param {Object} reference - The reference placeable.
@@ -112,10 +126,10 @@ class PlaceableChecker extends Handler {
      * @param {Object} referenceManager - The manager of the reference placeable.
      * @param {string} [targetUse='center'] - The use case for the target position.
      * @param {string} [referenceUse='rectangle'] - The use case for the reference position.
-     * @param {string} [checkType='above'] - The type of check to perform.
+     * @returns {boolean} True if the target is over the reference, else false.
      */
-    isOver(target, reference, targetManager, referenceManager, targetUse, referenceUse,  checkType = 'above') {
-        return this.isUnder(target, reference, targetManager, referenceManager, targetUse, referenceUse, checkType);
+    isOver(target, reference, targetManager, referenceManager, targetUse = POSITION_USES.CENTER, referenceUse = POSITION_USES.RECTANGLE) {
+        return this.isUnder(target, reference, targetManager, referenceManager, targetUse, referenceUse, CHECK_TYPES.OVER);
     }
     }
 

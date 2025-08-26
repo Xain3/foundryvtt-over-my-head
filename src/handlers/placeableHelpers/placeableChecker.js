@@ -29,6 +29,15 @@ class PlaceableChecker extends Handler {
         this.getter = placeableGetter;
         this.logger = utils.logger;
 
+        this._initializeConstants(config);
+    }
+
+    /**
+     * Initialize constants and configuration from the provided config.
+     * @private
+     * @param {Object} config - Configuration settings.
+     */
+    _initializeConstants(config) {
         // Get constants from config, with fallbacks
         const pcCfg = (config && config.constants && config.constants.positionChecker) || {};
         this.CHECK_TYPES = Object.freeze({ ...CHECK_TYPES, ...(pcCfg.checkTypes || {}) });

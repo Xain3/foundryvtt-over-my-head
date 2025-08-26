@@ -1,6 +1,6 @@
 import PlaceableChecker from './placeableChecker';
 import PositionChecker from './positionChecker';
-import { CHECK_TYPES } from './positionChecker.fallbacks.js';
+import { CHECK_TYPES } from './config.js';
 import MockConfig from '../../../tests/mocks/config';
 
 /**
@@ -24,32 +24,31 @@ describe('PlaceableChecker', () => {
     beforeEach(() => {
         mockConfig = new MockConfig();
         mockContext = {};
-        
+
         mockLogger = {
             warn: jest.fn(),
             log: jest.fn(),
             error: jest.fn(),
             debug: jest.fn()
         };
-        
+
         mockUtils = {
             logger: mockLogger
         };
-        
+
         mockPlaceableGetter = {
             getPosition: jest.fn(),
             getElevation: jest.fn()
         };
-        
+
         mockPositionChecker = {
             check: jest.fn()
         };
-        
+
     PositionChecker.mockImplementation(() => mockPositionChecker);
-        
+
         placeableChecker = new PlaceableChecker(mockConfig, mockContext, mockUtils, mockPlaceableGetter);
         placeableChecker.logger = mockLogger;
-        placeableChecker.getDebugMode = jest.fn().mockReturnValue(false);
     });
 
     afterEach(() => {
@@ -65,9 +64,9 @@ describe('PlaceableChecker', () => {
             const targetUse = 'center';
             const referenceUse = 'rectangle';
             const checkType = CHECK_TYPES.UNDER;
-            
+
             mockPositionChecker.check.mockReturnValue(true);
-            
+
             const result = placeableChecker.checkPosition(
                 targetPosition,
                 targetElevation,
@@ -77,7 +76,7 @@ describe('PlaceableChecker', () => {
                 referenceUse,
                 checkType
             );
-            
+
             expect(mockPositionChecker.check).toHaveBeenCalledWith(
                 targetPosition,
                 targetElevation,
@@ -93,13 +92,13 @@ describe('PlaceableChecker', () => {
 
     describe('isSelected', () => {
         it('should return true if placeable is controlled', () => {
-            const placeable = { _controlled: true };
+            const placeable = { controlled: true };
             const result = placeableChecker.isSelected(placeable);
             expect(result).toBe(true);
         });
-        
+
         it('should return false if placeable is not controlled', () => {
-            const placeable = { _controlled: false };
+            const placeable = { controlled: false };
             const result = placeableChecker.isSelected(placeable);
             expect(result).toBe(false);
         });
@@ -113,21 +112,21 @@ describe('PlaceableChecker', () => {
             const referenceManager = { id: 'referenceManager' };
             const targetUse = 'center';
             const referenceUse = 'rectangle';
-            
+
             mockPlaceableGetter.getPosition.mockImplementation((obj) => {
                 if (obj.id === 'target') return { x: 10, y: 20 };
                 if (obj.id === 'reference') return { x: 15, y: 25 };
                 return null;
             });
-            
+
             mockPlaceableGetter.getElevation.mockImplementation((obj) => {
                 if (obj.id === 'target') return 5;
                 if (obj.id === 'reference') return 10;
                 return null;
             });
-            
+
             mockPositionChecker.check.mockReturnValue(true);
-            
+
             const result = placeableChecker.isUnder(
                 target,
                 reference,
@@ -136,11 +135,11 @@ describe('PlaceableChecker', () => {
                 targetUse,
                 referenceUse
             );
-            
+
             expect(mockPlaceableGetter.getPosition).toHaveBeenCalledWith(target, targetManager, targetUse);
             expect(mockPlaceableGetter.getPosition).toHaveBeenCalledWith(reference, referenceManager, referenceUse);
-            expect(mockPlaceableGetter.getElevation).toHaveBeenCalledWith(target, targetManager);
-            expect(mockPlaceableGetter.getElevation).toHaveBeenCalledWith(reference, referenceManager);
+            expect(mockPlaceableGetter.getElevation).toHaveBeenCalledWith(target);
+            expect(mockPlaceableGetter.getElevation).toHaveBeenCalledWith(reference);
             expect(mockPositionChecker.check).toHaveBeenCalledWith(
                 { x: 10, y: 20 },
                 5,
@@ -152,60 +151,93 @@ describe('PlaceableChecker', () => {
             );
             expect(result).toBe(true);
         });
-        
+
         it('should return false when any position or elevation is invalid', () => {
             const target = { id: 'target' };
             const reference = { id: 'reference' };
             const targetManager = { id: 'targetManager' };
             const referenceManager = { id: 'referenceManager' };
-            
+
             mockPlaceableGetter.getPosition.mockReturnValue(null);
             mockPlaceableGetter.getElevation.mockReturnValue(5);
-            
+
             const result = placeableChecker.isUnder(
                 target,
                 reference,
                 targetManager,
                 referenceManager
             );
-            
+
             expect(mockLogger.warn).toHaveBeenCalledWith('Invalid target or reference');
             expect(result).toBe(false);
         });
-        
+
+        it('should treat elevation 0 as valid', () => {
+            const target = { id: 'target' };
+            const reference = { id: 'reference' };
+            const targetManager = { id: 'targetManager' };
+            const referenceManager = { id: 'referenceManager' };
+
+            mockPlaceableGetter.getPosition.mockImplementation((obj) => {
+                if (obj.id === 'target') return { x: 10, y: 20 };
+                if (obj.id === 'reference') return { x: 15, y: 25 };
+                return null;
+            });
+
+            mockPlaceableGetter.getElevation.mockImplementation((obj) => {
+                if (obj.id === 'target') return 0; // Elevation 0 should be valid
+                if (obj.id === 'reference') return 10;
+                return null;
+            });
+
+            mockPositionChecker.check.mockReturnValue(true);
+
+            const result = placeableChecker.isUnder(
+                target,
+                reference,
+                targetManager,
+                referenceManager
+            );
+
+            expect(mockLogger.warn).not.toHaveBeenCalled();
+            expect(mockPositionChecker.check).toHaveBeenCalled();
+            expect(result).toBe(true);
+        });
+
         it('should log debug message if debug mode is enabled', () => {
             const target = { id: 'target' };
             const reference = { id: 'reference' };
             const targetManager = { id: 'targetManager' };
             const referenceManager = { id: 'referenceManager' };
-            
+
             mockPlaceableGetter.getPosition.mockReturnValue({ x: 10, y: 20 });
             mockPlaceableGetter.getElevation.mockReturnValue(5);
-            placeableChecker.getDebugMode.mockReturnValue(true);
-            
+
+            // Enable debug mode via config
+            placeableChecker.debugEnabled = true;
+
             placeableChecker.isUnder(
                 target,
                 reference,
                 targetManager,
                 referenceManager
             );
-            
-            expect(placeableChecker.getDebugMode).toHaveBeenCalled();
+
             expect(mockLogger.log).toHaveBeenCalledWith(`Checking if target ${target} is under reference ${reference}`);
         });
     });
 
     describe('isOver', () => {
-        it('should call isUnder with the checkType "above"', () => {
+        it('should call isUnder with the checkType from CHECK_TYPES.OVER', () => {
             const target = { id: 'target' };
             const reference = { id: 'reference' };
             const targetManager = { id: 'targetManager' };
             const referenceManager = { id: 'referenceManager' };
             const targetUse = 'center';
             const referenceUse = 'rectangle';
-            
+
             jest.spyOn(placeableChecker, 'isUnder').mockReturnValue(true);
-            
+
             const result = placeableChecker.isOver(
                 target,
                 reference,
@@ -214,7 +246,7 @@ describe('PlaceableChecker', () => {
                 targetUse,
                 referenceUse
             );
-            
+
             expect(placeableChecker.isUnder).toHaveBeenCalledWith(
                 target,
                 reference,

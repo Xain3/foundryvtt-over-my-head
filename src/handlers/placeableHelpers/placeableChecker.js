@@ -8,7 +8,7 @@
 
 import Handler from '../../baseClasses/handler.js';
 import PositionChecker from './positionChecker.js';
-import { CHECK_TYPES, POSITION_USES } from './positionChecker.fallbacks.js';
+import { CHECK_TYPES } from './positionChecker.fallbacks.js';
 
 /**
  * @class PlaceableChecker
@@ -42,7 +42,7 @@ class PlaceableChecker extends Handler {
         const pcCfg = (config && config.constants && config.constants.positionChecker) || {};
         this.CHECK_TYPES = Object.freeze({ ...CHECK_TYPES, ...(pcCfg.checkTypes || {}) });
         this.POSITION_USES = Object.freeze({ ...POSITION_USES, ...(pcCfg.positionUses || {}) });
-        
+
         // Set up debug flag from config
         this.debugEnabled = (config && config.constants && config.constants.debug) || false;
     }
@@ -82,7 +82,7 @@ class PlaceableChecker extends Handler {
      * @returns {boolean} True if selected, else false.
      */
     isSelected(placeable) {
-        return placeable._controlled;
+        return placeable.controlled;
     }
 
     /**
@@ -97,8 +97,8 @@ class PlaceableChecker extends Handler {
      * @param {string} [checkType] - The type of check to perform. Defaults to UNDER from config or fallback.
      * @returns {boolean} True if the target is under the reference, else false.
      */
-    isUnder(target, reference, targetManager, referenceManager, targetUse = this.POSITION_USES.CENTER, referenceUse = this.POSITION_USES.RECTANGLE, checkType = this.CHECK_TYPES.UNDER) {
-        if (this.debugEnabled) this.logger.log(`Checking if target ${target} is under reference ${reference}`);
+    isUnder(target, reference, targetManager, referenceManager, targetUse = 'center', referenceUse = 'rectangle', checkType = 'under') {
+        if (this.utils?.logger?.isDebugMode?.()) this.utils.logger.log(`Checking if target ${target} is under reference ${reference}`);
         // position of the target
         let targetPosition = this.getter.getPosition(target, targetManager, targetUse);
         let targetElevation = this.getter.getElevation(target, targetManager);
@@ -128,12 +128,11 @@ class PlaceableChecker extends Handler {
      * @param {Object} reference - The reference placeable.
      * @param {Object} targetManager - The manager of the target placeable.
      * @param {Object} referenceManager - The manager of the reference placeable.
-     * @param {string} [targetUse] - The use case for the target position. Defaults to CENTER from config or fallback.
-     * @param {string} [referenceUse] - The use case for the reference position. Defaults to RECTANGLE from config or fallback.
-     * @param {string} [checkType] - The type of check to perform. Defaults to OVER from config or fallback.
-     * @returns {boolean} True if the target is over the reference, else false.
+     * @param {string} [targetUse='center'] - The use case for the target position.
+     * @param {string} [referenceUse='rectangle'] - The use case for the reference position.
+     * @param {string} [checkType='over'] - The type of check to perform.
      */
-    isOver(target, reference, targetManager, referenceManager, targetUse = this.POSITION_USES.CENTER, referenceUse = this.POSITION_USES.RECTANGLE, checkType = this.CHECK_TYPES.OVER) {
+    isOver(target, reference, targetManager, referenceManager, targetUse = 'center', referenceUse = 'rectangle', checkType = CHECK_TYPES.OVER) {
         return this.isUnder(target, reference, targetManager, referenceManager, targetUse, referenceUse, checkType);
     }
 }

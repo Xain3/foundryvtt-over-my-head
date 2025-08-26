@@ -186,7 +186,7 @@ describe('PlaceableGetter', () => {
         });
 
         it('should return selected placeables', () => {
-            const selectedPlaceable = { ...mockPlaceable, _controlled: true };
+            const selectedPlaceable = { ...mockPlaceable, controlled: true };
             const selected = placeableGetter.getSelectedPlaceables([selectedPlaceable, mockPlaceable]);
             expect(selected).toEqual([selectedPlaceable]);
         });

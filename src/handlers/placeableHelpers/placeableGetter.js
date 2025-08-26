@@ -54,14 +54,14 @@ class PlaceableGetter extends Handler {
                     // Default anchor
                     break;
                 case 'topRight':
-                    anchor.x += placeable.width;
+                    anchor.x += placeable.w || placeable.width;
                     break;
                 case 'bottomLeft':
-                    anchor.y += placeable.height;
+                    anchor.y += placeable.h || placeable.height;
                     break;
                 case 'bottomRight':
-                    anchor.x += placeable.width;
-                    anchor.y += placeable.height;
+                    anchor.x += placeable.w || placeable.width;
+                    anchor.y += placeable.h || placeable.height;
                     break;
                 default:
                     this.logger.warn(`Unknown corner ${corner}.`);
@@ -101,7 +101,7 @@ class PlaceableGetter extends Handler {
      * @returns {number} Elevation value.
      */
     getElevation(placeable){
-        return placeable.elevation;
+        return placeable.document?.elevation ?? placeable.elevation ?? 0;
     }
 
     /**
@@ -110,6 +110,16 @@ class PlaceableGetter extends Handler {
      * @returns {Object} Coordinates of the top-right and bottom-left corners.
      */
     getRectBounds(placeable){
+        // Use Foundry's bounds API if available for consistent pixel rectangles
+        if (placeable.bounds) {
+            const bounds = placeable.bounds;
+            return {
+                TopRight: { x: bounds.x + bounds.width, y: bounds.y },
+                BottomLeft: { x: bounds.x, y: bounds.y + bounds.height }
+            };
+        }
+        
+        // Fallback to manual calculation
         let TopRight = this.getCorner('topRight', placeable);
         let BottomLeft = this.getCorner('bottomLeft', placeable);
         return {TopRight, BottomLeft};
@@ -137,7 +147,7 @@ class PlaceableGetter extends Handler {
      * @returns {Array} List of selected placeables.
      */
     getSelectedPlaceables(placeables) {
-        return placeables.filter(placeable => placeable._controlled);
+        return placeables.filter(placeable => placeable.controlled);
     }
 }
 

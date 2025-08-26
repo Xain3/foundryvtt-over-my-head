@@ -4,7 +4,6 @@
  * @path src/handlers/placeableHelpers/placeableGetter.js
  */
 
-// ./src/handlers/placeableFunctions/placeableGetter.js
 
 import Handler from "../../baseClasses/handler.js";
 

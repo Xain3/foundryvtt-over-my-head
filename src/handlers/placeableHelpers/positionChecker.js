@@ -4,7 +4,26 @@
  * @path src/handlers/placeableHelpers/positionChecker.js
  */
 
-import { CHECK_TYPES, POSITION_USES, METHOD_KEYS, makeMethodKey } from './positionChecker.fallbacks.js';
+// Fallback constants if these are not present in config.constants
+const CHECK_TYPES = Object.freeze({
+  UNDER: 'under',
+  OVER: 'over'
+});
+
+const POSITION_USES = Object.freeze({
+  CENTER: 'center',
+  RECTANGLE: 'rectangle'
+});
+
+const METHOD_KEYS = Object.freeze({
+  CENTER_RECTANGLE: `${POSITION_USES.CENTER}-${POSITION_USES.RECTANGLE}`,
+  RECTANGLE_CENTER: `${POSITION_USES.RECTANGLE}-${POSITION_USES.CENTER}`,
+  RECTANGLE_RECTANGLE: `${POSITION_USES.RECTANGLE}-${POSITION_USES.RECTANGLE}`,
+  CENTER_CENTER: `${POSITION_USES.CENTER}-${POSITION_USES.CENTER}`
+});
+
+const makeMethodKey = (targetUse, referenceUse) => `${targetUse}-${referenceUse}`;
+
 import Handler from '../../baseClasses/handler.js';
 
 /**

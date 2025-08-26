@@ -5,7 +5,6 @@
  */
 
 import PositionChecker from './positionChecker.js';
-import { CHECK_TYPES, POSITION_USES, METHOD_KEYS } from './positionChecker.fallbacks.js';
 
 describe('PositionChecker', () => {
     let positionChecker;
@@ -34,7 +33,7 @@ describe('PositionChecker', () => {
 
     describe('returnCheckMethod', () => {
         it('should return the correct check method for valid key', () => {
-            const method = positionChecker.returnCheckMethod(METHOD_KEYS.CENTER_RECTANGLE);
+            const method = positionChecker.returnCheckMethod(positionChecker.METHOD_KEYS.CENTER_RECTANGLE);
             expect(typeof method).toBe('function');
             expect(method.name).toContain('isCenterRelativeToRect');
         });
@@ -88,21 +87,21 @@ describe('PositionChecker', () => {
     describe('check', () => {
         it('should call a function named checkMethod with correct parameters', () => {
             const mockCheckMethod = jest.fn();
-            positionChecker.checkMethods[METHOD_KEYS.RECTANGLE_RECTANGLE] = mockCheckMethod;
+            positionChecker.checkMethods[positionChecker.METHOD_KEYS.RECTANGLE_RECTANGLE] = mockCheckMethod;
 
             // Call check with valid parameters
-            positionChecker.check({}, 1, {}, 2, POSITION_USES.RECTANGLE, POSITION_USES.RECTANGLE, CHECK_TYPES.UNDER);
+            positionChecker.check({}, 1, {}, 2, positionChecker.POSITION_USES.RECTANGLE, positionChecker.POSITION_USES.RECTANGLE, positionChecker.CHECK_TYPES.UNDER);
 
             // Verify that the correct method was called with the right parameters
             expect(mockCheckMethod).toHaveBeenCalledWith(
-                {}, 1, {}, 2, CHECK_TYPES.UNDER
+                {}, 1, {}, 2, positionChecker.CHECK_TYPES.UNDER
             );
             expect(mockLogger.warn).not.toHaveBeenCalled();
         });
 
         it('should return false and log warning for invalid combination', () => {
             // Call check with invalid combination
-            const result = positionChecker.check({}, 1, {}, 2, 'invalid', 'use', CHECK_TYPES.UNDER);
+            const result = positionChecker.check({}, 1, {}, 2, 'invalid', 'use', positionChecker.CHECK_TYPES.UNDER);
 
             // Verify warning was logged and false returned
             expect(mockLogger.warn).toHaveBeenCalledWith(
@@ -114,22 +113,22 @@ describe('PositionChecker', () => {
 
     describe('elevationCheck', () => {
         it('should return true when target is under reference for "under" check', () => {
-            const result = positionChecker.elevationCheck(1, 2, CHECK_TYPES.UNDER);
+            const result = positionChecker.elevationCheck(1, 2, positionChecker.CHECK_TYPES.UNDER);
             expect(result).toBe(true);
         });
 
         it('should return false when target is over reference for "under" check', () => {
-            const result = positionChecker.elevationCheck(3, 2, CHECK_TYPES.UNDER);
+            const result = positionChecker.elevationCheck(3, 2, positionChecker.CHECK_TYPES.UNDER);
             expect(result).toBe(false);
         });
 
         it('should return true when target is over reference for non-"under" check', () => {
-            const result = positionChecker.elevationCheck(3, 2, CHECK_TYPES.OVER);
+            const result = positionChecker.elevationCheck(3, 2, positionChecker.CHECK_TYPES.OVER);
             expect(result).toBe(true);
         });
 
         it('should return false when target is under reference for non-"under" check', () => {
-            const result = positionChecker.elevationCheck(1, 2, CHECK_TYPES.OVER);
+            const result = positionChecker.elevationCheck(1, 2, positionChecker.CHECK_TYPES.OVER);
             expect(result).toBe(false);
         });
     });
@@ -143,7 +142,7 @@ describe('PositionChecker', () => {
             };
 
             const result = positionChecker.isCenterRelativeToRect(
-                targetCenter, 1, referencePosition, 2, CHECK_TYPES.UNDER
+                targetCenter, 1, referencePosition, 2, positionChecker.CHECK_TYPES.UNDER
             );
 
             expect(result).toBe(true);
@@ -157,7 +156,7 @@ describe('PositionChecker', () => {
             };
 
             const result = positionChecker.isCenterRelativeToRect(
-                targetCenter, 1, referencePosition, 2, CHECK_TYPES.UNDER
+                targetCenter, 1, referencePosition, 2, positionChecker.CHECK_TYPES.UNDER
             );
 
             expect(result).toBe(false);
@@ -171,7 +170,7 @@ describe('PositionChecker', () => {
             };
 
             const result = positionChecker.isCenterRelativeToRect(
-                targetCenter, 3, referencePosition, 2, CHECK_TYPES.UNDER
+                targetCenter, 3, referencePosition, 2, positionChecker.CHECK_TYPES.UNDER
             );
             expect(result).toBe(false);
         });
@@ -182,7 +181,7 @@ describe('PositionChecker', () => {
                 TopRight: { x: 10, y: 10 }
             };
             const result = positionChecker.isCenterRelativeToRect(
-                targetCenter, 1, referencePosition, 2, CHECK_TYPES.UNDER
+                targetCenter, 1, referencePosition, 2, positionChecker.CHECK_TYPES.UNDER
             );
             expect(result).toBe(false);
         });
@@ -194,7 +193,7 @@ describe('PositionChecker', () => {
                 TopRight: { x: 10, y: 10 }
             };
             const result = positionChecker.isCenterRelativeToRect(
-                targetCenter, 1, referencePosition, 2, CHECK_TYPES.UNDER
+                targetCenter, 1, referencePosition, 2, positionChecker.CHECK_TYPES.UNDER
             );
             expect(result).toBe(false);
         });
@@ -240,7 +239,7 @@ describe('PositionChecker', () => {
                 1,
                 { BottomLeft: { x: 0, y: 0 }, TopRight: { x: 10, y: 10 } },
                 2,
-                CHECK_TYPES.UNDER
+                positionChecker.CHECK_TYPES.UNDER
             );
             expect(result).toBe(false);
             expect(mockLogger.warn).toHaveBeenCalled();
@@ -248,14 +247,14 @@ describe('PositionChecker', () => {
 
         it('should handle self-comparison for rectangles (overlap true if elevation passes)', () => {
             const rect = { BottomLeft: { x: 0, y: 0 }, TopRight: { x: 10, y: 10 } };
-            expect(positionChecker.isRectRelativeToRect(rect, 1, rect, 2, CHECK_TYPES.UNDER)).toBe(true);
-            expect(positionChecker.isRectRelativeToRect(rect, 2, rect, 2, CHECK_TYPES.UNDER)).toBe(false);
+            expect(positionChecker.isRectRelativeToRect(rect, 1, rect, 2, positionChecker.CHECK_TYPES.UNDER)).toBe(true);
+            expect(positionChecker.isRectRelativeToRect(rect, 2, rect, 2, positionChecker.CHECK_TYPES.UNDER)).toBe(false);
         });
 
         it('should handle self-comparison for centers (true if same and elevation passes)', () => {
             const ctr = { x: 5, y: 5 };
-            expect(positionChecker.isCenterRelativeToCenter(ctr, 1, ctr, 2, CHECK_TYPES.UNDER)).toBe(true);
-            expect(positionChecker.isCenterRelativeToCenter(ctr, 2, ctr, 2, CHECK_TYPES.UNDER)).toBe(false);
+            expect(positionChecker.isCenterRelativeToCenter(ctr, 1, ctr, 2, positionChecker.CHECK_TYPES.UNDER)).toBe(true);
+            expect(positionChecker.isCenterRelativeToCenter(ctr, 2, ctr, 2, positionChecker.CHECK_TYPES.UNDER)).toBe(false);
         });
     });
 
@@ -268,7 +267,7 @@ describe('PositionChecker', () => {
             const referenceCenter = { x: 5, y: 5 };
 
             const result = positionChecker.isRectRelativeToCenter(
-                targetPosition, 1, referenceCenter, 2, CHECK_TYPES.UNDER
+                targetPosition, 1, referenceCenter, 2, positionChecker.CHECK_TYPES.UNDER
             );
 
             expect(result).toBe(true);
@@ -282,7 +281,7 @@ describe('PositionChecker', () => {
             const referenceCenter = { x: 15, y: 15 };
 
             const result = positionChecker.isRectRelativeToCenter(
-                targetPosition, 1, referenceCenter, 2, CHECK_TYPES.UNDER
+                targetPosition, 1, referenceCenter, 2, positionChecker.CHECK_TYPES.UNDER
             );
 
             expect(result).toBe(false);
@@ -296,7 +295,7 @@ describe('PositionChecker', () => {
             const referenceCenter = { x: 5, y: 5 };
 
             const result = positionChecker.isRectRelativeToCenter(
-                targetPosition, 3, referenceCenter, 2, CHECK_TYPES.UNDER
+                targetPosition, 3, referenceCenter, 2, positionChecker.CHECK_TYPES.UNDER
             );
             expect(result).toBe(false);
         });
@@ -308,7 +307,7 @@ describe('PositionChecker', () => {
             };
             const referenceCenter = { x: 10, y: 5 };
             const result = positionChecker.isRectRelativeToCenter(
-                targetPosition, 1, referenceCenter, 2, CHECK_TYPES.UNDER
+                targetPosition, 1, referenceCenter, 2, positionChecker.CHECK_TYPES.UNDER
             );
             expect(result).toBe(false);
         });
@@ -326,7 +325,7 @@ describe('PositionChecker', () => {
             };
 
             const result = positionChecker.isRectRelativeToRect(
-                targetPosition, 1, referencePosition, 2, CHECK_TYPES.UNDER
+                targetPosition, 1, referencePosition, 2, positionChecker.CHECK_TYPES.UNDER
             );
 
             expect(result).toBe(true);
@@ -343,7 +342,7 @@ describe('PositionChecker', () => {
             };
 
             const result = positionChecker.isRectRelativeToRect(
-                targetPosition, 1, referencePosition, 2, CHECK_TYPES.UNDER
+                targetPosition, 1, referencePosition, 2, positionChecker.CHECK_TYPES.UNDER
             );
 
             expect(result).toBe(false);
@@ -360,7 +359,7 @@ describe('PositionChecker', () => {
             };
 
             const result = positionChecker.isRectRelativeToRect(
-                targetPosition, 3, referencePosition, 2, CHECK_TYPES.UNDER
+                targetPosition, 3, referencePosition, 2, positionChecker.CHECK_TYPES.UNDER
             );
             expect(result).toBe(false);
         });
@@ -375,7 +374,7 @@ describe('PositionChecker', () => {
                 TopRight: { x: 10, y: 10 }
             };
             const result = positionChecker.isRectRelativeToRect(
-                targetPosition, 1, referencePosition, 2, CHECK_TYPES.UNDER
+                targetPosition, 1, referencePosition, 2, positionChecker.CHECK_TYPES.UNDER
             );
             expect(result).toBe(false);
         });
@@ -390,7 +389,7 @@ describe('PositionChecker', () => {
                 TopRight: { x: 10, y: 10 }
             };
             const result = positionChecker.isRectRelativeToRect(
-                targetPosition, 1, referencePosition, 2, CHECK_TYPES.UNDER
+                targetPosition, 1, referencePosition, 2, positionChecker.CHECK_TYPES.UNDER
             );
             expect(result).toBe(false);
         });
@@ -402,7 +401,7 @@ describe('PositionChecker', () => {
             const referenceCenter = { x: 5, y: 5 };
 
             const result = positionChecker.isCenterRelativeToCenter(
-                targetCenter, 1, referenceCenter, 2, CHECK_TYPES.UNDER
+                targetCenter, 1, referenceCenter, 2, positionChecker.CHECK_TYPES.UNDER
             );
 
             expect(result).toBe(true);
@@ -413,7 +412,7 @@ describe('PositionChecker', () => {
             const referenceCenter = { x: 10, y: 10 };
 
             const result = positionChecker.isCenterRelativeToCenter(
-                targetCenter, 1, referenceCenter, 2, CHECK_TYPES.UNDER
+                targetCenter, 1, referenceCenter, 2, positionChecker.CHECK_TYPES.UNDER
             );
 
             expect(result).toBe(false);
@@ -424,7 +423,7 @@ describe('PositionChecker', () => {
             const referenceCenter = { x: 5, y: 5 };
 
             const result = positionChecker.isCenterRelativeToCenter(
-                targetCenter, 3, referenceCenter, 2, CHECK_TYPES.UNDER
+                targetCenter, 3, referenceCenter, 2, positionChecker.CHECK_TYPES.UNDER
             );
 
             expect(result).toBe(false);

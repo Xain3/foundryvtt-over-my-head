@@ -49,7 +49,6 @@ describe('PlaceableChecker', () => {
         
         placeableChecker = new PlaceableChecker(mockConfig, mockContext, mockUtils, mockPlaceableGetter);
         placeableChecker.logger = mockLogger;
-        placeableChecker.getDebugMode = jest.fn().mockReturnValue(false);
     });
 
     afterEach(() => {
@@ -93,13 +92,13 @@ describe('PlaceableChecker', () => {
 
     describe('isSelected', () => {
         it('should return true if placeable is controlled', () => {
-            const placeable = { _controlled: true };
+            const placeable = { controlled: true };
             const result = placeableChecker.isSelected(placeable);
             expect(result).toBe(true);
         });
         
         it('should return false if placeable is not controlled', () => {
-            const placeable = { _controlled: false };
+            const placeable = { controlled: false };
             const result = placeableChecker.isSelected(placeable);
             expect(result).toBe(false);
         });
@@ -181,7 +180,16 @@ describe('PlaceableChecker', () => {
             
             mockPlaceableGetter.getPosition.mockReturnValue({ x: 10, y: 20 });
             mockPlaceableGetter.getElevation.mockReturnValue(5);
-            placeableChecker.getDebugMode.mockReturnValue(true);
+            
+            // Mock the debug mode check in utils.logger
+            const mockLoggerWithDebug = {
+                ...mockLogger,
+                isDebugMode: jest.fn().mockReturnValue(true)
+            };
+            
+            placeableChecker.utils = {
+                logger: mockLoggerWithDebug
+            };
             
             placeableChecker.isUnder(
                 target,
@@ -190,13 +198,13 @@ describe('PlaceableChecker', () => {
                 referenceManager
             );
             
-            expect(placeableChecker.getDebugMode).toHaveBeenCalled();
-            expect(mockLogger.log).toHaveBeenCalledWith(`Checking if target ${target} is under reference ${reference}`);
+            expect(mockLoggerWithDebug.isDebugMode).toHaveBeenCalled();
+            expect(mockLoggerWithDebug.log).toHaveBeenCalledWith(`Checking if target ${target} is under reference ${reference}`);
         });
     });
 
     describe('isOver', () => {
-        it('should call isUnder with the checkType "above"', () => {
+        it('should call isUnder with the checkType "over"', () => {
             const target = { id: 'target' };
             const reference = { id: 'reference' };
             const targetManager = { id: 'targetManager' };
@@ -222,7 +230,7 @@ describe('PlaceableChecker', () => {
                 referenceManager,
                 targetUse,
                 referenceUse,
-                'above'
+                CHECK_TYPES.OVER
             );
             expect(result).toBe(true);
         });

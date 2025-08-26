@@ -4,11 +4,9 @@
  * @path src/handlers/placeableHelpers/placeableChecker.js
  */
 
-// ./src/handlers/placeableFunctions/placeableChecker.js
-
 import Handler from '../../baseClasses/handler.js';
 import PositionChecker from './positionChecker.js';
-import { CHECK_TYPES } from './positionChecker.fallbacks.js';
+import { CHECK_TYPES, POSITION_USES } from './config.js';
 
 /**
  * @class PlaceableChecker
@@ -27,24 +25,21 @@ class PlaceableChecker extends Handler {
         super(config, utils, context);
         this.positionChecker = new PositionChecker(config, context, utils);
         this.getter = placeableGetter;
-        this.logger = utils.logger;
-
-        this._initializeConstants(config);
+        this.logger = utils?.logger;
     }
 
     /**
-     * Initialize constants and configuration from the provided config.
-     * @private
-     * @param {Object} config - Configuration settings.
+     * Gets whether debug logging is enabled.
+     * Prefers instance flag, then config/context fallbacks.
+     * @returns {boolean}
      */
-    _initializeConstants(config) {
-        // Get constants from config, with fallbacks
-        const pcCfg = (config && config.constants && config.constants.positionChecker) || {};
-        this.CHECK_TYPES = Object.freeze({ ...CHECK_TYPES, ...(pcCfg.checkTypes || {}) });
-        this.POSITION_USES = Object.freeze({ ...POSITION_USES, ...(pcCfg.positionUses || {}) });
-
-        // Set up debug flag from config
-        this.debugEnabled = (config && config.constants && config.constants.debug) || false;
+    getDebugMode() {
+        if (this.debugEnabled != null) return !!this.debugEnabled;
+        return (
+            this.config?.constants?.debugMode ||
+            this.context?.debugMode ||
+            false
+        );
     }
 
     /**
@@ -78,6 +73,7 @@ class PlaceableChecker extends Handler {
 
     /**
      * Determines if a placeable is selected.
+     * Uses the public controlled property instead of private _controlled for better Foundry API alignment.
      * @param {Object} placeable
      * @returns {boolean} True if selected, else false.
      */
@@ -97,14 +93,14 @@ class PlaceableChecker extends Handler {
      * @param {string} [checkType] - The type of check to perform. Defaults to UNDER from config or fallback.
      * @returns {boolean} True if the target is under the reference, else false.
      */
-    isUnder(target, reference, targetManager, referenceManager, targetUse = 'center', referenceUse = 'rectangle', checkType = 'under') {
-        if (this.utils?.logger?.isDebugMode?.()) this.utils.logger.log(`Checking if target ${target} is under reference ${reference}`);
+    isUnder(target, reference, targetManager, referenceManager, targetUse = POSITION_USES.CENTER, referenceUse = POSITION_USES.RECTANGLE, checkType = CHECK_TYPES.UNDER) {
+        if (this.getDebugMode()) this.logger.log(`Checking if target ${target} is under reference ${reference}`);
         // position of the target
         let targetPosition = this.getter.getPosition(target, targetManager, targetUse);
-        let targetElevation = this.getter.getElevation(target, targetManager);
+        let targetElevation = this.getter.getElevation(target);
         // position of the reference
         let referencePosition = this.getter.getPosition(reference, referenceManager, referenceUse);
-        let referenceElevation = this.getter.getElevation(reference, referenceManager);
+        let referenceElevation = this.getter.getElevation(reference);
         // check if the target is under the reference
         if (!targetPosition || targetElevation == null || !referencePosition || referenceElevation == null) {
             this.logger.warn('Invalid target or reference');
@@ -124,16 +120,19 @@ class PlaceableChecker extends Handler {
     /**
      * Determines if a placeable is over another placeable.
      *
+     * This method is a thin alias to isUnder that delegates with CHECK_TYPES.OVER
+     * to check if the target placeable has a higher elevation than the reference.
+     *
      * @param {Object} target - The target placeable.
      * @param {Object} reference - The reference placeable.
      * @param {Object} targetManager - The manager of the target placeable.
      * @param {Object} referenceManager - The manager of the reference placeable.
      * @param {string} [targetUse='center'] - The use case for the target position.
      * @param {string} [referenceUse='rectangle'] - The use case for the reference position.
-     * @param {string} [checkType='over'] - The type of check to perform.
+     * @param {string} [checkType='above'] - The type of check to perform.
      */
-    isOver(target, reference, targetManager, referenceManager, targetUse = 'center', referenceUse = 'rectangle', checkType = CHECK_TYPES.OVER) {
-        return this.isUnder(target, reference, targetManager, referenceManager, targetUse, referenceUse, checkType);
+    isOver(target, reference, targetManager, referenceManager, targetUse = POSITION_USES.CENTER, referenceUse = POSITION_USES.RECTANGLE) {
+        return this.isUnder(target, reference, targetManager, referenceManager, targetUse, referenceUse, 'above');
     }
 }
 

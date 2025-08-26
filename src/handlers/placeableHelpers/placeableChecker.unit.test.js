@@ -1,6 +1,6 @@
 import PlaceableChecker from './placeableChecker';
 import PositionChecker from './positionChecker';
-import { CHECK_TYPES } from './positionChecker.fallbacks.js';
+import { CHECK_TYPES } from './config.js';
 import MockConfig from '../../../tests/mocks/config';
 
 /**
@@ -138,8 +138,8 @@ describe('PlaceableChecker', () => {
 
             expect(mockPlaceableGetter.getPosition).toHaveBeenCalledWith(target, targetManager, targetUse);
             expect(mockPlaceableGetter.getPosition).toHaveBeenCalledWith(reference, referenceManager, referenceUse);
-            expect(mockPlaceableGetter.getElevation).toHaveBeenCalledWith(target, targetManager);
-            expect(mockPlaceableGetter.getElevation).toHaveBeenCalledWith(reference, referenceManager);
+            expect(mockPlaceableGetter.getElevation).toHaveBeenCalledWith(target);
+            expect(mockPlaceableGetter.getElevation).toHaveBeenCalledWith(reference);
             expect(mockPositionChecker.check).toHaveBeenCalledWith(
                 { x: 10, y: 20 },
                 5,
@@ -254,8 +254,7 @@ describe('PlaceableChecker', () => {
                 referenceManager,
                 targetUse,
                 referenceUse,
-                CHECK_TYPES.OVER
-                CHECK_TYPES.OVER
+                'above'
             );
             expect(result).toBe(true);
         });

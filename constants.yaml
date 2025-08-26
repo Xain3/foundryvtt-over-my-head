@@ -177,6 +177,20 @@ placeables:
       - "bottom-left"
       - "bottom-right"
 
+# Configuration for PositionChecker (keys/types can be overridden here)
+positionChecker:
+  checkTypes:
+    UNDER: "under"
+    OVER: "above" # Overrides default 'over' for elevation checks
+  positionUses:
+    CENTER: "center"
+    RECTANGLE: "rectangle"
+  methodKeys:
+    CENTER_RECTANGLE: "center-rectangle"
+    RECTANGLE_CENTER: "rectangle-center"
+    RECTANGLE_RECTANGLE: "rectangle-rectangle"
+    CENTER_CENTER: "center-center"
+
 # Settings for the module
 settings:
   requiredKeys:

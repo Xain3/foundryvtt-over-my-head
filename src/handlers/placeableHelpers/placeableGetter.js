@@ -90,7 +90,7 @@ class PlaceableGetter extends Handler {
      * @param {Object} placeable
      * @returns {Object} Coordinates of the center.
      */
-    getCenter(placeable){
+    getCenter ( placeable ) {
         return placeable.center;
     }
 
@@ -99,7 +99,7 @@ class PlaceableGetter extends Handler {
      * @param {Object} placeable
      * @returns {number} Elevation value.
      */
-    getElevation(placeable){
+    getElevation ( placeable ) {
         return placeable.document?.elevation ?? placeable.elevation ?? 0;
     }
 
@@ -108,7 +108,7 @@ class PlaceableGetter extends Handler {
      * @param {Object} placeable
      * @returns {Object} Coordinates of the top-right and bottom-left corners.
      */
-    getRectBounds(placeable){
+    getRectBounds ( placeable ) {
         // Use Foundry's bounds API if available for consistent pixel rectangles
         if (placeable.bounds) {
             const bounds = placeable.bounds;
@@ -131,11 +131,11 @@ class PlaceableGetter extends Handler {
      * @param {string} use
      * @returns {Object} Coordinates of the position.
      */
-    getPosition(placeable, placeableManager, use){
-        if (use === 'center') {
+    getPosition ( placeable, placeableManager, use ) {
+        if ( use === 'center' ) {
             return placeableManager.getCenter(placeable);
         }
-        if (use === 'rectangle') {
+        if ( use === 'rectangle' ) {
             return placeableManager.getRectBounds(placeable);
         }
     }
@@ -145,7 +145,7 @@ class PlaceableGetter extends Handler {
      * @param {Array} placeables
      * @returns {Array} List of selected placeables.
      */
-    getSelectedPlaceables(placeables) {
+    getSelectedPlaceables ( placeables ) {
         return placeables.filter(placeable => placeable.controlled);
     }
 }

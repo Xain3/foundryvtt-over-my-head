@@ -1,13 +1,13 @@
-import PlaceableChecker from './placeableChecker';
-import PositionChecker from './positionChecker';
-import { CHECK_TYPES } from './config.js';
-import MockConfig from '../../../tests/mocks/config';
-
 /**
  * @file placeableChecker.unit.test.js
  * @description Unit tests for PlaceableChecker.
  * @path src/handlers/placeableHelpers/placeableChecker.unit.test.js
  */
+
+import PlaceableChecker from './placeableChecker.js';
+import PositionChecker from './positionChecker.js';
+import { CHECK_TYPES } from './config.js';
+import MockConfig from '../../../tests/mocks/config.js';
 
 // Mock dependencies
 jest.mock('./positionChecker.js');

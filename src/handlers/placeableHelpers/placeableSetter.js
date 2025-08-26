@@ -4,8 +4,6 @@
  * @path src/handlers/placeableHelpers/placeableSetter.js
  */
 
-// ./src/handlers/placeableFunctions/placeableSetter.js
-
 import Handler from "../../baseClasses/handler.js";
 
 /**

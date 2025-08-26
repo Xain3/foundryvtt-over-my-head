@@ -17,7 +17,7 @@ class PlaceableHandler extends Handler {
      * @param {Object} config - Configuration settings.
      * @param {Object} context - Execution context.
      * @param {Object} utils - Utility functions.
-     * 
+     *
      * @constructor
      * @extends Handler
      * @property {string} placeableType - Type of placeable entity.
@@ -30,7 +30,7 @@ class PlaceableHandler extends Handler {
      * Inherits properties from Handler:
      * @property {Object} utils - The utility object.
      * @property {Object} logger - The logger object.
-     * 
+     *
      * Inherits properties from Base:
      * @property {Object} config - The configuration object.
      * @property {Object} const - The constant object.
@@ -101,16 +101,16 @@ class PlaceableHandler extends Handler {
      * @param {Object} placeable - The placeable entity.
      * @returns {Object} The center of the placeable.
      */
-    getCenter(placeable){
+    getCenter(placeable) {
         return this.getter.getCenter(placeable);
     }
-    
+
     /**
      * Retrieves the elevation of a placeable entity.
      * @param {Object} placeable - The placeable entity.
      * @returns {number} The elevation of the placeable.
      */
-    getElevation(placeable){
+    getElevation(placeable) {
         return this.getter.getElevation(placeable);
     }
 
@@ -119,10 +119,10 @@ class PlaceableHandler extends Handler {
      * @param {Object} placeable - The placeable entity.
      * @returns {Object} The rectangular bounds of the placeable.
      */
-    getRectBounds(placeable){
+    getRectBounds(placeable) {
         return this.getter.getRectBounds(placeable);
     }
-    
+
     /**
      * Retrieves the position of a placeable entity.
      * @param {Object} placeable - The placeable entity.
@@ -130,10 +130,10 @@ class PlaceableHandler extends Handler {
      * @param {string} [use='center'] - The use case for the position.
      * @returns {Object} The position of the placeable.
      */
-    getPosition(placeable, placeableManager, use = 'center'){
+    getPosition(placeable, placeableManager, use = 'center') {
         return this.getter.getPosition(placeable, placeableManager, use);
     }
-    
+
     // Checkers
     /**
      * Checks if a placeable entity is selected.

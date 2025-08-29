@@ -33,7 +33,7 @@ class MockConfig {
                 }
             }
         };
-        
+
         this.moduleConstants = {
             ID: 'test-module'
         };

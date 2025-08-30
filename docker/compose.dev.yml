@@ -1,0 +1,58 @@
+secrets:
+  config_json:
+    file: ./secrets.json
+
+services:
+  foundry-v13:
+    image: felddy/foundryvtt:release
+    container_name: foundry-v13
+    hostname: foundry-v13
+    ports:
+      - "30013:30000"
+    volumes:
+      - type: bind
+        source: ../dist
+        target: /data/Data/modules/foundryvtt-over-my-head
+        read_only: true
+    secrets:
+      - source: config_json
+        target: config.json
+
+  foundry-v12:
+    image: felddy/foundryvtt:12
+    container_name: foundry-v12
+    hostname: foundry-v12
+    ports:
+      - "30012:30000"
+    volumes:
+      - type: bind
+        source: ../dist
+        target: /data/Data/modules/foundryvtt-over-my-head
+        read_only: true
+    secrets:
+      - source: config_json
+        target: config.json
+
+  foundry-v11:
+    image: felddy/foundryvtt:11
+    container_name: foundry-v11
+    hostname: foundry-v11
+    ports:
+      - "30011:30000"
+    volumes:
+      - type: bind
+        source: ../dist
+        target: /data/Data/modules/foundryvtt-over-my-head
+        read_only: true
+    secrets:
+      - source: config_json
+        target: config.json
+
+  builder:
+    image: node:20-alpine
+    container_name: module-builder
+    working_dir: /work
+    command: sh -c "npm ci && npx vite build --watch"
+    volumes:
+      - ../:/work
+    restart: unless-stopped

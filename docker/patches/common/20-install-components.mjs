@@ -58,6 +58,7 @@ try {
     for (const [worldId, overrides] of Object.entries(worldEntries)) {
       const top = cfg.worlds?.[worldId] || {};
       const merged = { ...top, ...overrides };
+      if (!merged.check_presence) continue;
       const shouldInstall = merged.install_at_startup !== false; // default true unless explicitly false
       const worldPath = path.join(dataDir, DIRS.WORLDS, worldId);
       const exists = fs.existsSync(worldPath) && fs.statSync(worldPath).isDirectory();

@@ -107,6 +107,7 @@ docker compose -f compose.dev.yml down -v
   - Cache/stagger: `CONTAINER_CACHE`, `FETCH_STAGGER_SECONDS`
   - Sync paths: `MODULE_SRC`, `MODULE_DST`, `WORLD_SRC`, `WORLD_DST`, `SYNC_INTERVAL`
   - Sync controls (worlds): `WORLD_SYNC_ENABLED` (default `1`), `WORLD_INITIAL_SYNC` (default `1`)
+  - Config-driven sync: `SYNC_USE_CONFIG` (default `1`) to enable reading `continuous_sync` from container-config; `MODULE_MIRROR_ENABLED` (default `1`) to keep the dist mirror.
   - Ownership: `HOST_UID`, `HOST_GID`
   - Debug/dry-run: `PATCH_DEBUG=1` (extra logs), `PATCH_DRY_RUN=1` (no side-effects; logs intended actions)
   - Cache behavior:
@@ -127,7 +128,7 @@ docker compose -f compose.dev.yml down -v
       - Supported in Node fallback: `.tar`, `.tar.gz/.tgz`
       - Not supported in Node fallback: `.zip`, `.tar.bz2/.tbz2`, `.tar.xz/.txz`
       - For unsupported formats, install system tools or avoid forcing Node fallback.
-  
+
 The numeric prefixes (`00-`, `10-`, `20-`) ensure deterministic ordering during startup.
 
 ### Cache-or-stagger behavior
@@ -151,6 +152,60 @@ The numeric prefixes (`00-`, `10-`, `20-`) ensure deterministic ordering during 
 - Presence warnings:
   - If a world has `install_at_startup:false` and is absent at `/data/Data/worlds/<id>`, a non-blocking warning is logged at startup.
   - If a world has `install_at_startup:true` and remains absent after install, a warning is also logged.
+
+### Config-driven continuous sync
+
+Enable continuous sync on specific items in `container-config.json` using `continuous_sync`:
+
+Defaults:
+
+- Worlds: host→container with keep (no delete), source `/host/shared/worlds/<id>`
+- Modules/systems: bidirectional, source `/host/resources/{modules|systems}/<id>`
+
+Examples:
+
+```json
+{
+  "worlds": {
+    "test-world": { "name": "Dev World" }
+  },
+  "modules": {
+    "my_module": { "name": "My Module" }
+  },
+  "versions": {
+    "13": {
+      "install": {
+        "worlds": {
+          "test-world": { "continuous_sync": true, "install_at_startup": false, "check_presence": true }
+        },
+        "modules": {
+          "my_module": { "continuous_sync": { "enabled": true, "direction": "host-to-container", "source": "/host/dist", "delete": true } }
+        }
+      }
+    }
+  }
+}
+```
+
+Override direction/source per item:
+
+```json
+"modules": {
+  "my_module": {
+    "continuous_sync": {
+      "enabled": true,
+      "direction": "bidirectional",
+      "source": "/host/resources/modules/my_module",
+      "interval": 2
+    }
+  }
+}
+```
+
+Env overrides:
+
+- `SYNC_USE_CONFIG=0` disables reading `continuous_sync` from config.
+- `MODULE_MIRROR_ENABLED=0` turns off the default `/host/dist` → module mirror.
 
 ## Non-root option
 

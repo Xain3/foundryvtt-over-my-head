@@ -17,6 +17,7 @@ module.exports = {
         root: ['./'],
         alias: {
           '@': './src',
+          '@docker': './docker',
           '@config': './src/config/config.js',
           '@constants': './src/config/constants.js',
           '@manifest': './src/config/manifest.js',

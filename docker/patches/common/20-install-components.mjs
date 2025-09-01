@@ -45,3 +45,33 @@ const installer = new ComponentInstaller(
  * Install components as per configuration.
  */
 await installer.install();
+
+// Non-blocking presence check for worlds after install
+try {
+  const cfg = await installer.getConfig?.();
+  const version = installer.getVersion?.() || FALLBACKS.VERSION;
+  const dataDir = installer.getDataDir?.() || FALLBACKS.DATA_DIR;
+  if (cfg && cfg.versions && cfg.versions[version] && cfg.versions[version].install && cfg.versions[version].install.worlds) {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const worldEntries = cfg.versions[version].install.worlds;
+    for (const [worldId, overrides] of Object.entries(worldEntries)) {
+      const top = cfg.worlds?.[worldId] || {};
+      const merged = { ...top, ...overrides };
+      const shouldInstall = merged.install_at_startup !== false; // default true unless explicitly false
+      const worldPath = path.join(dataDir, DIRS.WORLDS, worldId);
+      const exists = fs.existsSync(worldPath) && fs.statSync(worldPath).isDirectory();
+      if (!shouldInstall && !exists) {
+        console.warn(`[patch] world presence warning: '${worldId}' not found at ${worldPath} (install_at_startup=false)`);
+      }
+      if (shouldInstall) {
+        const existsAfter = fs.existsSync(worldPath) && fs.statSync(worldPath).isDirectory();
+        if (!existsAfter) {
+          console.warn(`[patch] world presence warning: '${worldId}' not found after install at ${worldPath}`);
+        }
+      }
+    }
+  }
+} catch (e) {
+  console.warn("[patch] world presence check skipped:", e?.message || e);
+}

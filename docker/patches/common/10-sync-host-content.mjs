@@ -18,7 +18,7 @@ const ENV = process.env;
 
 const MODULE_SRC = ENV.MODULE_SRC || "/host/dist";
 const MODULE_DST = ENV.MODULE_DST || "/data/Data/modules/foundryvtt-over-my-head";
-const WORLD_SRC  = ENV.WORLD_SRC  || "/host/world/test-world";
+const WORLD_SRC  = ENV.WORLD_SRC  || "/host/shared/worlds/test-world";
 const WORLD_DST  = ENV.WORLD_DST  || "/data/Data/worlds/test-world";
 
 let SYNC_INTERVAL = Number(ENV.SYNC_INTERVAL || 1);

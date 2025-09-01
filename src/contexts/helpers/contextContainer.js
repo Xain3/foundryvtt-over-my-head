@@ -54,6 +54,7 @@ const RESERVED_KEYS = Object.freeze([
  * @property {Map<string, ContextItem|ContextContainer>} #managedItems - Internal storage for managed items.
  * @property {ContextItem} #containerItem - Internal ContextItem for container metadata and timestamps.
  * @property {boolean} #isContextContainer - Indicates if this instance is a ContextContainer (for duck typing).
+ * @property {string} #uuid - Unique identifier for this container instance.
  *
  * @example
  * // Basic usage
@@ -97,6 +98,13 @@ class ContextContainer {
   #enhancedNestedPathChecking;
 
   /**
+   * Unique identifier for this container instance.
+   * @type {string}
+   * @private
+   */
+  #uuid;
+
+  /**
    * Creates an instance of ContextContainer.
    * @param {object|*} [initialItemsOrValue={}] - An object where keys are item names and values are raw values to be managed,
    *                                            or a single value to be managed under the key "default" if `initialItemsOrValue` is not a plain object.
@@ -124,6 +132,9 @@ class ContextContainer {
     } = {}
   ) {
     this.#isContextContainer = true;
+    this.#uuid = (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function')
+      ? globalThis.crypto.randomUUID()
+      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
     this.#containerItem = new ContextItem(undefined, metadata, { recordAccess, recordAccessForMetadata }); // Item to store metadata and timestamps
     this.#managedItems = new Map();
     this.#defaultItemOptions = {
@@ -176,6 +187,14 @@ class ContextContainer {
    */
   get enhancedNestedPathChecking() {
     return this.#enhancedNestedPathChecking;
+  }
+
+  /**
+   * Gets the unique identifier for this container instance.
+   * @returns {string} The UUID.
+   */
+  get uuid() {
+    return this.#uuid;
   }
 
   // Delegation properties for ContextItem functionality
@@ -549,20 +568,20 @@ class ContextContainer {
         }
       });
       const item = this.#managedItems.get(firstKey);
-      
+
       if (item && item instanceof ContextContainer) {
         return item.hasItem(remainingPath);
       }
-      
+
       // Enhanced nested path checking: if enabled, check if item contains plain object with nested path
       if (this.#enhancedNestedPathChecking && item && item instanceof ContextItem) {
         const value = item.value;
-        
+
         // If the value is a ContextContainer, delegate to it (same as normal logic)
         if (value instanceof ContextContainer) {
           return value.hasItem(remainingPath);
         }
-        
+
         // If the value is a plain object, use enhanced path checking
         if (Validator.isPlainObject(value)) {
           try {
@@ -573,7 +592,7 @@ class ContextContainer {
           }
         }
       }
-      
+
       return false;
     }
 
@@ -597,13 +616,13 @@ class ContextContainer {
 
     // Check if the user is manually accessing a renamed reserved key (only in debug mode)
     const reservedKeys = ['value', 'metadata', 'size', 'createdAt', 'modifiedAt', 'lastAccessedAt'];
-    
+
     if (process && process.env && process.env.DEBUG_CONTEXT_CONTAINER) {
       // Check for direct renamed key access (e.g., "_value")
       if (key.startsWith('_') && reservedKeys.includes(key.substring(1))) {
         console.debug(`[ContextContainer.getItem] Direct renamed reserved key access: ${key} (original: ${key.substring(1)})`);
       }
-      
+
       // Check for nested renamed key access in dot notation
       if (key.includes('.')) {
         const pathParts = key.split('.');
@@ -795,7 +814,7 @@ class ContextContainer {
   _getValueWithCircularCheck(visited) {
     if (visited.has(this)) {
       // Return a placeholder for circular references
-      return { __circular: true, __id: this.containerId || 'unknown' };
+      return { __circular: true, __id: this.uuid };
     }
 
     visited.add(this);

@@ -1,0 +1,147 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://xain3.github.io/foundryvtt-over-my-head/schemas/container-config.schema.json",
+  "title": "Container Config Schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "systems": {
+      "type": "object",
+      "description": "A mapping of system identifiers to their configuration",
+      "additionalProperties": {
+        "$ref": "#/definitions/item"
+      },
+      "default": {}
+    },
+    "modules": {
+      "type": "object",
+      "description": "A mapping of module identifiers to their configuration",
+      "additionalProperties": {
+        "$ref": "#/definitions/item"
+      },
+      "default": {}
+    },
+    "worlds": {
+      "type": "object",
+      "description": "A mapping of world identifiers to their configuration",
+      "additionalProperties": {
+        "$ref": "#/definitions/item"
+      },
+      "default": {}
+    },
+    "versions": {
+      "type": "object",
+      "description": "A mapping of Foundry VTT version numbers to their configuration",
+      "patternProperties": {
+        "^\\d{1,2}$": {
+          "$ref": "#/definitions/versionConfig"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["systems", "modules", "versions"],
+  "definitions": {
+    "item": {
+      "type": "object",
+      "description": "Configuration for a single system, module, or world",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The display name of the item"
+        },
+        "manifest": {
+          "type": "string",
+          "description": "The URL to the manifest file. Provide either a non-empty 'manifest' (URL) or a non-empty local 'file' path.",
+          "anyOf": [
+            { "type": "string", "format": "uri" },
+            { "type": "string", "maxLength": 0 }
+          ]
+        },
+        "path": {
+          "type": "string",
+          "description": "Path to a local archive or directory, or a URL. Provide either a non-empty 'path' or a non-empty URL in 'manifest'.",
+          "anyOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "string", "maxLength": 0 }
+          ]
+        },
+        "install_at_startup": {
+          "type": "boolean" ,
+          "description": "Whether to install this item at startup"
+        }
+      },
+      "required": ["name"],
+      "allOf": [
+        {
+          "anyOf": [
+            { "properties": { "manifest": { "type": "string", "minLength": 1 } } },
+            { "properties": { "path": { "type": "string", "minLength": 1 } } }
+          ]
+        }
+      ]
+    },
+    "versionConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "supported": {
+          "type": "boolean",
+          "description": "Whether this Foundry version is actively supported and should be loaded by default",
+          "default": true
+        },
+        "install": {
+          "type": "object",
+          "description": "Configuration for what to install for this Foundry VTT version. Each map's key is the id from the top-level maps; the value is an optional partial override for that id.",
+          "additionalProperties": false,
+          "properties": {
+            "systems": {
+              "type": "object",
+              "description": "Map of system ids to optional per-version overrides. Use an empty object {} to install as-is.",
+              "additionalProperties": { "$ref": "#/definitions/itemPartial" },
+              "default": {}
+            },
+            "modules": {
+              "type": "object",
+              "description": "Map of module ids to optional per-version overrides. Use an empty object {} to install as-is.",
+              "additionalProperties": { "$ref": "#/definitions/itemPartial" },
+              "default": {}
+            },
+            "worlds": {
+              "type": "object",
+              "description": "Map of world ids to optional per-version overrides. Use an empty object {} to install as-is.",
+              "additionalProperties": { "$ref": "#/definitions/itemPartial" },
+              "default": {}
+            }
+          },
+          "required": ["systems", "modules"]
+        }
+      },
+      "required": ["install"]
+    },
+    "itemPartial": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "manifest": {
+          "type": "string",
+          "anyOf": [
+            { "type": "string", "format": "uri" },
+            { "type": "string", "maxLength": 0 }
+          ]
+        },
+        "path": {
+          "type": "string",
+          "anyOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "string", "maxLength": 0 }
+          ]
+        },
+        "install_at_startup": { "type": "boolean" }
+      }
+    }
+  }
+}

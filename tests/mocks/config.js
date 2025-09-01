@@ -25,9 +25,15 @@ class MockConfig {
             },
             errors: {
                 pattern: '{{module}}{{caller}}{{error}}{{stack}}'
+            },
+            positionChecker: {
+                checkTypes: {
+                    UNDER: 'under',
+                    OVER: 'above' // Override default 'over' for elevation checks
+                }
             }
         };
-        
+
         this.moduleConstants = {
             ID: 'test-module'
         };

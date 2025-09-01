@@ -31,13 +31,13 @@
     "example_world": {
       "name": "Example World",
   "manifest": "https://example.com/world.json",
-  "path": "",
+  "path": "../docker/shared/v13/worlds/example_world",
       "install_at_startup": true
     },
     "world_to_override": {
       "name": "World To Override",
   "manifest": "",
-  "path": "/data/container_cache/world-to-override.zip",
+  "path": "../docker/shared/v13/worlds/world_to_override",
       "install_at_startup": false
     }
   },

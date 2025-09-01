@@ -63,6 +63,24 @@ How it works
 - Each service reads credentials from the Docker secret mounted as `/run/secrets/config.json`.
 - Foundry data persists in Docker volumes created by Compose. To wipe them for a fresh start, stop with `down -v` (see below).
 
+- Worlds: Development worlds are now provided via the shared mount inside each container at `/host/shared/worlds/<world-id>`. Compose defines per-version host mounts `./shared/v13`, `./shared/v12`, and `./shared/v11` which are mounted into each container at `/host/shared` (read/write). The `10-sync-host-content` patch defaults `WORLD_SRC` to `/host/shared/worlds/test-world` and syncs that path bidirectionally with `/data/Data/worlds/test-world` in the container.
+
+Prepare host folders for shared content
+
+Create the per-version shared and resources folders (and the world path) before starting Compose:
+
+```zsh
+mkdir -p docker/shared/v13/worlds/test-world docker/shared/v12/worlds/test-world docker/shared/v11/worlds/test-world
+mkdir -p docker/resources/v13 docker/resources/v12 docker/resources/v11
+```
+
+If you already have test-world fixtures under `tests/test-world/v##` you can seed the shared folders like this:
+
+```zsh
+# example: seed v13 test-world into the shared mount
+cp -a tests/test-world/v13/. docker/shared/v13/worlds/test-world/
+```
+
 ## Stopping & cleanup
 
 ```zsh

@@ -29,9 +29,14 @@ services:
         source: ./patches/common
         target: /container_patches
       - type: bind
-        source: ../tests/test-world/v13
-        target: /host/world/test-world
+        source: ./shared/v13
+        target: /host/shared
         read_only: false
+      - type: bind
+        source: ./resources/v13
+        target: /host/resources
+        read_only: true
+      # Worlds now sync via /host/shared/worlds; no direct test-world bind
       - type: bind
         source: ./foundry-cache/v13
         target: /data/container_cache
@@ -66,9 +71,14 @@ services:
         source: ./patches/common
         target: /container_patches
       - type: bind
-        source: ../tests/test-world/v12
-        target: /host/world/test-world
+        source: ./shared/v12
+        target: /host/shared
         read_only: false
+      - type: bind
+        source: ./resources/v12
+        target: /host/resources
+        read_only: true
+      # Worlds now sync via /host/shared/worlds; no direct test-world bind
       - type: bind
         source: ./foundry-cache/v12
         target: /data/container_cache
@@ -102,14 +112,18 @@ services:
       - type: bind
         source: ./patches/common
         target: /container_patches
-      - type: bind
-        source: ../tests/test-world/v11
-        target: /host/world/test-world
-        # RW to allow bidirectional sync back to host
-        read_only: false
+      # Worlds now sync via /host/shared/worlds; no direct test-world bind
       - type: bind
         source: ./foundry-cache/v11
         target: /data/container_cache
+      - type: bind
+        source: ./shared/v11
+        target: /host/shared
+        read_only: false
+      - type: bind
+        source: ./resources/v11
+        target: /host/resources
+        read_only: true
     secrets:
       - source: config_json
         target: config.json

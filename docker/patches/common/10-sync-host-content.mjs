@@ -29,6 +29,8 @@ const HOST_UID = ENV.HOST_UID;
 const HOST_GID = ENV.HOST_GID;
 const PATCH_DRY_RUN = f.parseBoolEnv(ENV.PATCH_DRY_RUN, false);
 const PATCH_DEBUG = f.parseBoolEnv(ENV.PATCH_DEBUG, false);
+const WORLD_SYNC_ENABLED = f.parseBoolEnv(ENV.WORLD_SYNC_ENABLED, true);
+const WORLD_INITIAL_SYNC = f.parseBoolEnv(ENV.WORLD_INITIAL_SYNC, true);
 
 function log(...args) { console.log("[patch] 10-sync-host-content:", ...args); }
 function dlog(...args) { if (PATCH_DEBUG) console.log("[patch][debug] 10-sync-host-content:", ...args); }
@@ -134,7 +136,8 @@ function rsyncWithPolicy(src, dst, deletePolicy) {
 /**
  * Execute one sync cycle: module mirror and world bidirectional sync.
  */
-function syncOnce() {
+function syncOnce(opts = {}) {
+  const initial = !!opts.initial;
   // Module: host -> container (mirror)
   if (fs.existsSync(MODULE_SRC) && fs.statSync(MODULE_SRC).isDirectory()) {
     if (MODULE_DST === "/" || MODULE_SRC === "/") {
@@ -145,20 +148,26 @@ function syncOnce() {
   }
 
   // World: host -> container
-  if (fs.existsSync(WORLD_SRC) && fs.statSync(WORLD_SRC).isDirectory()) {
-    rsyncWithPolicy(WORLD_SRC, WORLD_DST, "keep");
+  if (WORLD_SYNC_ENABLED) {
+    if (!(initial && !WORLD_INITIAL_SYNC)) {
+      if (fs.existsSync(WORLD_SRC) && fs.statSync(WORLD_SRC).isDirectory()) {
+        rsyncWithPolicy(WORLD_SRC, WORLD_DST, "keep");
 
-    // Container -> host with optional chown
-    if (rsyncAvailable() && HOST_UID && HOST_GID) {
-      const args = RSYNC_COMMON.split(/\s+/).filter(Boolean);
-      args.push("--no-owner", "--no-group", `--chown=${HOST_UID}:${HOST_GID}`);
-      args.push(`${WORLD_DST}/`, `${WORLD_SRC}/`);
-      run("rsync", args);
-    } else {
-      rsyncWithPolicy(WORLD_DST, WORLD_SRC, "keep");
-      if (HOST_UID && HOST_GID) {
-        try { run("chown", ["-R", `${HOST_UID}:${HOST_GID}`, WORLD_SRC]); } catch {}
+        // Container -> host with optional chown
+        if (rsyncAvailable() && HOST_UID && HOST_GID) {
+          const args = RSYNC_COMMON.split(/\s+/).filter(Boolean);
+          args.push("--no-owner", "--no-group", `--chown=${HOST_UID}:${HOST_GID}`);
+          args.push(`${WORLD_DST}/`, `${WORLD_SRC}/`);
+          run("rsync", args);
+        } else {
+          rsyncWithPolicy(WORLD_DST, WORLD_SRC, "keep");
+          if (HOST_UID && HOST_GID) {
+            try { run("chown", ["-R", `${HOST_UID}:${HOST_GID}`, WORLD_SRC]); } catch {}
+          }
+        }
       }
+    } else {
+      dlog("Skipping initial world sync due to WORLD_INITIAL_SYNC=0");
     }
   }
 }
@@ -170,18 +179,22 @@ function syncOnce() {
  */
 async function main() {
   log(`MODULE_SRC=${MODULE_SRC} -> MODULE_DST=${MODULE_DST}`);
-  log(`WORLD_SRC=${WORLD_SRC} <-> WORLD_DST=${WORLD_DST} (bidirectional)`);
+  if (WORLD_SYNC_ENABLED) {
+    log(`WORLD_SRC=${WORLD_SRC} <-> WORLD_DST=${WORLD_DST} (bidirectional)`);
+  } else {
+    log("World sync disabled (WORLD_SYNC_ENABLED=0)");
+  }
 
   // Cleanup: remove legacy symlinks
   removeLegacySymlink(MODULE_DST);
-  removeLegacySymlink(WORLD_DST);
+  if (WORLD_SYNC_ENABLED) removeLegacySymlink(WORLD_DST);
 
   // Ensure destination directories exist
   ensureDir(MODULE_DST);
-  ensureDir(WORLD_DST);
+  if (WORLD_SYNC_ENABLED) ensureDir(WORLD_DST);
 
   log(`Initial sync${PATCH_DRY_RUN ? " (dry-run)" : ""}`);
-  syncOnce();
+  syncOnce({ initial: true });
 
   log(`Starting background sync loop (interval=${SYNC_INTERVAL}s)`);
   while (true) {

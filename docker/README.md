@@ -99,10 +99,14 @@ docker compose -f compose.dev.yml down -v
   - `docker/patches/common/10-sync-host-content.{sh,mjs}`
     - Module sync (`MODULE_SRC` -> `MODULE_DST`): host build mirrored into container (delete extras) for hot-reload.
     - World sync (`WORLD_SRC` <-> `WORLD_DST`): conservative bidirectional sync; preserves data and, when supported, uses `rsync --chown` on container→host.
+    - Flags:
+      - `WORLD_SYNC_ENABLED` (default `1`): set to `0` to disable world syncing entirely (useful when the world is installer-managed via container-config).
+      - `WORLD_INITIAL_SYNC` (default `1`): set to `0` to skip the initial sync at startup while keeping the background loop.
     - Prefers `rsync`; falls back to `cp` with a safe prune.
 - **Environment variables**:
   - Cache/stagger: `CONTAINER_CACHE`, `FETCH_STAGGER_SECONDS`
   - Sync paths: `MODULE_SRC`, `MODULE_DST`, `WORLD_SRC`, `WORLD_DST`, `SYNC_INTERVAL`
+  - Sync controls (worlds): `WORLD_SYNC_ENABLED` (default `1`), `WORLD_INITIAL_SYNC` (default `1`)
   - Ownership: `HOST_UID`, `HOST_GID`
   - Debug/dry-run: `PATCH_DEBUG=1` (extra logs), `PATCH_DRY_RUN=1` (no side-effects; logs intended actions)
   - Cache behavior:
@@ -131,6 +135,22 @@ The numeric prefixes (`00-`, `10-`, `20-`) ensure deterministic ordering during 
 - Cache location: The compose mounts `../foundry-cache/vXX` to `/data/container_cache`. If a file like `foundryvtt-13.347.zip` exists there, the `00-use-cache-or-stagger.sh` patch points `FOUNDRY_RELEASE_URL` to that file so installation uses the cache.
 - No cache present: Containers will wait for a small, configurable delay before requesting a presigned URL to avoid 429s when multiple versions start at once. Tune with `FETCH_STAGGER_SECONDS` per service in `compose.dev.yml`.
 - Automatic updates: Since we don't pin `FOUNDRY_RELEASE_URL` in compose, future container restarts can fetch fresh releases as needed. To force cache usage, drop a correctly named zip into `../foundry-cache/vXX`.
+
+### Recommended patterns
+
+- Dev world via sync:
+  - Keep your development world under `docker/shared/vXX/worlds/<world-id>` (mounted at `/host/shared/worlds/<world-id>` inside the container).
+  - Do not install this world via `container-config.json` (or set `install_at_startup:false`).
+  - Leave `WORLD_SYNC_ENABLED=1` (default) for bidirectional sync.
+
+- Installer-managed worlds (no continuous sync):
+  - Define worlds in `container-config.json` with `install_at_startup:true` and a `manifest` or `path`.
+  - Set `WORLD_SYNC_ENABLED=0` to avoid conflicts with installer writes.
+  - If you only want to avoid the very first copy, set `WORLD_INITIAL_SYNC=0` instead.
+
+- Presence warnings:
+  - If a world has `install_at_startup:false` and is absent at `/data/Data/worlds/<id>`, a non-blocking warning is logged at startup.
+  - If a world has `install_at_startup:true` and remains absent after install, a warning is also logged.
 
 ## Non-root option
 

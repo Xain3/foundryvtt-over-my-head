@@ -71,6 +71,31 @@
         "install_at_startup": {
           "type": "boolean" ,
           "description": "Whether to install this item at startup"
+        },
+        "continuous_sync": {
+          "description": "Enable continuous sync for this item. Boolean true uses type defaults; object allows overrides.",
+          "oneOf": [
+            { "type": "boolean" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": { "type": "boolean", "description": "Enable continuous sync for this item" },
+                "direction": {
+                  "type": "string",
+                  "enum": ["host-to-container", "bidirectional"],
+                  "description": "Sync direction. Defaults: worlds=host-to-container, modules/systems=bidirectional"
+                },
+                "source": { "type": "string", "description": "Host source path. Defaults: worlds=/host/shared/worlds/<id>, modules=/host/resources/modules/<id>, systems=/host/resources/systems/<id>" },
+                "delete": { "type": "boolean", "description": "When host-to-container, delete files not present in source (default false for worlds, true for others)" },
+                "interval": { "type": "number", "minimum": 1, "description": "Optional per-item sync interval in seconds (falls back to SYNC_INTERVAL)" }
+              }
+            }
+          ]
+        },
+        "check_presence": {
+          "type": "boolean",
+          "description": "If true, emit a non-blocking warning when the item is not present at startup (or after install if install_at_startup=true)."
         }
       },
       "required": ["name"],
@@ -140,7 +165,24 @@
             { "type": "string", "maxLength": 0 }
           ]
         },
-        "install_at_startup": { "type": "boolean" }
+        "install_at_startup": { "type": "boolean" },
+        "continuous_sync": {
+          "oneOf": [
+            { "type": "boolean" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "direction": { "type": "string", "enum": ["host-to-container", "bidirectional"] },
+                "source": { "type": "string" },
+                "delete": { "type": "boolean" },
+                "interval": { "type": "number", "minimum": 1 }
+              }
+            }
+          ]
+        },
+        "check_presence": { "type": "boolean" }
       }
     }
   }

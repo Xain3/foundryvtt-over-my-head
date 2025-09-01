@@ -32,7 +32,8 @@
       "name": "Example World",
   "manifest": "https://example.com/world.json",
   "path": "../docker/shared/v13/worlds/example_world",
-      "install_at_startup": true
+      "install_at_startup": false,
+      "check_presence": true
     },
     "world_to_override": {
       "name": "World To Override",
@@ -62,12 +63,13 @@
           "module_to_override": {}
         },
         "worlds": {
-          "example_world": {},
+          "example_world": { "continuous_sync": true },
           "world_to_override": {
             "name": "Overridden World",
             "manifest": "",
             "path": "/data/container_cache/world-to-override-override.zip",
-            "install_at_startup": true
+            "install_at_startup": true,
+            "check_presence": true
           }
         }
       }

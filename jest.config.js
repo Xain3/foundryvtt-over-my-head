@@ -12,7 +12,7 @@ module.exports = {
   ],
   setupFilesAfterEnv: [],
   transform: {
-    '^.+\\.js$': 'babel-jest',
+    '^.+\\.[mc]?js$': 'babel-jest',
   },
   moduleNameMapper: {
     '^(.+)\\.yaml\\?raw$': '<rootDir>/tests/yaml-transformer.js',

@@ -11,6 +11,7 @@ module.exports = {
   sourceMaps: 'inline', // Correct way to enable inline source maps
   retainLines: true, // Correct way to retain line numbers
   plugins: [
+    '@babel/plugin-transform-modules-commonjs',
     [
       'module-resolver',
       {

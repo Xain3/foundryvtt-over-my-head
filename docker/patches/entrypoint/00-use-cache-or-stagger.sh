@@ -2,6 +2,29 @@
 set -euo pipefail
 
 # Wrapper to invoke the Node.js patch script from the common directory.
+#
+# Naming convention:
+# - Wrapper filenames live in `docker/patches/entrypoint/` and are named
+#   with an optional numeric prefix followed by a dash and the patch name,
+#   e.g. `00-use-cache-or-stagger.sh` or `sync-host-content.sh`.
+# - The wrapper derives two pieces of metadata from its filename:
+#   - PROCEDURAL_NUMBER: the leading numeric prefix before the first dash
+#     (empty string when no prefix is present).
+#   - PATCH_NAME: the remainder of the filename after the first dash,
+#     stripped of the `.sh` suffix. This is used to locate the corresponding
+#     Node script in `docker/patches/common/` as `PATCH_NAME.mjs`.
+#
+# Environment and behavior:
+# - `NODE_BIN`: optional env var to override the `node` binary (default: `node`).
+# - `PATCH_DRY_RUN` or `DRY_RUN`: when set (non-empty and not "0"), the wrapper
+#   will print the command it would run instead of executing it.
+# - The wrapper passes `--procedural-number` and `--patch-name` to the Node
+#   script for consistent logging and to avoid stringly-coupled filenames.
+#
+# Rationale:
+# - Using a separate `common` directory for Node scripts simplifies testability
+#   and allows reordering of wrapper invocation without changing the Node
+#   filenames. The Node scripts receive the patch name explicitly via args.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NODE_BIN="${NODE_BIN:-node}"

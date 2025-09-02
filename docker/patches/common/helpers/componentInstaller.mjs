@@ -670,8 +670,88 @@ export class ComponentInstaller {
   }
 
   /**
+   * Purge components not listed in the install configuration.
+   * @private
+   * @param {{systems?:Record<string,object>, modules?:Record<string,object>, worlds?:Record<string,object>}} installCfg
+   *   Configuration object describing components that should remain installed.
+   */
+  async #purgeUnlistedComponents(installCfg) {
+    if (installCfg.systems) {
+      await this.#purgeUnlistedFromDirectory(this.systemsDir, installCfg.systems, "system");
+    }
+    if (installCfg.modules) {
+      await this.#purgeUnlistedFromDirectory(this.modulesDir, installCfg.modules, "module");
+    }
+    if (installCfg.worlds) {
+      await this.#purgeUnlistedFromDirectory(this.worldsDir, installCfg.worlds, "world");
+    }
+  }
+
+  /**
+   * Purge unlisted components from a specific directory.
+   * @private
+   * @param {string} targetDir - Directory containing components.
+   * @param {Record<string,object>} allowedComponents - Map of component ids that should be kept.
+   * @param {"system"|"module"|"world"} type - Component type for logging.
+   */
+  async #purgeUnlistedFromDirectory(targetDir, allowedComponents, type) {
+    if (!fs.existsSync(targetDir)) {
+      console.log(`[patch] ${type} directory does not exist: ${targetDir}; skipping purge.`);
+      return;
+    }
+
+    const allowedIds = Object.keys(allowedComponents || {});
+    const purged = [];
+
+    try {
+      const entries = fs.readdirSync(targetDir, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        if (!entry.isDirectory()) {
+          continue; // Skip files, only process directories
+        }
+        
+        const componentId = entry.name;
+        
+        // Special case: preserve "test-world" even if not in config
+        if (type === "world" && componentId === "test-world") {
+          console.log(`[patch] Preserving test-world (exception for testing)`);
+          continue;
+        }
+        
+        // Check if this component is in the allowed list
+        if (!allowedIds.includes(componentId)) {
+          const componentPath = path.join(targetDir, componentId);
+          
+          if (this.dryRun) {
+            console.log(`[patch] (dry-run) Would purge unlisted ${type}: ${componentId}`);
+            purged.push(componentId);
+          } else {
+            try {
+              fs.rmSync(componentPath, { recursive: true, force: true });
+              console.log(`[patch] Purged unlisted ${type}: ${componentId}`);
+              purged.push(componentId);
+            } catch (error) {
+              console.warn(`[patch][warn] Failed to purge ${type} '${componentId}': ${error.message}`);
+            }
+          }
+        }
+      }
+      
+      if (purged.length > 0) {
+        console.log(`[patch] Purged ${type}s: ${purged.join(", ")}`);
+      } else {
+        console.log(`[patch] No unlisted ${type}s to purge.`);
+      }
+    } catch (error) {
+      console.warn(`[patch][warn] Failed to read ${type} directory ${targetDir}: ${error.message}`);
+    }
+  }
+
+  /**
    * Public entrypoint to perform version-specific installation.
    * Ensures required directories exist and then installs configured components.
+   * After installation, purges any components not in the install list.
    * @returns {void}
    */
   async install() {
@@ -687,6 +767,9 @@ export class ComponentInstaller {
 
     // Install components
     await this.#installComponents(installCfg);
+
+    // Purge unlisted components
+    await this.#purgeUnlistedComponents(installCfg);
   }
 
   // Getter helpers for follow-up checks

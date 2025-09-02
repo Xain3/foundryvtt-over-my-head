@@ -4,8 +4,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NODE_BIN="${NODE_BIN:-node}"
 
-PATCH_NAME="10-sync-host-content"
-SCRIPT="$PATCH_NAME.mjs"
+# Derive procedural number and patch name from wrapper filename
+SELF_NAME="$(basename "${BASH_SOURCE[0]}")"
+PROCEDURAL_NUMBER="${SELF_NAME%%-*}"
+PATCH_NAME="${SELF_NAME#*-}"
+PATCH_NAME="${PATCH_NAME%.sh}"
+SCRIPT="${PROCEDURAL_NUMBER}-${PATCH_NAME}.mjs"
 NODE_DIR="${SCRIPT_DIR}/../common"
 
 ENV_PATCH_DRY_RUN="${PATCH_DRY_RUN:-}"
@@ -33,11 +37,11 @@ echo "[patch] $PATCH_NAME: Delegating to Node.js script"
 # 1) Run an initial sync in the foreground to ensure content is ready.
 # 2) Start the continuous loop in the background so the entrypoint can continue.
 if [ "$DRY_RUN" -ne 0 ]; then
-  echo "[patch][dry-run] Would run initial sync: $NODE_BIN ${NODE_DIR}/${SCRIPT} --initial-only"
-  echo "[patch][dry-run] Would start loop in background: $NODE_BIN ${NODE_DIR}/${SCRIPT} --loop-only &"
+  echo "[patch][dry-run] Would run initial sync: $NODE_BIN ${NODE_DIR}/${SCRIPT} --initial-only --procedural-number ${PROCEDURAL_NUMBER} --patch-name ${PATCH_NAME}"
+  echo "[patch][dry-run] Would start loop in background: $NODE_BIN ${NODE_DIR}/${SCRIPT} --loop-only --procedural-number ${PROCEDURAL_NUMBER} --patch-name ${PATCH_NAME} &"
 else
-  "$NODE_BIN" "${NODE_DIR}/${SCRIPT}" --initial-only
-  "$NODE_BIN" "${NODE_DIR}/${SCRIPT}" --loop-only &
+  "$NODE_BIN" "${NODE_DIR}/${SCRIPT}" --initial-only --procedural-number "${PROCEDURAL_NUMBER}" --patch-name "${PATCH_NAME}"
+  "$NODE_BIN" "${NODE_DIR}/${SCRIPT}" --loop-only --procedural-number "${PROCEDURAL_NUMBER}" --patch-name "${PATCH_NAME}" &
   disown || true
   echo "[patch] $PATCH_NAME: Background sync loop started"
 fi

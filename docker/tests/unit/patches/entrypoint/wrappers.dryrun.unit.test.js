@@ -32,7 +32,9 @@ describe('wrapper scripts dry-run', () => {
     expect([0, null]).toContain(code);
     expect(stderr).toBe('');
     expect(stdout).toContain('[patch][dry-run] Would run:');
-    expect(stdout).toContain(expectedViaWrapper);
+  expect(stdout).toContain(expectedViaWrapper);
+  expect(stdout).toContain('--procedural-number 00');
+  expect(stdout).toContain('--patch-name use-cache-or-stagger');
     });
 
     test('target .mjs file exists', () => {
@@ -53,8 +55,11 @@ describe('wrapper scripts dry-run', () => {
     test('prints correct dry-run command (via DRY_RUN)', () => {
     expect([0, null]).toContain(code);
     expect(stderr).toBe('');
-    expect(stdout).toContain('[patch][dry-run] Would run:');
+    expect(stdout).toContain('[patch][dry-run] Would run initial sync:');
+    expect(stdout).toContain('[patch][dry-run] Would start loop in background:');
     expect(stdout).toContain(expectedViaWrapper);
+  expect(stdout).toContain('--procedural-number 10');
+  expect(stdout).toContain('--patch-name sync-host-content');
     });
 
     test('target .mjs file exists', () => {
@@ -76,7 +81,9 @@ describe('wrapper scripts dry-run', () => {
     expect([0, null]).toContain(code);
     expect(stderr).toBe('');
     expect(stdout).toContain('[patch][dry-run] Would run:');
-    expect(stdout).toContain(expectedViaWrapper);
+  expect(stdout).toContain(expectedViaWrapper);
+  expect(stdout).toContain('--procedural-number 20');
+  expect(stdout).toContain('--patch-name install-components');
     });
 
     test('target .mjs file exists', () => {

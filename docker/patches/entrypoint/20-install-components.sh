@@ -4,8 +4,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NODE_BIN="${NODE_BIN:-node}"
 
-PATCH_NAME="20-install-components"
-SCRIPT="$PATCH_NAME.mjs"
+# Derive procedural number and patch name from wrapper filename
+SELF_NAME="$(basename "${BASH_SOURCE[0]}")"
+PROCEDURAL_NUMBER="${SELF_NAME%%-*}"
+PATCH_NAME="${SELF_NAME#*-}"
+PATCH_NAME="${PATCH_NAME%.sh}"
+SCRIPT="${PROCEDURAL_NUMBER}-${PATCH_NAME}.mjs"
 NODE_DIR="${SCRIPT_DIR}/../common"
 
 ENV_PATCH_DRY_RUN="${PATCH_DRY_RUN:-}"
@@ -28,11 +32,11 @@ if ! command -v "$NODE_BIN" >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "[patch] $PATCH_NAME: Delegating to Node.js script"
-CMD=("$NODE_BIN" "${NODE_DIR}/${SCRIPT}")
+echo "[patch] ${PROCEDURAL_NUMBER}-${PATCH_NAME}: Delegating to Node.js script"
+CMD=("$NODE_BIN" "${NODE_DIR}/${SCRIPT}" "--procedural-number" "${PROCEDURAL_NUMBER}" "--patch-name" "${PATCH_NAME}")
 if [ "$DRY_RUN" -ne 0 ]; then
   echo "[patch][dry-run] Would run: ${CMD[*]}"
 else
   "${CMD[@]}"
-  echo "[patch] $PATCH_NAME: Complete"
+  echo "[patch] ${PROCEDURAL_NUMBER}-${PATCH_NAME}: Complete"
 fi

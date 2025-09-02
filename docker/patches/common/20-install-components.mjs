@@ -5,8 +5,15 @@
  */
 import process from "process";
 import { ComponentInstaller } from "./helpers/componentInstaller.mjs";
+import { parsePatchArgs } from "./helpers/argvParser.mjs";
 
-console.log("[patch] JS patch running; FOUNDRY_DATA_DIR=", process.env.FOUNDRY_DATA_DIR || "(unset)");
+const FALLBACK_PROC_NUM = "unknown";
+const FALLBACK_PATCH_NAME = "install-components";
+
+const { procNum: PROC_NUM, patchName: PATCH_ID } = parsePatchArgs(FALLBACK_PROC_NUM, FALLBACK_PATCH_NAME);
+const PREFIX = `${PROC_NUM}-${PATCH_ID}`;
+
+console.log(`[patch] ${PREFIX}: JS patch running; FOUNDRY_DATA_DIR=`, process.env.FOUNDRY_DATA_DIR || "(unset)");
 
 // Get the environment
 const ENV = process.env;
@@ -44,7 +51,9 @@ const installer = new ComponentInstaller(
 /**
  * Install components as per configuration.
  */
+console.log(`[patch] ${PREFIX}: Installing components...`);
 await installer.install();
+console.log(`[patch] ${PREFIX}: Installation complete.`);
 
 // Non-blocking presence check for worlds after install
 try {
@@ -74,5 +83,5 @@ try {
     }
   }
 } catch (e) {
-  console.warn("[patch] world presence check skipped:", e?.message || e);
+  console.warn(`[patch] ${PREFIX}: world presence check skipped:`, e?.message || e);
 }

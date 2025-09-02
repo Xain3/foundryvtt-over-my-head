@@ -8,14 +8,19 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import * as f from "./helpers/common.mjs";
+import { parsePatchArgs } from "./helpers/argvParser.mjs";
 
 // 10-sync-host-content.mjs
 // - Mirrors module build (host -> container) with delete policy
 // - Syncs world bidirectionally (host <-> container)
 // - Prefers rsync with safe flags; falls back to cp when needed
 
+const FALLBACK_PROC_NUM = "unknown";
+const FALLBACK_PATCH_NAME = "sync-host-content";
+
 const ENV = process.env;
-const ARGS = process.argv.slice(2);
+const { procNum: PROC_NUM, patchName: PATCH_ID, args: ARGS } = parsePatchArgs(FALLBACK_PROC_NUM, FALLBACK_PATCH_NAME);
+const PREFIX = `${PROC_NUM}-${PATCH_ID}`;
 const FLAG_INITIAL_ONLY = ARGS.includes("--initial-only");
 const FLAG_LOOP_ONLY = ARGS.includes("--loop-only");
 
@@ -40,8 +45,8 @@ const CONTAINER_CONFIG_PATH = ENV.CONTAINER_CONFIG_PATH || "/config/container-co
 const DATA_DIR = (ENV.FOUNDRY_DATA_DIR || "/data/Data/").replace(/\/+$/, "");
 const VERSION = String(ENV.FOUNDRY_VERSION || ENV.FOUNDRY_FALLBACK_MAJOR_VERSION || "13");
 
-function log(...args) { console.log("[patch] 10-sync-host-content:", ...args); }
-function dlog(...args) { if (PATCH_DEBUG) console.log("[patch][debug] 10-sync-host-content:", ...args); }
+function log(...args) { console.log(`[patch] ${PREFIX}:`, ...args); }
+function dlog(...args) { if (PATCH_DEBUG) console.log(`[patch][debug] ${PREFIX}:`, ...args); }
 
 /**
  * Remove a legacy symlink if present so Foundry can write to real directories.
@@ -348,13 +353,13 @@ if (isEntry) {
           try { syncOnce(); } catch {}
         }
       } catch (e) {
-        console.error(`[patch][error] 10-sync-host-content(loop-only): ${e?.message || e}`);
+        console.error(`[patch][error] ${PREFIX}(loop-only): ${e?.message || e}`);
         process.exit(1);
       }
     })();
   } else {
     main().catch((e) => {
-      console.error(`[patch][error] 10-sync-host-content: ${e?.message || e}`);
+      console.error(`[patch][error] ${PREFIX}: ${e?.message || e}`);
       process.exit(1);
     });
   }

@@ -7,6 +7,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import * as f from "./helpers/common.mjs";
+import { parsePatchArgs } from "./helpers/argvParser.mjs";
 
 // 00-use-cache-or-stagger.mjs
 // - If a cached Foundry zip exists under CONTAINER_CACHE, point the entrypoint
@@ -14,7 +15,12 @@ import * as f from "./helpers/common.mjs";
 // - If no cache is present, optionally sleep a short, configurable delay to
 //   stagger concurrent presigned URL requests across multiple containers.
 
+const FALLBACK_PROC_NUM = "unknown";
+const FALLBACK_PATCH_NAME = "use-cache-or-stagger";
+
 const ENV = process.env;
+const { procNum: PROC_NUM, patchName: PATCH_NAME } = parsePatchArgs(FALLBACK_PROC_NUM, FALLBACK_PATCH_NAME);
+const PREFIX = `${PROC_NUM}-${PATCH_NAME}`;
 const CACHE_DIR = ENV.CONTAINER_CACHE || "/data/container_cache";
 const STAGGER = ENV.FETCH_STAGGER_SECONDS || "0";
 const PATCH_DRY_RUN = f.parseBoolEnv(ENV.PATCH_DRY_RUN, false);
@@ -117,27 +123,27 @@ async function main() {
   const latestZip = pickLatestZip(CACHE_DIR);
 
   if (latestZip) {
-    console.log(`[patch] 00-use-cache-or-stagger: Using cached release: ${latestZip}${PATCH_DRY_RUN ? " (dry-run)" : ""}`);
-    if (PATCH_DEBUG) console.log(`[patch][debug] would set FOUNDRY_RELEASE_URL=file://${latestZip}`);
+  console.log(`[patch] ${PREFIX}: Using cached release: ${latestZip}${PATCH_DRY_RUN ? " (dry-run)" : ""}`);
+  if (PATCH_DEBUG) console.log(`[patch][debug] ${PREFIX}: would set FOUNDRY_RELEASE_URL=file://${latestZip}`);
     if (!PATCH_DRY_RUN) process.env.FOUNDRY_RELEASE_URL = `file://${latestZip}`;
     return;
   }
 
   if (isPositiveIntegerString(STAGGER) && Number(STAGGER) > 0) {
     const jitter = randomJitterSeconds(2);
-    console.log(`[patch] 00-use-cache-or-stagger: No cache found. Sleeping ${STAGGER}s + ${jitter.toFixed(2)}s jitter before fetch.${PATCH_DRY_RUN ? " (dry-run)" : ""}`);
+  console.log(`[patch] ${PREFIX}: No cache found. Sleeping ${STAGGER}s + ${jitter.toFixed(2)}s jitter before fetch.${PATCH_DRY_RUN ? " (dry-run)" : ""}`);
     if (!PATCH_DRY_RUN) {
       await sleepSeconds(Number(STAGGER));
       await sleepSeconds(jitter);
     } else if (PATCH_DEBUG) {
-      console.log("[patch][debug] dry-run: skipping sleep");
+      console.log(`[patch][debug] ${PREFIX}: dry-run: skipping sleep`);
     }
   } else {
-    console.log("[patch] 00-use-cache-or-stagger: No cache found and no stagger configured. Proceeding immediately.");
+    console.log(`[patch] ${PREFIX}: No cache found and no stagger configured. Proceeding immediately.`);
   }
 }
 
 main().catch((e) => {
-  console.error(`[patch][error] 00-use-cache-or-stagger: ${e?.message || e}`);
+  console.error(`[patch][error] ${PREFIX}: ${e?.message || e}`);
   process.exit(1);
 });

@@ -1,6 +1,6 @@
 {
   "systems": {
-    "simple_worldbuilding_system": {
+    "worldbuilding": {
       "name": "Simple Worldbuilding System",
       "manifest": "https://raw.githubusercontent.com/foundryvtt/worldbuilding/HEAD/system.json",
       "install_at_startup": true
@@ -9,7 +9,7 @@
   "modules": {
     "foundryvtt_over_my_head": {
       "name": "FoundryVTT Over My Head",
-      "manifest": "https://raw.githubusercontent.com/foundryvtt-over-my-head/foundryvtt-over-my-head/HEAD/module.json",
+      "manifest": "https://raw.githubusercontent.com/Xain3/foundryvtt-over-my-head/HEAD/module.json",
       "install_at_startup": false
     }
   },
@@ -17,7 +17,7 @@
     "over_my_head_dev_world": {
       "name": "Over My Head Dev World",
       "manifest": "",
-      "path": "/host/world/test-world",
+      "path": "/host/shared/worlds/test-world",
       "install_at_startup": false
     }
   },
@@ -26,7 +26,7 @@
       "supported": true,
       "install": {
         "systems": {
-          "simple_worldbuilding_system": {}
+          "worldbuilding": {}
         },
         "modules": {
           "foundryvtt_over_my_head": {}
@@ -41,7 +41,7 @@
       "supported": true,
       "install": {
         "systems": {
-          "simple_worldbuilding_system": {}
+          "worldbuilding": {}
         },
         "modules": {
           "foundryvtt_over_my_head": {}
@@ -56,7 +56,7 @@
       "supported": true,
       "install": {
         "systems": {
-          "simple_worldbuilding_system": {}
+          "worldbuilding": {}
         },
         "modules": {
           "foundryvtt_over_my_head": {}

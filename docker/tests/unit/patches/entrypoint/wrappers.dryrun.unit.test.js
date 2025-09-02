@@ -3,7 +3,7 @@ const { spawnSync } = require('node:child_process');
 
 function runScript(scriptPath, args = [], env = {}) {
   const result = spawnSync('bash', [scriptPath, ...args], {
-    env: { ...process.env, ...env },
+    env: { ...process.env, WRAPPER_TEST_MODE: '1', ...env },
     encoding: 'utf8'
   });
   return {
@@ -43,11 +43,11 @@ describe('wrapper scripts dry-run', () => {
     });
 
     test('prints help with -h/--help', () => {
-      const { code, stdout, stderr } = runScript(script, ['-h']);
+      const { code, stdout, stderr } = runScript(script, ['-h'], { DRY_RUN: '1', WRAPPER_RUN_MODE: 'default' });
       expect(code).toBe(0);
       expect(stderr).toBe('');
       expect(stdout).toMatch(/Usage:/);
-      const res2 = runScript(script, ['--help']);
+      const res2 = runScript(script, ['--help'], { DRY_RUN: '1', WRAPPER_RUN_MODE: 'default' });
       expect(res2.code).toBe(0);
       expect(res2.stderr).toBe('');
       expect(res2.stdout).toMatch(/--wrapper-target/);
@@ -78,7 +78,7 @@ describe('wrapper scripts dry-run', () => {
     });
 
     test('prints help with -h/--help', () => {
-      const { code, stdout, stderr } = runScript(script, ['--help']);
+      const { code, stdout, stderr } = runScript(script, ['--help'], { DRY_RUN: '1', WRAPPER_RUN_MODE: 'default' });
       expect(code).toBe(0);
       expect(stderr).toBe('');
       expect(stdout).toMatch(/WRAPPER_RUN_MODE/);
@@ -108,7 +108,7 @@ describe('wrapper scripts dry-run', () => {
     });
 
     test('prints help with -h/--help', () => {
-      const { code, stdout, stderr } = runScript(script, ['-h']);
+      const { code, stdout, stderr } = runScript(script, ['-h'], { DRY_RUN: '1', WRAPPER_RUN_MODE: 'default' });
       expect(code).toBe(0);
       expect(stderr).toBe('');
       expect(stdout).toMatch(/--wrapper-ext/);

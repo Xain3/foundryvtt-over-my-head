@@ -310,4 +310,296 @@ describe('docker/patches/common/helpers/componentInstaller.mjs', () => {
     expect(fs.existsSync(path.join(dataDir, dirs.SYSTEMS))).toBe(true);
     expect(fs.existsSync(sysDest)).toBe(false);
   });
+
+  test('purges unlisted systems, modules, and worlds after installation', async () => {
+    const cfgPath = path.join(tmpRoot, 'cfg-purge.json');
+    
+    // Setup: Create some existing components that should be purged
+    const systemsDir = path.join(dataDir, dirs.SYSTEMS);
+    const modulesDir = path.join(dataDir, dirs.MODULES);
+    const worldsDir = path.join(dataDir, dirs.WORLDS);
+    
+    fs.mkdirSync(systemsDir, { recursive: true });
+    fs.mkdirSync(modulesDir, { recursive: true });
+    fs.mkdirSync(worldsDir, { recursive: true });
+    
+    // Create unlisted components that should be purged
+    fs.mkdirSync(path.join(systemsDir, 'old-system'), { recursive: true });
+    fs.mkdirSync(path.join(modulesDir, 'old-module'), { recursive: true });
+    fs.mkdirSync(path.join(worldsDir, 'old-world'), { recursive: true });
+    
+    // Write test files to verify they get removed
+    fs.writeFileSync(path.join(systemsDir, 'old-system', 'test.txt'), 'old system');
+    fs.writeFileSync(path.join(modulesDir, 'old-module', 'test.txt'), 'old module');
+    fs.writeFileSync(path.join(worldsDir, 'old-world', 'test.txt'), 'old world');
+    
+    const cfg = {
+      versions: { 
+        '13': { 
+          supported: true, 
+          install: { 
+            systems: { sys1: {} },
+            modules: { mod1: {} },
+            worlds: { w1: {} }
+          }
+        }
+      },
+      systems: { sys1: { path: sysSrcDir } },
+      modules: { mod1: { path: modTgz } },
+      worlds: { w1: { manifest: manifestUrl } }
+    };
+    
+    fs.writeFileSync(cfgPath, JSON.stringify(cfg));
+    const env = { FOUNDRY_VERSION: '13.0.0', FOUNDRY_DATA_DIR: dataDir, CONTAINER_CONFIG_PATH: cfgPath, COMPONENT_CACHE: cacheDir, PATCH_FORCE_NODE_EXTRACT: '1' };
+    const installer = new ComponentInstaller(env, fallbacks, dirs);
+    
+    // Verify old components exist before installation
+    expect(fs.existsSync(path.join(systemsDir, 'old-system'))).toBe(true);
+    expect(fs.existsSync(path.join(modulesDir, 'old-module'))).toBe(true);
+    expect(fs.existsSync(path.join(worldsDir, 'old-world'))).toBe(true);
+    
+    await installer.install();
+    
+    // Verify new components are installed
+    expect(fs.existsSync(path.join(systemsDir, 'sys1'))).toBe(true);
+    expect(fs.existsSync(path.join(modulesDir, 'mod1'))).toBe(true);
+    expect(fs.existsSync(path.join(worldsDir, 'w1'))).toBe(true);
+    
+    // Verify old components are purged
+    expect(fs.existsSync(path.join(systemsDir, 'old-system'))).toBe(false);
+    expect(fs.existsSync(path.join(modulesDir, 'old-module'))).toBe(false);
+    expect(fs.existsSync(path.join(worldsDir, 'old-world'))).toBe(false);
+  });
+
+  test('preserves test-world even when not in config', async () => {
+    const cfgPath = path.join(tmpRoot, 'cfg-test-world.json');
+    
+    // Setup: Create test-world and another world that should be purged
+    const worldsDir = path.join(dataDir, dirs.WORLDS);
+    fs.mkdirSync(worldsDir, { recursive: true });
+    
+    // Create test-world (should be preserved)
+    fs.mkdirSync(path.join(worldsDir, 'test-world'), { recursive: true });
+    fs.writeFileSync(path.join(worldsDir, 'test-world', 'world.json'), '{"name": "Test World"}');
+    
+    // Create another world that should be purged
+    fs.mkdirSync(path.join(worldsDir, 'unwanted-world'), { recursive: true });
+    fs.writeFileSync(path.join(worldsDir, 'unwanted-world', 'world.json'), '{"name": "Unwanted World"}');
+    
+    const cfg = {
+      versions: { 
+        '13': { 
+          supported: true, 
+          install: { 
+            worlds: { w1: {} }  // Note: test-world is not listed here
+          }
+        }
+      },
+      worlds: { w1: { manifest: manifestUrl } }
+    };
+    
+    fs.writeFileSync(cfgPath, JSON.stringify(cfg));
+    const env = { FOUNDRY_VERSION: '13.0.0', FOUNDRY_DATA_DIR: dataDir, CONTAINER_CONFIG_PATH: cfgPath, COMPONENT_CACHE: cacheDir, PATCH_FORCE_NODE_EXTRACT: '1' };
+    const installer = new ComponentInstaller(env, fallbacks, dirs);
+    
+    // Verify both worlds exist before installation
+    expect(fs.existsSync(path.join(worldsDir, 'test-world'))).toBe(true);
+    expect(fs.existsSync(path.join(worldsDir, 'unwanted-world'))).toBe(true);
+    
+    await installer.install();
+    
+    // Verify configured world is installed
+    expect(fs.existsSync(path.join(worldsDir, 'w1'))).toBe(true);
+    
+    // Verify test-world is preserved (exception)
+    expect(fs.existsSync(path.join(worldsDir, 'test-world'))).toBe(true);
+    expect(fs.existsSync(path.join(worldsDir, 'test-world', 'world.json'))).toBe(true);
+    
+    // Verify unwanted world is purged
+    expect(fs.existsSync(path.join(worldsDir, 'unwanted-world'))).toBe(false);
+  });
+
+  test('dry-run mode for purge shows what would be purged without actually removing', async () => {
+    const cfgPath = path.join(tmpRoot, 'cfg-dry-purge.json');
+    
+    // Setup: Create components that should be purged
+    const systemsDir = path.join(dataDir, dirs.SYSTEMS);
+    fs.mkdirSync(systemsDir, { recursive: true });
+    fs.mkdirSync(path.join(systemsDir, 'should-be-purged'), { recursive: true });
+    fs.writeFileSync(path.join(systemsDir, 'should-be-purged', 'test.txt'), 'test');
+    
+    const cfg = {
+      versions: { 
+        '13': { 
+          supported: true, 
+          install: { 
+            systems: { sys1: {} }  // only sys1 is allowed
+          }
+        }
+      },
+      systems: { sys1: { path: sysSrcDir } }
+    };
+    
+    fs.writeFileSync(cfgPath, JSON.stringify(cfg));
+    const env = { FOUNDRY_VERSION: '13.0.0', FOUNDRY_DATA_DIR: dataDir, CONTAINER_CONFIG_PATH: cfgPath, COMPONENT_CACHE: cacheDir, PATCH_DRY_RUN: '1' };
+    const installer = new ComponentInstaller(env, fallbacks, dirs);
+    
+    // Verify component exists before installation
+    expect(fs.existsSync(path.join(systemsDir, 'should-be-purged'))).toBe(true);
+    
+    await installer.install();
+    
+    // In dry-run mode, the component should still exist
+    expect(fs.existsSync(path.join(systemsDir, 'should-be-purged'))).toBe(true);
+    expect(fs.existsSync(path.join(systemsDir, 'should-be-purged', 'test.txt'))).toBe(true);
+  });
+
+  test('handles missing component directories gracefully during purge', async () => {
+    const cfgPath = path.join(tmpRoot, 'cfg-missing-dirs.json');
+    
+    const cfg = {
+      versions: { 
+        '13': { 
+          supported: true, 
+          install: { 
+            systems: { sys1: {} },
+            modules: { mod1: {} },
+            worlds: { w1: {} }
+          }
+        }
+      },
+      systems: { sys1: { path: sysSrcDir } },
+      modules: { mod1: { path: modTgz } },
+      worlds: { w1: { manifest: manifestUrl } }
+    };
+    
+    fs.writeFileSync(cfgPath, JSON.stringify(cfg));
+    
+    // Remove data directory to test missing directory handling
+    if (fs.existsSync(dataDir)) {
+      fs.rmSync(dataDir, { recursive: true, force: true });
+    }
+    
+    const env = { FOUNDRY_VERSION: '13.0.0', FOUNDRY_DATA_DIR: dataDir, CONTAINER_CONFIG_PATH: cfgPath, COMPONENT_CACHE: cacheDir, PATCH_FORCE_NODE_EXTRACT: '1' };
+    const installer = new ComponentInstaller(env, fallbacks, dirs);
+    
+    // Should not throw an error even with missing directories
+    await expect(installer.install()).resolves.not.toThrow();
+  });
+
+  test('PATCH_DISABLE_PURGE environment variable disables purging entirely', async () => {
+    const cfgPath = path.join(tmpRoot, 'cfg-disable-purge.json');
+    
+    // Setup: Create existing components that would normally be purged
+    const systemsDir = path.join(dataDir, 'systems');
+    const modulesDir = path.join(dataDir, 'modules');
+    const worldsDir = path.join(dataDir, 'worlds');
+    
+    fs.mkdirSync(systemsDir, { recursive: true });
+    fs.mkdirSync(modulesDir, { recursive: true });
+    fs.mkdirSync(worldsDir, { recursive: true });
+    
+    // Create components that should normally be purged
+    fs.mkdirSync(path.join(systemsDir, 'unlisted-system'), { recursive: true });
+    fs.writeFileSync(path.join(systemsDir, 'unlisted-system', 'test.txt'), 'test');
+    
+    fs.mkdirSync(path.join(modulesDir, 'unlisted-module'), { recursive: true });
+    fs.writeFileSync(path.join(modulesDir, 'unlisted-module', 'test.txt'), 'test');
+    
+    fs.mkdirSync(path.join(worldsDir, 'unlisted-world'), { recursive: true });
+    fs.writeFileSync(path.join(worldsDir, 'unlisted-world', 'world.json'), '{"name": "Unlisted World"}');
+    
+    // Create listed component
+    fs.mkdirSync(path.join(systemsDir, 'sys1'), { recursive: true });
+    
+    const cfg = {
+      versions: { 
+        '13': { 
+          supported: true, 
+          install: { 
+            systems: { sys1: {} }  // Only sys1 is listed
+          }
+        }
+      },
+      systems: { sys1: { path: sysSrcDir } }
+    };
+    
+    fs.writeFileSync(cfgPath, JSON.stringify(cfg));
+    
+    // Enable PATCH_DISABLE_PURGE
+    const env = {
+      FOUNDRY_VERSION: '13.0.0',
+      FOUNDRY_DATA_DIR: dataDir,
+      CONTAINER_CONFIG_PATH: cfgPath,
+      COMPONENT_CACHE: cacheDir,
+      PATCH_FORCE_NODE_EXTRACT: '1',
+      PATCH_DISABLE_PURGE: '1'
+    };
+    
+    const installer = new ComponentInstaller(env, fallbacks, dirs);
+    await installer.install();
+    
+    // Verify unlisted components are NOT purged when purging is disabled
+    expect(fs.existsSync(path.join(systemsDir, 'unlisted-system'))).toBe(true);
+    expect(fs.existsSync(path.join(modulesDir, 'unlisted-module'))).toBe(true);
+    expect(fs.existsSync(path.join(worldsDir, 'unlisted-world'))).toBe(true);
+    
+    // Verify listed component is still installed
+    expect(fs.existsSync(path.join(systemsDir, 'sys1'))).toBe(true);
+  });
+
+  test('PATCH_DISABLE_TEST_WORLD_EXCEPTION environment variable allows purging test-world', async () => {
+    const cfgPath = path.join(tmpRoot, 'cfg-disable-test-world.json');
+    
+    // Setup: Create test-world and other worlds
+    const worldsDir = path.join(dataDir, 'worlds');
+    fs.mkdirSync(worldsDir, { recursive: true });
+    
+    // Create test-world (normally preserved)
+    fs.mkdirSync(path.join(worldsDir, 'test-world'), { recursive: true });
+    fs.writeFileSync(path.join(worldsDir, 'test-world', 'world.json'), '{"name": "Test World"}');
+    
+    // Create another unlisted world
+    fs.mkdirSync(path.join(worldsDir, 'unlisted-world'), { recursive: true });
+    fs.writeFileSync(path.join(worldsDir, 'unlisted-world', 'world.json'), '{"name": "Unlisted World"}');
+    
+    // Create listed world
+    fs.mkdirSync(path.join(worldsDir, 'w1'), { recursive: true });
+    
+    const cfg = {
+      versions: { 
+        '13': { 
+          supported: true, 
+          install: { 
+            worlds: { w1: {} }  // Note: test-world is not listed
+          }
+        }
+      },
+      worlds: { w1: { manifest: manifestUrl } }
+    };
+    
+    fs.writeFileSync(cfgPath, JSON.stringify(cfg));
+    
+    // Enable PATCH_DISABLE_TEST_WORLD_EXCEPTION
+    const env = {
+      FOUNDRY_VERSION: '13.0.0',
+      FOUNDRY_DATA_DIR: dataDir,
+      CONTAINER_CONFIG_PATH: cfgPath,
+      COMPONENT_CACHE: cacheDir,
+      PATCH_FORCE_NODE_EXTRACT: '1',
+      PATCH_DISABLE_TEST_WORLD_EXCEPTION: '1'
+    };
+    
+    const installer = new ComponentInstaller(env, fallbacks, dirs);
+    await installer.install();
+    
+    // Verify test-world is purged when exception is disabled
+    expect(fs.existsSync(path.join(worldsDir, 'test-world'))).toBe(false);
+    
+    // Verify other unlisted world is also purged
+    expect(fs.existsSync(path.join(worldsDir, 'unlisted-world'))).toBe(false);
+    
+    // Verify listed world is still installed
+    expect(fs.existsSync(path.join(worldsDir, 'w1'))).toBe(true);
+  });
 });

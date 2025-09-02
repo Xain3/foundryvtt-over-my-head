@@ -110,6 +110,7 @@ docker compose -f compose.dev.yml down -v
   - Config-driven sync: `SYNC_USE_CONFIG` (default `1`) to enable reading `continuous_sync` from container-config; `MODULE_MIRROR_ENABLED` (default `1`) to keep the dist mirror.
   - Ownership: `HOST_UID`, `HOST_GID`
   - Debug/dry-run: `PATCH_DEBUG=1` (extra logs), `PATCH_DRY_RUN=1` (no side-effects; logs intended actions)
+  - Component purging: `PATCH_DISABLE_PURGE=1` (disables automatic purging of unlisted components), `PATCH_DISABLE_TEST_WORLD_EXCEPTION=1` (allows purging of "test-world")
   - Cache behavior:
     - `PATCH_CACHE_MODE`: `revalidate` (default) sends `If-None-Match`/`If-Modified-Since`; `bust` forces fresh downloads
     - `PATCH_CACHE_BUST=1`: shorthand to force cache busting (equivalent to `PATCH_CACHE_MODE=bust`)
@@ -130,6 +131,46 @@ docker compose -f compose.dev.yml down -v
       - For unsupported formats, install system tools or avoid forcing Node fallback.
 
 The numeric prefixes (`00-`, `10-`, `20-`) ensure deterministic ordering during startup.
+
+### Component purging behavior
+
+After installing configured components, the ComponentInstaller automatically purges any unlisted systems, modules, and worlds from their respective directories. This helps maintain a clean development environment by removing outdated or unwanted components.
+
+**Purge behavior:**
+- **Automatic cleanup**: After successful installation, scans each component directory (systems, modules, worlds) and removes any directories not specified in the version-specific install configuration
+- **Test-world exception**: By default, preserves "test-world" even when not configured to ensure testing environments remain intact
+- **Respects dry-run**: Uses the existing `PATCH_DRY_RUN` environment variable to preview what would be purged without actually removing anything
+- **Error handling**: Continues operation even when directories are missing or inaccessible
+
+**Environment variables for purge control:**
+- `PATCH_DISABLE_PURGE=1`: Completely disables purging of unlisted components
+- `PATCH_DISABLE_TEST_WORLD_EXCEPTION=1`: Allows purging of "test-world" when not configured
+
+**Example purge behavior:**
+Given a configuration that only specifies `worldbuilding` system and `my-module`:
+
+Before purging:
+```
+systems/
+  ├── worldbuilding/     # ✓ Listed in config
+  ├── old-system/        # ✗ Not in config
+  └── unused-system/     # ✗ Not in config
+
+worlds/
+  ├── my-world/          # ✓ Listed in config  
+  ├── test-world/        # ✓ Special exception (unless PATCH_DISABLE_TEST_WORLD_EXCEPTION=1)
+  └── old-world/         # ✗ Not in config
+```
+
+After purging:
+```
+systems/
+  └── worldbuilding/     # ✓ Kept
+
+worlds/
+  ├── my-world/          # ✓ Kept
+  └── test-world/        # ✓ Preserved (unless exception disabled)
+```
 
 ### Cache-or-stagger behavior
 

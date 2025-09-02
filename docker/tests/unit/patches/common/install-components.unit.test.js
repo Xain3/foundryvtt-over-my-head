@@ -25,6 +25,10 @@ function runScriptWithStub({ cfg, dataDir }) {
     `}`;
   fs.writeFileSync(path.join(tmpHelpersDir, 'componentInstaller.mjs'), stub);
 
+  // Also stub argvParser.mjs to provide parsePatchArgs used by script
+  const argvParserStub = `export function parsePatchArgs(fallbackProc, fallbackName){ return { procNum: fallbackProc, patchName: fallbackName }; }`;
+  fs.writeFileSync(path.join(tmpHelpersDir, 'argvParser.mjs'), argvParserStub);
+
   // Copy the real script into the temp sandbox
   const realScriptPath = path.resolve(process.cwd(), 'docker/patches/common/install-components.mjs');
   const scriptContent = fs.readFileSync(realScriptPath, 'utf8');

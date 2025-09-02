@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
+# Wrapper to invoke the Node.js patch script from the common directory.
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NODE_BIN="${NODE_BIN:-node}"
 
-PATCH_NAME="20-install-components"
+PATCH_NAME="00-use-cache-or-stagger"
 SCRIPT="$PATCH_NAME.mjs"
+NODE_DIR="${SCRIPT_DIR}/../common"
 
-# Dry-run support: capture env values and honor --dry-run/-n flag, PATCH_DRY_RUN or DRY_RUN
+# Dry-run support
 ENV_PATCH_DRY_RUN="${PATCH_DRY_RUN:-}"
 ENV_DRY_RUN="${DRY_RUN:-}"
 
@@ -19,25 +23,19 @@ for arg in "$@"; do
   esac
 done
 
-# If either env var is set to a truthy value (non-empty and not "0"), enable dry-run
-if [ -n "$ENV_PATCH_DRY_RUN" ] && [ "$ENV_PATCH_DRY_RUN" != "0" ]; then
-  DRY_RUN=1
-fi
-if [ -n "$ENV_DRY_RUN" ] && [ "$ENV_DRY_RUN" != "0" ]; then
-  DRY_RUN=1
-fi
+if [ -n "$ENV_PATCH_DRY_RUN" ] && [ "$ENV_PATCH_DRY_RUN" != "0" ]; then DRY_RUN=1; fi
+if [ -n "$ENV_DRY_RUN" ] && [ "$ENV_DRY_RUN" != "0" ]; then DRY_RUN=1; fi
 
 if ! command -v "$NODE_BIN" >/dev/null 2>&1; then
   echo "[patch][error] node not found in PATH" >&2
   exit 1
 fi
 
-echo "[patch] $PATCH_NAME: Installing systems, modules, and worlds"
 echo "[patch] $PATCH_NAME: Delegating to Node.js script"
-CMD=("$NODE_BIN" "${SCRIPT_DIR}/${SCRIPT}")
+CMD=("$NODE_BIN" "${NODE_DIR}/${SCRIPT}")
 if [ "$DRY_RUN" -ne 0 ]; then
   echo "[patch][dry-run] Would run: ${CMD[*]}"
 else
   "${CMD[@]}"
-  echo "[patch] $PATCH_NAME: Installation complete"
+  echo "[patch] $PATCH_NAME: Complete"
 fi

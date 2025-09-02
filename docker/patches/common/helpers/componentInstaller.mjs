@@ -15,6 +15,8 @@
  * Behavioural notes:
  * - Supports `PATCH_DRY_RUN` and `PATCH_DEBUG` environment variables to control
  *   dry-run and verbose logging modes.
+ * - Supports `PATCH_DISABLE_PURGE` to disable purging of unlisted components.
+ * - Supports `PATCH_DISABLE_TEST_WORLD_EXCEPTION` to override test-world preservation.
  * - Uses a component cache directory (defaults to
  *   `/data/container_cache/components`) for downloaded manifests/archives.
  * - Installation operations are idempotent where possible and use atomic
@@ -34,6 +36,10 @@
  * - `PATCH_DRY_RUN`: when truthy, file-system mutations are skipped and logged
  *   as dry-run actions.
  * - `PATCH_DEBUG`: when truthy, additional debug logs are emitted.
+ * - `PATCH_DISABLE_PURGE`: when truthy, skips purging unlisted components
+ *   entirely.
+ * - `PATCH_DISABLE_TEST_WORLD_EXCEPTION`: when truthy, disables the special
+ *   exception that preserves "test-world" during purging.
  *
  * Usage:
  * import { ComponentInstaller } from './helpers/componentInstaller.mjs';
@@ -91,6 +97,8 @@ export class ComponentInstaller {
 
     this.dryRun = f.parseBoolEnv(this.env.PATCH_DRY_RUN, false);
     this.debug = f.parseBoolEnv(this.env.PATCH_DEBUG, false);
+    this.disablePurge = f.parseBoolEnv(this.env.PATCH_DISABLE_PURGE, false);
+    this.disableTestWorldException = f.parseBoolEnv(this.env.PATCH_DISABLE_TEST_WORLD_EXCEPTION, false);
     this.componentCache = this.env.COMPONENT_CACHE || this.env.CONTAINER_CACHE || "/data/container_cache/components";
     this.cacheMode = (this.env.PATCH_CACHE_MODE || (f.parseBoolEnv(this.env.PATCH_CACHE_BUST, false) ? 'bust' : 'revalidate'));
   this.forceNodeExtract = f.parseBoolEnv(this.env.PATCH_FORCE_NODE_EXTRACT, false);
@@ -714,7 +722,7 @@ export class ComponentInstaller {
         const componentId = entry.name;
         
         // Special case: preserve "test-world" even if not in config
-        if (type === "world" && componentId === "test-world") {
+        if (type === "world" && componentId === "test-world" && !this.disableTestWorldException) {
           console.log(`[patch] Preserving test-world (exception for testing)`);
           continue;
         }
@@ -768,8 +776,12 @@ export class ComponentInstaller {
     // Install components
     await this.#installComponents(installCfg);
 
-    // Purge unlisted components
-    await this.#purgeUnlistedComponents(installCfg);
+    // Purge unlisted components (unless disabled)
+    if (!this.disablePurge) {
+      await this.#purgeUnlistedComponents(installCfg);
+    } else {
+      console.log(`[patch] Purging disabled by PATCH_DISABLE_PURGE environment variable.`);
+    }
   }
 
   // Getter helpers for follow-up checks

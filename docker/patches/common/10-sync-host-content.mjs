@@ -15,6 +15,9 @@ import * as f from "./helpers/common.mjs";
 // - Prefers rsync with safe flags; falls back to cp when needed
 
 const ENV = process.env;
+const ARGS = process.argv.slice(2);
+const FLAG_INITIAL_ONLY = ARGS.includes("--initial-only");
+const FLAG_LOOP_ONLY = ARGS.includes("--loop-only");
 
 const MODULE_SRC = ENV.MODULE_SRC || "/host/dist";
 const MODULE_DST = ENV.MODULE_DST || "/data/Data/modules/foundryvtt-over-my-head";
@@ -312,9 +315,12 @@ async function main() {
   ensureDir(MODULE_DST);
   if (WORLD_SYNC_ENABLED) ensureDir(WORLD_DST);
 
+  // Initial sync step
   log(`Initial sync${PATCH_DRY_RUN ? " (dry-run)" : ""}`);
   syncOnce({ initial: true });
+  if (FLAG_INITIAL_ONLY) return; // Exit after initial sync when requested
 
+  // Continuous loop step (can be invoked directly via --loop-only)
   log(`Starting background sync loop (interval=${SYNC_INTERVAL}s)`);
   while (true) {
     await f.sleep(SYNC_INTERVAL * 1000);
@@ -330,8 +336,26 @@ const isEntry = (() => {
 })();
 
 if (isEntry) {
-  main().catch((e) => {
-    console.error(`[patch][error] 10-sync-host-content: ${e?.message || e}`);
-    process.exit(1);
-  });
+  if (FLAG_LOOP_ONLY) {
+    // Skip initial sync and jump straight to the loop
+    (async () => {
+      try {
+        log(`Starting background sync loop (interval=${SYNC_INTERVAL}s)`);
+        while (true) {
+          await f.sleep(SYNC_INTERVAL * 1000);
+          const jitter = Math.random() * 0.5;
+          await f.sleep(jitter * 1000);
+          try { syncOnce(); } catch {}
+        }
+      } catch (e) {
+        console.error(`[patch][error] 10-sync-host-content(loop-only): ${e?.message || e}`);
+        process.exit(1);
+      }
+    })();
+  } else {
+    main().catch((e) => {
+      console.error(`[patch][error] 10-sync-host-content: ${e?.message || e}`);
+      process.exit(1);
+    });
+  }
 }

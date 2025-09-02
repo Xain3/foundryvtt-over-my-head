@@ -29,10 +29,15 @@ if ! command -v "$NODE_BIN" >/dev/null 2>&1; then
 fi
 
 echo "[patch] $PATCH_NAME: Delegating to Node.js script"
-CMD=("$NODE_BIN" "${NODE_DIR}/${SCRIPT}")
+# Strategy:
+# 1) Run an initial sync in the foreground to ensure content is ready.
+# 2) Start the continuous loop in the background so the entrypoint can continue.
 if [ "$DRY_RUN" -ne 0 ]; then
-  echo "[patch][dry-run] Would run: ${CMD[*]}"
+  echo "[patch][dry-run] Would run initial sync: $NODE_BIN ${NODE_DIR}/${SCRIPT} --initial-only"
+  echo "[patch][dry-run] Would start loop in background: $NODE_BIN ${NODE_DIR}/${SCRIPT} --loop-only &"
 else
-  "${CMD[@]}"
-  echo "[patch] $PATCH_NAME: Started"
+  "$NODE_BIN" "${NODE_DIR}/${SCRIPT}" --initial-only
+  "$NODE_BIN" "${NODE_DIR}/${SCRIPT}" --loop-only &
+  disown || true
+  echo "[patch] $PATCH_NAME: Background sync loop started"
 fi

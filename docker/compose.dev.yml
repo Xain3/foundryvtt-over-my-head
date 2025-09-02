@@ -19,14 +19,14 @@ services:
       - foundry-v13-data:/data
       - type: bind
         source: ./container-config.json
-        target: /config
+        target: /config/container-config.json
         read_only: true
       - type: bind
         source: ../dist
         target: /host/dist
         read_only: true
       - type: bind
-        source: ./patches/common
+        source: ./patches
         target: /container_patches
       - type: bind
         source: ./shared/v13
@@ -47,7 +47,6 @@ services:
       - ./env/.env # Common env vars for all versions
       - ./env/.v13.env # Loaded second, can override any duplicates from above
     environment: # overrides any value for this variable from env files
-      - CONTAINER_PATCHES=/container_patches
       - FETCH_STAGGER_SECONDS=4
 
   foundry-v12:
@@ -61,14 +60,14 @@ services:
       - foundry-v12-data:/data
       - type: bind
         source: ./container-config.json
-        target: /config
+        target: /config/container-config.json
         read_only: true
       - type: bind
         source: ../dist
         target: /host/dist
         read_only: true
       - type: bind
-        source: ./patches/common
+        source: ./patches
         target: /container_patches
       - type: bind
         source: ./shared/v12
@@ -89,7 +88,6 @@ services:
       - ./env/.env # Common env vars for all versions
       - ./env/.v12.env # Loaded second, can override any duplicates from above
     environment: # overrides any value for this variable from env files
-      - CONTAINER_PATCHES=/container_patches
       - FETCH_STAGGER_SECONDS=2
 
   foundry-v11:
@@ -103,14 +101,14 @@ services:
       - foundry-v11-data:/data
       - type: bind
         source: ./container-config.json
-        target: /config
+        target: /config/container-config.json
         read_only: true
       - type: bind
         source: ../dist
         target: /host/dist
         read_only: true
       - type: bind
-        source: ./patches/common
+        source: ./patches
         target: /container_patches
       # Worlds now sync via /host/shared/worlds; no direct test-world bind
       - type: bind
@@ -131,7 +129,6 @@ services:
       - ./env/.env # Common env vars for all versions
       - ./env/.v11.env # Loaded second, can override any duplicates from above
     environment: # overrides any value for this variable from env files
-      - CONTAINER_PATCHES=/container_patches
       - FETCH_STAGGER_SECONDS=0
 
   builder:

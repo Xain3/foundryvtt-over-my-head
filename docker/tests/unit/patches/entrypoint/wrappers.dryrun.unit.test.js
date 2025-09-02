@@ -41,6 +41,17 @@ describe('wrapper scripts dry-run', () => {
   const exists = fs.existsSync(expectedViaWrapperAbs);
   expect(exists).toBe(true);
     });
+
+    test('prints help with -h/--help', () => {
+      const { code, stdout, stderr } = runScript(script, ['-h']);
+      expect(code).toBe(0);
+      expect(stderr).toBe('');
+      expect(stdout).toMatch(/Usage:/);
+      const res2 = runScript(script, ['--help']);
+      expect(res2.code).toBe(0);
+      expect(res2.stderr).toBe('');
+      expect(res2.stdout).toMatch(/--wrapper-target/);
+    });
   });
 
   describe('10-sync-host-content.sh', () => {
@@ -65,6 +76,13 @@ describe('wrapper scripts dry-run', () => {
   const exists = fs.existsSync(expectedViaWrapperAbs);
   expect(exists).toBe(true);
     });
+
+    test('prints help with -h/--help', () => {
+      const { code, stdout, stderr } = runScript(script, ['--help']);
+      expect(code).toBe(0);
+      expect(stderr).toBe('');
+      expect(stdout).toMatch(/WRAPPER_RUN_MODE/);
+    });
   });
 
   describe('20-install-components.sh', () => {
@@ -87,6 +105,13 @@ describe('wrapper scripts dry-run', () => {
   const fs = require('node:fs');
   const exists = fs.existsSync(expectedViaWrapperAbs);
   expect(exists).toBe(true);
+    });
+
+    test('prints help with -h/--help', () => {
+      const { code, stdout, stderr } = runScript(script, ['-h']);
+      expect(code).toBe(0);
+      expect(stderr).toBe('');
+      expect(stdout).toMatch(/--wrapper-ext/);
     });
   });
 });

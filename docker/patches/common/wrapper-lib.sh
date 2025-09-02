@@ -26,6 +26,20 @@ args_has_dry_run() {
   echo 0
 }
 
+# Detect help flags (-h | --help)
+args_has_help() {
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      -h|--help)
+        echo 1
+        return 0
+        ;;
+    esac
+  done
+  echo 0
+}
+
 filter_out_dry_run() {
   local out=()
   local arg
@@ -183,7 +197,7 @@ collect_wrapper_ext() {
     case "$arg" in
       --wrapper-ext=*)
         val="${arg#*=}"
-        ;; 
+        ;;
       --wrapper-ext)
         if [ "$#" -gt 0 ]; then val="$1"; shift || true; else val=""; fi
         ;;

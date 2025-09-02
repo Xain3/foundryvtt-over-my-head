@@ -102,22 +102,25 @@ normalize_script_ref() {
   local node_dir="$1"; shift
   local ext="$1"; shift
   local ref="$1"
-  local out
+  local out dir base
   case "$ref" in
     /*)
       out="$ref"
       ;;
     *)
-      # If ref contains a slash, treat it relative to node_dir; else join with node_dir
       out="${node_dir}/${ref}"
       ;;
   esac
   if [[ "$out" != *.${ext} ]]; then
     out="${out}.${ext}"
   fi
-  # Collapse path components
-  out="$(cd "$(dirname "$out")" && pwd)/$(basename "$out")"
-  echo "$out"
+  dir="$(dirname "$out")"
+  base="$(basename "$out")"
+  if ! cd "$dir" >/dev/null 2>&1; then
+    echo "" # signal failure to caller with empty string
+    return 1
+  fi
+  printf '%s/%s\n' "$(pwd)" "$base"
 }
 
 # Collect override targets from args. Supports:
@@ -129,6 +132,7 @@ collect_wrapper_targets() {
   local node_dir="$1"; shift
   local ext="$1"; shift
   local -a targets=()
+  local resolved
   local arg val part
   while [ "$#" -gt 0 ]; do
     arg="$1"; shift || true
@@ -140,7 +144,12 @@ collect_wrapper_targets() {
           # trim leading/trailing spaces
           part="${part#${part%%[![:space:]]*}}"
           part="${part%${part##*[![:space:]]}}"
-          [ -n "$part" ] && targets+=("$(normalize_script_ref "$node_dir" "$ext" "$part")")
+          if [ -n "$part" ]; then
+            resolved="$(normalize_script_ref "$node_dir" "$ext" "$part")" || resolved=""
+            if [ -n "$resolved" ]; then
+              targets+=("$resolved")
+            fi
+          fi
         done
         ;;
       --wrapper-target)
@@ -150,7 +159,12 @@ collect_wrapper_targets() {
           for part in "${parts[@]}"; do
             part="${part#${part%%[![:space:]]*}}"
             part="${part%${part##*[![:space:]]}}"
-            [ -n "$part" ] && targets+=("$(normalize_script_ref "$node_dir" "$ext" "$part")")
+            if [ -n "$part" ]; then
+              resolved="$(normalize_script_ref "$node_dir" "$ext" "$part")" || resolved=""
+              if [ -n "$resolved" ]; then
+                targets+=("$resolved")
+              fi
+            fi
           done
         fi
         ;;

@@ -11,7 +11,7 @@ SELF_NAME="$(basename "${BASH_SOURCE[0]}")"
 PROCEDURAL_NUMBER="${SELF_NAME%%-*}"
 PATCH_NAME="${SELF_NAME#*-}"
 PATCH_NAME="${PATCH_NAME%.sh}"
-SCRIPT="${PROCEDURAL_NUMBER}-${PATCH_NAME}.mjs"
+SCRIPT="${PATCH_NAME}.mjs"
 NODE_DIR="${SCRIPT_DIR}/../common"
 
 # Dry-run support

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * @file 10-sync-host-content.mjs
+ * @file sync-host-content.mjs
  * @description Mirrors host build output into the container and bidirectionally syncs a development world using rsync (preferred) or cp fallback with safe pruning.
- * @path docker/patches/common/10-sync-host-content.mjs
+ * @path docker/patches/common/sync-host-content.mjs
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -10,7 +10,7 @@ import { spawnSync } from "node:child_process";
 import * as f from "./helpers/common.mjs";
 import { parsePatchArgs } from "./helpers/argvParser.mjs";
 
-// 10-sync-host-content.mjs
+// sync-host-content.mjs
 // - Mirrors module build (host -> container) with delete policy
 // - Syncs world bidirectionally (host <-> container)
 // - Prefers rsync with safe flags; falls back to cp when needed

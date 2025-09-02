@@ -27,7 +27,7 @@ Purpose: Enable AI coding agents to be productive quickly by capturing this repo
 - Dev watch + deploy: `npm run dev` (scripts/dev/buildAndDeploy.js locates Foundry data dir, watches build, deploys via ModuleDeployer; removes root artifacts between builds).
 - Tests: `npm test` (coverage, Babel transform). Subsets: `npm run test:unit`, `npm run test:integration`.
 - Release: `npm run prerelease` then `npm run release` (commits `dist/`).
-- Dev containers: see `docker/README.md`. Start with `docker compose -f docker/compose.dev.yml up -d`. `dist/` mirrored by `10-sync-host-content.{sh,mjs}`; shared worlds under `docker/shared/v*/worlds/*`.
+- Dev containers: see `docker/README.md`. Start with `docker compose -f docker/compose.dev.yml up -d`. `dist/` mirrored by `sync-host-content.{sh,mjs}`; shared worlds under `docker/shared/v*/worlds/*`.
 
 ## Integration Points
 - Foundry hooks (`Hooks.once/on`) drive lifecycle. Heavy init runs after `i18nInit`. Dev-only features gated by `manifest.flags.dev`.

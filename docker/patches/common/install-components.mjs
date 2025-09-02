@@ -1,7 +1,7 @@
 /**
- * @file 20-install-components.mjs
+ * @file install-components.mjs
  * @description Installs systems, modules, and worlds based on container-config, supporting manifest URLs and local paths with caching, retries, and atomic directory installs.
- * @path docker/patches/common/20-install-components.mjs
+ * @path docker/patches/common/install-components.mjs
  */
 import process from "process";
 import { ComponentInstaller } from "./helpers/componentInstaller.mjs";

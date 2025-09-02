@@ -1,5 +1,5 @@
 /**
- * Tests for docker/patches/common/20-install-components.mjs
+ * Tests for docker/patches/common/install-components.mjs
  * Strategy: mock ComponentInstaller module by writing a temporary stub file to the same path via jest.mock using babel-jest CJS interop.
  */
 
@@ -26,9 +26,9 @@ function runScriptWithStub({ cfg, dataDir }) {
   fs.writeFileSync(path.join(tmpHelpersDir, 'componentInstaller.mjs'), stub);
 
   // Copy the real script into the temp sandbox
-  const realScriptPath = path.resolve(process.cwd(), 'docker/patches/common/20-install-components.mjs');
+  const realScriptPath = path.resolve(process.cwd(), 'docker/patches/common/install-components.mjs');
   const scriptContent = fs.readFileSync(realScriptPath, 'utf8');
-  const sandboxScriptPath = path.join(tmpCommonDir, '20-install-components.mjs');
+  const sandboxScriptPath = path.join(tmpCommonDir, 'install-components.mjs');
   fs.writeFileSync(sandboxScriptPath, scriptContent);
 
   // Write a simple harness that just imports the script (top-level await will run)
@@ -59,7 +59,7 @@ afterEach(() => {
   consoleLogSpy?.mockRestore();
 });
 
-describe('20-install-components.mjs', () => {
+describe('install-components.mjs', () => {
   test('runs installer.install and performs presence check when configured', async () => {
     const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), 'foundry-test-'));
     const dataDir = path.join(sandbox, 'Data');

@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * @file 00-use-cache-or-stagger.mjs
+ * @file use-cache-or-stagger.mjs
  * @description Checks for a cached FoundryVTT archive and points installation to it; otherwise applies a configurable stagger with jitter to avoid rate limits.
- * @path docker/patches/common/00-use-cache-or-stagger.mjs
+ * @path docker/patches/common/use-cache-or-stagger.mjs
  */
 import fs from "node:fs";
 import path from "node:path";
 import * as f from "./helpers/common.mjs";
 import { parsePatchArgs } from "./helpers/argvParser.mjs";
 
-// 00-use-cache-or-stagger.mjs
+// use-cache-or-stagger.mjs
 // - If a cached Foundry zip exists under CONTAINER_CACHE, point the entrypoint
 //   at it via FOUNDRY_RELEASE_URL to avoid network fetch and rate-limits.
 // - If no cache is present, optionally sleep a short, configurable delay to

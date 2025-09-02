@@ -2,8 +2,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 function runScript(scriptPath, args = [], env = {}) {
-  const result = spawnSync(scriptPath, args, {
-    cwd: path.dirname(scriptPath),
+  const result = spawnSync('bash', [scriptPath, ...args], {
     env: { ...process.env, ...env },
     encoding: 'utf8'
   });
@@ -23,12 +22,12 @@ describe('wrapper scripts dry-run', () => {
 
   describe('00-use-cache-or-stagger.sh', () => {
   const script = path.join(wrapperDir, '00-use-cache-or-stagger.sh');
-  const expectedTarget = path.join(baseDir, '00-use-cache-or-stagger.mjs');
-  const expectedViaWrapper = `${wrapperDir}/../common/00-use-cache-or-stagger.mjs`;
-  const expectedViaWrapperAbs = path.normalize(path.join(wrapperDir, '..', 'common', '00-use-cache-or-stagger.mjs'));
-  const { code, stdout, stderr } = runScript(script, [], { PATCH_DRY_RUN: '1' });
+  const expectedTarget = path.join(baseDir, 'use-cache-or-stagger.mjs');
+  const expectedViaWrapper = `${wrapperDir}/../common/use-cache-or-stagger.mjs`;
+  const expectedViaWrapperAbs = path.normalize(path.join(wrapperDir, '..', 'common', 'use-cache-or-stagger.mjs'));
 
     test('prints correct dry-run command (via PATCH_DRY_RUN)', () => {
+    const { code, stdout, stderr } = runScript(script, [], { PATCH_DRY_RUN: '1' });
     expect([0, null]).toContain(code);
     expect(stderr).toBe('');
     expect(stdout).toContain('[patch][dry-run] Would run:');
@@ -47,12 +46,12 @@ describe('wrapper scripts dry-run', () => {
 
   describe('10-sync-host-content.sh', () => {
   const script = path.join(wrapperDir, '10-sync-host-content.sh');
-  const expectedTarget = path.join(baseDir, '10-sync-host-content.mjs');
-  const expectedViaWrapper = `${wrapperDir}/../common/10-sync-host-content.mjs`;
-  const expectedViaWrapperAbs = path.normalize(path.join(wrapperDir, '..', 'common', '10-sync-host-content.mjs'));
-  const { code, stdout, stderr } = runScript(script, [], { DRY_RUN: '1' });
+  const expectedTarget = path.join(baseDir, 'sync-host-content.mjs');
+  const expectedViaWrapper = `${wrapperDir}/../common/sync-host-content.mjs`;
+  const expectedViaWrapperAbs = path.normalize(path.join(wrapperDir, '..', 'common', 'sync-host-content.mjs'));
 
     test('prints correct dry-run command (via DRY_RUN)', () => {
+    const { code, stdout, stderr } = runScript(script, [], { DRY_RUN: '1' });
     expect([0, null]).toContain(code);
     expect(stderr).toBe('');
     expect(stdout).toContain('[patch][dry-run] Would run initial sync:');
@@ -72,12 +71,12 @@ describe('wrapper scripts dry-run', () => {
 
   describe('20-install-components.sh', () => {
   const script = path.join(wrapperDir, '20-install-components.sh');
-  const expectedTarget = path.join(baseDir, '20-install-components.mjs');
-  const expectedViaWrapper = `${wrapperDir}/../common/20-install-components.mjs`;
-  const expectedViaWrapperAbs = path.normalize(path.join(wrapperDir, '..', 'common', '20-install-components.mjs'));
-  const { code, stdout, stderr } = runScript(script, ['--dry-run']);
+  const expectedTarget = path.join(baseDir, 'install-components.mjs');
+  const expectedViaWrapper = `${wrapperDir}/../common/install-components.mjs`;
+  const expectedViaWrapperAbs = path.normalize(path.join(wrapperDir, '..', 'common', 'install-components.mjs'));
 
     test('prints correct dry-run command (via --dry-run flag)', () => {
+    const { code, stdout, stderr } = runScript(script, ['--dry-run']);
     expect([0, null]).toContain(code);
     expect(stderr).toBe('');
     expect(stdout).toContain('[patch][dry-run] Would run:');

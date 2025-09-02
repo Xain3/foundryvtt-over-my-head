@@ -9,7 +9,7 @@
  * install instructions. Sources may be manifest URLs or local paths/archives.
  *
  * This helper is intended to be imported by patch scripts (for example
- * `20-install-components.mjs`) so that the installation logic is reusable and
+ * `install-components.mjs`) so that the installation logic is reusable and
  * testable outside of a single top-level script.
  *
  * Behavioural notes:

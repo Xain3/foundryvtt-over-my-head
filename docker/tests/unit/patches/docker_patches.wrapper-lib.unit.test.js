@@ -2,7 +2,8 @@ const { spawnSync } = require('node:child_process');
 const path = require('node:path');
 const fs = require('node:fs');
 
-const repoRoot = path.resolve(__dirname, '../../');
+// __dirname is .../docker/tests/unit/patches; go up 4 levels to reach repo root
+const repoRoot = path.resolve(__dirname, '../../../../');
 const commonDir = path.join(repoRoot, 'docker', 'patches', 'common');
 
 function runBash(script, args = [], env = {}) {
@@ -18,7 +19,9 @@ function runBash(script, args = [], env = {}) {
 
 // Helper to create a transient thin wrapper to exercise wrapper-bin/wrapper-lib
 function makeTempWrapper(filename, contents) {
-  const filePath = path.join(repoRoot, 'docker', 'patches', 'entrypoint', filename);
+  const dirPath = path.join(repoRoot, 'docker', 'patches', 'entrypoint');
+  fs.mkdirSync(dirPath, { recursive: true });
+  const filePath = path.join(dirPath, filename);
   fs.writeFileSync(filePath, contents, { encoding: 'utf8', mode: 0o755 });
   return filePath;
 }
@@ -86,7 +89,7 @@ describe('docker patches: wrapper-lib/bin', () => {
   expect(res.stdout).toMatch(/\[patch\].*Delegating/);
   expect(res.stdout).toMatch(/\[patch\]\[dry-run\] Would run: .*common\/test-default\.mjs/);
     } finally {
-      fs.unlinkSync(file);
+      try { fs.unlinkSync(file); } catch {}
     }
   });
 
@@ -109,7 +112,7 @@ describe('docker patches: wrapper-lib/bin', () => {
   expect(res.stdout).toMatch(/\[patch\]\[dry-run\] Would run initial sync: .*common\/test-sync-loop\.mjs/);
   expect(res.stdout).toMatch(/\[patch\]\[dry-run\] Would start loop in background: .*common\/test-sync-loop\.mjs/);
     } finally {
-      fs.unlinkSync(file);
+      try { fs.unlinkSync(file); } catch {}
     }
   });
 });

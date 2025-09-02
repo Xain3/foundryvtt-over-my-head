@@ -563,12 +563,33 @@ export class ComponentInstaller {
       console.warn(output.error);
       return output;
     }
+    const critical = !!mergedCfg.critical;
     if (source.manifest) {
       console.log(`[patch] Installing ${type} '${id}' from manifest: ${source.manifest}`);
-      return await this.#installFromManifest(id, source, targetDir);
+      const res = await this.#installFromManifest(id, source, targetDir);
+      if (!res?.success) {
+        const msg = `[patch] ${type} '${id}' installation failed${critical ? ' (critical)' : ''}: ${res?.error || 'unknown error'}`;
+        if (critical) {
+          console.error(msg);
+          process.exit(5);
+        } else {
+          console.warn(msg);
+        }
+      }
+      return res;
     } else if (source.path) {
       console.log(`[patch] Installing ${type} '${id}' from path: ${source.path}`);
-      return await this.#installFromPath(id, source, targetDir);
+      const res = await this.#installFromPath(id, source, targetDir);
+      if (!res?.success) {
+        const msg = `[patch] ${type} '${id}' installation failed${critical ? ' (critical)' : ''}: ${res?.error || 'unknown error'}`;
+        if (critical) {
+          console.error(msg);
+          process.exit(5);
+        } else {
+          console.warn(msg);
+        }
+      }
+      return res;
     } else {
       output.error = `[patch][warn] ${type} '${id}' has no valid source (manifest or path); skipping.`;
       console.warn(output.error);
@@ -667,4 +688,9 @@ export class ComponentInstaller {
     // Install components
     await this.#installComponents(installCfg);
   }
+
+  // Getter helpers for follow-up checks
+  getConfig() { return this.containerConfig; }
+  getVersion() { return this.majorVersion; }
+  getDataDir() { return this.foundryDataDir; }
 }

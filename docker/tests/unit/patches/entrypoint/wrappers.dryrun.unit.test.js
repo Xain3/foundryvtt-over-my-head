@@ -23,7 +23,6 @@ describe('wrapper scripts dry-run', () => {
   describe('00-use-cache-or-stagger.sh', () => {
   const script = path.join(wrapperDir, '00-use-cache-or-stagger.sh');
   const expectedTarget = path.join(baseDir, 'use-cache-or-stagger.mjs');
-  const expectedViaWrapper = `${wrapperDir}/../common/use-cache-or-stagger.mjs`;
   const expectedViaWrapperAbs = path.normalize(path.join(wrapperDir, '..', 'common', 'use-cache-or-stagger.mjs'));
 
     test('prints correct dry-run command (via PATCH_DRY_RUN)', () => {
@@ -31,7 +30,7 @@ describe('wrapper scripts dry-run', () => {
     expect([0, null]).toContain(code);
     expect(stderr).toBe('');
     expect(stdout).toContain('[patch][dry-run] Would run:');
-  expect(stdout).toContain(expectedViaWrapper);
+    expect(stdout).toContain(expectedViaWrapperAbs);
   expect(stdout).toContain('--procedural-number 00');
   expect(stdout).toContain('--patch-name use-cache-or-stagger');
     });
@@ -47,7 +46,6 @@ describe('wrapper scripts dry-run', () => {
   describe('10-sync-host-content.sh', () => {
   const script = path.join(wrapperDir, '10-sync-host-content.sh');
   const expectedTarget = path.join(baseDir, 'sync-host-content.mjs');
-  const expectedViaWrapper = `${wrapperDir}/../common/sync-host-content.mjs`;
   const expectedViaWrapperAbs = path.normalize(path.join(wrapperDir, '..', 'common', 'sync-host-content.mjs'));
 
     test('prints correct dry-run command (via DRY_RUN)', () => {
@@ -55,8 +53,8 @@ describe('wrapper scripts dry-run', () => {
     expect([0, null]).toContain(code);
     expect(stderr).toBe('');
     expect(stdout).toContain('[patch][dry-run] Would run initial sync:');
-    expect(stdout).toContain('[patch][dry-run] Would start loop in background:');
-    expect(stdout).toContain(expectedViaWrapper);
+  expect(stdout).toContain('[patch][dry-run] Would start loop in background:');
+  expect(stdout).toContain(expectedViaWrapperAbs);
   expect(stdout).toContain('--procedural-number 10');
   expect(stdout).toContain('--patch-name sync-host-content');
     });
@@ -72,7 +70,6 @@ describe('wrapper scripts dry-run', () => {
   describe('20-install-components.sh', () => {
   const script = path.join(wrapperDir, '20-install-components.sh');
   const expectedTarget = path.join(baseDir, 'install-components.mjs');
-  const expectedViaWrapper = `${wrapperDir}/../common/install-components.mjs`;
   const expectedViaWrapperAbs = path.normalize(path.join(wrapperDir, '..', 'common', 'install-components.mjs'));
 
     test('prints correct dry-run command (via --dry-run flag)', () => {
@@ -80,7 +77,7 @@ describe('wrapper scripts dry-run', () => {
     expect([0, null]).toContain(code);
     expect(stderr).toBe('');
     expect(stdout).toContain('[patch][dry-run] Would run:');
-  expect(stdout).toContain(expectedViaWrapper);
+    expect(stdout).toContain(expectedViaWrapperAbs);
   expect(stdout).toContain('--procedural-number 20');
   expect(stdout).toContain('--patch-name install-components');
     });

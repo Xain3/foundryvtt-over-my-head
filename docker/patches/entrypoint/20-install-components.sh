@@ -12,42 +12,10 @@ set -euo pipefail
 ## - `PATCH_DRY_RUN` or `DRY_RUN` can be set to perform a dry-run.
 ## - The wrapper accepts `--dry-run` / `-n` as well.
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-NODE_BIN="${NODE_BIN:-node}"
+LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/common"
+# shellcheck disable=SC1090
+source "${LIB_DIR}/wrapper-bin.sh"
 
-# Derive procedural number and patch name from wrapper filename
-SELF_NAME="$(basename "${BASH_SOURCE[0]}")"
-PROCEDURAL_NUMBER="${SELF_NAME%%-*}"
-PATCH_NAME="${SELF_NAME#*-}"
-PATCH_NAME="${PATCH_NAME%.sh}"
-SCRIPT="${PATCH_NAME}.mjs"
-NODE_DIR="${SCRIPT_DIR}/../common"
-
-ENV_PATCH_DRY_RUN="${PATCH_DRY_RUN:-}"
-ENV_DRY_RUN="${DRY_RUN:-}"
-
-DRY_RUN=0
-for arg in "$@"; do
-  case "$arg" in
-    --dry-run|-n)
-      DRY_RUN=1
-      ;;
-  esac
-done
-
-if [ -n "$ENV_PATCH_DRY_RUN" ] && [ "$ENV_PATCH_DRY_RUN" != "0" ]; then DRY_RUN=1; fi
-if [ -n "$ENV_DRY_RUN" ] && [ "$ENV_DRY_RUN" != "0" ]; then DRY_RUN=1; fi
-
-if ! command -v "$NODE_BIN" >/dev/null 2>&1; then
-  echo "[patch][error] node not found in PATH" >&2
-  exit 1
-fi
-
-echo "[patch] ${PROCEDURAL_NUMBER}-${PATCH_NAME}: Delegating to Node.js script"
-CMD=("$NODE_BIN" "${NODE_DIR}/${SCRIPT}" "--procedural-number" "${PROCEDURAL_NUMBER}" "--patch-name" "${PATCH_NAME}")
-if [ "$DRY_RUN" -ne 0 ]; then
-  echo "[patch][dry-run] Would run: ${CMD[*]}"
-else
-  "${CMD[@]}"
-  echo "[patch] ${PROCEDURAL_NUMBER}-${PATCH_NAME}: Complete"
-fi
+export WRAPPER_RUN_MODE="default"
+export WRAPPER_NODE_BIN="${NODE_BIN:-node}"
+wrapper_main "$@"

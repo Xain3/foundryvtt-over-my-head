@@ -71,10 +71,22 @@ export default class MyHandler extends Handler {
 }
 ```
 
-## Style Appendix (actively enforced)
-- Syntax: ES modules, `const/let`, arrow functions, template literals.
-- Indentation: 2 spaces; avoid tabs.
-- File header: JSDoc header with `@file`, `@description`, `@path` at top of source files.
-- JSDoc: Document exported classes/functions with `@param`, `@returns`, and `@export` where applicable.
-- Naming: camelCase for functions/vars, PascalCase for classes, UPPER_SNAKE_CASE for constants.
-- Tests: name with `.unit.test.js` (co-located) and `.int.test.js` under `tests/integration/`; use Jest with Babel.
+## Style Appendix (enforced)
+- Syntax: ES modules, const/let, arrow functions, template literals.
+- Indentation: 2 spaces (no tabs).
+- File header: Every source file MUST start, before any imports (but after the shebang if needed), with the exact JSDoc block:
+  /**
+  * @file the file name
+  * @description Short description of purpose
+  * @path relative/path/from/project/root
+  */
+- Variables: prefer fully descriptive names; avoid abbreviations unless very common (e.g., cfg for config) or needed for disambiguation (e.g., ctx for context).
+- JSDoc: All exported classes/functions must have JSDoc with @param/@returns (when applicable) and @export. Include public API in class JSDoc. Prefer documenting private helpers as well.
+- Naming: camelCase for variables/functions, PascalCase for classes, UPPER_SNAKE_CASE for constants.
+- Private vs public: place private helpers (non-exported) above exported/public APIs. Define helper functions before callers.
+- Function size & complexity: Aim for <= 20 lines and <= 3 nesting levels; refactor into small helpers when needed.
+- Conditionals & control flow: Use single-line only for trivial checks. Prefer early returns and brace blocks for complex conditions.
+- Forbidden patterns: Do not use eval or with.
+- Error handling: Use try...catch where needed, throw recoverable errors, and log via console or project logger.
+- Tests: Unit tests colocated with .unit.test.js; integration tests under tests/integration with .int.test.js. Use beforeEach/afterEach and beforeAll/afterAll as appropriate.
+

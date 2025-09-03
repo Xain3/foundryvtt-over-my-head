@@ -10,6 +10,7 @@ This folder contains configuration and scripts used to drive the Foundry contain
 - `container-config.example.json` — Example entries and inline overrides for reference.
 - `container-config.schema.json` — JSON Schema (draft-07) describing the shape of `container-config.json`.
 - `scripts/validate-container-config.js` — A Node script to validate the config and perform cross-reference checks.
+- `scripts/generate-compose.js` — Generates `compose.dev.yml` from `container-config.json` or an advanced config.
 
 Use the schema to enable editor tooltips and to validate the config in CI. The example file demonstrates inline overrides and version-specific configuration.
 
@@ -285,9 +286,106 @@ Files in this folder:
 - `container-config.example.json` — Example entries and inline overrides for reference.
 - `container-config.schema.json` — JSON Schema (draft-07) describing the shape of `container-config.json`.
 
+### Generate compose.dev.yml from config
+
+You can generate `compose.dev.yml` dynamically. Two options:
+
+- Single source of truth (recommended): use `container-config.json`
+  - Pros: one config drives both startup patch behavior and which services/versions to run
+  - Command: `npm run compose:gen`
+  - Uses sensible defaults per version:
+    - v13 → tag `release`, port 30013, env `.v13.env`, stagger 4s
+    - v12 → tag `12`, port 30012, env `.v12.env`, stagger 2s
+    - v11 → tag `11`, port 30011, env `.v11.env`, stagger 0s
+
+- Custom compose config (advanced): pass `-c docker/compose.config.json`
+  - For teams that prefer a standalone compose generator config, an advanced shape is supported when explicitly selected with `-c`.
+
+Usage:
+
+```zsh
+## Generate compose from container-config.json (recommended)
+
+# Edit your existing container-config.json as usual (which systems/modules to install per version)
+$EDITOR docker/container-config.json
+
+# Generate compose.dev.yml using the supported versions in container-config.json
+npm run compose:gen
+
+# Or preview from the same source to stdout
+npm run compose:print
+
+# Then start containers
+docker compose -f docker/compose.dev.yml up -d
+```
+
+#### CLI flags and overrides
+
+- `-c, --config <path>`: Input config file. Defaults to `docker/container-config.json`. You can also pass `docker/compose.config.json` to use the advanced shape.
+- `-o, --out <path>`: Output file path. When omitted, YAML is printed to stdout (useful for preview or piping).
+- `--print`: Shorthand to force printing to stdout even if `-o` was provided.
+
+#### Environment variable overrides (with `container-config.json`)
+
+- `COMPOSE_BASE_IMAGE`: Base image for Foundry services. Default `felddy/foundryvtt`.
+- `COMPOSE_USER`: Container user for services. Default `0:0` (root).
+- `COMPOSE_BUILDER_ENABLED`: Enable builder service when not `0`. Default enabled.
+- `COMPOSE_BUILDER_IMAGE`: Image for builder service. Default `node:20-alpine`.
+
+#### Defaults and generated structure
+
+- Services: one per supported version in `container-config.json.versions`. Named `foundry-v<NN>`, e.g., `foundry-v13`.
+- Ports: map `30000+<NN> -> 30000`, e.g., v13 → `30013:30000`.
+- Image tags: v13+ → `:release`; v12 → `:12`; v11 → `:11` (subject to image availability).
+- Stagger: `FETCH_STAGGER_SECONDS` defaults to a small delay for v13 (4s), v12 (2s), else 0.
+- Volumes and mounts mirror the static compose: data volume per service (`<name>-data`), bind mounts for `container-config.json`, `dist/`, `patches/`, `shared/vNN/`, `resources/vNN/`, and `foundry-cache/vNN/`.
+- Secrets: `docker/secrets.json` is mounted as `config.json` into each service.
+- Env files: `docker/env/.env` and `docker/env/.vNN.env` are included automatically per service.
+
+#### Examples
+
+Preview YAML to stdout using `container-config.json` and a custom base image:
+
+```zsh
+COMPOSE_BASE_IMAGE=felddy/foundryvtt COMPOSE_USER=0:0 \
+node docker/scripts/generate-compose.js --print
+```
+
+Write to a custom file using the advanced `compose.config.json` shape:
+
+```zsh
+node docker/scripts/generate-compose.js -c docker/compose.config.json -o docker/compose.dev.yml
+```
+
+#### container-config.json fields for composition
+
+- Top-level `composition`: global compose defaults
+  - `baseImage`: base image (default `felddy/foundryvtt`)
+  - `user`: container user (default `0:0`)
+  - `version_params`: templated defaults applied to each version unless overridden
+    - `name`: string; may include `{version}` (e.g., `foundry-v{version}`)
+    - `tag`: string; may include `{version}` (e.g., `release` or `{version}`)
+    - `port`: number or string template containing `{version}` (e.g., `300{version}`)
+    - `versionDir`: string; may include `{version}` (e.g., `v{version}`)
+    - `envSuffix`: string; may include `{version}`; defaults to the final `versionDir` when omitted
+  - `builder.enabled`: include builder service (default true)
+  - `builder.image`: builder image (default `node:20-alpine`)
+
+- Per-version `versions[NN].composition_params`: optional per-version overrides/additions
+  - When present, only provided fields override the resolved top-level defaults for that version.
+  - Supported fields: `name`, `tag`, `port` (number only), `versionDir`, `envSuffix`, `fetchStaggerSeconds`, `env_files`, `environment` (array of `KEY=VAL` or object map), `volumes_extra`.
+  - If omitted entirely, the version uses top-level templated defaults.
+
+These allow you to tweak service naming, image tags, ports, env sources, and bind additional mounts without forking the generator.
+
+### Notes
+
+- The generator mirrors the mount structure and per‑version env patterns used by the existing static compose file.
+- You can commit the generated `compose.dev.yml` or keep it ephemeral and generate as part of your workflow.
+
 Run the validator (also performs cross-reference checks):
 
-```bash
+```zsh
 npm run validate:container-config
 ```
 

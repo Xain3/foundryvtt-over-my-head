@@ -29,7 +29,10 @@
     "test:setup": "jest --testMatch=\"**/*.setup.test.js\"",
     "test:functional": "echo 'Functional tests not configured' && exit 0",
     "test:performance": "echo 'Performance tests not configured' && exit 0",
-    "validate:container-config": "node ./scripts/validate-container-config.js"
+    "validate:container-config": "node ./scripts/validate-container-config.js",
+    "compose:gen": "node docker/scripts/generate-compose.js -c docker/container-config.json -o docker/compose.dev.yml",
+    "compose:print": "node docker/scripts/generate-compose.js -c docker/container-config.json --print",
+    "compose:gen:custom": "node docker/scripts/generate-compose.js -c docker/compose.config.json -o docker/compose.dev.yml"
   },
   "dependencies": {
     "csslint": "^1.0.5",

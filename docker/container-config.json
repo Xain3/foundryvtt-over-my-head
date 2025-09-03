@@ -1,4 +1,6 @@
 {
+  "$schema": "container-config.schema.json",
+
   "systems": {
     "worldbuilding": {
       "name": "Simple Worldbuilding System",
@@ -21,6 +23,23 @@
       "install_at_startup": false
     }
   },
+
+  "composition": {
+    "builder": {
+      "enabled": true,
+      "image": "node:20-alpine"
+    },
+    "baseImage": "felddy/foundryvtt",
+    "user": "0:0",
+    "version_params": {
+      "name": "foundry-v{version}",
+      "tag": "release",
+      "port": "300{version}",
+      "versionDir": "v{version}",
+      "envSuffix": "v{version}"
+    }
+  },
+
   "versions": {
     "13": {
       "supported": true,

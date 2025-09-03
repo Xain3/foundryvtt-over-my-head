@@ -19,6 +19,7 @@ This module uses Vite for bundling to resolve MIME type errors and improve perfo
 - `npm run build` - Build the module for production
 - `npm run dev` - Build the module in watch mode for development
 - `npm test` - Run the test suite
+- `npm run test:unit -- --testPathPattern=docker_patches.wrapper-lib.unit.test.js` - Run only Docker patches wrapper tests
 
 ### Build Process
 
@@ -35,6 +36,7 @@ The module uses a centralized configuration system located in `src/config/`. Key
 - **Enhanced Manifest**: Manifest objects now include backwards-compatible `shortName` property
 
 **Migration Example**:
+
 ```javascript
 // Old pattern (deprecated)
 import OverMyHead from './overMyHead.js';
@@ -55,6 +57,14 @@ class MyModule {
 ```
 
 For detailed configuration documentation, see [`src/config/README.md`](src/config/README.md).
+
+### Docker Patches
+
+Wrapper scripts used by the container entrypoint are documented under
+`docker/patches/`. See [`docker/patches/README.md`](docker/patches/README.md)
+for wrapper design, modes, env vars, and examples. The shared shell logic lives
+in `docker/patches/common/` and is covered by Jest unit tests that shell out to
+`bash`.
 
 ### Settings Type Normalization (Foundry v13.347)
 

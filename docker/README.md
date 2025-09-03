@@ -58,12 +58,12 @@ npx vite build --watch
 How it works
 
 - The built module directory (`dist/`) is bind‑mounted into each Foundry container at `/host/dist` (read‑only).
-- On startup, `10-sync-host-content` mirrors `/host/dist` into `/data/Data/modules/foundryvtt-over-my-head` inside the container so Foundry writes don't change host ownership.
+- On startup, `sync-host-content` mirrors `/host/dist` into `/data/Data/modules/foundryvtt-over-my-head` inside the container so Foundry writes don't change host ownership.
 - Rebuilds update `dist/main.js`; the sync loop applies changes within ~1s. Refresh the browser or use a hot‑reload module for auto‑reload.
 - Each service reads credentials from the Docker secret mounted as `/run/secrets/config.json`.
 - Foundry data persists in Docker volumes created by Compose. To wipe them for a fresh start, stop with `down -v` (see below).
 
-- Worlds: Development worlds are now provided via the shared mount inside each container at `/host/shared/worlds/<world-id>`. Compose defines per-version host mounts `./shared/v13`, `./shared/v12`, and `./shared/v11` which are mounted into each container at `/host/shared` (read/write). The `10-sync-host-content` patch defaults `WORLD_SRC` to `/host/shared/worlds/test-world` and syncs that path bidirectionally with `/data/Data/worlds/test-world` in the container.
+- Worlds: Development worlds are now provided via the shared mount inside each container at `/host/shared/worlds/<world-id>`. Compose defines per-version host mounts `./shared/v13`, `./shared/v12`, and `./shared/v11` which are mounted into each container at `/host/shared` (read/write). The `sync-host-content` patch defaults `WORLD_SRC` to `/host/shared/worlds/test-world` and syncs that path bidirectionally with `/data/Data/worlds/test-world` in the container.
 
 Prepare host folders for shared content
 
@@ -94,9 +94,9 @@ docker compose -f compose.dev.yml down -v
 - **Purpose**: The `felddy/foundryvtt` image supports running container startup "patch" scripts from a directory pointed to by the `CONTAINER_PATCHES` environment variable. This repository uses patches to safely mirror and sync host development content into the container so Foundry can write runtime files without modifying host ownership.
 - **Node-based patches**: Shell wrappers (`*.sh`) now delegate to Node implementations (`*.mjs`) for richer logic and portability. You can run them locally with `node` if needed.
 - **Key scripts**:
-  - `docker/patches/common/00-use-cache-or-stagger.{sh,mjs}`
+  - `docker/patches/common/use-cache-or-stagger.{sh,mjs}`
     - Uses cached Foundry archive from `/data/container_cache` when present; otherwise staggers network fetch using `FETCH_STAGGER_SECONDS` plus small jitter to avoid 429s when multiple services start.
-  - `docker/patches/common/10-sync-host-content.{sh,mjs}`
+  - `docker/patches/common/sync-host-content.{sh,mjs}`
     - Module sync (`MODULE_SRC` -> `MODULE_DST`): host build mirrored into container (delete extras) for hot-reload.
     - World sync (`WORLD_SRC` <-> `WORLD_DST`): conservative bidirectional sync; preserves data and, when supported, uses `rsync --chown` on container→host.
     - Flags:
@@ -174,7 +174,7 @@ worlds/
 
 ### Cache-or-stagger behavior
 
-- Cache location: The compose mounts `../foundry-cache/vXX` to `/data/container_cache`. If a file like `foundryvtt-13.347.zip` exists there, the `00-use-cache-or-stagger.sh` patch points `FOUNDRY_RELEASE_URL` to that file so installation uses the cache.
+- Cache location: The compose mounts `../foundry-cache/vXX` to `/data/container_cache`. If a file like `foundryvtt-13.347.zip` exists there, the `use-cache-or-stagger.sh` patch points `FOUNDRY_RELEASE_URL` to that file so installation uses the cache.
 - No cache present: Containers will wait for a small, configurable delay before requesting a presigned URL to avoid 429s when multiple versions start at once. Tune with `FETCH_STAGGER_SECONDS` per service in `compose.dev.yml`.
 - Automatic updates: Since we don't pin `FOUNDRY_RELEASE_URL` in compose, future container restarts can fetch fresh releases as needed. To force cache usage, drop a correctly named zip into `../foundry-cache/vXX`.
 

@@ -8,7 +8,7 @@ function runBuilder(cfg, options) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'omh-sync-'));
   const harness = path.join(tmp, 'harness.mjs');
   // Resolve from the project root (current working directory) into docker/patches/common
-  const targetAbs = path.resolve(process.cwd(), 'docker/patches/common/10-sync-host-content.mjs');
+  const targetAbs = path.resolve(process.cwd(), 'docker/patches/common/sync-host-content.mjs');
   const code = `import { buildConfigSyncTasksFrom } from '${pathToFileURL(targetAbs).toString()}';\n` +
     `const cfg = JSON.parse(process.env.CFG);\n` +
     `const opt = JSON.parse(process.env.OPT || '{}');\n` +
@@ -22,7 +22,7 @@ function runBuilder(cfg, options) {
   return JSON.parse(res.stdout.toString() || '[]');
 }
 
-describe('10-sync-host-content.mjs - buildConfigSyncTasksFrom', () => {
+describe('sync-host-content.mjs - buildConfigSyncTasksFrom', () => {
   const dataDir = '/data/Data';
 
   test('returns [] when version install section missing', () => {

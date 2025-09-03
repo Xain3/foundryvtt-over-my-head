@@ -88,6 +88,17 @@
           }
         }
       }
+    },
+    "12": {
+      "supported": true,
+      "install": {
+        "systems": { "example_system": {} },
+        "modules": { "example_module": {} }
+      },
+      "composition_params": {
+        "name": "custom-v12",
+        "port": 31234
+      }
     }
   }
 }

@@ -158,7 +158,7 @@ systems/
   └── unused-system/     # ✗ Not in config
 
 worlds/
-  ├── my-world/          # ✓ Listed in config  
+  ├── my-world/          # ✓ Listed in config
   ├── test-world/        # ✓ Special exception (unless PATCH_DISABLE_TEST_WORLD_EXCEPTION=1)
   └── old-world/         # ✗ Not in config
 ```

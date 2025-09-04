@@ -22,6 +22,6 @@
       "@module": ["module.json"],
     }
   },
-  "include": ["src/**/*", "tests/**/*"],
+  "include": ["src/**/*", "tests/**/*", "docker/tests/unit/patches/common/wrapper-bin.unit.test.js", "docker/tests/unit/patches/docker_patches.wrapper-lib.unit.test.js"],
   "exclude": ["node_modules", "dist", "release", "coverage"]
 }

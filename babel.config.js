@@ -11,12 +11,14 @@ module.exports = {
   sourceMaps: 'inline', // Correct way to enable inline source maps
   retainLines: true, // Correct way to retain line numbers
   plugins: [
+    '@babel/plugin-transform-modules-commonjs',
     [
       'module-resolver',
       {
         root: ['./'],
         alias: {
           '@': './src',
+          '@docker': './docker',
           '@config': './src/config/config.js',
           '@constants': './src/config/constants.js',
           '@manifest': './src/config/manifest.js',

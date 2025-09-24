@@ -1,5 +1,7 @@
 {
   "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "@babel/core": "^7.26.0",
     "@babel/plugin-transform-modules-commonjs": "^7.27.1",
     "@babel/preset-env": "^7.27.2",
@@ -26,7 +28,8 @@
     "test:integration": "jest --testMatch=\"**/*.int.test.js\"",
     "test:setup": "jest --testMatch=\"**/*.setup.test.js\"",
     "test:functional": "echo 'Functional tests not configured' && exit 0",
-    "test:performance": "echo 'Performance tests not configured' && exit 0"
+    "test:performance": "echo 'Performance tests not configured' && exit 0",
+    "validate:container-config": "node ./scripts/validate-container-config.js"
   },
   "dependencies": {
     "csslint": "^1.0.5",

@@ -1,6 +1,6 @@
 /**
  * Small collection of helper utilities used by container patch scripts.
- * These helpers intentionally use the Node.js built-in `node:` specifiers
+ * These helpers intentionally use the Node.mjs built-in `node:` specifiers
  * so they work in restricted or modern runtimes.
  */
 import fs from "node:fs";

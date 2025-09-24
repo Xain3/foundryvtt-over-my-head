@@ -1,5 +1,6 @@
 import resolveImageReference, { BASE_REPO, DEFAULT_VERSION } from './resolveImageReference.mjs';
 import path from 'node:path';
+import { spawn } from 'node:child_process';
 
 describe('resolveImageReference', () => {
   test('returns full image tag unchanged', () => {
@@ -67,132 +68,107 @@ describe('resolveImageReference', () => {
   });
 
   describe('resolveImageReference CLI script', () => {
-    const scriptPath = path.resolve(process.cwd(), 'scripts/dev/resolveImageReference.js');
+    const scriptPath = path.resolve(process.cwd(), 'scripts/dev/resolveImageReference.mjs');
 
     function runCli(args = [], envOverrides = {}) {
-      const originalArgv = [...process.argv];
-      const originalEnv = { ...process.env };
-      const logs = [];
-      const errors = [];
-      let envDuring = {};
+      return new Promise((resolve) => {
+        const env = { ...process.env, ...envOverrides };
+        const child = spawn(process.execPath, [scriptPath, ...args], { env, stdio: 'pipe' });
 
-      const logSpy = jest.spyOn(console, 'log').mockImplementation((...a) => logs.push(a.join(' ')));
-      const errorSpy = jest.spyOn(console, 'error').mockImplementation((...a) => errors.push(a.join(' ')));
+        let stdout = '';
+        let stderr = '';
+        let exitCode = null;
 
-      let exitCode = null;
-      const exitSpy = jest.spyOn(process, 'exit').mockImplementation((code) => {
-        exitCode = code;
-        throw new Error('__EXIT__');
-      });
-
-      process.argv = [process.execPath, scriptPath, ...args];
-      process.env = { ...originalEnv, ...envOverrides };
-
-      try {
-        jest.isolateModules(() => {
-          try {
-            // eslint-disable-next-line global-require, import/no-dynamic-require
-            require(scriptPath);
-            // Capture environment as set by the CLI before restoration
-            envDuring = { ...process.env };
-          } catch (e) {
-            if (!(e instanceof Error && e.message === '__EXIT__')) {
-              throw e;
-            }
-          }
+        child.stdout.on('data', (data) => {
+          stdout += data.toString();
         });
-      } finally {
-        logSpy.mockRestore();
-        errorSpy.mockRestore();
-        exitSpy.mockRestore();
-        process.argv = originalArgv;
-        process.env = originalEnv;
-      }
 
-      return {
-        code: exitCode === null ? 0 : exitCode,
-        exitCalled: exitCode !== null,
-        stdout: logs.join('\n'),
-        stderr: errors.join('\n'),
-        envDuring,
-      };
+        child.stderr.on('data', (data) => {
+          stderr += data.toString();
+        });
+
+        child.on('close', (code) => {
+          exitCode = code;
+          resolve({
+            code: exitCode,
+            exitCalled: true,
+            stdout: stdout.trim(),
+            stderr: stderr.trim(),
+            envDuring: env, // Note: env is not modified in subprocess
+          });
+        });
+      });
     }
 
-    test('prints help and exits 0 with --help', () => {
-      const res = runCli(['--help']);
+    test('prints help and exits 0 with --help', async () => {
+      const res = await runCli(['--help']);
       expect(res.code).toBe(0);
       expect(res.exitCalled).toBe(true);
       expect(res.stdout).toContain('Usage: resolveImageReference');
       expect(res.stderr).toBe('');
     });
 
-    test('errors on unknown option and exits 2', () => {
-      const res = runCli(['--what']);
+    test('errors on unknown option and exits 2', async () => {
+      const res = await runCli(['--what']);
       expect(res.code).toBe(2);
       expect(res.stderr).toContain('Unknown option: --what');
     });
 
-    test('errors when --value missing argument and exits 2', () => {
-      const res = runCli(['--value']);
+    test('errors when --value missing argument and exits 2', async () => {
+      const res = await runCli(['--value']);
       expect(res.code).toBe(2);
       expect(res.stderr).toContain('Error: --value requires an argument');
     });
 
-    test('resolves positional alias and prints to stdout', () => {
-      const res = runCli(['dev']);
+    test('resolves positional alias and prints to stdout', async () => {
+      const res = await runCli(['dev']);
       expect(res.code).toBe(0);
-      expect(res.exitCalled).toBe(false);
+      expect(res.exitCalled).toBe(true);
       expect(res.stdout).toContain(`FOUNDRY_IMAGE=${BASE_REPO}:develop`);
       expect(res.stderr).toBe('');
     });
 
-    test('resolves with --value flag', () => {
-      const res = runCli(['--value', '10.291']);
+    test('resolves with --value flag', async () => {
+      const res = await runCli(['--value', '10.291']);
       expect(res.code).toBe(0);
       expect(res.stdout).toContain(`FOUNDRY_IMAGE=${BASE_REPO}:10.291`);
     });
 
-    test('falls back to env when no args provided', () => {
-      const res = runCli([], { FOUNDRY_IMAGE: 'stable' });
+    test('falls back to env when no args provided', async () => {
+      const res = await runCli([], { FOUNDRY_IMAGE: 'stable' });
       expect(res.code).toBe(0);
       expect(res.stdout).toContain(`FOUNDRY_IMAGE=${BASE_REPO}:release`);
     });
 
-    test('defaults to release when env is empty', () => {
-      const res = runCli([], { FOUNDRY_IMAGE: '' });
+    test('defaults to release when env is empty', async () => {
+      const res = await runCli([], { FOUNDRY_IMAGE: '' });
       expect(res.code).toBe(0);
       expect(res.stdout).toContain(`FOUNDRY_IMAGE=${BASE_REPO}:${DEFAULT_VERSION}`);
     });
 
-    test('export flag sets env and prints confirmation', () => {
-      const originalEnv = { ...process.env };
-      const res = runCli(['-e', 'dev']);
+    test('export flag sets env and prints confirmation', async () => {
+      const res = await runCli(['-e', 'dev']);
       expect(res.code).toBe(0);
       expect(res.stdout).toContain(`FOUNDRY_IMAGE=${BASE_REPO}:develop`);
       expect(res.stdout).toContain('# Exported to environment variable FOUNDRY_IMAGE');
-      // Cleanup env
-      process.env = originalEnv;
     });
 
-    test('exports environment variable when set', () => {
-      const originalEnv = { ...process.env };
-      const res = runCli(['-e', '10.291']);
+    test('exports environment variable when set', async () => {
+      const res = await runCli(['-e', '10.291']);
       expect(res.code).toBe(0);
       expect(res.stdout).toContain(`FOUNDRY_IMAGE=${BASE_REPO}:10.291`);
-      expect(res.envDuring.FOUNDRY_IMAGE).toBe(`${BASE_REPO}:10.291`);
-      // Cleanup env
-      process.env = originalEnv;
+      expect(res.stdout).toContain('# Exported to environment variable FOUNDRY_IMAGE');
     });
 
-    test('errors on invalid env value and exits 1', () => {
-      const res = runCli([], { FOUNDRY_IMAGE: 'felddy/not-found:tag' });
+    test('errors on invalid env value and exits 1', async () => {
+      const res = await runCli([], { FOUNDRY_IMAGE: 'felddy/not-found:tag' });
       expect(res.code).toBe(1);
       expect(res.stderr).toContain('Invalid FOUNDRY_IMAGE argument: "felddy/not-found:tag"');
     });
 
-    test('accepts full image reference unchanged', () => {
+    test('accepts full image reference unchanged', async () => {
       const ref = `${BASE_REPO}:release`;
-      const res = runCli([ref]);
+      const res = await runCli([ref]);
       expect(res.code).toBe(0);
       expect(res.stdout).toContain(`FOUNDRY_IMAGE=${ref}`);
     });

@@ -1,18 +1,9 @@
-#! /usr/bin/env node
+#!/usr/bin/env node
 
 /**
- * Module: resolveImageReference
- *
- * Utility to resolve user-provided values into a canonical Docker image
- * reference for the community Foundry VTT image (`felddy/foundryvtt`).
- *
- * Accepts:
- *  - Full image references: `felddy/foundryvtt:release` (returned unchanged)
- *  - Known aliases mapped in `VERSION_ALIASES` (e.g. `dev` -> `develop`)
- *  - Numeric versions like `10.291` or `10.0.1`
- *  - Simple tags / aliases (alphanumeric with optional dashes)
- *
- * Empty or missing values default to `DEFAULT_VERSION`.
+ * @file resolveImageReference.mjs
+ * @description Utility to resolve user-provided values into a canonical Docker image reference for the community Foundry VTT image (`felddy/foundryvtt`).
+ * @path scripts/dev/resolveImageReference.mjs
  */
 
 import process from 'node:process';
@@ -87,9 +78,9 @@ function resolveImageReference(arg, exportImageToEnv = false) {
   let output = (value) => {
     if (exportImageToEnv) {
       process.env.FOUNDRY_IMAGE = value;
-        }
+    }
     return value;
-  }
+  };
 
   // If it's already a valid community image reference, return it unchanged.
   if (COMMUNITY_IMAGE_REGEX.test(value)) {
@@ -121,7 +112,8 @@ export default resolveImageReference;
 export { BASE_REPO, DEFAULT_VERSION, VERSION_ALIASES, resolveImageReference };
 
 // CLI entry: allow running as a script to resolve and optionally export
-const isMain = process.argv[1] && process.argv[1].endsWith('resolveImageReference.js');
+const isMain = process.argv[1] && process.argv[1].includes('resolveImageReference.mjs');
+
 if (isMain) {
   const printHelp = () => {
     console.log(
@@ -189,4 +181,3 @@ if (isMain) {
     console.log('# Exported to environment variable FOUNDRY_IMAGE');
   }
 }
-

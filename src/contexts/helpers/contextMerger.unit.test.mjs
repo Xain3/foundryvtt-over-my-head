@@ -5,6 +5,7 @@
 
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import ContextMerger from './contextMerger.mjs';
 import ContextComparison from './contextComparison.mjs';
 import { ContextItem } from './contextItem.mjs';
@@ -13,9 +14,9 @@ import { ItemFilter } from './contextItemFilter.mjs';
 import Context from '../context.mjs';
 
 // Jest Mocks
-jest.mock('../context.mjs');
-jest.mock('./contextComparison.mjs');
-jest.mock('./contextItemFilter.mjs');
+vi.mock('../context.mjs');
+vi.mock('./contextComparison.mjs');
+vi.mock('./contextItemFilter.mjs');
 
 describe('ContextMerger', () => {
   let mockSourceContext;
@@ -26,59 +27,59 @@ describe('ContextMerger', () => {
   let mockTargetItem;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Create mock ContextItems
     mockSourceItem = {
       value: 'source value',
       metadata: { source: true },
       modifiedAt: new Date('2025-05-30T10:00:00Z'),
-      setMetadata: jest.fn()
+      setMetadata: vi.fn()
     };
 
     mockTargetItem = {
       value: 'target value',
       metadata: { target: true },
       modifiedAt: new Date('2025-05-30T09:00:00Z'),
-      setMetadata: jest.fn()
+      setMetadata: vi.fn()
     };
 
     // Create mock ContextContainers
     mockSourceContainer = {
-      keys: jest.fn(() => ['item1', 'item2']),
-      getItem: jest.fn((key) => {
+      keys: vi.fn(() => ['item1', 'item2']),
+      getItem: vi.fn((key) => {
         if (key === 'item1') return mockSourceItem;
         if (key === 'item2') return { value: `source ${key}`, modifiedAt: new Date() };
         return undefined;
       }),
-      hasItem: jest.fn((key) => key === 'item1' || key === 'item2'),
-      setItem: jest.fn()
+      hasItem: vi.fn((key) => key === 'item1' || key === 'item2'),
+      setItem: vi.fn()
     };
 
     mockTargetContainer = {
-      keys: jest.fn(() => ['item1']),
-      getItem: jest.fn((key) => key === 'item1' ? mockTargetItem : undefined),
-      hasItem: jest.fn((key) => key === 'item1'),
-      setItem: jest.fn()
+      keys: vi.fn(() => ['item1']),
+      getItem: vi.fn((key) => key === 'item1' ? mockTargetItem : undefined),
+      hasItem: vi.fn((key) => key === 'item1'),
+      setItem: vi.fn()
     };
 
     // Create mock Context instances with separate container instances for each component
     const createMockSourceContainer = () => ({
-      keys: jest.fn(() => ['item1', 'item2']),
-      getItem: jest.fn((key) => {
+      keys: vi.fn(() => ['item1', 'item2']),
+      getItem: vi.fn((key) => {
         if (key === 'item1') return mockSourceItem;
         if (key === 'item2') return { value: `source ${key}`, modifiedAt: new Date() };
         return undefined;
       }),
-      hasItem: jest.fn((key) => key === 'item1' || key === 'item2'),
-      setItem: jest.fn()
+      hasItem: vi.fn((key) => key === 'item1' || key === 'item2'),
+      setItem: vi.fn()
     });
 
     const createMockTargetContainer = () => ({
-      keys: jest.fn(() => ['item1']),
-      getItem: jest.fn((key) => key === 'item1' ? mockTargetItem : undefined),
-      hasItem: jest.fn((key) => key === 'item1'),
-      setItem: jest.fn()
+      keys: vi.fn(() => ['item1']),
+      getItem: vi.fn((key) => key === 'item1' ? mockTargetItem : undefined),
+      hasItem: vi.fn((key) => key === 'item1'),
+      setItem: vi.fn()
     });
 
     mockSourceContext = {
@@ -209,7 +210,7 @@ describe('ContextMerger', () => {
     });
 
     it('should handle allowOnly option with filtering', () => {
-      const mockFilter = jest.fn();
+      const mockFilter = vi.fn();
       ItemFilter.allowOnly.mockReturnValue(mockFilter);
 
       const result = ContextMerger.merge(
@@ -225,7 +226,7 @@ describe('ContextMerger', () => {
     });
 
     it('should handle blockOnly option with filtering', () => {
-      const mockFilter = jest.fn();
+      const mockFilter = vi.fn();
       ItemFilter.blockOnly.mockReturnValue(mockFilter);
 
       const result = ContextMerger.merge(
@@ -241,7 +242,7 @@ describe('ContextMerger', () => {
     });
 
     it('should handle singleItem option with filtering', () => {
-      const mockFilter = jest.fn();
+      const mockFilter = vi.fn();
       ItemFilter.allowOnly.mockReturnValue(mockFilter);
 
       const result = ContextMerger.merge(
@@ -257,7 +258,7 @@ describe('ContextMerger', () => {
     });
 
     it('should handle matchPattern option with filtering', () => {
-      const mockFilter = jest.fn();
+      const mockFilter = vi.fn();
       const pattern = /data\.player/;
       ItemFilter.matchPattern.mockReturnValue(mockFilter);
 
@@ -274,8 +275,8 @@ describe('ContextMerger', () => {
     });
 
     it('should handle customFilter option with filtering', () => {
-      const mockFilter = jest.fn();
-      const customFunction = jest.fn();
+      const mockFilter = vi.fn();
+      const customFunction = vi.fn();
       ItemFilter.custom.mockReturnValue(mockFilter);
 
       const result = ContextMerger.merge(
@@ -291,7 +292,7 @@ describe('ContextMerger', () => {
     });
 
     it('should preserve existing onConflict function', () => {
-      const customOnConflict = jest.fn();
+      const customOnConflict = vi.fn();
 
       const result = ContextMerger.merge(
         mockSourceContext,
@@ -342,7 +343,7 @@ describe('ContextMerger', () => {
     });
 
     it('should handle onConflict resolver', () => {
-      const onConflict = jest.fn().mockReturnValue(mockSourceItem);
+      const onConflict = vi.fn().mockReturnValue(mockSourceItem);
       ContextComparison.compare.mockReturnValue({
         result: ContextComparison.COMPARISON_RESULTS.TARGET_NEWER
       });
@@ -612,10 +613,10 @@ describe('ContextMerger', () => {
 
     it('should handle components with no items', () => {
       const emptyContainer = {
-        keys: jest.fn(() => []),
-        getItem: jest.fn(),
-        hasItem: jest.fn(() => false),
-        setItem: jest.fn()
+        keys: vi.fn(() => []),
+        getItem: vi.fn(),
+        hasItem: vi.fn(() => false),
+        setItem: vi.fn()
       };
 
       const contextWithEmptyComponent = {
@@ -698,7 +699,7 @@ describe('ContextMerger', () => {
     it('should preserve metadata when option is set', () => {
       const itemWithMetadata = {
         ...mockSourceItem,
-        setMetadata: jest.fn()
+        setMetadata: vi.fn()
       };
 
       // Mock setItem implementation on one of the target containers
@@ -770,13 +771,13 @@ describe('ContextMerger', () => {
           keys: () => ['player', 'world', 'settings'],
           getItem: (key) => ({ value: `source ${key}`, modifiedAt: new Date() }),
           hasItem: () => true,
-          setItem: jest.fn()
+          setItem: vi.fn()
         },
         flags: {
           keys: () => ['feature1', 'feature2'],
           getItem: (key) => ({ value: true, modifiedAt: new Date() }),
           hasItem: () => true,
-          setItem: jest.fn()
+          setItem: vi.fn()
         },
         constants: mockSourceContainer,
         manifest: mockSourceContainer,
@@ -825,7 +826,7 @@ describe('ContextMerger', () => {
         keys: () => Array.from({ length: 100 }, (_, i) => `item${i}`),
         getItem: (key) => ({ value: `value ${key}`, modifiedAt: new Date() }),
         hasItem: () => true,
-        setItem: jest.fn()
+        setItem: vi.fn()
       };
 
       const largeContext = {

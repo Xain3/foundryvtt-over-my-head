@@ -4,6 +4,7 @@
  * @path /tests/setup/aliases.setup.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'jsonc-parser';

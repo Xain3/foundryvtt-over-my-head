@@ -4,6 +4,7 @@
  * @path src/utils/hookFormatter.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import HookFormatter from './hookFormatter.mjs';
 
 describe('HookFormatter', () => {
@@ -30,7 +31,7 @@ describe('HookFormatter', () => {
       version: '1.0.0'
     };
 
-    mockFormatError = jest.fn().mockImplementation((message, options) => {
+    mockFormatError = vi.fn().mockImplementation((message, options) => {
       if (options && options.includeCaller && options.caller) {
         return `OMH ${options.caller}: ${message}`;
       }

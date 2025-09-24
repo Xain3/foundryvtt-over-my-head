@@ -4,8 +4,9 @@
  * @path src/helpers/moduleGetter.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 // Mock config before any imports
-jest.mock('@config', () => ({
+vi.mock('@config', () => ({
   constants: {
     moduleManagement: {
       defaults: {
@@ -15,7 +16,7 @@ jest.mock('@config', () => ({
   }
 }));
 
-jest.mock('./pathUtils.mjs');
+vi.mock('./pathUtils.mjs');
 
 import { getModule } from './moduleGetter.mjs';
 import PathUtils from './pathUtils.mjs';
@@ -30,7 +31,7 @@ describe('getModule', () => {
 
   beforeEach(() => {
     mockModulesCollection = {
-      get: jest.fn()
+      get: vi.fn()
     };
     mockGlobalNamespace = {
       game: {
@@ -39,9 +40,9 @@ describe('getModule', () => {
     };
 
     // Set up PathUtils mock
-    PathUtils.resolvePath = jest.fn();
+    PathUtils.resolvePath = vi.fn();
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Input Validation', () => {

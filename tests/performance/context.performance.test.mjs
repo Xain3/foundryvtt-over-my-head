@@ -4,6 +4,7 @@
  * @path src/contexts/context.performance.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import Context from '@contexts/context.mjs';
 import { ContextItem } from '@contexts/helpers/contextItem.mjs';
 import { ContextContainer } from '@contexts/helpers/contextContainer.mjs';

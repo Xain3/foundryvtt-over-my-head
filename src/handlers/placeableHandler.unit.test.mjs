@@ -1,3 +1,4 @@
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import PlaceableHandler from './placeableHandler.mjs';
 import PlaceableGetter from './placeableHelpers/placeableGetter.mjs';
 import PlaceableChecker from './placeableHelpers/placeableChecker.mjs';
@@ -11,10 +12,10 @@ import Handler from '../baseClasses/handler.mjs';
  */
 
 // Mock the dependencies
-jest.mock('./placeableHelpers/placeableGetter.mjs');
-jest.mock('./placeableHelpers/placeableChecker.mjs');
-jest.mock('./placeableHelpers/placeableSetter.mjs');
-jest.mock('../baseClasses/handler.mjs');
+vi.mock('./placeableHelpers/placeableGetter.mjs');
+vi.mock('./placeableHelpers/placeableChecker.mjs');
+vi.mock('./placeableHelpers/placeableSetter.mjs');
+vi.mock('../baseClasses/handler.mjs');
 
 describe('PlaceableHandler', () => {
     let placeableHandler;
@@ -27,30 +28,30 @@ describe('PlaceableHandler', () => {
 
     beforeEach(() => {
         // Reset mocks
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         
         // Setup mocks
         mockConfig = { someConfig: 'value' };
         mockContext = { someContext: 'value' };
-        mockUtils = { someUtil: jest.fn() };
+        mockUtils = { someUtil: vi.fn() };
         
         mockGetter = {
-            getAllPlaceables: jest.fn().mockReturnValue([]),
-            getCorner: jest.fn(),
-            getCenter: jest.fn(),
-            getElevation: jest.fn(),
-            getRectBounds: jest.fn(),
-            getPosition: jest.fn()
+            getAllPlaceables: vi.fn().mockReturnValue([]),
+            getCorner: vi.fn(),
+            getCenter: vi.fn(),
+            getElevation: vi.fn(),
+            getRectBounds: vi.fn(),
+            getPosition: vi.fn()
         };
         
         mockSetter = {
-            setCurrentPlaceable: jest.fn()
+            setCurrentPlaceable: vi.fn()
         };
         
         mockChecker = {
-            isSelected: jest.fn(),
-            isUnder: jest.fn(),
-            isOver: jest.fn()
+            isSelected: vi.fn(),
+            isUnder: vi.fn(),
+            isOver: vi.fn()
         };
         
         // Setup mock implementations

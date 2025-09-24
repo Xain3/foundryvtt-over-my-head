@@ -1,3 +1,4 @@
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 const path = require('path');
 const fs = require('fs');
 const Ajv = require('ajv');

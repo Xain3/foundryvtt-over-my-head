@@ -4,6 +4,7 @@
  * @path src/handlers/settingsHelpers/settingsChecker.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import SettingsChecker from './settingsChecker.mjs';
 
 describe('SettingsChecker', () => {

@@ -4,6 +4,7 @@
  * @path tests/integration/buildAndDeploy.int.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { jest } from '@jest/globals';
 import fs from 'fs';
 import os from 'os';
@@ -11,7 +12,7 @@ import path from 'path';
 import { spawn } from 'child_process';
 
 // Mock external dependencies but allow real file operations for testing
-jest.mock('child_process');
+vi.mock('child_process');
 
 describe('BuildAndDeploy Integration Tests', () => {
   let tempDir;
@@ -66,27 +67,27 @@ describe('BuildAndDeploy Integration Tests', () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Mock spawn to return a mock process
     const mockProcess = {
       stdout: {
-        setEncoding: jest.fn(),
-        on: jest.fn()
+        setEncoding: vi.fn(),
+        on: vi.fn()
       },
       stderr: {
-        setEncoding: jest.fn(),
-        on: jest.fn()
+        setEncoding: vi.fn(),
+        on: vi.fn()
       },
-      on: jest.fn(),
-      kill: jest.fn()
+      on: vi.fn(),
+      kill: vi.fn()
     };
     spawn.mockReturnValue(mockProcess);
 
     global.console = {
-      log: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn()
+      log: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn()
     };
 
     // Create mock module.json in the project root for testing
@@ -184,7 +185,7 @@ describe('BuildAndDeploy Integration Tests', () => {
   if (!fs.existsSync(emptyAssetsDir)) fs.mkdirSync(emptyAssetsDir);
 
   // Mock the date string to assert timestamp in log deterministically
-  const dateSpy = jest.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
+  const dateSpy = vi.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
 
   const deployer = new ModuleDeployer(mockModuleDir);
   expect(() => deployer.deploy()).not.toThrow();

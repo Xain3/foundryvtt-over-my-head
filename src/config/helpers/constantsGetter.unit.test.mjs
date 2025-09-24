@@ -4,6 +4,7 @@
  * @path src/config/helpers/constantsGetter.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import ConstantsGetter from './constantsGetter.mjs';
 
 describe('ConstantsGetter', () => {
@@ -11,14 +12,14 @@ describe('ConstantsGetter', () => {
   const mockCustomFile = 'custom.yaml';
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Clear console mocks
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('returns bundled YAML content with default parameters', () => {
@@ -83,7 +84,7 @@ describe('ConstantsGetter', () => {
     // We need to test this by mocking the import to return undefined
     // Since we can't easily mock the import after it's already loaded,
     // we'll test the error handling through the existing implementation
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     
     // This test verifies that if somehow the bundled content was missing,
     // the error would be handled properly. In practice, this should not happen

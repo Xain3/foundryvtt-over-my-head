@@ -4,6 +4,7 @@
  * @path src/handlers/placeableHelpers/config.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { CHECK_TYPES, POSITION_USES, METHOD_KEYS } from './config.mjs';
 
 describe('PlaceableHelpers Config Integration', () => {

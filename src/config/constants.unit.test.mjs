@@ -4,12 +4,13 @@
  * @path src/constants/constants.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 const mockObject = { testKey: 'testValue' };
 
 // Create mock function that we can track
-const mockConstructor = jest.fn();
+const mockConstructor = vi.fn();
 
-jest.mock('./helpers/constantsBuilder.mjs', () => ({
+vi.mock('./helpers/constantsBuilder.mjs', () => ({
   __esModule: true,
   default: mockConstructor,
 }));
@@ -18,7 +19,7 @@ describe('constants module', () => {
   let constantsModule;
 
   beforeEach(() => {
-    jest.resetModules();
+    vi.resetModules();
     mockConstructor.mockClear();
     mockConstructor.mockImplementation(() => ({
       asObject: mockObject,

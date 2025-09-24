@@ -4,14 +4,15 @@
  * @path src/handlers/settingsHelpers/settingsParser.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import SettingsParser from './settingsParser.mjs';
 import SettingsChecker from './settingsChecker.mjs';
 import FlagEvaluator from './flagEvaluator.mjs';
 
 // Jest Mocks
-jest.mock('./settingsChecker.mjs');
-jest.mock('./flagEvaluator.mjs');
-jest.mock('@/baseClasses/handler', () => {
+vi.mock('./settingsChecker.mjs');
+vi.mock('./flagEvaluator.mjs');
+vi.mock('@/baseClasses/handler', () => {
   return class MockHandler {
     constructor(config, utils, context) {
       this.config = config;
@@ -23,15 +24,15 @@ jest.mock('@/baseClasses/handler', () => {
 
 // Mock global Hooks early for all tests
 global.Hooks = {
-  call: jest.fn(),
-  callAll: jest.fn()
+  call: vi.fn(),
+  callAll: vi.fn()
 };
 
 // --- Type Normalization Tests (merged) ---
 describe('SettingsParser type normalization', () => {
   let parser;
   const baseConfig = { constants: { settings: { requiredKeys: ['key', 'config.name', 'config.type'] } } };
-  const smallUtils = { formatError: (e) => String(e), logWarning: jest.fn(), logDebug: jest.fn(), formatHookName: (x) => x };
+  const smallUtils = { formatError: (e) => String(e), logWarning: vi.fn(), logDebug: vi.fn(), formatHookName: (x) => x };
   const smallContext = {};
 
   beforeEach(() => {
@@ -40,7 +41,7 @@ describe('SettingsParser type normalization', () => {
   // Ensure validation passes in this suite
   SettingsChecker.check.mockReturnValue(true);
   // Ensure flag evaluation passes in this suite
-  FlagEvaluator.shouldShow = jest.fn().mockReturnValue(true);
+  FlagEvaluator.shouldShow = vi.fn().mockReturnValue(true);
   });
 
   const makeSetting = (typeVal) => ({
@@ -118,9 +119,9 @@ describe('SettingsParser type normalization', () => {
 // --- Original Unit Tests ---
 const makeUtils = () => ({
   formatError: (msg) => msg,
-  logWarning: jest.fn(),
-  logDebug: jest.fn(),
-  formatHookName: jest.fn((hookName) => `FORMATTED_${hookName}`),
+  logWarning: vi.fn(),
+  logDebug: vi.fn(),
+  formatHookName: vi.fn((hookName) => `FORMATTED_${hookName}`),
 });
 
 const makeConfig = (requiredKeys = ['key', 'name', 'scope']) => ({
@@ -133,9 +134,9 @@ const context = {};
 
 describe('SettingsParser', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Ensure flag evaluation passes by default for existing tests
-    FlagEvaluator.shouldShow = jest.fn().mockReturnValue(true);
+    FlagEvaluator.shouldShow = vi.fn().mockReturnValue(true);
   });
 
   it('parses an array of valid settings successfully', () => {
@@ -251,7 +252,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
 
   beforeEach(() => {
     // Reset all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     global.Hooks.call.mockClear();
     global.Hooks.callAll.mockClear();
 
@@ -269,10 +270,10 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
     mockContext = {};
 
     mockUtils = {
-      formatError: jest.fn((message) => `ERROR: ${message}`),
-      logWarning: jest.fn(),
-      logDebug: jest.fn(),
-      formatHookName: jest.fn((hookName) => `OMH${hookName}`)
+      formatError: vi.fn((message) => `ERROR: ${message}`),
+      logWarning: vi.fn(),
+      logDebug: vi.fn(),
+      formatHookName: vi.fn((hookName) => `OMH${hookName}`)
     };
 
     settingsParser = new SettingsParser(mockConfig, mockUtils, mockContext);
@@ -280,7 +281,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
     // Mock SettingsChecker to return true by default
     SettingsChecker.check.mockReturnValue(true);
     // Mock FlagEvaluator to return true by default for existing tests
-    FlagEvaluator.shouldShow = jest.fn().mockReturnValue(true);
+    FlagEvaluator.shouldShow = vi.fn().mockReturnValue(true);
   });
 
   describe('onChange hook functionality', () => {
@@ -417,7 +418,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
     });
 
     it('should handle onChange callback errors gracefully', () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation();
       global.Hooks.callAll.mockImplementation(() => {
         throw new Error('Hook call failed');
       });
@@ -534,19 +535,19 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
     };
     const mockUtils = { 
       formatError: (e) => String(e), 
-      logWarning: jest.fn(), 
-      logDebug: jest.fn() 
+      logWarning: vi.fn(), 
+      logDebug: vi.fn() 
     };
     const mockContext = {};
 
     beforeEach(() => {
       parser = new SettingsParser(mockConfig, mockUtils, mockContext);
       SettingsChecker.check.mockReturnValue(true);
-      FlagEvaluator.shouldShow = jest.fn();
+      FlagEvaluator.shouldShow = vi.fn();
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should parse settings when flags allow showing', () => {
@@ -674,18 +675,18 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
     };
     const mockUtils = { 
       formatError: (e) => String(e), 
-      logWarning: jest.fn(), 
-      logDebug: jest.fn() 
+      logWarning: vi.fn(), 
+      logDebug: vi.fn() 
     };
     const mockContext = {};
 
     beforeEach(() => {
       parser = new SettingsParser(mockConfig, mockUtils, mockContext);
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should differentiate mixed planned and unplanned failures', () => {

@@ -4,6 +4,7 @@
  * @path tests/mocks/MockSettings.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import MockSettings from './MockSettings.mjs';
 
 describe('MockSettings', () => {

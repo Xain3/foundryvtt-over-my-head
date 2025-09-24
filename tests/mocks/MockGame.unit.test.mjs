@@ -4,6 +4,7 @@
  * @path tests/mocks/MockGame.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import MockGame, { MockScene, MockFolder } from './MockGame.mjs';
 import MockCollection from './MockCollection.mjs';
 import MockSettings from './MockSettings.mjs';

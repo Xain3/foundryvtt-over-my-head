@@ -4,6 +4,7 @@
  * @path src/handlers/placeableHelpers/positionChecker.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import PositionChecker from './positionChecker.mjs';
 
 describe('PositionChecker', () => {
@@ -14,7 +15,7 @@ describe('PositionChecker', () => {
     let mockLogger;
 
     beforeEach(() => {
-    mockLogger = { warn: jest.fn() };
+    mockLogger = { warn: vi.fn() };
     mockUtils = { logger: mockLogger };
     mockConfig = { constants: {} };
     mockContext = {};
@@ -86,7 +87,7 @@ describe('PositionChecker', () => {
 
     describe('check', () => {
         it('should call a function named checkMethod with correct parameters', () => {
-            const mockCheckMethod = jest.fn();
+            const mockCheckMethod = vi.fn();
             positionChecker.checkMethods[positionChecker.METHOD_KEYS.RECTANGLE_RECTANGLE] = mockCheckMethod;
 
             // Call check with valid parameters

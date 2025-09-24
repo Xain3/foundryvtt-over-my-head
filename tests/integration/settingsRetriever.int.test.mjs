@@ -4,14 +4,15 @@
  * @path tests/integration/settingsRetriever.int.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import SettingsRetriever from '../../src/helpers/settingsRetriever.mjs';
 
 // Mock Foundry VTT API
 global.game = {
   settings: {
-    register: jest.fn(),
-    get: jest.fn(),
-    set: jest.fn()
+    register: vi.fn(),
+    get: vi.fn(),
+    set: vi.fn()
   }
 };
 
@@ -20,15 +21,15 @@ describe('SettingsRetriever Integration Tests', () => {
   let retriever;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     retriever = new SettingsRetriever(testNamespace);
 
     // Ensure global.game is properly set up for each test
     global.game = {
       settings: {
-        register: jest.fn(),
-        get: jest.fn(),
-        set: jest.fn()
+        register: vi.fn(),
+        get: vi.fn(),
+        set: vi.fn()
       }
     };
 

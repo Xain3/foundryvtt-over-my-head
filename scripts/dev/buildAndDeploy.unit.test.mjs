@@ -4,19 +4,20 @@
  * @path scripts/dev/buildAndDeploy.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { jest } from '@jest/globals';
 
 // Mock dependencies first
-jest.mock('fs', () => ({
-  readFileSync: jest.fn(),
-  existsSync: jest.fn(),
-  statSync: jest.fn(),
-  mkdirSync: jest.fn(),
-  readdirSync: jest.fn(),
-  copyFileSync: jest.fn()
+vi.mock('fs', () => ({
+  readFileSync: vi.fn(),
+  existsSync: vi.fn(),
+  statSync: vi.fn(),
+  mkdirSync: vi.fn(),
+  readdirSync: vi.fn(),
+  copyFileSync: vi.fn()
 }));
-jest.mock('os');
-jest.mock('path');
+vi.mock('os');
+vi.mock('path');
 
 // Import mocked modules
 import fs from 'fs';
@@ -29,10 +30,10 @@ fs.readFileSync.mockReturnValue(JSON.stringify(mockModuleJson));
 
 // Mock ViteRunner
 const mockViteRunner = {
-  start: jest.fn().mockResolvedValue()
+  start: vi.fn().mockResolvedValue()
 };
-jest.mock('../build/runViteWIthAction.mjs', () => {
-  return jest.fn().mockImplementation(() => mockViteRunner);
+vi.mock('../build/runViteWIthAction.mjs', () => {
+  return vi.fn().mockImplementation(() => mockViteRunner);
 });
 
 // Import after mocking
@@ -46,7 +47,7 @@ import {
 
 describe('UserDataDirFinder', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Setup fs mocks with proper return values
     fs.readFileSync.mockReturnValue(JSON.stringify(mockModuleJson));
@@ -58,9 +59,9 @@ describe('UserDataDirFinder', () => {
 
     // Setup console mocks
     global.console = {
-      log: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn()
+      log: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn()
     };
   });
 
@@ -159,12 +160,12 @@ describe('UserDataDirFinder', () => {
 
 describe('ModuleDirManager', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     global.console = {
-      log: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn()
+      log: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn()
     };
   });
 
@@ -263,12 +264,12 @@ describe('ModuleDirManager', () => {
 
 describe('ModuleBuilder', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     global.console = {
-      log: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn()
+      log: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn()
     };
   });
 
@@ -280,8 +281,8 @@ describe('ModuleBuilder', () => {
     });
 
     it('should initialize with custom options', () => {
-      const preBuildAction = jest.fn();
-      const postBuildAction = jest.fn();
+      const preBuildAction = vi.fn();
+      const postBuildAction = vi.fn();
 
       const builder = new ModuleBuilder({
         watch: true,
@@ -307,7 +308,7 @@ describe('ModuleBuilder', () => {
   describe('buildWithWatch()', () => {
     it('should start vite runner with watch mode', async () => {
       const builder = new ModuleBuilder();
-      const postBuildAction = jest.fn();
+      const postBuildAction = vi.fn();
 
       await builder.buildWithWatch(postBuildAction);
 
@@ -319,12 +320,12 @@ describe('ModuleBuilder', () => {
 
 describe('ModuleDeployer', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     global.console = {
-      log: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn()
+      log: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn()
     };
   });
 
@@ -376,7 +377,7 @@ describe('ModuleDeployer', () => {
       path.basename.mockImplementation((filePath) => filePath.split('/').pop());
 
       // Mock Date.prototype.toLocaleString to pass an arbitrary value
-      const dateSpy = jest.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
+      const dateSpy = vi.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
 
       deployer.deploy();
 
@@ -408,7 +409,7 @@ describe('ModuleDeployer', () => {
 
 describe('BuildAndDeploy', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Mock successful directory finding
     fs.existsSync.mockReturnValue(true);
@@ -418,9 +419,9 @@ describe('BuildAndDeploy', () => {
     path.join.mockImplementation((...parts) => parts.join('/'));
 
     global.console = {
-      log: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn()
+      log: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn()
     };
   });
 
@@ -471,7 +472,7 @@ describe('BuildAndDeploy', () => {
   os.userInfo.mockReturnValue({ username: 'testuser' });
 
   // Bypass import-time platform caching by stubbing the finder result directly
-  const finderSpy = jest.spyOn(UserDataDirFinder.prototype, 'find').mockReturnValue('/home/testuser/.local/share/FoundryVTT');
+  const finderSpy = vi.spyOn(UserDataDirFinder.prototype, 'find').mockReturnValue('/home/testuser/.local/share/FoundryVTT');
 
       // Setup fs mocks to ensure directory finding works
       fs.existsSync.mockImplementation((filePath) => {
@@ -526,7 +527,7 @@ describe('BuildAndDeploy', () => {
 
 describe('Integration', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Setup successful mocks
     fs.existsSync.mockReturnValue(true);
@@ -537,9 +538,9 @@ describe('Integration', () => {
     path.join.mockImplementation((...parts) => parts.join('/'));
 
     global.console = {
-      log: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn()
+      log: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn()
     };
   });
 

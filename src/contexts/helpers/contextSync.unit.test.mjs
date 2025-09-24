@@ -5,6 +5,7 @@
 
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { ContextSync } from './contextSync.mjs';
 import { ContextItem } from './contextItem.mjs';
 import { ContextContainer } from './contextContainer.mjs';
@@ -16,16 +17,16 @@ import ContextContainerSync from './contextContainerSync.mjs';
 import ContextLegacySync from './contextLegacySync.mjs';
 
 // Jest Mocks
-jest.mock('./contextAutoSync.mjs');
-jest.mock('./contextItemSync.mjs');
-jest.mock('./contextContainerSync.mjs');
-jest.mock('./contextLegacySync.mjs');
-jest.mock('./contextComparison.mjs');
-jest.mock('../context.mjs');
-jest.mock('./contextMerger.mjs', () => ({
+vi.mock('./contextAutoSync.mjs');
+vi.mock('./contextItemSync.mjs');
+vi.mock('./contextContainerSync.mjs');
+vi.mock('./contextLegacySync.mjs');
+vi.mock('./contextComparison.mjs');
+vi.mock('../context.mjs');
+vi.mock('./contextMerger.mjs', () => ({
   __esModule: true,
   default: {
-    merge: jest.fn()
+    merge: vi.fn()
   }
 }));
 
@@ -53,7 +54,7 @@ describe('ContextSync', () => {
     });
     ContextLegacySync.performLegacySync.mockReturnValue({ success: true, operation: 'test', changes: [] });
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('compare', () => {

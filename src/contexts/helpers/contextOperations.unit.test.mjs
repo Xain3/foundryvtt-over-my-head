@@ -4,6 +4,7 @@
  * @path src/contexts/helpers/contextOperations.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import ContextOperations from './contextOperations.mjs';
 import ContextContainerSync from './contextContainerSync.mjs';
 import ContextItemSync from './contextItemSync.mjs';
@@ -14,9 +15,9 @@ import { ContextContainer } from './contextContainer.mjs';
 import { ContextItem } from './contextItem.mjs';
 
 // Mock the sync modules and ContextMerger
-jest.mock('./contextContainerSync.mjs');
-jest.mock('./contextItemSync.mjs');
-jest.mock('./contextMerger.mjs');
+vi.mock('./contextContainerSync.mjs');
+vi.mock('./contextItemSync.mjs');
+vi.mock('./contextMerger.mjs');
 
 describe('ContextOperations', () => {
   let mockContainer1, mockContainer2, mockContainer3, mockTargetContainer, mockTargetContainer2;
@@ -24,7 +25,7 @@ describe('ContextOperations', () => {
   let mockContainerSyncResult, mockItemSyncResult, mockResult;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Create mock ContextContainer objects
     mockContainer1 = {};
@@ -87,7 +88,7 @@ describe('ContextOperations', () => {
       conflicts: 0,
       changes: [{ type: 'update', path: 'data.value' }]
     };
-    ContextMerger.merge = jest.fn().mockReturnValue(mockResult);
+    ContextMerger.merge = vi.fn().mockReturnValue(mockResult);
   });
 
   describe('pushItems', () => {
@@ -626,7 +627,7 @@ describe('ContextOperations', () => {
     describe('blockOnly and excludePaths filtering', () => {
       beforeEach(() => {
         // Setup the mock return value for ContextMerger.merge
-        ContextMerger.merge = jest.fn().mockReturnValue({
+        ContextMerger.merge = vi.fn().mockReturnValue({
           success: true,
           operation: 'merge',
           itemsProcessed: 2,
@@ -635,7 +636,7 @@ describe('ContextOperations', () => {
       });
 
       afterEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
       });
 
       it('should use ContextMerger when blockOnly is specified', () => {

@@ -4,8 +4,9 @@
  * @path src/constants/manifest.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 // Mock the module.json import
-jest.mock('../../module.json', () => ({
+vi.mock('../../module.json', () => ({
   id: "test-module",
   title: "Test Module",
   description: "A test module",
@@ -20,21 +21,21 @@ const mockValidatedManifest = {
   version: "1.0.0"
 };
 
-const mockGetValidatedManifest = jest.fn().mockReturnValue(mockValidatedManifest);
-const MockManifestParser = jest.fn().mockImplementation(() => ({
+const mockGetValidatedManifest = vi.fn().mockReturnValue(mockValidatedManifest);
+const MockManifestParser = vi.fn().mockImplementation(() => ({
   getValidatedManifest: mockGetValidatedManifest
 }));
 
-jest.mock('./helpers/manifestParser.mjs', () => ({
+vi.mock('./helpers/manifestParser.mjs', () => ({
   __esModule: true,
   default: MockManifestParser
 }));
 
 describe('manifest module delegation', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Reset modules to ensure fresh imports
-    jest.resetModules();
+    vi.resetModules();
   });
 
   it('should export the validated manifest object directly', () => {

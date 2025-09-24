@@ -4,12 +4,13 @@
  * @path src/handlers/settingsHelpers/settingsRegistrar.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import SettingsRegistrar from './settingsRegistrar.mjs';
 import MockSettings from '../../../tests/mocks/MockSettings.mjs';
 import FlagEvaluator from './flagEvaluator.mjs';
 
 // Jest Mocks
-jest.mock('./flagEvaluator.mjs');
+vi.mock('./flagEvaluator.mjs');
 
 describe('SettingsRegistrar', () => {
   let registrar;
@@ -31,8 +32,8 @@ describe('SettingsRegistrar', () => {
 
     // Setup mock utils
     mockUtils = {
-      formatError: jest.fn((message) => `Formatted: ${message}`),
-      logWarning: jest.fn()
+      formatError: vi.fn((message) => `Formatted: ${message}`),
+      logWarning: vi.fn()
     };
 
     // Setup mock game settings
@@ -44,13 +45,13 @@ describe('SettingsRegistrar', () => {
     };
 
     // Setup FlagEvaluator mock to return true by default (existing tests expect settings to register)
-    FlagEvaluator.shouldShow = jest.fn().mockReturnValue(true);
+    FlagEvaluator.shouldShow = vi.fn().mockReturnValue(true);
   });
 
   afterEach(() => {
     // Clean up global mocks
     delete globalThis.game;
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Constructor', () => {
@@ -221,7 +222,7 @@ describe('SettingsRegistrar', () => {
     describe('Error Cases', () => {
       it('should handle registration errors gracefully', () => {
         // Mock register to throw an error
-        mockGameSettings.register = jest.fn(() => {
+        mockGameSettings.register = vi.fn(() => {
           throw new Error('Registration failed');
         });
 
@@ -237,7 +238,7 @@ describe('SettingsRegistrar', () => {
       });
 
       it('should handle complex registration errors', () => {
-        mockGameSettings.register = jest.fn(() => {
+        mockGameSettings.register = vi.fn(() => {
           throw new Error('Duplicate setting key');
         });
 
@@ -472,7 +473,7 @@ describe('SettingsRegistrar', () => {
     describe('Error Handling', () => {
       it('should handle registration errors during batch registration', () => {
         let callCount = 0;
-        mockGameSettings.register = jest.fn(() => {
+        mockGameSettings.register = vi.fn(() => {
           callCount++;
           if (callCount === 2) {
             throw new Error('Second registration failed');
@@ -790,11 +791,11 @@ describe('SettingsRegistrar', () => {
   describe('Flag conditional registration', () => {
     beforeEach(() => {
       registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils);
-      FlagEvaluator.shouldShow = jest.fn();
+      FlagEvaluator.shouldShow = vi.fn();
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should register settings when flags allow showing', () => {
@@ -954,16 +955,16 @@ describe('SettingsRegistrar', () => {
   describe('Enhanced Failure Reporting', () => {
     beforeEach(() => {
       registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils);
-      FlagEvaluator.shouldShow = jest.fn();
+      FlagEvaluator.shouldShow = vi.fn();
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should differentiate between planned exclusions and unplanned failures', () => {
       // Set up mixed scenario: one setting hidden by flags, one with validation error
-      FlagEvaluator.shouldShow = jest.fn()
+      FlagEvaluator.shouldShow = vi.fn()
         .mockReturnValueOnce(false) // first setting hidden by flags (planned)
         .mockReturnValueOnce(true); // second setting passes flags but fails validation (unplanned)
 
@@ -991,7 +992,7 @@ describe('SettingsRegistrar', () => {
     });
 
     it('should handle planned-only exclusions', () => {
-      FlagEvaluator.shouldShow = jest.fn().mockReturnValue(false);
+      FlagEvaluator.shouldShow = vi.fn().mockReturnValue(false);
 
       const settings = [
         {
@@ -1018,7 +1019,7 @@ describe('SettingsRegistrar', () => {
     });
 
     it('should handle all-success cases', () => {
-      FlagEvaluator.shouldShow = jest.fn().mockReturnValue(true);
+      FlagEvaluator.shouldShow = vi.fn().mockReturnValue(true);
 
       const settings = [
         {
@@ -1043,7 +1044,7 @@ describe('SettingsRegistrar', () => {
     });
 
     it('should handle unplanned-only failures', () => {
-      FlagEvaluator.shouldShow = jest.fn().mockReturnValue(true);
+      FlagEvaluator.shouldShow = vi.fn().mockReturnValue(true);
 
       const settings = [
         {
@@ -1068,7 +1069,7 @@ describe('SettingsRegistrar', () => {
     });
 
     it('should handle mixed scenarios with both success and failures', () => {
-      FlagEvaluator.shouldShow = jest.fn()
+      FlagEvaluator.shouldShow = vi.fn()
         .mockReturnValueOnce(true)  // setting1: success
         .mockReturnValueOnce(false) // setting2: planned exclusion
         .mockReturnValueOnce(true); // setting3: unplanned failure

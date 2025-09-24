@@ -4,6 +4,7 @@
  * @path src/handlers/placeableHelpers/placeableGetter.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import PlaceableGetter from './placeableGetter.mjs';
 import Handler from '../../baseClasses/handler.mjs';
 
@@ -28,7 +29,7 @@ describe('PlaceableGetter', () => {
         
         mockUtils = {
             logger: {
-                warn: jest.fn()
+                warn: vi.fn()
             }
         };
         
@@ -56,7 +57,7 @@ describe('PlaceableGetter', () => {
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('constructor', () => {

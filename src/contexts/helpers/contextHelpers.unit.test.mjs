@@ -4,6 +4,7 @@
  * @path src/contexts/helpers/contextHelpers.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import ContextHelpers from './contextHelpers.mjs';
 import { ContextItem } from './contextItem.mjs';
 import { ContextContainer } from './contextContainer.mjs';
@@ -50,7 +51,7 @@ describe('ContextHelpers', () => {
 
     describe('sync()', () => {
       it('should delegate to ContextSync.sync', () => {
-        const syncSpy = jest.spyOn(ContextSync, 'sync').mockReturnValue({ success: true });
+        const syncSpy = vi.spyOn(ContextSync, 'sync').mockReturnValue({ success: true });
 
         const result = ContextHelpers.sync(sourceItem, targetItem, 'mergeNewerWins');
 
@@ -61,7 +62,7 @@ describe('ContextHelpers', () => {
       });
 
       it('should pass options to ContextSync.sync', () => {
-        const syncSpy = jest.spyOn(ContextSync, 'sync').mockReturnValue({ success: true });
+        const syncSpy = vi.spyOn(ContextSync, 'sync').mockReturnValue({ success: true });
         const options = { preserveMetadata: true };
 
         ContextHelpers.sync(sourceItem, targetItem, 'mergeSourcePriority', options);
@@ -74,7 +75,7 @@ describe('ContextHelpers', () => {
 
     describe('syncSafe()', () => {
       it('should delegate to ContextSync.syncSafe', () => {
-        const syncSafeSpy = jest.spyOn(ContextSync, 'syncSafe').mockReturnValue({ success: true });
+        const syncSafeSpy = vi.spyOn(ContextSync, 'syncSafe').mockReturnValue({ success: true });
 
         const result = ContextHelpers.syncSafe(sourceItem, targetItem, 'mergeNewerWins');
 
@@ -87,7 +88,7 @@ describe('ContextHelpers', () => {
 
     describe('autoSync()', () => {
       it('should delegate to ContextSync.autoSync', () => {
-        const autoSyncSpy = jest.spyOn(ContextSync, 'autoSync').mockReturnValue({ success: true });
+        const autoSyncSpy = vi.spyOn(ContextSync, 'autoSync').mockReturnValue({ success: true });
 
         const result = ContextHelpers.autoSync(sourceItem, targetItem);
 
@@ -100,7 +101,7 @@ describe('ContextHelpers', () => {
 
     describe('compare()', () => {
       it('should delegate to ContextComparison.compare', () => {
-        const compareSpy = jest.spyOn(ContextHelpers.Comparison, 'compare')
+        const compareSpy = vi.spyOn(ContextHelpers.Comparison, 'compare')
           .mockReturnValue({ result: 'equal' });
 
         const result = ContextHelpers.compare(sourceItem, targetItem);
@@ -114,7 +115,7 @@ describe('ContextHelpers', () => {
 
   describe('wrap()', () => {
       it('should delegate to ContextValueWrapper.wrap', () => {
-        const wrapSpy = jest.spyOn(ContextHelpers.ValueWrapper, 'wrap')
+        const wrapSpy = vi.spyOn(ContextHelpers.ValueWrapper, 'wrap')
           .mockReturnValue(new ContextItem('wrapped'));
 
         const result = ContextHelpers.wrap('test value');
@@ -128,7 +129,7 @@ describe('ContextHelpers', () => {
 
     describe('merge()', () => {
       it('should delegate to ContextMerger.merge', () => {
-        const mergeSpy = jest.spyOn(ContextHelpers.Merger, 'merge')
+        const mergeSpy = vi.spyOn(ContextHelpers.Merger, 'merge')
           .mockReturnValue({ success: true });
 
         const result = ContextHelpers.merge(sourceItem, targetItem, 'mergeNewerWins', { test: true });
@@ -140,7 +141,7 @@ describe('ContextHelpers', () => {
       });
 
       it('should use default parameters when not provided', () => {
-        const mergeSpy = jest.spyOn(ContextHelpers.Merger, 'merge')
+        const mergeSpy = vi.spyOn(ContextHelpers.Merger, 'merge')
           .mockReturnValue({ success: true });
 
         const result = ContextHelpers.merge(sourceItem, targetItem);
@@ -154,7 +155,7 @@ describe('ContextHelpers', () => {
 
     describe('resolveMixedPath()', () => {
       it('should delegate to ContextPathUtils.resolveMixedPath', () => {
-        const resolveSpy = jest.spyOn(ContextHelpers.PathUtils, 'resolveMixedPath')
+        const resolveSpy = vi.spyOn(ContextHelpers.PathUtils, 'resolveMixedPath')
           .mockReturnValue({ success: true, value: 'resolved' });
 
         const result = ContextHelpers.resolveMixedPath({ test: 'value' }, 'test');
@@ -168,7 +169,7 @@ describe('ContextHelpers', () => {
 
     describe('pathExists()', () => {
       it('should delegate to ContextPathUtils.pathExistsInMixedStructure', () => {
-        const pathExistsSpy = jest.spyOn(ContextHelpers.PathUtils, 'pathExistsInMixedStructure')
+        const pathExistsSpy = vi.spyOn(ContextHelpers.PathUtils, 'pathExistsInMixedStructure')
           .mockReturnValue(true);
 
         const result = ContextHelpers.pathExists({ test: 'value' }, 'test');
@@ -182,7 +183,7 @@ describe('ContextHelpers', () => {
 
     describe('getValueFromMixedPath()', () => {
       it('should delegate to ContextPathUtils.getValueFromMixedPath', () => {
-        const getValueSpy = jest.spyOn(ContextHelpers.PathUtils, 'getValueFromMixedPath')
+        const getValueSpy = vi.spyOn(ContextHelpers.PathUtils, 'getValueFromMixedPath')
           .mockReturnValue('resolved value');
 
         const result = ContextHelpers.getValueFromMixedPath({ test: 'value' }, 'test');

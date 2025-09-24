@@ -4,6 +4,7 @@
  * @path tests/integration/contextHelpers.smoke.int.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { ContextContainer } from '../../src/contexts/helpers/contextContainer.mjs';
 import { ContextItem } from '../../src/contexts/helpers/contextItem.mjs';
 import ContextComparison from '../../src/contexts/helpers/contextComparison.mjs';
@@ -12,8 +13,8 @@ import ContextItemSync from '../../src/contexts/helpers/contextItemSync.mjs';
 import ContextSync from '../../src/contexts/helpers/contextSync.mjs';
 import Validator from '@/utils/static/validator.mjs';
 
-jest.mock('../../src/helpers/pathUtils.mjs', () => ({
-  extractKeyComponents: jest.fn((key) => {
+vi.mock('../../src/helpers/pathUtils.mjs', () => ({
+  extractKeyComponents: vi.fn((key) => {
     const parts = key.split('.');
     return {
       firstKey: parts[0],

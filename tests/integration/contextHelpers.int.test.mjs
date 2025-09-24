@@ -4,6 +4,7 @@
  * @path tests/integration/contextHelpers.int.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { ContextContainer } from '../../src/contexts/helpers/contextContainer.mjs';
 import { ContextItem } from '../../src/contexts/helpers/contextItem.mjs';
 import ContextValueWrapper from '../../src/contexts/helpers/contextValueWrapper.mjs';

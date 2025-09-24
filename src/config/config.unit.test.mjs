@@ -1,3 +1,4 @@
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import config from './config.mjs';
 
 describe('Config.exportConstants', () => {
@@ -9,8 +10,8 @@ describe('Config.exportConstants', () => {
       }
     });
     // Mock console methods to capture output
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -240,9 +241,9 @@ describe('Config', () => {
       Object.keys(globalThis).forEach(key => {
         if (key.endsWith('Constants')) delete globalThis[key];
       });
-      jest.spyOn(console, 'info').mockImplementation(() => {});
-      jest.spyOn(console, 'log').mockImplementation(() => {});
-      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(console, 'info').mockImplementation(() => {});
+      vi.spyOn(console, 'log').mockImplementation(() => {});
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
     });
 
     afterEach(() => {

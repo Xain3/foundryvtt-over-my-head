@@ -3,6 +3,7 @@
  * Strategy: mock ComponentInstaller module by writing a temporary stub file to the same path via jest.mock using babel-jest CJS interop.
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -49,9 +50,9 @@ let consoleWarnSpy;
 let consoleLogSpy;
 
 beforeEach(() => {
-  jest.resetModules();
-  consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-  consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+  vi.resetModules();
+  consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 });
 
 afterEach(() => {

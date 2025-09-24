@@ -1,7 +1,8 @@
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import OverMyHead from './overMyHead.mjs';
 import * as mainModule from './main.mjs';
 
-jest.mock('./overMyHead.mjs');
+vi.mock('./overMyHead.mjs');
 
 describe('main entrypoint', () => {
   beforeEach(() => {
@@ -9,8 +10,8 @@ describe('main entrypoint', () => {
   });
 
   it('creates OverMyHead and calls enableDevFeatures and init', () => {
-    const mockEnable = jest.fn();
-    const mockInit = jest.fn();
+    const mockEnable = vi.fn();
+    const mockInit = vi.fn();
 
     OverMyHead.mockImplementation(() => ({ enableDevFeatures: mockEnable, init: mockInit }));
 

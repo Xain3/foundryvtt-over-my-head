@@ -4,11 +4,12 @@
  * @path scripts/dev/moduleBuilder.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import ModuleBuilder from './moduleBuilder.mjs';
 import ViteRunner from '../build/runViteWIthAction.mjs';
 
 // Mock dependencies
-jest.mock('../build/runViteWIthAction.mjs');
+vi.mock('../build/runViteWIthAction.mjs');
 
 describe('ModuleBuilder', () => {
   let mockViteRunner;
@@ -16,14 +17,14 @@ describe('ModuleBuilder', () => {
 
   beforeEach(() => {
     mockViteRunnerInstance = {
-      start: jest.fn().mockResolvedValue(undefined)
+      start: vi.fn().mockResolvedValue(undefined)
     };
     
     mockViteRunner = ViteRunner;
     mockViteRunner.mockImplementation(() => mockViteRunnerInstance);
     
     // Reset all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('constructor', () => {
@@ -39,8 +40,8 @@ describe('ModuleBuilder', () => {
     });
 
     it('should create instance with custom options', () => {
-      const preBuildAction = jest.fn();
-      const postBuildAction = jest.fn();
+      const preBuildAction = vi.fn();
+      const postBuildAction = vi.fn();
       const options = {
         watch: true,
         preBuildAction,
@@ -98,7 +99,7 @@ describe('ModuleBuilder', () => {
     let consoleSpy;
 
     beforeEach(() => {
-      consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      consoleSpy = vi.spyOn(console, 'log').mockImplementation();
     });
 
     afterEach(() => {
@@ -138,7 +139,7 @@ describe('ModuleBuilder', () => {
     let consoleSpy;
 
     beforeEach(() => {
-      consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      consoleSpy = vi.spyOn(console, 'log').mockImplementation();
     });
 
     afterEach(() => {
@@ -147,7 +148,7 @@ describe('ModuleBuilder', () => {
 
     it('should start build with watch mode successfully', async () => {
       const builder = new ModuleBuilder();
-      const postBuildAction = jest.fn();
+      const postBuildAction = vi.fn();
       
       await builder.buildWithWatch(postBuildAction);
       
@@ -161,12 +162,12 @@ describe('ModuleBuilder', () => {
 
     it('should handle watch build errors', async () => {
       const builder = new ModuleBuilder();
-      const postBuildAction = jest.fn();
+      const postBuildAction = vi.fn();
       const buildError = new Error('Watch build failed');
       
       // The second ViteRunner instance (created in buildWithWatch) should fail
       const secondMockViteRunnerInstance = {
-        start: jest.fn().mockRejectedValue(buildError)
+        start: vi.fn().mockRejectedValue(buildError)
       };
       
       mockViteRunner.mockImplementationOnce(() => mockViteRunnerInstance) // constructor
@@ -180,7 +181,7 @@ describe('ModuleBuilder', () => {
 
     it('should create new ViteRunner instance for watch mode', async () => {
       const builder = new ModuleBuilder({ watch: false });
-      const postBuildAction = jest.fn();
+      const postBuildAction = vi.fn();
       
       await builder.buildWithWatch(postBuildAction);
       
@@ -222,8 +223,8 @@ describe('ModuleBuilder', () => {
 
   describe('integration scenarios', () => {
     it('should work with both build methods in sequence', async () => {
-      const preBuildAction = jest.fn();
-      const postBuildAction = jest.fn();
+      const preBuildAction = vi.fn();
+      const postBuildAction = vi.fn();
       const builder = new ModuleBuilder({
         watch: false,
         preBuildAction,
@@ -294,7 +295,7 @@ describe('ModuleBuilder', () => {
       
       // Second ViteRunner instance should fail
       const failingInstance = {
-        start: jest.fn().mockRejectedValue(asyncError)
+        start: vi.fn().mockRejectedValue(asyncError)
       };
       
       mockViteRunner.mockImplementationOnce(() => mockViteRunnerInstance) // constructor
@@ -302,7 +303,7 @@ describe('ModuleBuilder', () => {
       
       const builder2 = new ModuleBuilder();
       
-      await expect(builder2.buildWithWatch(jest.fn())).rejects.toThrow('Async watch error');
+      await expect(builder2.buildWithWatch(vi.fn())).rejects.toThrow('Async watch error');
     });
   });
 });

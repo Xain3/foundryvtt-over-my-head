@@ -4,12 +4,13 @@
  * @path scripts/dev/moduleDirManager.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 // Mock fs at the top level
-jest.mock('fs', () => ({
-  existsSync: jest.fn(),
-  statSync: jest.fn(),
-  mkdirSync: jest.fn(),
-  readFileSync: jest.fn()
+vi.mock('fs', () => ({
+  existsSync: vi.fn(),
+  statSync: vi.fn(),
+  mkdirSync: vi.fn(),
+  readFileSync: vi.fn()
 }));
 
 import fs from 'fs';
@@ -18,8 +19,8 @@ describe('ModuleDirManager', () => {
   let ModuleDirManager;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.resetModules();
+    vi.clearAllMocks();
+    vi.resetModules();
 
     // Default fs mocks
     fs.existsSync.mockReturnValue(false);
@@ -144,7 +145,7 @@ describe('ModuleDirManager', () => {
     let logSpy;
 
     beforeEach(() => {
-      logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+      logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     });
 
     afterEach(() => {

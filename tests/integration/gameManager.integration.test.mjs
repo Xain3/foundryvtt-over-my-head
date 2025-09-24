@@ -4,6 +4,7 @@
  * @path src/utils/static/gameManager.integration.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import GameManager from '../../src/utils/static/gameManager.mjs';
 import config from '../../src/config/config.mjs';
 
@@ -23,7 +24,7 @@ describe('GameManager Integration Tests', () => {
 
         globalThis.game = {
             modules: {
-                get: jest.fn((id) => {
+                get: vi.fn((id) => {
                     if (id === 'foundryvtt-over-my-head') {
                         return mockModule;
                     }
@@ -35,7 +36,7 @@ describe('GameManager Integration Tests', () => {
 
     afterEach(() => {
         globalThis.game = originalGame;
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('Real manifest.mjs integration', () => {

@@ -1,16 +1,17 @@
-jest.mock('@/config/manifest', () => ({
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+vi.mock('@/config/manifest', () => ({
   id: 'test-module-id'
 }));
 
-jest.mock('@utils/static/validator', () => ({
-  validateObject: jest.fn(),
-  validateString: jest.fn()
+vi.mock('@utils/static/validator', () => ({
+  validateObject: vi.fn(),
+  validateString: vi.fn()
 }));
 
-jest.mock('@helpers/pathUtils.mjs');
+vi.mock('@helpers/pathUtils.mjs');
 
-jest.mock('@/helpers/moduleGetter', () => ({
-  getModule: jest.fn()
+vi.mock('@/helpers/moduleGetter', () => ({
+  getModule: vi.fn()
 }));
 
 import RootMapParser from './rootMapParser.mjs';
@@ -27,7 +28,7 @@ describe('RootMapParser', () => {
   let mockRootMap;
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   beforeEach(() => {
@@ -43,15 +44,15 @@ describe('RootMapParser', () => {
     };
 
     // Set up PathUtils mock
-    PathUtils.resolvePath = jest.fn();
+    PathUtils.resolvePath = vi.fn();
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Input Validation', () => {
     it('should validate rootMap parameter', () => {
       PathUtils.resolvePath.mockImplementation((namespace, path) => {
-        if (path === 'game.ui.notifications') return { notify: jest.fn() };
+        if (path === 'game.ui.notifications') return { notify: vi.fn() };
         if (path === 'game.data.nested') return { value: 'test' };
         return null;
       });
@@ -62,7 +63,7 @@ describe('RootMapParser', () => {
     });
 
     it('should validate key parameter when provided', () => {
-      PathUtils.resolvePath.mockReturnValue({ notify: jest.fn() });
+      PathUtils.resolvePath.mockReturnValue({ notify: vi.fn() });
 
       RootMapParser.parse({ rootMap: mockRootMap, key: 'element' });
       expect(Validator.validateString).toHaveBeenCalledWith('element', 'key');
@@ -70,7 +71,7 @@ describe('RootMapParser', () => {
 
     it('should validate namespace parameter', () => {
       PathUtils.resolvePath.mockImplementation((namespace, path) => {
-        if (path === 'game.ui.notifications') return { notify: jest.fn() };
+        if (path === 'game.ui.notifications') return { notify: vi.fn() };
         if (path === 'game.data.nested') return { value: 'test' };
         return null;
       });
@@ -82,7 +83,7 @@ describe('RootMapParser', () => {
 
     it('should validate module parameter', () => {
       PathUtils.resolvePath.mockImplementation((namespace, path) => {
-        if (path === 'game.ui.notifications') return { notify: jest.fn() };
+        if (path === 'game.ui.notifications') return { notify: vi.fn() };
         if (path === 'game.data.nested') return { value: 'test' };
         return null;
       });
@@ -94,7 +95,7 @@ describe('RootMapParser', () => {
 
     it('should use default namespace when not provided', () => {
       PathUtils.resolvePath.mockImplementation((namespace, path) => {
-        if (path === 'game.ui.notifications') return { notify: jest.fn() };
+        if (path === 'game.ui.notifications') return { notify: vi.fn() };
         if (path === 'game.data.nested') return { value: 'test' };
         return null;
       });
@@ -106,7 +107,7 @@ describe('RootMapParser', () => {
 
     it('should use manifest ID as default module', () => {
       PathUtils.resolvePath.mockImplementation((namespace, path) => {
-        if (path === 'game.ui.notifications') return { notify: jest.fn() };
+        if (path === 'game.ui.notifications') return { notify: vi.fn() };
         if (path === 'game.data.nested') return { value: 'test' };
         return null;
       });
@@ -120,7 +121,7 @@ describe('RootMapParser', () => {
   describe('Successful Cases', () => {
     it('should parse entire root map with string values', () => {
       PathUtils.resolvePath.mockImplementation((namespace, path) => {
-        if (path === 'game.ui.notifications') return { notify: jest.fn() };
+        if (path === 'game.ui.notifications') return { notify: vi.fn() };
         if (path === 'game.data.nested') return { value: 'test' };
         return null;
       });
@@ -136,7 +137,7 @@ describe('RootMapParser', () => {
     });
 
     it('should parse specific key from root map', () => {
-      PathUtils.resolvePath.mockReturnValue({ notify: jest.fn() });
+      PathUtils.resolvePath.mockReturnValue({ notify: vi.fn() });
 
       const result = RootMapParser.parse({
         rootMap: mockRootMap,
@@ -459,9 +460,9 @@ describe('RootMapParser', () => {
 
       PathUtils.resolvePath.mockImplementation((namespace, path) => {
         const mockObjects = {
-          'game.ui.notifications': { notify: jest.fn(), warn: jest.fn() },
-          'game.settings': { get: jest.fn(), set: jest.fn() },
-          'game.hooks': { on: jest.fn(), off: jest.fn() }
+          'game.ui.notifications': { notify: vi.fn(), warn: vi.fn() },
+          'game.settings': { get: vi.fn(), set: vi.fn() },
+          'game.hooks': { on: vi.fn(), off: vi.fn() }
         };
         return mockObjects[path];
       });
@@ -469,7 +470,7 @@ describe('RootMapParser', () => {
       getModule.mockReturnValue({
         id: 'dice-so-nice',
         active: true,
-        api: { showForRoll: jest.fn() }
+        api: { showForRoll: vi.fn() }
       });
 
       const result = RootMapParser.parse({
@@ -500,7 +501,7 @@ describe('RootMapParser', () => {
         if (path === 'main-module') {
           return { id: 'main-module', dependencies: ['dependency'] };
         }
-        return { someMethod: jest.fn() };
+        return { someMethod: vi.fn() };
       });
 
       const result = RootMapParser.parse({

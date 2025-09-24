@@ -4,6 +4,7 @@
  * @path tests/setup/module.json.setup.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import moduleManifest, { id, title, description, version, compatibility, esmodules, scripts, styles, packs, packFolders, relationships, languages, system, authors, socket, url, manifest, download, license, readme, bugs, changelog, library, media as _media, flags, name } from '../../module.json';
 
 describe('Module Manifest Validation', () => {

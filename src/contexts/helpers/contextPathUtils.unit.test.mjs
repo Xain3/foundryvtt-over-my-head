@@ -4,6 +4,7 @@
  * @path src/contexts/helpers/contextPathUtils.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import ContextPathUtils from './contextPathUtils.mjs';
 import { ContextContainer } from './contextContainer.mjs';
 import { ContextItem } from './contextItem.mjs';

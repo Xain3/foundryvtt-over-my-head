@@ -4,6 +4,7 @@
  * @path src/utils/utils.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import Utilities, { Utils } from './utils.mjs';
 import StaticUtils from './static/static.mjs';
 import Logger from './logger.mjs';
@@ -12,11 +13,11 @@ import Initializer from './initializer.mjs';
 import Context from '@contexts/context.mjs';
 
 // Mock all dependencies
-jest.mock('./static/static.mjs');
-jest.mock('./logger.mjs');
-jest.mock('./hookFormatter.mjs');
-jest.mock('./initializer.mjs');
-jest.mock('@contexts/context.mjs');
+vi.mock('./static/static.mjs');
+vi.mock('./logger.mjs');
+vi.mock('./hookFormatter.mjs');
+vi.mock('./initializer.mjs');
+vi.mock('@contexts/context.mjs');
 
 describe('Utilities', () => {
   let validConstants;
@@ -30,7 +31,7 @@ describe('Utilities', () => {
 
   beforeEach(() => {
     // Reset all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Setup valid test data
     validConstants = {
@@ -51,34 +52,34 @@ describe('Utilities', () => {
     };
 
     // Setup mock functions
-    mockFormatError = jest.fn((error, options) => `Formatted: ${error.message || error}`);
-    mockFormatHookName = jest.fn((hookName) => `OMH${hookName}`);
-    mockInitializeContextObject = jest.fn((...args) => ({ initialized: true, args }));
+    mockFormatError = vi.fn((error, options) => `Formatted: ${error.message || error}`);
+    mockFormatHookName = vi.fn((hookName) => `OMH${hookName}`);
+    mockInitializeContextObject = vi.fn((...args) => ({ initialized: true, args }));
 
     // Mock StaticUtils
     StaticUtils.formatError = mockFormatError;
 
     // Mock Logger constructor and methods
     mockLogger = {
-      log: jest.fn(),
-      debug: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn()
+      log: vi.fn(),
+      debug: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn()
     };
     Logger.mockImplementation(() => mockLogger);
 
     // Mock HookFormatter constructor and methods
     mockHookFormatter = {
       formatHookName: mockFormatHookName,
-      validateHookName: jest.fn()
+      validateHookName: vi.fn()
     };
     HookFormatter.mockImplementation(() => mockHookFormatter);
 
     // Mock Initializer constructor and methods
     mockInitializer = {
       initializeContextObject: mockInitializeContextObject,
-      registerSettings: jest.fn(),
-      initialize: jest.fn()
+      registerSettings: vi.fn(),
+      initialize: vi.fn()
     };
     Initializer.mockImplementation(() => mockInitializer);
   });
@@ -403,7 +404,7 @@ describe('Utils', () => {
   let mockFormatError;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     validConstants = {
       hooks: { ready: '.ready', init: '.init' },
@@ -417,7 +418,7 @@ describe('Utils', () => {
       version: '1.0.0'
     };
 
-    mockFormatError = jest.fn();
+    mockFormatError = vi.fn();
   });
 
   describe('Factory Methods', () => {
@@ -441,7 +442,7 @@ describe('Utils', () => {
     describe('createInitializer', () => {
       it('should create an Initializer instance with provided parameters', () => {
         const mockLogger = new Logger();
-        const mockFormatHook = jest.fn();
+        const mockFormatHook = vi.fn();
 
         const initializer = Utils.createInitializer(
           validConstants,
@@ -481,7 +482,7 @@ describe('Utils', () => {
   describe('Hook Formatting', () => {
     describe('formatHook', () => {
       it('should call HookFormatter.formatHook with provided parameters', () => {
-        const mockFormatHook = jest.fn().mockReturnValue('formattedHook');
+        const mockFormatHook = vi.fn().mockReturnValue('formattedHook');
         HookFormatter.formatHook = mockFormatHook;
 
         const result = Utils.formatHook('module', 'ready', 'context');
@@ -491,7 +492,7 @@ describe('Utils', () => {
       });
 
       it('should handle optional context parameter', () => {
-        const mockFormatHook = jest.fn().mockReturnValue('formattedHook');
+        const mockFormatHook = vi.fn().mockReturnValue('formattedHook');
         HookFormatter.formatHook = mockFormatHook;
 
         const result = Utils.formatHook('module', 'ready');
@@ -505,19 +506,19 @@ describe('Utils', () => {
   describe('StaticUtils Proxy Methods', () => {
     beforeEach(() => {
       // Mock StaticUtils methods
-      StaticUtils.validate = jest.fn();
-      StaticUtils.unpack = jest.fn();
-      StaticUtils.formatError = jest.fn();
-      StaticUtils.localize = jest.fn();
-      StaticUtils.formatLocalized = jest.fn();
-      StaticUtils.hasLocalization = jest.fn();
-      StaticUtils.getModuleObject = jest.fn();
-      StaticUtils.writeToModuleObject = jest.fn();
-      StaticUtils.readFromModuleObject = jest.fn();
-      StaticUtils.getAvailableValidationTypes = jest.fn();
-      StaticUtils.createHookProxy = jest.fn();
-      StaticUtils.createHookLogger = jest.fn();
-      StaticUtils.proxyFoundryHooks = jest.fn();
+      StaticUtils.validate = vi.fn();
+      StaticUtils.unpack = vi.fn();
+      StaticUtils.formatError = vi.fn();
+      StaticUtils.localize = vi.fn();
+      StaticUtils.formatLocalized = vi.fn();
+      StaticUtils.hasLocalization = vi.fn();
+      StaticUtils.getModuleObject = vi.fn();
+      StaticUtils.writeToModuleObject = vi.fn();
+      StaticUtils.readFromModuleObject = vi.fn();
+      StaticUtils.getAvailableValidationTypes = vi.fn();
+      StaticUtils.createHookProxy = vi.fn();
+      StaticUtils.createHookLogger = vi.fn();
+      StaticUtils.proxyFoundryHooks = vi.fn();
     });
 
     describe('validate', () => {
@@ -662,9 +663,9 @@ describe('Utils', () => {
     describe('Hook Logging Methods', () => {
       describe('createHookProxy', () => {
         it('should proxy to StaticUtils.createHookProxy', () => {
-          const hookFunction = jest.fn();
+          const hookFunction = vi.fn();
           const options = { logLevel: 'debug' };
-          const proxiedFunction = jest.fn();
+          const proxiedFunction = vi.fn();
           StaticUtils.createHookProxy.mockReturnValue(proxiedFunction);
 
           const result = Utils.createHookProxy(hookFunction, options);
@@ -678,8 +679,8 @@ describe('Utils', () => {
         it('should proxy to StaticUtils.createHookLogger', () => {
           const logLevel = 'debug';
           const prefix = 'Test Hook';
-          const filter = jest.fn();
-          const logger = jest.fn();
+          const filter = vi.fn();
+          const logger = vi.fn();
           StaticUtils.createHookLogger.mockReturnValue(logger);
 
           const result = Utils.createHookLogger(logLevel, prefix, filter);
@@ -692,7 +693,7 @@ describe('Utils', () => {
       describe('proxyFoundryHooks', () => {
         it('should proxy to StaticUtils.proxyFoundryHooks', () => {
           const options = { enabled: true, moduleFilter: 'OMH.' };
-          const proxiedFunction = jest.fn();
+          const proxiedFunction = vi.fn();
           StaticUtils.proxyFoundryHooks.mockReturnValue(proxiedFunction);
 
           const result = Utils.proxyFoundryHooks(options);
@@ -707,7 +708,7 @@ describe('Utils', () => {
   describe('getUtilityInfo', () => {
     it('should return comprehensive utility information', () => {
       // Mock StaticUtils.getUtilityInfo to return expected structure
-      StaticUtils.getUtilityInfo = jest.fn().mockReturnValue({
+      StaticUtils.getUtilityInfo = vi.fn().mockReturnValue({
         utilities: ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer', 'HooksLogger']
       });
 
@@ -728,7 +729,7 @@ describe('Utils', () => {
       const mockStaticInfo = {
         utilities: ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer', 'HooksLogger']
       };
-      StaticUtils.getUtilityInfo = jest.fn().mockReturnValue(mockStaticInfo);
+      StaticUtils.getUtilityInfo = vi.fn().mockReturnValue(mockStaticInfo);
 
       const info = Utils.getUtilityInfo();
 
@@ -744,7 +745,7 @@ describe('Utils', () => {
         validManifest,
         logger,
         mockFormatError,
-        jest.fn()
+        vi.fn()
       );
 
       expect(typeof logger).toBe('object');
@@ -752,8 +753,8 @@ describe('Utils', () => {
     });
 
     it('should handle chained operations', () => {
-      StaticUtils.validate = jest.fn().mockReturnValue(true);
-      StaticUtils.formatError = jest.fn().mockReturnValue('formatted');
+      StaticUtils.validate = vi.fn().mockReturnValue(true);
+      StaticUtils.formatError = vi.fn().mockReturnValue('formatted');
       
       const isValid = Utils.validate('isString', { value: 'test' });
       const formatted = Utils.formatError(new Error('test'));

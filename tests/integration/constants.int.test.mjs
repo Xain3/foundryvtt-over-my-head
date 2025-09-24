@@ -1,3 +1,4 @@
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import config from '@/config/config';
 
 describe('Config Integration Test', () => {

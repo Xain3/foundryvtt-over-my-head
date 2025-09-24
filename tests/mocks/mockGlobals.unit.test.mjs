@@ -5,6 +5,7 @@
  * @date 29 May 2025
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import MockGlobals, {
   MockCollection,
   MockDocument,
@@ -131,7 +132,7 @@ describe('MockGlobals', () => {
 
     it('should use provided hooks instance when specified', () => {
       const customHooks = new MockHooks();
-      customHooks.testMethod = jest.fn();
+      customHooks.testMethod = vi.fn();
 
       mockGlobals.setGlobals({ hooksInstance: customHooks });
 
@@ -372,7 +373,7 @@ describe('MockGlobals', () => {
       expect(globalThis.ui).toBeDefined();
       expect(globalThis.ui.chat).toBeDefined();
       expect(globalThis.ui.notifications).toBeDefined();
-      expect(jest.isMockFunction(globalThis.ui.notifications.info)).toBe(true);
+      expect(vi.isMockFunction(globalThis.ui.notifications.info)).toBe(true);
     });
   });
 
@@ -560,11 +561,11 @@ describe('MockGlobals', () => {
     describe('createMockFunction', () => {
       it('should create jest mock when jest is available', () => {
         const mockFn = createMockFunction();
-        expect(jest.isMockFunction(mockFn)).toBe(true);
+        expect(vi.isMockFunction(mockFn)).toBe(true);
       });
 
       it('should use provided implementation', () => {
-        const implementation = jest.fn(() => 'test-result');
+        const implementation = vi.fn(() => 'test-result');
         const mockFn = createMockFunction(implementation);
 
         expect(mockFn()).toBe('test-result');
@@ -574,14 +575,14 @@ describe('MockGlobals', () => {
 
     describe('createSpy', () => {
       it('should create jest spy when jest is available', () => {
-        const obj = { method: jest.fn(() => 'original') };
+        const obj = { method: vi.fn(() => 'original') };
         const spy = createSpy(obj, 'method');
 
-        expect(jest.isMockFunction(spy)).toBe(true);
+        expect(vi.isMockFunction(spy)).toBe(true);
       });
 
       it('should track method calls', () => {
-        const obj = { method: jest.fn(() => 'result') };
+        const obj = { method: vi.fn(() => 'result') };
         const spy = createSpy(obj, 'method');
 
         spy();
@@ -604,9 +605,9 @@ describe('MockGlobals', () => {
       });
 
       it('should export UI with interface methods', () => {
-        expect(jest.isMockFunction(UI.notifications.info)).toBe(true);
-        expect(jest.isMockFunction(UI.notifications.warn)).toBe(true);
-        expect(jest.isMockFunction(UI.notifications.error)).toBe(true);
+        expect(vi.isMockFunction(UI.notifications.info)).toBe(true);
+        expect(vi.isMockFunction(UI.notifications.warn)).toBe(true);
+        expect(vi.isMockFunction(UI.notifications.error)).toBe(true);
       });
     });
 

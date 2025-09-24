@@ -4,15 +4,16 @@
  * @path scripts/build/runViteWIthAction.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { jest } from '@jest/globals';
 import { spawn } from 'child_process';
 import { existsSync } from 'fs';
 import { extname, resolve } from 'path';
 
 // Mock dependencies
-jest.mock('child_process');
-jest.mock('fs');
-jest.mock('path');
+vi.mock('child_process');
+vi.mock('fs');
+vi.mock('path');
 
 // Import after mocking
 import ViteRunner from './runViteWIthAction.mjs';
@@ -23,44 +24,44 @@ describe('ViteRunner', () => {
 
   beforeEach(() => {
     // Reset all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Mock process object
     mockProcess = {
       stdout: {
-        setEncoding: jest.fn(),
-        on: jest.fn()
+        setEncoding: vi.fn(),
+        on: vi.fn()
       },
       stderr: {
-        setEncoding: jest.fn(),
-        on: jest.fn()
+        setEncoding: vi.fn(),
+        on: vi.fn()
       },
-      on: jest.fn(),
-      kill: jest.fn()
+      on: vi.fn(),
+      kill: vi.fn()
     };
 
     // Mock stdin
     mockStdin = {
       isTTY: true,
-      setRawMode: jest.fn(),
-      resume: jest.fn(),
-      setEncoding: jest.fn(),
-      on: jest.fn(),
-      pause: jest.fn()
+      setRawMode: vi.fn(),
+      resume: vi.fn(),
+      setEncoding: vi.fn(),
+      on: vi.fn(),
+      pause: vi.fn()
     };
 
     // Setup global mocks without overwriting read-only properties
     global.process = {
       ...global.process,
-      stdout: { write: jest.fn() },
-      stderr: { write: jest.fn() },
-      exit: jest.fn()
+      stdout: { write: vi.fn() },
+      stderr: { write: vi.fn() },
+      exit: vi.fn()
     };
 
     global.console = {
-      log: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn()
+      log: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn()
     };
 
     // Mock spawn to return mock process
@@ -83,8 +84,8 @@ describe('ViteRunner', () => {
     });
 
     it('should initialize with custom options', () => {
-      const preBuildAction = jest.fn();
-      const postBuildAction = jest.fn();
+      const preBuildAction = vi.fn();
+      const postBuildAction = vi.fn();
 
       const runner = new ViteRunner({
         watch: true,
@@ -137,7 +138,7 @@ describe('ViteRunner', () => {
     });
 
     it('should execute pre-build action if provided', async () => {
-      const preBuildAction = jest.fn();
+      const preBuildAction = vi.fn();
       const runner = new ViteRunner({ preBuildAction });
 
       await runner.start({});
@@ -146,7 +147,7 @@ describe('ViteRunner', () => {
     });
 
     it('should throw error if pre-build action fails', async () => {
-      const preBuildAction = jest.fn().mockRejectedValue(new Error('Pre-build failed'));
+      const preBuildAction = vi.fn().mockRejectedValue(new Error('Pre-build failed'));
       const runner = new ViteRunner({ preBuildAction });
 
       await expect(runner.start({})).rejects.toThrow('Pre-build failed');
@@ -164,7 +165,7 @@ describe('ViteRunner', () => {
     });
 
     it('should execute function actions', async () => {
-      const action = jest.fn().mockResolvedValue('result');
+      const action = vi.fn().mockResolvedValue('result');
 
       // We can't directly test private methods, so we'll test through start()
       const runner = new ViteRunner({ preBuildAction: action });
@@ -179,7 +180,7 @@ describe('ViteRunner', () => {
       resolve.mockReturnValue('/path/to/script.sh');
 
       const mockShellProcess = {
-        on: jest.fn((event, callback) => {
+        on: vi.fn((event, callback) => {
           if (event === 'close') callback(0); // Success
         })
       };
@@ -237,7 +238,7 @@ describe('ViteRunner', () => {
     });
 
     it('should detect build completion and execute post-build action', async () => {
-      const postBuildAction = jest.fn();
+      const postBuildAction = vi.fn();
       const runner = new ViteRunner({ postBuildAction });
       await runner.start({});
 
@@ -296,7 +297,7 @@ describe('ViteRunner', () => {
     });
 
     it('should handle post-build action failures gracefully', async () => {
-      const postBuildAction = jest.fn().mockRejectedValue(new Error('Post-build failed'));
+      const postBuildAction = vi.fn().mockRejectedValue(new Error('Post-build failed'));
       const runner = new ViteRunner({ postBuildAction });
       await runner.start({});
 

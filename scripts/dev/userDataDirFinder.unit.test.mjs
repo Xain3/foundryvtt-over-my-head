@@ -4,32 +4,33 @@
  * @path scripts/dev/userDataDirFinder.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import UserDataDirFinder from './userDataDirFinder.mjs';
 
 // Mock dependencies
-jest.mock('fs');
-jest.mock('os');
-jest.mock('path');
+vi.mock('fs');
+vi.mock('os');
+vi.mock('path');
 
 describe('UserDataDirFinder', () => {
   beforeEach(() => {
     // Reset all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Mock fs
-    fs.existsSync = jest.fn().mockReturnValue(false);
-    fs.statSync = jest.fn().mockReturnValue({ isDirectory: () => true });
+    fs.existsSync = vi.fn().mockReturnValue(false);
+    fs.statSync = vi.fn().mockReturnValue({ isDirectory: () => true });
     
     // Mock os
-    os.platform = jest.fn().mockReturnValue('linux');
-    os.userInfo = jest.fn().mockReturnValue({ username: 'testuser' });
-    os.homedir = jest.fn().mockReturnValue('/home/testuser');
+    os.platform = vi.fn().mockReturnValue('linux');
+    os.userInfo = vi.fn().mockReturnValue({ username: 'testuser' });
+    os.homedir = vi.fn().mockReturnValue('/home/testuser');
     
     // Mock path
-    path.join = jest.fn().mockImplementation((...args) => args.join('/'));
+    path.join = vi.fn().mockImplementation((...args) => args.join('/'));
     
     // Mock process.env
     delete process.env.USER;
@@ -215,8 +216,8 @@ describe('UserDataDirFinder', () => {
     let consoleWarnSpy;
 
     beforeEach(() => {
-      consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      consoleSpy = vi.spyOn(console, 'log').mockImplementation();
+      consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation();
     });
 
     afterEach(() => {

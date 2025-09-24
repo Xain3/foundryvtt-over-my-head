@@ -4,23 +4,24 @@
  * @path src/contexts/context.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Context from './context.mjs';
 import { ContextContainer } from './helpers/contextContainer.mjs';
 import { ContextItem } from './helpers/contextItem.mjs';
 import constants from '../config/constants.mjs';
 
 // Mock helpers to avoid circular dependencies in tests
-jest.mock('./helpers/contextHelpers.mjs', () => {
+vi.mock('./helpers/contextHelpers.mjs', () => {
   const mockHelpers = {
     Comparison: {
-      compare: jest.fn((source, target, options) => ({
+      compare: vi.fn((source, target, options) => ({
         result: 'equal',
         differences: [],
         options
       }))
     },
     Merger: {
-      merge: jest.fn((source, target, strategy, options) => ({
+      merge: vi.fn((source, target, strategy, options) => ({
         success: true,
         strategy,
         itemsProcessed: 0,
@@ -35,7 +36,7 @@ jest.mock('./helpers/contextHelpers.mjs', () => {
         },
         errors: []
       })),
-      analyze: jest.fn((source, target, strategy, options) => ({
+      analyze: vi.fn((source, target, strategy, options) => ({
         strategy,
         wouldProcess: 0,
         potentialConflicts: 0,
@@ -44,13 +45,13 @@ jest.mock('./helpers/contextHelpers.mjs', () => {
       }))
     },
     Sync: {
-      sync: jest.fn((source, target, operation, options) => ({
+      sync: vi.fn((source, target, operation, options) => ({
         success: true,
         operation,
         itemsProcessed: 0,
         errors: []
       })),
-      syncItem: jest.fn((source, target, itemPath, operation, options) => {
+      syncItem: vi.fn((source, target, itemPath, operation, options) => {
         // Actually transfer the data for testing
         if (operation === 'updateTargetToSource' && source.hasItem && target.setItem) {
           if (source.hasItem(itemPath)) {
@@ -68,7 +69,7 @@ jest.mock('./helpers/contextHelpers.mjs', () => {
       })
     },
     PathUtils: {
-      getValueFromMixedPath: jest.fn((obj, path) => {
+      getValueFromMixedPath: vi.fn((obj, path) => {
         const parts = path.split('.');
         let current = obj;
         for (const part of parts) {
@@ -80,7 +81,7 @@ jest.mock('./helpers/contextHelpers.mjs', () => {
         }
         return current;
       }),
-      pathExists: jest.fn((obj, path) => {
+      pathExists: vi.fn((obj, path) => {
         const parts = path.split('.');
         let current = obj;
         for (const part of parts) {
@@ -130,7 +131,7 @@ describe('Context', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     context = new Context({
       initializationParams: defaultInitParams,
       operationsParams: defaultOpParams
@@ -562,7 +563,7 @@ describe('Context', () => {
     });
 
     it('should allow skipping auto-pull/push with overrides', () => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
 
       autoContext.setItem('data.test', 'value', {}, {
         skipPull: true,
@@ -1057,7 +1058,7 @@ describe('Context', () => {
       const helpers = require('./helpers/contextHelpers.mjs').default;
       const err = new Error('pull warn');
       helpers.Sync.syncItem.mockImplementationOnce(() => { throw err; });
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       const warnCtx = new Context({
         operationsParams: { errorHandling: { onPullError: 'warn', onPushError: 'warn', onValidationError: 'silent' } }
@@ -1086,7 +1087,7 @@ describe('Context', () => {
     it('warns (does not throw) on push error when configured to warn', () => {
       const helpers = require('./helpers/contextHelpers.mjs').default;
       helpers.Sync.syncItem.mockImplementationOnce(() => { throw new Error('push warn'); });
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       const warnPush = new Context({
         operationsParams: {

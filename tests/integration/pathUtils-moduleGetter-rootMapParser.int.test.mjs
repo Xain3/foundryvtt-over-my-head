@@ -4,6 +4,7 @@
  * @path tests/integration/pathUtils-moduleGetter-rootMapParser.int.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import PathUtils from '../../src/helpers/pathUtils.mjs';
 import { getModule } from '../../src/helpers/moduleGetter.mjs';
 import config from '../../src/config/config.mjs';
@@ -11,7 +12,7 @@ import config from '../../src/config/config.mjs';
 const constants = config.constants;
 
 // Mock RootMapParser to avoid manifest import issues
-jest.mock('../../src/helpers/rootMapParser.mjs', () => {
+vi.mock('../../src/helpers/rootMapParser.mjs', () => {
   const actualPathUtils = jest.requireActual('../../src/helpers/pathUtils.mjs').default;
   const actualGetModule = jest.requireActual('../../src/helpers/moduleGetter.mjs').getModule;
 
@@ -123,8 +124,8 @@ const createMockFoundryEnvironment = () => {
     game: {
       modules: mockModulesCollection,
       settings: {
-        get: jest.fn(),
-        set: jest.fn()
+        get: vi.fn(),
+        set: vi.fn()
       },
       user: {
         id: 'user123',
@@ -138,9 +139,9 @@ const createMockFoundryEnvironment = () => {
     },
     ui: {
       notifications: {
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn()
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn()
       },
       windows: {
         apps: []
@@ -155,12 +156,12 @@ const createMockFoundryEnvironment = () => {
     window: global,
     document: global.document || {},
     localStorage: {
-      getItem: jest.fn(),
-      setItem: jest.fn()
+      getItem: vi.fn(),
+      setItem: vi.fn()
     },
     sessionStorage: {
-      getItem: jest.fn(),
-      setItem: jest.fn()
+      getItem: vi.fn(),
+      setItem: vi.fn()
     }
   };
 };
@@ -170,7 +171,7 @@ describe('PathUtils, ModuleGetter, and RootMapParser Integration Tests', () => {
 
   beforeEach(() => {
     mockNamespace = createMockFoundryEnvironment();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('PathUtils Foundation Layer', () => {

@@ -5,10 +5,11 @@
  * @date 25 May 2025
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import ErrorFormatter, { formatError } from './errorFormatter.mjs';
 
 // Mock manifest
-jest.mock('@manifest', () => ({
+vi.mock('@manifest', () => ({
   title: 'OverMyHead',
   name: 'foundryvtt-over-my-head',
   id: 'foundryvtt-over-my-head',
@@ -16,7 +17,7 @@ jest.mock('@manifest', () => ({
 }), { virtual: true });
 
 // Mock constants
-jest.mock('@constants', () => ({
+vi.mock('@constants', () => ({
   moduleManagement: {
     referToModuleBy: 'title',
   },
@@ -304,7 +305,7 @@ describe('ErrorFormatter', () => {
     });
 
     it('should be a wrapper around ErrorFormatter.formatError', () => {
-      const spy = jest.spyOn(ErrorFormatter, 'formatError');
+      const spy = vi.spyOn(ErrorFormatter, 'formatError');
 
       const options = { includeStack: false };
       formatError(testError, options);

@@ -4,13 +4,14 @@
  * @path scripts/dev/deployer.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import ModuleDeployer from './deployer.mjs';
 
 // Mock dependencies
-jest.mock('fs');
-jest.mock('path');
+vi.mock('fs');
+vi.mock('path');
 
 describe('ModuleDeployer', () => {
   let mockFs;
@@ -22,7 +23,7 @@ describe('ModuleDeployer', () => {
     mockPath = path;
 
     // Reset all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Default mock implementations
     mockFs.existsSync.mockReturnValue(true);
@@ -57,7 +58,7 @@ describe('ModuleDeployer', () => {
     let consoleSpy;
 
     beforeEach(() => {
-      consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      consoleSpy = vi.spyOn(console, 'log').mockImplementation();
     });
 
     afterEach(() => {
@@ -124,7 +125,7 @@ describe('ModuleDeployer', () => {
       });
 
   // Mock the date string to ensure deterministic assertion
-  const dateSpy = jest.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
+  const dateSpy = vi.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
 
   deployer.deploy();
 
@@ -252,7 +253,7 @@ describe('ModuleDeployer', () => {
     let consoleSpy;
 
     beforeEach(() => {
-      consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      consoleSpy = vi.spyOn(console, 'log').mockImplementation();
     });
 
     afterEach(() => {
@@ -334,7 +335,7 @@ describe('ModuleDeployer', () => {
     let consoleSpy;
 
     beforeEach(() => {
-      consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      consoleSpy = vi.spyOn(console, 'log').mockImplementation();
     });
 
     afterEach(() => {
@@ -395,7 +396,7 @@ describe('ModuleDeployer', () => {
     let consoleSpy;
 
     beforeEach(() => {
-      consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      consoleSpy = vi.spyOn(console, 'log').mockImplementation();
     });
 
     afterEach(() => {
@@ -423,7 +424,7 @@ describe('ModuleDeployer', () => {
       });
 
   // Mock the date string to ensure deterministic assertion
-  const dateSpy2 = jest.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
+  const dateSpy2 = vi.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
 
   deployer.deploy();
 
@@ -466,7 +467,7 @@ describe('ModuleDeployer', () => {
     let consoleSpy;
 
     beforeEach(() => {
-      consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      consoleSpy = vi.spyOn(console, 'log').mockImplementation();
     });
 
     afterEach(() => {

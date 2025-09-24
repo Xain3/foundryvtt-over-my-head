@@ -5,6 +5,7 @@
  * @date 25 May 2025
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import PathUtils from './pathUtils.mjs';
 
 describe('resolvePath', () => {
@@ -14,9 +15,9 @@ describe('resolvePath', () => {
     mockNamespace = {
       game: {
         settings: {
-          get: jest.fn(),
-          set: jest.fn(),
-          register: jest.fn()
+          get: vi.fn(),
+          set: vi.fn(),
+          register: vi.fn()
         },
         modules: new Map([
           ['test-module', { id: 'test-module', active: true }]
@@ -28,17 +29,17 @@ describe('resolvePath', () => {
       },
       ui: {
         notifications: {
-          info: jest.fn(),
-          warn: jest.fn(),
-          error: jest.fn()
+          info: vi.fn(),
+          warn: vi.fn(),
+          error: vi.fn()
         }
       },
       document: {
-        getElementById: jest.fn()
+        getElementById: vi.fn()
       },
       localStorage: {
-        getItem: jest.fn(),
-        setItem: jest.fn()
+        getItem: vi.fn(),
+        setItem: vi.fn()
       },
       deeply: {
         nested: {
@@ -118,7 +119,7 @@ describe('resolvePath', () => {
 
   describe('getter fallback functionality', () => {
     it('should use getter method when property does not exist normally', () => {
-      const mockGetter = jest.fn().mockReturnValue('getter-value');
+      const mockGetter = vi.fn().mockReturnValue('getter-value');
       const objWithGetter = {
         get: mockGetter,
         normalProp: 'normal-value'
@@ -142,7 +143,7 @@ describe('resolvePath', () => {
     });
 
     it('should disable getter fallback when useGetterFallback is false', () => {
-      const mockGetter = jest.fn().mockReturnValue('getter-value');
+      const mockGetter = vi.fn().mockReturnValue('getter-value');
       const objWithGetter = {
         get: mockGetter,
         normalProp: 'normal-value'
@@ -163,7 +164,7 @@ describe('resolvePath', () => {
     });
 
     it('should prefer normal property access over getter', () => {
-      const mockGetter = jest.fn().mockReturnValue('getter-value');
+      const mockGetter = vi.fn().mockReturnValue('getter-value');
       const objWithBoth = {
         get: mockGetter,
         existingProp: 'existing-value'
@@ -175,7 +176,7 @@ describe('resolvePath', () => {
     });
 
     it('should handle getter that returns undefined', () => {
-      const mockGetter = jest.fn().mockReturnValue(undefined);
+      const mockGetter = vi.fn().mockReturnValue(undefined);
       const objWithGetter = {
         get: mockGetter
       };
@@ -305,7 +306,7 @@ describe('resolvePath', () => {
     });
 
     it('should respect useGetterFallback parameter', () => {
-      const mockGetter = jest.fn().mockReturnValue('getter-result');
+      const mockGetter = vi.fn().mockReturnValue('getter-result');
       const testObj = {
         normalProp: 'normal',
         get: mockGetter

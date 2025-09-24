@@ -1,3 +1,4 @@
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import config from '@/config/config';
 import PositionChecker from '@/handlers/placeableHelpers/positionChecker.mjs';
 
@@ -22,7 +23,7 @@ describe('PositionChecker Integration', () => {
   });
 
   it('uses config overrides at runtime (elevation and keys)', () => {
-    const utils = { logger: { warn: jest.fn() } };
+    const utils = { logger: { warn: vi.fn() } };
     const pc = new PositionChecker({ constants: config.constants }, {}, utils);
 
     // Elevation checks: YAML sets OVER to 'above'
@@ -40,7 +41,7 @@ describe('PositionChecker Integration', () => {
   });
 
   it('performs a real check with YAML-provided keys/uses', () => {
-    const utils = { logger: { warn: jest.fn() } };
+    const utils = { logger: { warn: vi.fn() } };
     const pc = new PositionChecker({ constants: config.constants }, {}, utils);
 
     const center = { x: 5, y: 5 };

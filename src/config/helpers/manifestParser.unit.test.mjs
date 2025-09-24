@@ -4,10 +4,11 @@
  * @path src/constants/helpers/manifestParser.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import ManifestParser from './manifestParser.mjs';
 
 // Mock the constants
-jest.mock('../constants.mjs', () => ({
+vi.mock('../constants.mjs', () => ({
   __esModule: true,
   default: {
     requiredManifestAttributes: ["id", "title", "description", "version"]

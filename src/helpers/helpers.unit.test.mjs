@@ -4,15 +4,16 @@
  * @path src/helpers/helpers.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 // Mock all dependencies that might import manifest BEFORE importing anything
-jest.mock('./pathUtils.mjs');
-jest.mock('./moduleGetter.mjs');
-jest.mock('./errorFormatter.mjs', () => ({
-  formatError: jest.fn((error, options = {}) => `Mocked error: ${error.message}`)
+vi.mock('./pathUtils.mjs');
+vi.mock('./moduleGetter.mjs');
+vi.mock('./errorFormatter.mjs', () => ({
+  formatError: vi.fn((error, options = {}) => `Mocked error: ${error.message}`)
 }));
-jest.mock('./rootMapParser.mjs', () => ({
+vi.mock('./rootMapParser.mjs', () => ({
   default: {
-    parse: jest.fn()
+    parse: vi.fn()
   }
 }));
 
@@ -24,11 +25,11 @@ import { formatError } from './errorFormatter.mjs';
 
 describe('Helpers', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Ensure RootMapParser.parse is mocked
     if (!RootMapParser.parse) {
-      RootMapParser.parse = jest.fn();
+      RootMapParser.parse = vi.fn();
     }
   });
 
@@ -394,7 +395,7 @@ describe('Helpers', () => {
           const validPaths = {
             'game.user': { id: 'user123' },
             'game.settings': { volume: 0.8 },
-            'ui.notifications': { info: jest.fn() }
+            'ui.notifications': { info: vi.fn() }
           };
           return validPaths[path];
         });

@@ -4,15 +4,16 @@
  * @path src/handlers/settingsHandler.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import SettingsHandler from './settingsHandler.mjs';
 import SettingsParser from './settingsHelpers/settingsParser.mjs';
 import SettingsRegistrar from './settingsHelpers/settingsRegistrar.mjs';
 import SettingLocalizer from './settingsHelpers/settingLocalizer.mjs';
 
 // Mock the dependencies
-jest.mock('./settingsHelpers/settingsParser.mjs');
-jest.mock('./settingsHelpers/settingsRegistrar.mjs');
-jest.mock('./settingsHelpers/settingLocalizer.mjs');
+vi.mock('./settingsHelpers/settingsParser.mjs');
+vi.mock('./settingsHelpers/settingsRegistrar.mjs');
+vi.mock('./settingsHelpers/settingLocalizer.mjs');
 
 describe('SettingsHandler', () => {
   const mockConfig = {
@@ -50,21 +51,21 @@ describe('SettingsHandler', () => {
   };
 
   const mockUtils = {
-    formatError: jest.fn((error) => error.toString()),
-    formatHookName: jest.fn((name) => `test.${name}`),
-    logWarning: jest.fn(),
-    logDebug: jest.fn(),
-    log: jest.fn()
+    formatError: vi.fn((error) => error.toString()),
+    formatHookName: vi.fn((name) => `test.${name}`),
+    logWarning: vi.fn(),
+    logDebug: vi.fn(),
+    log: vi.fn()
   };
 
   const mockContext = { test: 'context' };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Mock SettingsParser
     SettingsParser.mockImplementation(() => ({
-      parse: jest.fn().mockReturnValue({
+      parse: vi.fn().mockReturnValue({
         processed: 2,
         successful: 2,
         parsed: ['testSetting', 'debugMode'],
@@ -74,7 +75,7 @@ describe('SettingsHandler', () => {
 
     // Mock SettingsRegistrar
     SettingsRegistrar.mockImplementation(() => ({
-      register: jest.fn().mockReturnValue({
+      register: vi.fn().mockReturnValue({
         success: true,
         counter: 1,
         successCounter: 1,
@@ -84,7 +85,7 @@ describe('SettingsHandler', () => {
     }));
 
     // Mock SettingLocalizer
-    SettingLocalizer.localizeSettings = jest.fn((settings) => settings);
+    SettingLocalizer.localizeSettings = vi.fn((settings) => settings);
   });
 
   describe('constructor', () => {
@@ -151,7 +152,7 @@ describe('SettingsHandler', () => {
       };
 
       // We need to spy on the existing register method to test the interaction
-      jest.spyOn(handler, 'register').mockReturnValue(mockRegisterResult);
+      vi.spyOn(handler, 'register').mockReturnValue(mockRegisterResult);
 
       const result = handler.registerDebugModeSetting();
 
@@ -272,7 +273,7 @@ describe('SettingsHandler', () => {
       beforeEach(() => {
         global.game = {
           settings: {
-            get: jest.fn()
+            get: vi.fn()
           }
         };
       });
@@ -334,7 +335,7 @@ describe('SettingsHandler', () => {
       beforeEach(() => {
         global.game = {
           settings: {
-            get: jest.fn()
+            get: vi.fn()
           }
         };
       });
@@ -409,7 +410,7 @@ describe('SettingsHandler', () => {
       beforeEach(() => {
         global.game = {
           settings: {
-            get: jest.fn()
+            get: vi.fn()
           }
         };
       });
@@ -451,7 +452,7 @@ describe('SettingsHandler', () => {
       beforeEach(() => {
         global.game = {
           settings: {
-            get: jest.fn()
+            get: vi.fn()
           }
         };
       });

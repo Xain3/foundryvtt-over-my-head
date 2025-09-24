@@ -33,8 +33,8 @@ class GameManager {
      * const module = GameManager.getModuleObject(manifest);
      *
      * @example
-     * // Using a module.mjson object
-     * import moduleJson from './module.mjson';
+     * // Using a module.json object
+     * import moduleJson from './module.json';
      * const module = GameManager.getModuleObject(moduleJson);
      */
     static getModuleObject(moduleIdentifier) {

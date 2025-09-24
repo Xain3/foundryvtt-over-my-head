@@ -40,18 +40,18 @@ describe('BuildAndDeploy Integration Tests', () => {
     fs.writeFileSync(path.join(mockDistDir, 'main.js'), 'console.log("test");');
     fs.writeFileSync(path.join(mockDistDir, 'style.css'), 'body { color: red; }');
 
-    // Create mock module.mjson
+    // Create mock module.json
     const moduleJson = {
       id: 'test-module',
       name: 'Test Module',
       version: '1.0.0'
     };
     fs.writeFileSync(
-      path.join(tempDir, 'project', 'module.mjson'),
+      path.join(tempDir, 'project', 'module.json'),
       JSON.stringify(moduleJson, null, 2)
     );
 
-    // Change cwd to the temp project so ModuleDeployer picks up TO_DEPLOY (./dist, ./module.mjson)
+    // Change cwd to the temp project so ModuleDeployer picks up TO_DEPLOY (./dist, ./module.json)
     process.chdir(path.join(tempDir, 'project'));
   });
 
@@ -89,14 +89,14 @@ describe('BuildAndDeploy Integration Tests', () => {
       error: jest.fn()
     };
 
-    // Create mock module.mjson in the project root for testing
-    if (!fs.existsSync('module.mjson')) {
+    // Create mock module.json in the project root for testing
+    if (!fs.existsSync('module.json')) {
       const moduleJson = {
         id: 'test-module',
         name: 'Test Module',
         version: '1.0.0'
       };
-      fs.writeFileSync('module.mjson', JSON.stringify(moduleJson, null, 2));
+      fs.writeFileSync('module.json', JSON.stringify(moduleJson, null, 2));
     }
   });
 

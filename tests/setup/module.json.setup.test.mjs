@@ -1,7 +1,7 @@
 /**
- * @file module.mjson.setup.test.mjs
+ * @file module.json.setup.test.mjs
  * @description Tests to validate the module manifest structure and required/optional attributes
- * @path tests/setup/module.mjson.setup.test.mjs
+ * @path tests/setup/module.json.setup.test.mjs
  */
 
 import moduleManifest, { id, title, description, version, compatibility, esmodules, scripts, styles, packs, packFolders, relationships, languages, system, authors, socket, url, manifest, download, license, readme, bugs, changelog, library, media as _media, flags, name } from '../../module.json';

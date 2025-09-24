@@ -353,14 +353,14 @@ describe('ModuleDeployer', () => {
     it('should sync TO_DEPLOY items when they exist', () => {
       const deployer = new ModuleDeployer('/target');
 
-      // Mock only module.mjson exists from TO_DEPLOY array
+      // Mock only module.json exists from TO_DEPLOY array
       fs.existsSync.mockImplementation((filePath) => {
         if (filePath === '/target') return true; // Target directory exists
-        if (filePath === '/target/module.mjson') return false; // Target file doesn't exist yet
-        return filePath === './module.mjson'; // Only source module.mjson exists
+        if (filePath === '/target/module.json') return false; // Target file doesn't exist yet
+        return filePath === './module.json'; // Only source module.json exists
       });
       fs.statSync.mockImplementation((filePath) => {
-        if (filePath === './module.mjson') {
+        if (filePath === './module.json') {
           return {
             isFile: () => true,
             isDirectory: () => false,
@@ -381,8 +381,8 @@ describe('ModuleDeployer', () => {
       deployer.deploy();
 
       expect(console.log).toHaveBeenCalledWith('Syncing TO_DEPLOY items to /target at TEST_TIME');
-      expect(fs.copyFileSync).toHaveBeenCalledWith('./module.mjson', '/target/module.mjson');
-      expect(console.log).toHaveBeenCalledWith('Synced: module.mjson');
+      expect(fs.copyFileSync).toHaveBeenCalledWith('./module.json', '/target/module.json');
+      expect(console.log).toHaveBeenCalledWith('Synced: module.json');
 
       dateSpy.mockRestore();
     });
@@ -401,7 +401,7 @@ describe('ModuleDeployer', () => {
       expect(console.log).toHaveBeenCalledWith('Skipping ./lang - does not exist');
       expect(console.log).toHaveBeenCalledWith('Skipping ./packs - does not exist');
       expect(console.log).toHaveBeenCalledWith('Skipping ./styles - does not exist');
-      expect(console.log).toHaveBeenCalledWith('Skipping ./module.mjson - does not exist');
+      expect(console.log).toHaveBeenCalledWith('Skipping ./module.json - does not exist');
     });
   });
 });
@@ -482,13 +482,13 @@ describe('BuildAndDeploy', () => {
         if (filePath === '/home/testuser/.local/share/FoundryVTT') return true;
         if (filePath === '/home/testuser/.local/share/FoundryVTT/Data/modules') return true;
         if (filePath === '/home/testuser/.local/share/FoundryVTT/Data/modules/test-module') return true;
-        // Mock only module.mjson exists from TO_DEPLOY array
-        if (filePath === './module.mjson') return true;
+        // Mock only module.json exists from TO_DEPLOY array
+        if (filePath === './module.json') return true;
         return false;
       });
 
       fs.statSync.mockImplementation((filePath) => {
-        if (filePath === './module.mjson') {
+        if (filePath === './module.json') {
           return {
             isFile: () => true,
             isDirectory: () => false,
@@ -499,7 +499,7 @@ describe('BuildAndDeploy', () => {
         return { isDirectory: () => true };
       });
 
-      // Ensure readFileSync works for module.mjson reading
+      // Ensure readFileSync works for module.json reading
       fs.readFileSync.mockReturnValue(JSON.stringify({ id: 'test-module' }));
 
       // Mock path operations
@@ -508,7 +508,7 @@ describe('BuildAndDeploy', () => {
 
       BuildAndDeploy.deployOnly();
 
-      expect(fs.copyFileSync).toHaveBeenCalledWith('./module.mjson', expect.stringContaining('module.mjson'));
+      expect(fs.copyFileSync).toHaveBeenCalledWith('./module.json', expect.stringContaining('module.json'));
 
   // cleanup
   finderSpy.mockRestore();

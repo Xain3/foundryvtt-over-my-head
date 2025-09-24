@@ -67,7 +67,7 @@ describe('GameManager (Static)', () => {
                 expect(result).toBe(mockModule);
             });
 
-            it('should work with module.mjson format', () => {
+            it('should work with module.json format', () => {
                 const moduleJson = {
                     id: 'foundryvtt-over-my-head',
                     name: 'foundryvtt-over-my-head',

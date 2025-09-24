@@ -15,7 +15,7 @@ jest.mock('path');
 describe('ModuleDeployer', () => {
   let mockFs;
   let mockPath;
-  const TO_DEPLOY = ['./dist', './assets', './public', './lang', './packs', './styles', './module.mjson'];
+  const TO_DEPLOY = ['./dist', './assets', './public', './lang', './packs', './styles', './module.json'];
 
   beforeEach(() => {
     mockFs = fs;
@@ -99,15 +99,15 @@ describe('ModuleDeployer', () => {
     it('should sync all TO_DEPLOY items successfully', () => {
       const deployer = new ModuleDeployer('/target/dir');
 
-      // Mock only module.mjson as file, skip directories to avoid recursion
+      // Mock only module.json as file, skip directories to avoid recursion
       mockFs.existsSync.mockImplementation((filePath) => {
-        if (filePath === './module.mjson') return true;
+        if (filePath === './module.json') return true;
         if (filePath.startsWith('/target/dir/')) return false;
         return false; // All other TO_DEPLOY items don't exist
       });
 
       mockFs.statSync.mockImplementation((filePath) => {
-        if (filePath === './module.mjson') {
+        if (filePath === './module.json') {
           return {
             isFile: () => true,
             isDirectory: () => false,
@@ -130,8 +130,8 @@ describe('ModuleDeployer', () => {
 
   expect(consoleSpy).toHaveBeenCalledWith('Syncing TO_DEPLOY items to /target/dir at TEST_TIME');
   dateSpy.mockRestore();
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./module.mjson', '/target/dir/module.mjson');
-      expect(consoleSpy).toHaveBeenCalledWith('Synced: module.mjson');
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./module.json', '/target/dir/module.json');
+      expect(consoleSpy).toHaveBeenCalledWith('Synced: module.json');
     });
 
     it('should skip non-existent TO_DEPLOY items', () => {
@@ -152,15 +152,15 @@ describe('ModuleDeployer', () => {
     it('should only copy changed files', () => {
       const deployer = new ModuleDeployer('/target/dir');
 
-      // Mock only module.mjson exists, target exists and is identical
+      // Mock only module.json exists, target exists and is identical
       mockFs.existsSync.mockImplementation((filePath) => {
-        if (filePath === './module.mjson') return true;
-        if (filePath === '/target/dir/module.mjson') return true;
+        if (filePath === './module.json') return true;
+        if (filePath === '/target/dir/module.json') return true;
         return false;
       });
 
       mockFs.statSync.mockImplementation((filePath) => {
-        if (filePath === './module.mjson' || filePath === '/target/dir/module.mjson') {
+        if (filePath === './module.json' || filePath === '/target/dir/module.json') {
           return {
             isFile: () => true,
             isDirectory: () => false,
@@ -173,21 +173,21 @@ describe('ModuleDeployer', () => {
 
       deployer.deploy();
 
-      expect(mockFs.copyFileSync).not.toHaveBeenCalledWith('./module.mjson', '/target/dir/module.mjson');
-      expect(consoleSpy).toHaveBeenCalledWith('Unchanged: module.mjson');
+      expect(mockFs.copyFileSync).not.toHaveBeenCalledWith('./module.json', '/target/dir/module.json');
+      expect(consoleSpy).toHaveBeenCalledWith('Unchanged: module.json');
     });
 
     it('should copy files when size differs', () => {
       const deployer = new ModuleDeployer('/target/dir');
 
       mockFs.existsSync.mockImplementation((filePath) => {
-        if (filePath === './module.mjson') return true;
-        if (filePath === '/target/dir/module.mjson') return true;
+        if (filePath === './module.json') return true;
+        if (filePath === '/target/dir/module.json') return true;
         return false;
       });
 
       mockFs.statSync.mockImplementation((filePath) => {
-        if (filePath === './module.mjson') {
+        if (filePath === './module.json') {
           return {
             isFile: () => true,
             isDirectory: () => false,
@@ -195,7 +195,7 @@ describe('ModuleDeployer', () => {
             mtime: new Date('2023-01-01')
           };
         }
-        if (filePath === '/target/dir/module.mjson') {
+        if (filePath === '/target/dir/module.json') {
           return {
             isFile: () => true,
             isDirectory: () => false,
@@ -208,21 +208,21 @@ describe('ModuleDeployer', () => {
 
       deployer.deploy();
 
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./module.mjson', '/target/dir/module.mjson');
-      expect(consoleSpy).toHaveBeenCalledWith('Synced: module.mjson');
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./module.json', '/target/dir/module.json');
+      expect(consoleSpy).toHaveBeenCalledWith('Synced: module.json');
     });
 
     it('should copy files when source is newer', () => {
       const deployer = new ModuleDeployer('/target/dir');
 
       mockFs.existsSync.mockImplementation((filePath) => {
-        if (filePath === './module.mjson') return true;
-        if (filePath === '/target/dir/module.mjson') return true;
+        if (filePath === './module.json') return true;
+        if (filePath === '/target/dir/module.json') return true;
         return false;
       });
 
       mockFs.statSync.mockImplementation((filePath) => {
-        if (filePath === './module.mjson') {
+        if (filePath === './module.json') {
           return {
             isFile: () => true,
             isDirectory: () => false,
@@ -230,7 +230,7 @@ describe('ModuleDeployer', () => {
             mtime: new Date('2023-01-02') // Newer
           };
         }
-        if (filePath === '/target/dir/module.mjson') {
+        if (filePath === '/target/dir/module.json') {
           return {
             isFile: () => true,
             isDirectory: () => false,
@@ -243,8 +243,8 @@ describe('ModuleDeployer', () => {
 
       deployer.deploy();
 
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./module.mjson', '/target/dir/module.mjson');
-      expect(consoleSpy).toHaveBeenCalledWith('Synced: module.mjson');
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./module.json', '/target/dir/module.json');
+      expect(consoleSpy).toHaveBeenCalledWith('Synced: module.json');
     });
   });
 
@@ -344,13 +344,13 @@ describe('ModuleDeployer', () => {
     it('should handle file system errors gracefully', () => {
       const deployer = new ModuleDeployer('/target/dir');
 
-      // Mock only module.mjson exists
+      // Mock only module.json exists
       mockFs.existsSync.mockImplementation((filePath) => {
-        return filePath === './module.mjson';
+        return filePath === './module.json';
       });
 
       mockFs.statSync.mockImplementation((filePath) => {
-        if (filePath === './module.mjson') {
+        if (filePath === './module.json') {
           return { isFile: () => true, isDirectory: () => false };
         }
         return { isFile: () => false, isDirectory: () => true };
@@ -407,11 +407,11 @@ describe('ModuleDeployer', () => {
 
       // Mock only some TO_DEPLOY items exist, skip others to focus on actual test
       mockFs.existsSync.mockImplementation((filePath) => {
-        return filePath === './module.mjson';
+        return filePath === './module.json';
       });
 
       mockFs.statSync.mockImplementation((filePath) => {
-        if (filePath === './module.mjson') {
+        if (filePath === './module.json') {
           return {
             isFile: () => true,
             isDirectory: () => false,
@@ -429,7 +429,7 @@ describe('ModuleDeployer', () => {
 
   expect(consoleSpy).toHaveBeenCalledWith('Syncing TO_DEPLOY items to /foundry/modules/test-module at TEST_TIME');
   dateSpy2.mockRestore();
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./module.mjson', '/foundry/modules/test-module/module.mjson');
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./module.json', '/foundry/modules/test-module/module.json');
       expect(consoleSpy).toHaveBeenCalledWith('Skipping ./dist - does not exist');
       expect(consoleSpy).toHaveBeenCalledWith('Skipping ./assets - does not exist');
       expect(consoleSpy).toHaveBeenCalledWith('Skipping ./public - does not exist');
@@ -439,13 +439,13 @@ describe('ModuleDeployer', () => {
     it('should handle mixed existing and non-existing TO_DEPLOY items', () => {
       const deployer = new ModuleDeployer('/target');
 
-      // Only module.mjson exists as a file, dist doesn't exist to avoid recursion
+      // Only module.json exists as a file, dist doesn't exist to avoid recursion
       mockFs.existsSync.mockImplementation((filePath) => {
-        return filePath === './module.mjson';
+        return filePath === './module.json';
       });
 
       mockFs.statSync.mockImplementation((filePath) => {
-        if (filePath === './module.mjson') {
+        if (filePath === './module.json') {
           return { isFile: () => true, isDirectory: () => false };
         }
         return { isFile: () => false, isDirectory: () => true };

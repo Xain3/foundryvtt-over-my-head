@@ -56,10 +56,10 @@ describe('BuildAndDeploy Performance Tests', () => {
       fs.readdirSync(mockDistDir).forEach(f => fs.unlinkSync(path.join(mockDistDir, f)));
     }
 
-    // Create mock module.mjson in the project root for testing
-    if (!fs.existsSync('module.mjson')) {
+    // Create mock module.json in the project root for testing
+    if (!fs.existsSync('module.json')) {
       const moduleJson = { id: 'test-module' };
-      fs.writeFileSync('module.mjson', JSON.stringify(moduleJson));
+      fs.writeFileSync('module.json', JSON.stringify(moduleJson));
     }
   });
 
@@ -75,9 +75,9 @@ describe('BuildAndDeploy Performance Tests', () => {
         );
       }
 
-      // Run deployer from the temp project root so TO_DEPLOY (./dist, ./module.mjson) resolves correctly
+      // Run deployer from the temp project root so TO_DEPLOY (./dist, ./module.json) resolves correctly
       const originalCwd = process.cwd();
-      const projectModuleJson = path.join(tempDir, 'module.mjson');
+      const projectModuleJson = path.join(tempDir, 'module.json');
       if (!fs.existsSync(projectModuleJson)) {
         fs.writeFileSync(projectModuleJson, JSON.stringify({ id: 'test-module' }));
       }
@@ -113,7 +113,7 @@ describe('BuildAndDeploy Performance Tests', () => {
 
       // Run deployer from the temp project root
       const originalCwd = process.cwd();
-      const projectModuleJson = path.join(tempDir, 'module.mjson');
+      const projectModuleJson = path.join(tempDir, 'module.json');
       if (!fs.existsSync(projectModuleJson)) {
         fs.writeFileSync(projectModuleJson, JSON.stringify({ id: 'test-module' }));
       }
@@ -142,7 +142,7 @@ describe('BuildAndDeploy Performance Tests', () => {
 
       // Run deployer from the temp project root
       const originalCwd = process.cwd();
-      const projectModuleJson = path.join(tempDir, 'module.mjson');
+      const projectModuleJson = path.join(tempDir, 'module.json');
       if (!fs.existsSync(projectModuleJson)) {
         fs.writeFileSync(projectModuleJson, JSON.stringify({ id: 'test-module' }));
       }
@@ -226,7 +226,7 @@ describe('BuildAndDeploy Performance Tests', () => {
       // Perform many deployment operations
       for (let i = 0; i < 100; i++) {
         const originalCwd = process.cwd();
-        const projectModuleJson = path.join(tempDir, 'module.mjson');
+        const projectModuleJson = path.join(tempDir, 'module.json');
         if (!fs.existsSync(projectModuleJson)) {
           fs.writeFileSync(projectModuleJson, JSON.stringify({ id: 'test-module' }));
         }
@@ -283,7 +283,7 @@ describe('BuildAndDeploy Performance Tests', () => {
       const deploymentPromises = targetDirs.map(targetDir => {
         return new Promise((resolve) => {
           const originalCwd = process.cwd();
-          const projectModuleJson = path.join(tempDir, 'module.mjson');
+          const projectModuleJson = path.join(tempDir, 'module.json');
           if (!fs.existsSync(projectModuleJson)) {
             fs.writeFileSync(projectModuleJson, JSON.stringify({ id: 'test-module' }));
           }

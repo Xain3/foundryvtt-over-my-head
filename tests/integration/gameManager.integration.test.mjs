@@ -1,6 +1,6 @@
 /**
  * @file gameManager.integration.test.js
- * @description Integration tests for GameManager with real manifest and module.mjson files.
+ * @description Integration tests for GameManager with real manifest and module.json files.
  * @path src/utils/static/gameManager.integration.test.js
  */
 
@@ -57,15 +57,15 @@ describe('GameManager Integration Tests', () => {
         });
     });
 
-    describe('Real module.mjson integration', () => {
-        it('should work with imported module.mjson', () => {
+    describe('Real module.json integration', () => {
+        it('should work with imported module.json', () => {
             const result = GameManager.getModuleObject(moduleJson);
 
             expect(globalThis.game.modules.get).toHaveBeenCalledWith('foundryvtt-over-my-head');
             expect(result).toBe(mockModule);
         });
 
-        it('should be able to write and read data using module.mjson', () => {
+        it('should be able to write and read data using module.json', () => {
             const testData = { moduleJsonTest: true, version: moduleJson.version };
 
             const writeResult = GameManager.writeToModuleObject(moduleJson, 'moduleJsonData', testData);
@@ -75,8 +75,8 @@ describe('GameManager Integration Tests', () => {
             expect(readResult).toEqual(testData);
         });
 
-        it('should extract correct module ID from module.mjson structure', () => {
-            // Verify the module.mjson has the expected structure
+        it('should extract correct module ID from module.json structure', () => {
+            // Verify the module.json has the expected structure
             expect(moduleJson).toHaveProperty('id');
             expect(moduleJson.id).toBe('foundryvtt-over-my-head');
 
@@ -87,7 +87,7 @@ describe('GameManager Integration Tests', () => {
     });
 
     describe('Cross-compatibility tests', () => {
-        it('should treat manifest.js and module.mjson the same when they have the same ID', () => {
+        it('should treat manifest.js and module.json the same when they have the same ID', () => {
             const manifestResult = GameManager.getModuleObject(config.manifest);
             const moduleJsonResult = GameManager.getModuleObject(moduleJson);
 
@@ -96,12 +96,12 @@ describe('GameManager Integration Tests', () => {
         });
 
         it('should work with mixed usage patterns', () => {
-            // Write using manifest, read using module.mjson
+            // Write using manifest, read using module.json
             GameManager.writeToModuleObject(config.manifest, 'crossTest', 'written-with-manifest');
             const result1 = GameManager.readFromModuleObject(moduleJson, 'crossTest');
             expect(result1).toBe('written-with-manifest');
 
-            // Write using module.mjson, read using manifest
+            // Write using module.json, read using manifest
             GameManager.writeToModuleObject(moduleJson, 'crossTest2', 'written-with-modulejson');
             const result2 = GameManager.readFromModuleObject(config.manifest, 'crossTest2');
             expect(result2).toBe('written-with-modulejson');
@@ -116,7 +116,7 @@ describe('GameManager Integration Tests', () => {
             expect(result).toBeNull();
         });
 
-        it('should handle module not found gracefully with real module.mjson', () => {
+        it('should handle module not found gracefully with real module.json', () => {
             globalThis.game.modules.get.mockReturnValue(null);
 
             const result = GameManager.getModuleObject(moduleJson);

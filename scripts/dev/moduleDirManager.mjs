@@ -12,12 +12,12 @@ import { readFileSync } from 'fs';
 // resolves under the foundry user data directory.
 const MODULE_DEFAULT_PATH = 'Data/modules';
 
-// Resolve module.mjson lazily with safe fallback so tests with mocked fs don't crash at import.
+// Resolve module.json lazily with safe fallback so tests with mocked fs don't crash at import.
 let MODULE_INFO_CACHE = null;
 /**
- * Resolves module information from module.mjson file with safe fallback.
+ * Resolves module information from module.json file with safe fallback.
  * Uses lazy evaluation and caching to avoid file system operations at import time.
- * Searches multiple candidate paths for module.mjson file.
+ * Searches multiple candidate paths for module.json file.
  *
  * @returns {Object} The module information object with at least an 'id' property
  */
@@ -32,13 +32,13 @@ const getModuleInfo = () => {
     }
   };
 
-  const candidates = [`${process.cwd()}/module.mjson`];
+  const candidates = [`${process.cwd()}/module.json`];
   if (typeof __dirname !== 'undefined') {
-    candidates.push(path.resolve(__dirname, '../../module.mjson'));
-    candidates.push(path.resolve(__dirname, '../module.mjson'));
-    candidates.push(path.resolve(__dirname, './module.mjson'));
+    candidates.push(path.resolve(__dirname, '../../module.json'));
+    candidates.push(path.resolve(__dirname, '../module.json'));
+    candidates.push(path.resolve(__dirname, './module.json'));
   }
-  candidates.push('./module.mjson');
+  candidates.push('./module.json');
 
   for (const p of candidates) {
     const data = tryRead(p);
@@ -57,7 +57,7 @@ const getModuleInfo = () => {
  * @class ModuleDirManager
  * @description Manages module directory creation and validation for FoundryVTT modules.
  * Handles the creation of the modules directory structure and ensures proper permissions.
- * Automatically resolves module ID from module.mjson if not provided.
+ * Automatically resolves module ID from module.json if not provided.
  *
  * @export ModuleDirManager
  *
@@ -83,7 +83,7 @@ class ModuleDirManager {
 
   /**
    * @param {string} userDataDir - The path to the FoundryVTT user data directory
-   * @param {string} [moduleId] - The module ID. If not provided, will be resolved from module.mjson
+   * @param {string} [moduleId] - The module ID. If not provided, will be resolved from module.json
    */
   constructor(userDataDir, moduleId) {
     this.#userDataDir = userDataDir;

@@ -45,7 +45,7 @@ describe('ModuleDirManager', () => {
       expect(m).toBeInstanceOf(ModuleDirManager);
     });
 
-    it('handles missing module.mjson gracefully', () => {
+    it('handles missing module.json gracefully', () => {
       fs.readFileSync.mockImplementation(() => { throw new Error('ENOENT'); });
       const m = new ModuleDirManager('/test/userdata');
       expect(m).toBeInstanceOf(ModuleDirManager);

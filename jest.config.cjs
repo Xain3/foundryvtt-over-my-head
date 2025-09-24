@@ -14,7 +14,6 @@ module.exports = {
   transform: {
     '^.+\\.[mc]?js$': 'babel-jest',
     '^.+\\.mjs$': 'babel-jest',
-    '^.+\\.mjson$': '<rootDir>/tests/mjson-transformer.cjs',
   },
   moduleNameMapper: {
     '^(.+)\\.yaml\\?raw$': '<rootDir>/tests/yaml-transformer.mjs',
@@ -44,7 +43,7 @@ module.exports = {
     '!**/node_modules/**',
     // Exclude test files and manifest from coverage
     '!**/*.test.mjs',
-    '!**/module.mjson',
+    '!**/module.json',
     // Exclude re-export files that are just compatibility layers
     '!src/helpers/errorFormatter.mjs',
   ],

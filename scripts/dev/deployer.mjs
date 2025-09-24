@@ -7,7 +7,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const TO_DEPLOY = ['./dist', './assets', './public', './lang', './packs', './styles', './module.mjson'];
+const TO_DEPLOY = ['./dist', './assets', './public', './lang', './packs', './styles', './module.json'];
 
 /**
  * @class ModuleDeployer

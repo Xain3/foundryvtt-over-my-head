@@ -11,7 +11,7 @@ import manifest from "./manifest.mjs";
  * Central configuration class that provides unified access to all module configuration.
  *
  * This class acts as a facade pattern, centralizing access to both constants (YAML configuration)
- * and manifest (module.mjson metadata) through a single, consistent interface. This design
+ * and manifest (module.json metadata) through a single, consistent interface. This design
  * simplifies imports throughout the module and provides a single source of truth for all
  * configuration data.
  *
@@ -27,7 +27,7 @@ import manifest from "./manifest.mjs";
  * @export
  *
  * @property {Object} constants - The parsed and frozen constants from YAML configuration
- * @property {Object} manifest - The validated and frozen manifest from module.mjson
+ * @property {Object} manifest - The validated and frozen manifest from module.json
  *
  * @method buildManifestWithShortName - Returns manifest enhanced with shortName for backwards compatibility
  * @method exportConstants - Exports constants to global scope with dynamic variable naming
@@ -90,7 +90,7 @@ class Config {
    *
    * @constructor
    * @throws {Error} If constants.yaml is missing or contains invalid YAML
-   * @throws {Error} If module.mjson is missing or fails manifest validation
+   * @throws {Error} If module.json is missing or fails manifest validation
    * @throws {Error} If required manifest attributes are not defined in constants
    */
   constructor() {
@@ -105,7 +105,7 @@ class Config {
     this.constants = constants;
 
     /**
-     * The validated and frozen manifest object from module.mjson.
+     * The validated and frozen manifest object from module.json.
      * Contains module metadata including id, title, version, description,
      * and other FoundryVTT module properties. The manifest is validated
      * against required attributes defined in constants.
@@ -245,7 +245,7 @@ class Config {
  * configuration access is needed.
  *
  * @property {Object} constants - The parsed and frozen constants from YAML configuration
- * @property {Object} manifest - The validated and frozen manifest from module.mjson
+ * @property {Object} manifest - The validated and frozen manifest from module.json
  * @method buildManifestWithShortName - Returns enhanced manifest with shortName property
  * @method exportConstants - Exports constants with dynamic global variable naming
  *

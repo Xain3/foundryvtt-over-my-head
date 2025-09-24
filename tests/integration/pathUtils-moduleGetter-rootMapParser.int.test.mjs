@@ -4,7 +4,7 @@
  * @path tests/integration/pathUtils-moduleGetter-rootMapParser.int.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll, fail } from 'vitest';
 import PathUtils from '../../src/helpers/pathUtils.mjs';
 import { getModule } from '../../src/helpers/moduleGetter.mjs';
 import config from '../../src/config/config.mjs';
@@ -12,9 +12,9 @@ import config from '../../src/config/config.mjs';
 const constants = config.constants;
 
 // Mock RootMapParser to avoid manifest import issues
-vi.mock('../../src/helpers/rootMapParser.mjs', () => {
-  const actualPathUtils = jest.requireActual('../../src/helpers/pathUtils.mjs').default;
-  const actualGetModule = jest.requireActual('../../src/helpers/moduleGetter.mjs').getModule;
+vi.mock('../../src/helpers/rootMapParser.mjs', async () => {
+  const actualPathUtils = (await vi.importActual('../../src/helpers/pathUtils.mjs')).default;
+  const actualGetModule = (await vi.importActual('../../src/helpers/moduleGetter.mjs')).getModule;
 
   class MockRootMapParser {
     static #retrieveModuleInNamespace(module, namespace) {
@@ -95,7 +95,7 @@ vi.mock('../../src/helpers/rootMapParser.mjs', () => {
   };
 });
 
-const RootMapParser = require('../../src/helpers/rootMapParser.mjs').default;
+import RootMapParser from '../../src/helpers/rootMapParser.mjs';
 
 // Mock Foundry VTT environment
 const createMockFoundryEnvironment = () => {

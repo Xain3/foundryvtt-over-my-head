@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-const fs = require('fs');
-const path = require('path');
-const Ajv = require('ajv');
-const addFormats = require('ajv-formats');
+import { readFileSync } from 'fs';
+import { resolve, join } from 'path';
+import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 
 function readJSON(filePath) {
-  const raw = fs.readFileSync(filePath, 'utf8');
+  const raw = readFileSync(filePath, 'utf8');
   try {
     return JSON.parse(raw);
   } catch (e) {
@@ -15,9 +15,9 @@ function readJSON(filePath) {
 }
 
 function main() {
-  const root = path.resolve(__dirname, '..');
-  const configPath = path.join(root, 'docker', 'container-config.json');
-  const schemaPath = path.join(root, 'docker', 'container-config.schema.json');
+  const root = resolve(__dirname, '..');
+  const configPath = join(root, 'docker', 'container-config.json');
+  const schemaPath = join(root, 'docker', 'container-config.schema.json');
 
   const config = readJSON(configPath);
   const schema = readJSON(schemaPath);
@@ -76,6 +76,6 @@ function main() {
   console.log('container-config.json is valid.');
 }
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }

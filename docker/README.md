@@ -9,7 +9,7 @@ This folder contains configuration and scripts used to drive the Foundry contain
 - `container-config.json` — Primary runtime configuration for the container orchestration.
 - `container-config.example.json` — Example entries and inline overrides for reference.
 - `container-config.schema.json` — JSON Schema (draft-07) describing the shape of `container-config.json`.
-- `scripts/validate-container-config.js` — A Node script to validate the config and perform cross-reference checks.
+- `scripts/validate-container-config.mjs` — A Node script to validate the config and perform cross-reference checks.
 
 Use the schema to enable editor tooltips and to validate the config in CI. The example file demonstrates inline overrides and version-specific configuration.
 
@@ -59,7 +59,7 @@ How it works
 
 - The built module directory (`dist/`) is bind‑mounted into each Foundry container at `/host/dist` (read‑only).
 - On startup, `10-sync-host-content` mirrors `/host/dist` into `/data/Data/modules/foundryvtt-over-my-head` inside the container so Foundry writes don't change host ownership.
-- Rebuilds update `dist/main.js`; the sync loop applies changes within ~1s. Refresh the browser or use a hot‑reload module for auto‑reload.
+- Rebuilds update `dist/main.mjs`; the sync loop applies changes within ~1s. Refresh the browser or use a hot‑reload module for auto‑reload.
 - Each service reads credentials from the Docker secret mounted as `/run/secrets/config.json`.
 - Foundry data persists in Docker volumes created by Compose. To wipe them for a fresh start, stop with `down -v` (see below).
 

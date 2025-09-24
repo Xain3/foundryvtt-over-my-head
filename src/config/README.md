@@ -6,20 +6,20 @@ This directory contains the complete configuration management system for the Fou
 
 ```
 src/config/
-├── config.js                # Central configuration class - unified access point
-├── config.unit.test.js       # Tests for the Config class
-├── constants.js              # Parsed constants from YAML - exports frozen configuration
-├── constants.unit.test.js    # Tests for the constants module
-├── manifest.js               # Validated manifest object - exports frozen manifest
-├── manifest.unit.test.js     # Tests for manifest delegation
+├── config.mjs                # Central configuration class - unified access point
+├── config.unit.test.mjs       # Tests for the Config class
+├── constants.mjs              # Parsed constants from YAML - exports frozen configuration
+├── constants.unit.test.mjs    # Tests for the constants module
+├── manifest.mjs               # Validated manifest object - exports frozen manifest
+├── manifest.unit.test.mjs     # Tests for manifest delegation
 ├── README.md                 # This documentation file
 └── helpers/                  # Helper classes and utilities
-    ├── constantsBuilder.js   # Core builder for constants management
-    ├── constantsGetter.js    # File reading utilities for YAML files
-    ├── constantsParser.js    # YAML parsing with advanced features
-    ├── manifestParser.js     # Manifest validation and processing
+    ├── constantsBuilder.mjs   # Core builder for constants management
+    ├── constantsGetter.mjs    # File reading utilities for YAML files
+    ├── constantsParser.mjs    # YAML parsing with advanced features
+    ├── manifestParser.mjs     # Manifest validation and processing
     ├── README.md            # Detailed helper documentation
-    └── *.unit.test.js       # Comprehensive test suites for each helper
+    └── *.unit.test.mjs       # Comprehensive test suites for each helper
 ```
 
 ## 🎯 System Overview
@@ -31,19 +31,19 @@ The config system is built around a centralized architecture that provides unifi
 3. **Parsing Engine**: YAML processing with advanced features (`ConstantsParser`)
 4. **Core Builder**: Main orchestration and caching (`ConstantsBuilder`)
 5. **Validation Layer**: Manifest validation and immutability (`ManifestParser`)
-6. **Module APIs**: Specialized exports for different needs (`constants.js`, `manifest.js`)
-7. **Unified Interface**: Central access point for all configuration (`config.js`)
+6. **Module APIs**: Specialized exports for different needs (`constants.mjs`, `manifest.mjs`)
+7. **Unified Interface**: Central access point for all configuration (`config.mjs`)
 
 ## 📚 Core Modules
 
-### config.js - **RECOMMENDED ENTRY POINT**
+### config.mjs - **RECOMMENDED ENTRY POINT**
 
 **Purpose**: Central configuration instance providing unified access to all module configuration
 **Exports**: Pre-instantiated config object that encapsulates both constants and manifest
-**Usage**: `import config from './config/config.js'`
+**Usage**: `import config from './config/config.mjs'`
 
 ```javascript
-import config from './config/config.js';
+import config from './config/config.mjs';
 
 // Access constants directly
 const moduleRef = config.constants.moduleManagement.referToModuleBy;           // "title"
@@ -83,7 +83,7 @@ console.log(`Initializing ${config.manifest.title} v${config.manifest.version}`)
 The Config class includes a `buildManifestWithShortName()` method that returns an enhanced version of the manifest with a `shortName` property for backwards compatibility.
 
 ```javascript
-import config from './config/config.js';
+import config from './config/config.mjs';
 
 // Get manifest with shortName added
 const manifestWithShortName = config.buildManifestWithShortName();
@@ -110,7 +110,7 @@ console.log(manifestWithShortName.title);     // Original manifest properties pr
 The Config class includes an `exportConstants()` method that safely exports module constants to the global scope for external access.
 
 ```javascript
-import config from './config/config.js';
+import config from './config/config.mjs';
 
 // Export constants to global scope
 config.exportConstants();
@@ -140,19 +140,19 @@ config.exportConstants(); // "OverMyHead: Constants already exported to global s
 
 **Migration Note**: This method was moved from the OverMyHead class to centralize configuration management and improve encapsulation.
 
-### constants.js
+### constants.mjs
 
 **Purpose**: Parsed and frozen constants object from YAML configuration
 **Exports**: Parsed constants object from YAML configuration
-**Usage**: `import constants from './config/constants.js'` (or via Config class)
+**Usage**: `import constants from './config/constants.mjs'` (or via Config class)
 
 ```javascript
 // Direct access (not recommended for new code)
-import constants from './config/constants.js';
+import constants from './config/constants.mjs';
 
 ```javascript
 // Recommended access via Config
-import config from './config/config.js';
+import config from './config/config.mjs';
 const constants = config.constants;
 
 // Access configuration values
@@ -167,18 +167,18 @@ const errorPattern = constants.errors.pattern;         // "{{module}}{{caller}}{
 - Supports complex nested configuration structures
 - Includes context management, error formatting, and helper constants
 
-### manifest.js
+### manifest.mjs
 
 **Purpose**: Validated and frozen module manifest from module.json
 **Exports**: Validated and frozen manifest object from `module.json`
-**Usage**: `import manifest from './config/manifest.js'` (or via Config class)
+**Usage**: `import manifest from './config/manifest.mjs'` (or via Config class)
 
 ```javascript
 // Direct access (not recommended for new code)
-import manifest from './config/manifest.js';
+import manifest from './config/manifest.mjs';
 
 // Recommended access via Config
-import Config from './config/config.js';
+import Config from './config/config.mjs';
 const config = new Config();
 const manifest = config.manifest;
 
@@ -324,7 +324,7 @@ settings:
 ### Recommended Pattern: Config Instance (NEW)
 
 ```javascript
-import config from './config/config.js';
+import config from './config/config.mjs';
 
 // Access both constants and manifest directly from the singleton
 const moduleInfo = {
@@ -360,8 +360,8 @@ console.log(`Initializing ${manifestWithShortName.title} (${manifestWithShortNam
 
 ```javascript
 // Old pattern - still works but not recommended for new code
-import constants from './config/constants.js';
-import manifest from './config/manifest.js';
+import constants from './config/constants.mjs';
+import manifest from './config/manifest.mjs';
 
 // Use in module initialization
 const moduleConfig = {
@@ -375,8 +375,8 @@ const moduleConfig = {
 ### Advanced Helper Usage
 
 ```javascript
-import ConstantsBuilder from './config/helpers/constantsBuilder.js';
-import ManifestParser from './config/helpers/manifestParser.js';
+import ConstantsBuilder from './config/helpers/constantsBuilder.mjs';
+import ManifestParser from './config/helpers/manifestParser.mjs';
 
 // Custom configuration processing
 const builder = new ConstantsBuilder();
@@ -392,7 +392,7 @@ const validatedCustom = parser.getValidatedManifest();
 ### Module Initialization Pattern
 
 ```javascript
-import config from './config/config.js';
+import config from './config/config.mjs';
 
 // Use configuration directly in module lifecycle
 Hooks.once('init', () => {
@@ -426,13 +426,13 @@ The config system includes comprehensive test coverage for all components:
 npm test config
 
 # Run specific component tests
-npm test config/config.unit.test.js
-npm test config/constants.unit.test.js
-npm test config/manifest.unit.test.js
+npm test config/config.unit.test.mjs
+npm test config/constants.unit.test.mjs
+npm test config/manifest.unit.test.mjs
 npm test config/helpers
 
 # Run integration tests
-npm test tests/integration/constants.int.test.js
+npm test tests/integration/constants.int.test.mjs
 
 # Run with coverage
 npm test -- --coverage config
@@ -528,7 +528,7 @@ The system provides comprehensive error handling with clear, actionable messages
 
 ```javascript
 // Single import for all configuration needs
-import config from './config/config.js';
+import config from './config/config.mjs';
 
 // All module systems can use the same config instance
 const moduleInstance = {
@@ -567,8 +567,8 @@ const errorFormatter = new ErrorFormatter({
 **Old Pattern**:
 
 ```javascript
-import constants from './config/constants.js';
-import manifest from './config/manifest.js';
+import constants from './config/constants.mjs';
+import manifest from './config/manifest.mjs';
 
 const moduleSetup = {
   id: manifest.id,
@@ -579,7 +579,7 @@ const moduleSetup = {
 **New Pattern**:
 
 ```javascript
-import config from './config/config.js';
+import config from './config/config.mjs';
 
 const moduleSetup = {
   id: config.manifest.id,
@@ -592,7 +592,7 @@ const moduleSetup = {
 **Old Pattern**:
 
 ```javascript
-import OverMyHead from './overMyHead.js';
+import OverMyHead from './overMyHead.mjs';
 
 class MyModule extends OverMyHead {
   async init() {
@@ -605,7 +605,7 @@ class MyModule extends OverMyHead {
 **New Pattern**:
 
 ```javascript
-import config from './config/config.js';
+import config from './config/config.mjs';
 
 class MyModule {
   async init() {
@@ -649,17 +649,17 @@ class MyModule {
 
 ```javascript
 // RECOMMENDED: Unified access
-import config from './config/config.js';    // Central configuration instance
+import config from './config/config.mjs';    // Central configuration instance
 
 // LEGACY: Direct access (still supported)
-import constants from './config/constants.js';    // Parsed YAML configuration
-import manifest from './config/manifest.js';      // Validated manifest object
+import constants from './config/constants.mjs';    // Parsed YAML configuration
+import manifest from './config/manifest.mjs';      // Validated manifest object
 
 // Helper classes (advanced usage)
-import ConstantsBuilder from './config/helpers/constantsBuilder.js';
-import ConstantsGetter from './config/helpers/constantsGetter.js';
-import ConstantsParser from './config/helpers/constantsParser.js';
-import ManifestParser from './config/helpers/manifestParser.js';
+import ConstantsBuilder from './config/helpers/constantsBuilder.mjs';
+import ConstantsGetter from './config/helpers/constantsGetter.mjs';
+import ConstantsParser from './config/helpers/constantsParser.mjs';
+import ManifestParser from './config/helpers/manifestParser.mjs';
 ```
 
 ### Config Instance API
@@ -727,10 +727,10 @@ interface ManifestWithShortName extends Manifest {
 
 ### Configuration Access
 
-1. **Use Config Instance**: Always use the config instance for new code - `import config from './config/config.js'`
+1. **Use Config Instance**: Always use the config instance for new code - `import config from './config/config.mjs'`
 2. **Single Import Pattern**: Use one import for all configuration needs throughout your modules
 3. **Consistent Access Pattern**: Use `config.constants.x` and `config.manifest.y` throughout
-4. **Avoid Direct Imports**: Avoid importing constants.js and manifest.js directly in new code
+4. **Avoid Direct Imports**: Avoid importing constants.mjs and manifest.mjs directly in new code
 5. **Global Export**: Use `config.exportConstants()` early in module initialization for external access
 
 ### Global Constants Export

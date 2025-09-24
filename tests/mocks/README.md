@@ -25,7 +25,7 @@ The Enhanced MockGlobals System provides a comprehensive mock environment for Fo
 
 ### 📚 **Library Integrations**
 
-- **PIXI.js**: Graphics rendering library mocks
+- **PIXI.mjs**: Graphics rendering library mocks
 - **jQuery**: DOM manipulation and utilities
 - **Handlebars**: Template compilation and rendering
 
@@ -41,7 +41,7 @@ import MockGlobals, {
   MockScene,
   createMockFunction,
   createSpy
-} from '../mocks/mockGlobals.js';
+} from '../mocks/mockGlobals.mjs';
 
 describe('My Foundry Module Tests', () => {
   let mockGlobals;
@@ -482,7 +482,7 @@ reader.readAsText(file);
 
 When `libraries: true` is enabled, the following globals are available:
 
-### PIXI.js Mocks
+### PIXI.mjs Mocks
 
 ```javascript
 // Graphics rendering
@@ -543,7 +543,7 @@ The mock system exports the following constants and classes for direct use:
 ### Exported Constants
 
 ```javascript
-import { CONST, CONFIG, UI } from '../mocks/mockGlobals.js';
+import { CONST, CONFIG, UI } from '../mocks/mockGlobals.mjs';
 
 // User roles
 console.log(CONST.USER_ROLES.PLAYER); // 1
@@ -577,7 +577,7 @@ import {
   MockCombat,
   MockToken,
   MockFolder
-} from '../mocks/mockGlobals.js';
+} from '../mocks/mockGlobals.mjs';
 
 // Use directly without global setup
 const actor = new MockActor({ name: 'Direct Actor' });
@@ -641,7 +641,7 @@ const hasOwnership = document.permission >= CONST.DOCUMENT_PERMISSION_LEVELS.OWN
 ### Custom Document Classes
 
 ```javascript
-import { MockActor, CONFIG } from '../mocks/mockGlobals.js';
+import { MockActor, CONFIG } from '../mocks/mockGlobals.mjs';
 
 // Extend mock documents
 class CustomActor extends MockActor {
@@ -657,7 +657,7 @@ CONFIG.Actor.documentClass = CustomActor;
 ### Event Testing
 
 ```javascript
-import { createMockFunction } from '../mocks/mockGlobals.js';
+import { createMockFunction } from '../mocks/mockGlobals.mjs';
 
 // Test hook interactions
 const handler = createMockFunction();
@@ -817,7 +817,7 @@ console.log('User role:', game.user.role);
 console.log('Actors:', game.actors.size);
 
 // Verify exports
-import { CONST, CONFIG } from '../mocks/mockGlobals.js';
+import { CONST, CONFIG } from '../mocks/mockGlobals.mjs';
 console.log('CONST exported:', typeof CONST);
 console.log('CONFIG exported:', typeof CONFIG);
 ```

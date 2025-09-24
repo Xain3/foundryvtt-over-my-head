@@ -67,5 +67,5 @@ jobs:
           exit 0 # Remove this line once you have a real command
 
       # --- Coverage Check (Implicit via Jest Config) ---
-      # Jest will automatically enforce coverage thresholds defined in jest.config.js
+      # Jest will automatically enforce coverage thresholds defined in jest.config.mjs
       # If the thresholds are not met, the 'Run Unit Tests & Generate Coverage' step will fail.

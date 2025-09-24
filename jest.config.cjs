@@ -5,17 +5,18 @@ module.exports = {
   testEnvironment: 'node',
   // Update testMatch to recognize different test types including setup tests
   testMatch: [
-    '**/*.unit.test.js',
-    '**/*.int.test.js',
-    '**/*.setup.test.js',
-    '**/*.performance.test.js'
+    '**/*.unit.test.mjs',
+    '**/*.int.test.mjs',
+    '**/*.setup.test.mjs',
+    '**/*.performance.test.mjs'
   ],
   setupFilesAfterEnv: [],
   transform: {
     '^.+\\.[mc]?js$': 'babel-jest',
+    '^.+\\.mjs$': 'babel-jest',
   },
   moduleNameMapper: {
-    '^(.+)\\.yaml\\?raw$': '<rootDir>/tests/yaml-transformer.js',
+    '^(.+)\\.yaml\\?raw$': '<rootDir>/tests/yaml-transformer.mjs',
   },
   // Include project root for setup tests
   roots: ['<rootDir>/src', '<rootDir>/tests', '<rootDir>'],
@@ -37,14 +38,14 @@ module.exports = {
   collectCoverage: true,
   // Specify directories/files to collect coverage from
   collectCoverageFrom: [
-    'src/**/*.js',
-    '!src/**/index.js', // Example: Exclude index files if needed
+    'src/**/*.mjs',
+    '!src/**/index.mjs', // Example: Exclude index files if needed
     '!**/node_modules/**',
     // Exclude test files and manifest from coverage
-    '!**/*.test.js',
+    '!**/*.test.mjs',
     '!**/module.json',
     // Exclude re-export files that are just compatibility layers
-    '!src/helpers/errorFormatter.js',
+    '!src/helpers/errorFormatter.mjs',
   ],
   testSequencer: '@jest/test-sequencer', // Explicitly set the default
 };

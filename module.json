@@ -45,7 +45,7 @@
   ],
 
   "esmodules": [
-    "dist/main.js"
+    "dist/main.mjs"
   ],
 
   "readme": "https://raw.githubusercontent.com/xain3/foundryvtt-over-my-head/releases/latest/README.md",

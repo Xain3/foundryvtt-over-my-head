@@ -1,0 +1,55 @@
+{
+  "name": "foundryvtt-over-my-head",
+  "id": "foundryvtt-over-my-head",
+  "title": "OverMyHead",
+  "description": "A Foundry VTT module for managing vision occlusion with fade effects when a token is under a tile",
+  "version": "13.0.1-alpha1",
+  "license": "Gnu GPL v3",
+
+  "compatibility": {
+    "minimum": "12",
+  "verified": "13.347"
+  },
+
+  "flags": {
+    "debugMode": false,
+    "onlyGM": true,
+    "settingsReady": false,
+    "dev" : true
+  },
+
+  "authors": [
+    {
+      "name": "Xain_it",
+      "id": "Xain_it",
+      "email": "andrea.pandolfo@gmail.com",
+      "flags": {}
+    }
+  ],
+
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json",
+      "flags": {}
+    }
+  ],
+
+  "scripts": [
+
+  ],
+
+  "styles": [
+    "styles/foundryvtt-over-my-head.css"
+  ],
+
+  "esmodules": [
+    "dist/main.mjs"
+  ],
+
+  "readme": "https://raw.githubusercontent.com/xain3/foundryvtt-over-my-head/releases/latest/README.md",
+  "manifest": "https://raw.githubusercontent.com/xain3/foundryvtt-over-my-head/releases/latest/module.json",
+  "download": "https://www.github.com/xain3/foundryvtt-over-my-head/releases/latest/download/module.zip",
+  "url": "https://github.com/xain3/foundryvtt-over-my-head"
+}

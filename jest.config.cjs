@@ -14,6 +14,7 @@ module.exports = {
   transform: {
     '^.+\\.[mc]?js$': 'babel-jest',
     '^.+\\.mjs$': 'babel-jest',
+    '^.+\\.mjson$': '<rootDir>/tests/mjson-transformer.cjs',
   },
   moduleNameMapper: {
     '^(.+)\\.yaml\\?raw$': '<rootDir>/tests/yaml-transformer.mjs',

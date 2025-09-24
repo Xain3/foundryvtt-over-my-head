@@ -9,7 +9,7 @@ import SettingsParser from './settingsParser.mjs';
 import SettingsChecker from './settingsChecker.mjs';
 import FlagEvaluator from './flagEvaluator.mjs';
 
-// Jest Mocks
+// Vitest Mocks
 vi.mock('./settingsChecker.mjs');
 vi.mock('./flagEvaluator.mjs');
 vi.mock('@/baseClasses/handler', () => {

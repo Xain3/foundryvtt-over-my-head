@@ -16,7 +16,7 @@ import ContextItemSync from './contextItemSync.mjs';
 import ContextContainerSync from './contextContainerSync.mjs';
 import ContextLegacySync from './contextLegacySync.mjs';
 
-// Jest Mocks
+// Vitest Mocks
 vi.mock('./contextAutoSync.mjs');
 vi.mock('./contextItemSync.mjs');
 vi.mock('./contextContainerSync.mjs');

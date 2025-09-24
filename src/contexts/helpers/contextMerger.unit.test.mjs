@@ -13,7 +13,7 @@ import { ContextContainer } from './contextContainer.mjs';
 import { ItemFilter } from './contextItemFilter.mjs';
 import Context from '../context.mjs';
 
-// Jest Mocks
+// Vitest Mocks
 vi.mock('../context.mjs');
 vi.mock('./contextComparison.mjs');
 vi.mock('./contextItemFilter.mjs');

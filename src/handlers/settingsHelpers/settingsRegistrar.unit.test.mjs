@@ -9,7 +9,7 @@ import SettingsRegistrar from './settingsRegistrar.mjs';
 import MockSettings from '../../../tests/mocks/MockSettings.mjs';
 import FlagEvaluator from './flagEvaluator.mjs';
 
-// Jest Mocks
+// Vitest Mocks
 vi.mock('./flagEvaluator.mjs');
 
 describe('SettingsRegistrar', () => {

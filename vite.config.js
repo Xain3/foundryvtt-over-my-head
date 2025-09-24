@@ -12,7 +12,7 @@ export default defineConfig({
   root: process.cwd(),
   build: {
     lib: {
-      entry: resolve(process.cwd(), 'src/main.js'),
+      entry: resolve(process.cwd(), 'src/main.mjs'),
       name: 'OverMyHead',
       fileName: 'main',
       formats: ['es']
@@ -22,15 +22,15 @@ export default defineConfig({
     rollupOptions: {
       external: [
         // Exclude test files
-        /.*\.test\.js$/,
-        /.*\.unit\.test\.js$/,
-        /.*\.int\.test\.js$/,
-        /.*\.setup\.test\.js$/
+        /.*\.test\.mjs$/,
+        /.*\.unit\.test\.mjs$/,
+        /.*\.int\.test\.mjs$/,
+        /.*\.setup\.test\.mjs$/
       ],
       output: {
         // Ensure the output is ES module format for Foundry VTT
         format: 'es',
-        entryFileNames: '[name].js'
+        entryFileNames: '[name].mjs'
       }
     },
     minify: false,
@@ -42,9 +42,9 @@ export default defineConfig({
     alias: {
       '@': resolve(process.cwd(), 'src'),
   '@docker': resolve(process.cwd(), 'docker'),
-      '@config': resolve(process.cwd(), 'src/config/config.js'),
-      '@constants': resolve(process.cwd(), 'src/config/constants.js'),
-      '@manifest': resolve(process.cwd(), 'src/config/manifest.js'),
+      '@config': resolve(process.cwd(), 'src/config/config.mjs'),
+      '@constants': resolve(process.cwd(), 'src/config/constants.mjs'),
+      '@manifest': resolve(process.cwd(), 'src/config/manifest.mjs'),
       '@configFolder': resolve(process.cwd(), 'src/config'),
       '@contexts': resolve(process.cwd(), 'src/contexts'),
       '@data': resolve(process.cwd(), 'src/data'),
@@ -54,8 +54,8 @@ export default defineConfig({
       '@maps': resolve(process.cwd(), 'src/maps'),
       '@helpers': resolve(process.cwd(), 'src/helpers'),
       '@configHelpers': resolve(process.cwd(), 'src/config/helpers'),
-      '@validator': resolve(process.cwd(), 'src/utils/static/validator.js'),
-      '@module': resolve(process.cwd(), 'module.json')
+      '@validator': resolve(process.cwd(), 'src/utils/static/validator.mjs'),
+      '@module': resolve(process.cwd(), 'module.mjson')
     }
   },
   // Enable JSON loading

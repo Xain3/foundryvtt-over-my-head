@@ -18,7 +18,7 @@
     "vite": "^7.1.1"
   },
   "scripts": {
-    "dev": "node ./scripts/dev/buildAndDeploy.js",
+    "dev": "node ./scripts/dev/buildAndDeploy.mjs",
     "build": "vite build",
     "build:prod": "NODE_ENV=production vite build",
     "prerelease": "npm run test && npm run build:prod",
@@ -29,7 +29,7 @@
     "test:setup": "jest --testMatch=\"**/*.setup.test.js\"",
     "test:functional": "echo 'Functional tests not configured' && exit 0",
     "test:performance": "echo 'Performance tests not configured' && exit 0",
-    "validate:container-config": "node ./scripts/validate-container-config.js"
+    "validate:container-config": "node ./scripts/validate-container-config.mjs"
   },
   "dependencies": {
     "csslint": "^1.0.5",

@@ -5,7 +5,6 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-import { jest } from '@jest/globals';
 
 // Mock dependencies first
 vi.mock('fs', () => ({

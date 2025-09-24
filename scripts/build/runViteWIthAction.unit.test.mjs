@@ -5,7 +5,6 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-import { jest } from '@jest/globals';
 import { spawn } from 'child_process';
 import { existsSync } from 'fs';
 import { extname, resolve } from 'path';

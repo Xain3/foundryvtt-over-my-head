@@ -44,7 +44,7 @@ Purpose: Enable AI coding agents to be productive quickly by capturing this repo
 
 ## Gotchas
 - Output is ES module; keep imports ESM-friendly and rely on configured aliases.
-- Jest runs under Node with Babel; mock Foundry globals where needed. Coverage thresholds are enforced in `jest.config.mjs`.
+- Jest runs under Node with Babel; mock Foundry globals where needed. Coverage thresholds are enforced in `vitest.config.mjs`.
 - Constants are deeply frozen; change via YAML/config, not at runtime.
 - `config.exportConstants()` should be called once; repeated calls warn and no‑op.
 

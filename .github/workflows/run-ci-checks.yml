@@ -66,6 +66,6 @@ jobs:
           # npm run test:performance
           exit 0 # Remove this line once you have a real command
 
-      # --- Coverage Check (Implicit via Jest Config) ---
-      # Jest will automatically enforce coverage thresholds defined in jest.config.mjs
+      # --- Coverage Check (Implicit via Vitest Config) ---
+      # Vitest will automatically enforce coverage thresholds defined in vitest.config.mjs
       # If the thresholds are not met, the 'Run Unit Tests & Generate Coverage' step will fail.

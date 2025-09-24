@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { ContextItem } from './contextItem.mjs';
-import { Validator } from '@/utils/static/validator.mjs';
+import { Validator } from '@utils/static/validator.mjs';
 
 /**
  * @file contextItem.unit.test.mjs

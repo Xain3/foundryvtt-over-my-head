@@ -5,14 +5,17 @@
  * @date 29 May 2025
  */
 
+// Import vi for mocking support
+import { vi } from 'vitest';
+
 /**
  * Create a mock function that uses vitest vi.fn() or jest.fn() when available, otherwise a regular function
  * @param {Function} implementation - The function implementation
  * @returns {Function} Mock function or spy
  */
 export const createMockFunction = (implementation = () => {}) => {
-  // Check for Vitest first, then Jest
-  if (typeof vi !== 'undefined' && vi.fn) {
+  // Use imported vi directly first, then check for jest
+  if (vi && vi.fn) {
     return vi.fn(implementation);
   }
   if (typeof jest !== 'undefined' && jest.fn) {
@@ -28,8 +31,8 @@ export const createMockFunction = (implementation = () => {}) => {
  * @returns {Function} Spy function or original method
  */
 export const createSpy = (object, methodName) => {
-  // Check for Vitest first, then Jest
-  if (typeof vi !== 'undefined' && vi.spyOn) {
+  // Use imported vi directly first, then check for jest
+  if (vi && vi.spyOn) {
     return vi.spyOn(object, methodName);
   }
   if (typeof jest !== 'undefined' && jest.spyOn) {
@@ -414,7 +417,7 @@ class MockGlobals {
     MockHooks._instance = new MockHooks();
 
     // Clear mocks if vitest or jest is available
-    if (typeof vi !== 'undefined' && vi.clearAllMocks) {
+    if (vi && vi.clearAllMocks) {
       vi.clearAllMocks();
     } else if (typeof jest !== 'undefined' && jest.clearAllMocks) {
       jest.clearAllMocks();

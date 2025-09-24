@@ -53,6 +53,7 @@ export default defineConfig({
       '@data': resolve(process.cwd(), 'src/data'),
       '@handlers': resolve(process.cwd(), 'src/handlers'),
       '@utils': resolve(process.cwd(), 'src/utils'),
+      '@utils/static': resolve(process.cwd(), 'src/utils/static'),
       '@listeners': resolve(process.cwd(), 'src/listeners'),
       '@maps': resolve(process.cwd(), 'src/maps'),
       '@helpers': resolve(process.cwd(), 'src/helpers'),

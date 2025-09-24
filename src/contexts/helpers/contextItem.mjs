@@ -5,7 +5,7 @@
 
  */
 
-import { Validator } from "@/utils/static/validator";
+import { Validator } from "@utils/static/validator.mjs";
 
 /**
  * @class ContextItem

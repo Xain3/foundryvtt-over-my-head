@@ -10,9 +10,15 @@ import yaml from 'js-yaml';
 import ConstantsParser from './constantsParser.mjs';
 import PathUtils from '@helpers/pathUtils.mjs';
 
-vi.mock('js-yaml', () => ({
-  load: vi.fn(),
-}));
+vi.mock('js-yaml', () => {
+  const loadFunction = vi.fn();
+  return {
+    default: {
+      load: loadFunction
+    },
+    load: loadFunction
+  };
+});
 vi.mock('@helpers/pathUtils.mjs', () => ({
   default: {
     resolvePath: vi.fn(),

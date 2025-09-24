@@ -12,8 +12,8 @@ const constants = config.constants;
 
 // Mock RootMapParser to avoid manifest import issues
 jest.mock('../../src/helpers/rootMapParser.mjs', () => {
-  const actualPathUtils = jest.requireActual('../../src/helpers/pathUtils.js').default;
-  const actualGetModule = jest.requireActual('../../src/helpers/moduleGetter.js').getModule;
+  const actualPathUtils = jest.requireActual('../../src/helpers/pathUtils.mjs').default;
+  const actualGetModule = jest.requireActual('../../src/helpers/moduleGetter.mjs').getModule;
 
   class MockRootMapParser {
     static #retrieveModuleInNamespace(module, namespace) {

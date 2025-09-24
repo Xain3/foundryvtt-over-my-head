@@ -1,7 +1,7 @@
 /**
- * @file placeableHandler.js
+ * @file placeableHandler.mjs
  * @description Handles operations related to placeable entities.
- * @path src/handlers/placeableHandler.js
+ * @path src/handlers/placeableHandler.mjs
  */
 
 import Handler from "../baseClasses/handler.mjs";

@@ -1,7 +1,7 @@
 /**
- * @file contextLegacySync.unit.test.js
+ * @file contextLegacySync.unit.test.mjs
  * @description Unit tests for the ContextLegacySync class functionality.
- * @path src/contexts/helpers/contextLegacySync.unit.test.js
+ * @path src/contexts/helpers/contextLegacySync.unit.test.mjs
 
  */
 

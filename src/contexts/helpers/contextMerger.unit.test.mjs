@@ -1,7 +1,7 @@
 /**
- * @file contextMerger.unit.test.js
+ * @file contextMerger.unit.test.mjs
  * @description Unit tests for the ContextMerger class functionality.
- * @path src/contexts/helpers/contextMerger.unit.test.js
+ * @path src/contexts/helpers/contextMerger.unit.test.mjs
 
  */
 

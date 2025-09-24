@@ -1,7 +1,7 @@
 /**
- * @file placeableGetter.js
+ * @file placeableGetter.mjs
  * @description Retrieves information about placeable entities.
- * @path src/handlers/placeableHelpers/placeableGetter.js
+ * @path src/handlers/placeableHelpers/placeableGetter.mjs
  */
 
 

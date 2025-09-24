@@ -1,7 +1,7 @@
 /**
- * @file rootMapValidator.js
+ * @file rootMapValidator.mjs
  * @description This file contains the RootMapValidator class for validating root map configurations.
- * @path /src/context/helpers/validators/rootMapValidator.js
+ * @path /src/context/helpers/validators/rootMapValidator.mjs
  */
 
 /**

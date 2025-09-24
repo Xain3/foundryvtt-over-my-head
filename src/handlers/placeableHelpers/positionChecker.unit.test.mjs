@@ -1,7 +1,7 @@
 /**
- * @file positionChecker.unit.test.js
+ * @file positionChecker.unit.test.mjs
  * @description Unit tests for PositionChecker.
- * @path src/handlers/placeableHelpers/positionChecker.unit.test.js
+ * @path src/handlers/placeableHelpers/positionChecker.unit.test.mjs
  */
 
 import PositionChecker from './positionChecker.mjs';

@@ -1,7 +1,7 @@
 /**
- * @file contextComparison.unit.test.js
+ * @file contextComparison.unit.test.mjs
  * @description Comprehensive unit tests for the ContextComparison class functionality including enhanced timestamp format support and dayjs integration.
- * @path src/contexts/helpers/contextComparison.unit.test.js
+ * @path src/contexts/helpers/contextComparison.unit.test.mjs
 
  */
 

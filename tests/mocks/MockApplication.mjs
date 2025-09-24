@@ -1,7 +1,7 @@
 /**
- * @file MockApplication.js
+ * @file MockApplication.mjs
  * @description Mock Application class for UI applications
- * @path tests/mocks/MockApplication.js
+ * @path tests/mocks/MockApplication.mjs
  */
 
 /**

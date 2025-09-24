@@ -1,7 +1,7 @@
 /**
- * @file runViteWIthAction.unit.test.js
+ * @file runViteWIthAction.unit.test.mjs
  * @description Unit tests for ViteRunner class
- * @path scripts/build/runViteWIthAction.unit.test.js
+ * @path scripts/build/runViteWIthAction.unit.test.mjs
  */
 
 import { jest } from '@jest/globals';
@@ -194,8 +194,8 @@ describe('ViteRunner', () => {
 
     it('should handle JavaScript module actions', async () => {
       existsSync.mockReturnValue(true);
-      extname.mockReturnValue('.js');
-      resolve.mockReturnValue('/path/to/module.js');
+      extname.mockReturnValue('.mjs');
+      resolve.mockReturnValue('/path/to/module.mjs');
 
       // Skip this test due to complexities with mocking dynamic imports in Jest
       // In real usage, this would work fine
@@ -204,9 +204,9 @@ describe('ViteRunner', () => {
 
     it('should throw error for non-existent action files', async () => {
       existsSync.mockReturnValue(false);
-      resolve.mockReturnValue('/path/to/nonexistent.js');
+      resolve.mockReturnValue('/path/to/nonexistent.mjs');
 
-      const runner = new ViteRunner({ preBuildAction: './nonexistent.js' });
+      const runner = new ViteRunner({ preBuildAction: './nonexistent.mjs' });
 
       await expect(runner.start({})).rejects.toThrow('Action file not found');
     });

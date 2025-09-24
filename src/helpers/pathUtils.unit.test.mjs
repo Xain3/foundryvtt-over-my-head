@@ -1,7 +1,7 @@
 /**
- * @file pathUtils.unit.test.js
+ * @file pathUtils.unit.test.mjs
  * @description Unit tests for the PathUtils static utility class.
- * @path src/helpers/pathUtils.unit.test.js
+ * @path src/helpers/pathUtils.unit.test.mjs
  * @date 1 June 2025
  */
 

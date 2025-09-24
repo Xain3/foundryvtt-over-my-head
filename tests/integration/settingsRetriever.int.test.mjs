@@ -1,7 +1,7 @@
 /**
- * @file settingsRetriever.int.test.js
+ * @file settingsRetriever.int.test.mjs
  * @description Integration tests for SettingsRetriever helper class with actual settings workflow
- * @path tests/integration/settingsRetriever.int.test.js
+ * @path tests/integration/settingsRetriever.int.test.mjs
  */
 
 import SettingsRetriever from '../../src/helpers/settingsRetriever.mjs';

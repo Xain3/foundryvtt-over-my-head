@@ -1,7 +1,7 @@
 /**
- * @file moduleGetter.test.js
+ * @file moduleGetter.test.mjs
  * @description This file contains unit tests for the getModule function.
- * @path src/helpers/moduleGetter.test.js
+ * @path src/helpers/moduleGetter.test.mjs
  */
 
 // Mock config before any imports

@@ -1,7 +1,7 @@
 /**
- * @file rootMapParser.js
+ * @file rootMapParser.mjs
  * @description This file contains a function to parse root map configurations into resolved objects.
- * @path src/helpers/rootMapParser.js
+ * @path src/helpers/rootMapParser.mjs
  */
 
 import config from '@config';

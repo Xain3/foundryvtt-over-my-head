@@ -1,7 +1,7 @@
 /**
- * @file errorFormatter.unit.test.js
+ * @file errorFormatter.unit.test.mjs
  * @description Unit tests for the ErrorFormatter class and formatError function.
- * @path src/helpers/errorFormatter.unit.test.js
+ * @path src/helpers/errorFormatter.unit.test.mjs
  * @date 25 May 2025
  */
 
@@ -31,7 +31,7 @@ describe('ErrorFormatter', () => {
 
   beforeEach(() => {
     testError = new Error('Test error message');
-    testError.stack = 'Error: Test error message\n    at Object.<anonymous> (/path/to/file.js:10:15)';
+    testError.stack = 'Error: Test error message\n    at Object.<anonymous> (/path/to/file.mjs:10:15)';
   });
 
   describe('formatError static method', () => {
@@ -64,7 +64,7 @@ describe('ErrorFormatter', () => {
 
         expect(result).toContain('Call Stack:');
         expect(result).toContain('at Object.<anonymous>');
-        expect(result).toContain('/path/to/file.js:10:15');
+        expect(result).toContain('/path/to/file.mjs:10:15');
       });
 
       it('should not include stack trace when includeStack is false', () => {
@@ -398,7 +398,7 @@ describe('ErrorFormatter', () => {
     it('should handle custom application errors', () => {
       const appError = {
         message: 'Failed to load module configuration',
-        stack: 'ConfigError: Failed to load module configuration\n    at loadConfig (config.js:25:10)',
+        stack: 'ConfigError: Failed to load module configuration\n    at loadConfig (config.mjs:25:10)',
         code: 'CONFIG_LOAD_ERROR'
       };
 

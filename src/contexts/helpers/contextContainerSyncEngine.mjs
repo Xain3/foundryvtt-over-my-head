@@ -1,7 +1,7 @@
 /**
- * @file contextContainerSyncEngine.js
+ * @file contextContainerSyncEngine.mjs
  * @description This file contains the ContextContainerSyncEngine class for handling complex recursive synchronization logic.
- * @path src/contexts/helpers/contextContainerSyncEngine.js
+ * @path src/contexts/helpers/contextContainerSyncEngine.mjs
 
  *
  * Enhanced Features:

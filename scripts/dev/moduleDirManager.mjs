@@ -1,7 +1,7 @@
 /**
- * @file moduleDirManager.js
+ * @file moduleDirManager.mjs
  * @description Manages module directory creation and validation
- * @path scripts/dev/moduleDirManager.js
+ * @path scripts/dev/moduleDirManager.mjs
  */
 
 import fs from 'fs';

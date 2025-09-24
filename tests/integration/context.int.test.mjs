@@ -1,7 +1,7 @@
 /**
- * @file context.int.test.js
+ * @file context.int.test.mjs
  * @description Integration tests for the Context class to verify orchestration and delegation work correctly.
- * @path tests/integration/context.int.test.js
+ * @path tests/integration/context.int.test.mjs
  */
 
 import Context from '../../src/contexts/context.mjs';

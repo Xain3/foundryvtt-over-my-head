@@ -1,7 +1,7 @@
 /**
- * @file contextHelpers.int.test.js
+ * @file contextHelpers.int.test.mjs
  * @description Integration tests for context helpers to verify their integration between each other
- * @path tests/integration/contextHelpers.int.test.js
+ * @path tests/integration/contextHelpers.int.test.mjs
  */
 
 import { ContextContainer } from '../../src/contexts/helpers/contextContainer.mjs';

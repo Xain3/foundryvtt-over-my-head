@@ -112,7 +112,7 @@ export async function smokeInstall(inputArgs = {}, inputEnv = {}) {
   };
 }
 
-// Jest harness: when run via Jest directly (e.g., npx jest path/to/dev-smoke-install.js),
+// Jest harness: when run via Jest directly (e.g., npx jest path/to/dev-smoke-install.mjs),
 // execute a dry-run local-path world install as a smoke test.
 if (process.env.JEST_WORKER_ID) {
   // eslint-disable-next-line no-undef

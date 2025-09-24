@@ -1,9 +1,9 @@
 import { formatError } from './errorFormatter.mjs';
 
 /**
- * @file errorFormatter.test.js
+ * @file errorFormatter.test.mjs
  * @description Unit tests for the errorFormatter helper re-export.
- * @path src/helpers/errorFormatter.test.js
+ * @path src/helpers/errorFormatter.test.mjs
  */
 
 

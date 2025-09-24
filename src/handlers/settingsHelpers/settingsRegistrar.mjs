@@ -1,7 +1,7 @@
 /**
-* @file settingsRegistrar.js
+* @file settingsRegistrar.mjs
 * @description This file contains the SettingsRegistrar class for registering Foundry VTT settings.
-* @path src/handlers/settingsHelpers/settingsRegistrar.js
+* @path src/handlers/settingsHelpers/settingsRegistrar.mjs
 */
 
 import Handler from "@/baseClasses/handler";

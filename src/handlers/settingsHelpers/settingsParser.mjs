@@ -1,7 +1,7 @@
 /**
- * @file settingsParser.js
+ * @file settingsParser.mjs
  * @description Parses settings definitions (array or object) and reports results with counts and warnings.
- * @path src/handlers/settingsHelpers/settingsParser.js
+ * @path src/handlers/settingsHelpers/settingsParser.mjs
  */
 
 import Handler from "@/baseClasses/handler";

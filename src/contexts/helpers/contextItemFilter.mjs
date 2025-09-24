@@ -1,7 +1,7 @@
 /**
- * @file contextItemFilter.js
+ * @file contextItemFilter.mjs
  * @description Provides filtering capabilities for selective context merging operations.
- * @path src/contexts/helpers/contextItemFilter.js
+ * @path src/contexts/helpers/contextItemFilter.mjs
 
  */
 

@@ -1,7 +1,7 @@
 /**
- * @file settingsHandler.js
+ * @file settingsHandler.mjs
  * @description Main handler for managing Foundry VTT module settings - coordinates parsing and registration
- * @path src/handlers/settingsHandler.js
+ * @path src/handlers/settingsHandler.mjs
  */
 
 import Handler from "../baseClasses/handler.mjs";

@@ -1,7 +1,7 @@
 /**
- * @file manifestParser.js
+ * @file manifestParser.mjs
  * @description This file contains the ManifestParser class for validating and processing manifest objects with comprehensive validation rules.
- * @path src/constants/helpers/manifestParser.js
+ * @path src/constants/helpers/manifestParser.mjs
  */
 
 import constants from "../constants.mjs";

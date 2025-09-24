@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * @file test-runner.js
+ * @file test-runner.mjs
  * @description Test runner for build and deployment scripts
- * @path scripts/test-runner.js
+ * @path scripts/test-runner.mjs
  */
 
 import { spawn } from 'child_process';
@@ -56,7 +56,7 @@ async function runTests() {
     colorLog('cyan', `
 Test Runner for Build and Deployment Scripts
 
-Usage: node test-runner.js [options]
+Usage: node test-runner.mjs [options]
 
 Options:
   --unit              Run only unit tests
@@ -67,10 +67,10 @@ Options:
   --help, -h          Show this help message
 
 Examples:
-  node test-runner.js                    # Run all tests
-  node test-runner.js --unit             # Run only unit tests
-  node test-runner.js --coverage         # Run with coverage
-  node test-runner.js --unit --watch     # Run unit tests in watch mode
+  node test-runner.mjs                    # Run all tests
+  node test-runner.mjs --unit             # Run only unit tests
+  node test-runner.mjs --coverage         # Run with coverage
+  node test-runner.mjs --unit --watch     # Run unit tests in watch mode
 `);
     return;
   }
@@ -83,13 +83,13 @@ Examples:
     
     // Determine which tests to run
     if (args.includes('--unit')) {
-      jestArgs.push('--testMatch', '**/*.unit.test.js');
+      jestArgs.push('--testMatch', '**/*.unit.test.mjs');
       colorLog('blue', '📋 Running Unit Tests');
     } else if (args.includes('--integration')) {
-      jestArgs.push('--testMatch', '**/*.int.test.js');
+      jestArgs.push('--testMatch', '**/*.int.test.mjs');
       colorLog('blue', '📋 Running Integration Tests');
     } else if (args.includes('--performance')) {
-      jestArgs.push('--testMatch', '**/*.performance.test.js');
+      jestArgs.push('--testMatch', '**/*.performance.test.mjs');
       colorLog('blue', '📋 Running Performance Tests');
     } else {
       colorLog('blue', '📋 Running All Tests');
@@ -145,7 +145,7 @@ async function lintTests() {
   colorLog('blue', '🔍 Linting test files...');
   
   try {
-    await runCommand('npx', ['eslint', 'scripts/**/*.test.js', 'tests/**/*.test.js']);
+    await runCommand('npx', ['eslint', 'scripts/**/*.test.mjs', 'tests/**/*.test.mjs']);
     colorLog('green', '✅ Linting completed successfully!');
   } catch (error) {
     colorLog('yellow', '⚠️  Linting issues found (continuing anyway)');

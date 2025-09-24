@@ -1,7 +1,7 @@
 /**
- * @file buildUtils.unit.test.js
+ * @file buildUtils.unit.test.mjs
  * @description Unit tests for build utility functions
- * @path scripts/dev/buildUtils.unit.test.js
+ * @path scripts/dev/buildUtils.unit.test.mjs
  */
 
 import fs from 'fs';
@@ -50,24 +50,24 @@ describe('buildUtils', () => {
       consoleWarnSpy.mockRestore();
     });
 
-    it('should remove main.js when it exists', () => {
-      mockFs.existsSync.mockImplementation(file => file.includes('main.js') && !file.includes('.map'));
+    it('should remove main.mjs when it exists', () => {
+      mockFs.existsSync.mockImplementation(file => file.includes('main.mjs') && !file.includes('.map'));
       
       removeRootBuildArtifacts();
       
-      expect(mockPath.resolve).toHaveBeenCalledWith('/project/root', 'main.js');
-      expect(mockFs.unlinkSync).toHaveBeenCalledWith('/project/root/main.js');
-      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.js');
+      expect(mockPath.resolve).toHaveBeenCalledWith('/project/root', 'main.mjs');
+      expect(mockFs.unlinkSync).toHaveBeenCalledWith('/project/root/main.mjs');
+      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs');
     });
 
-    it('should remove main.js.map when it exists', () => {
-      mockFs.existsSync.mockImplementation(file => file.includes('main.js.map'));
+    it('should remove main.mjs.map when it exists', () => {
+      mockFs.existsSync.mockImplementation(file => file.includes('main.mjs.map'));
       
       removeRootBuildArtifacts();
       
-      expect(mockPath.resolve).toHaveBeenCalledWith('/project/root', 'main.js.map');
-      expect(mockFs.unlinkSync).toHaveBeenCalledWith('/project/root/main.js.map');
-      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.js.map');
+      expect(mockPath.resolve).toHaveBeenCalledWith('/project/root', 'main.mjs.map');
+      expect(mockFs.unlinkSync).toHaveBeenCalledWith('/project/root/main.mjs.map');
+      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs.map');
     });
 
     it('should remove both files when both exist', () => {
@@ -75,9 +75,9 @@ describe('buildUtils', () => {
       
       removeRootBuildArtifacts();
       
-      expect(mockFs.unlinkSync).toHaveBeenCalledWith('/project/root/main.js');
-      expect(mockFs.unlinkSync).toHaveBeenCalledWith('/project/root/main.js.map');
-      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.js, main.js.map');
+      expect(mockFs.unlinkSync).toHaveBeenCalledWith('/project/root/main.mjs');
+      expect(mockFs.unlinkSync).toHaveBeenCalledWith('/project/root/main.mjs.map');
+      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs, main.mjs.map');
     });
 
     it('should do nothing when no files exist', () => {
@@ -123,7 +123,7 @@ describe('buildUtils', () => {
     it('should handle partial removal failures', () => {
       mockFs.existsSync.mockReturnValue(true);
       mockFs.unlinkSync.mockImplementationOnce(() => {
-        throw new Error('Cannot remove main.js');
+        throw new Error('Cannot remove main.mjs');
       });
       
       removeRootBuildArtifacts();
@@ -136,8 +136,8 @@ describe('buildUtils', () => {
       
       removeRootBuildArtifacts();
       
-      expect(mockPath.resolve).toHaveBeenCalledWith('/project/root', 'main.js');
-      expect(mockPath.resolve).toHaveBeenCalledWith('/project/root', 'main.js.map');
+      expect(mockPath.resolve).toHaveBeenCalledWith('/project/root', 'main.mjs');
+      expect(mockPath.resolve).toHaveBeenCalledWith('/project/root', 'main.mjs.map');
       expect(mockPath.resolve).toHaveBeenCalledTimes(2);
     });
 
@@ -147,8 +147,8 @@ describe('buildUtils', () => {
       
       removeRootBuildArtifacts();
       
-      expect(mockPath.resolve).toHaveBeenCalledWith('/different/project/path', 'main.js');
-      expect(mockPath.resolve).toHaveBeenCalledWith('/different/project/path', 'main.js.map');
+      expect(mockPath.resolve).toHaveBeenCalledWith('/different/project/path', 'main.mjs');
+      expect(mockPath.resolve).toHaveBeenCalledWith('/different/project/path', 'main.mjs.map');
     });
   });
 
@@ -171,20 +171,20 @@ describe('buildUtils', () => {
       expect(consoleSpy).not.toHaveBeenCalled();
     });
 
-    it('should log with correct file names when main.js is removed', () => {
-      mockFs.existsSync.mockImplementation(file => file.includes('main.js') && !file.includes('.map'));
+    it('should log with correct file names when main.mjs is removed', () => {
+      mockFs.existsSync.mockImplementation(file => file.includes('main.mjs') && !file.includes('.map'));
       
       removeRootBuildArtifacts();
       
-      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.js');
+      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs');
     });
 
-    it('should log with correct file names when main.js.map is removed', () => {
-      mockFs.existsSync.mockImplementation(file => file.includes('main.js.map'));
+    it('should log with correct file names when main.mjs.map is removed', () => {
+      mockFs.existsSync.mockImplementation(file => file.includes('main.mjs.map'));
       
       removeRootBuildArtifacts();
       
-      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.js.map');
+      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs.map');
     });
 
     it('should log with comma-separated list when multiple files removed', () => {
@@ -192,7 +192,7 @@ describe('buildUtils', () => {
       
       removeRootBuildArtifacts();
       
-      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.js, main.js.map');
+      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs, main.mjs.map');
     });
   });
 
@@ -243,16 +243,16 @@ describe('buildUtils', () => {
 
   describe('integration scenarios', () => {
     it('should work in typical development scenario', () => {
-      // Simulate typical scenario where main.js exists but main.js.map doesn't
-      mockFs.existsSync.mockImplementation(file => file.includes('main.js') && !file.includes('.map'));
+      // Simulate typical scenario where main.mjs exists but main.mjs.map doesn't
+      mockFs.existsSync.mockImplementation(file => file.includes('main.mjs') && !file.includes('.map'));
       
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       
       removeRootBuildArtifacts();
       
       expect(mockFs.unlinkSync).toHaveBeenCalledTimes(1);
-      expect(mockFs.unlinkSync).toHaveBeenCalledWith('/project/root/main.js');
-      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.js');
+      expect(mockFs.unlinkSync).toHaveBeenCalledWith('/project/root/main.mjs');
+      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs');
       
       consoleSpy.mockRestore();
     });
@@ -266,7 +266,7 @@ describe('buildUtils', () => {
       removeRootBuildArtifacts();
       
       expect(mockFs.unlinkSync).toHaveBeenCalledTimes(2);
-      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.js, main.js.map');
+      expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs, main.mjs.map');
       
       consoleSpy.mockRestore();
     });

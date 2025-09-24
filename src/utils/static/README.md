@@ -8,20 +8,20 @@ This folder contains static utility classes that provide common functionality fo
 ```
 src/utils/static/
 ├── README.md                   # This documentation
-├── static.js                   # Central entry point (StaticUtils)
-├── static.unit.test.js         # StaticUtils tests
-├── validator.js                # Data validation utilities
-├── validator.unit.test.js      # Validator tests
-├── unpacker.js                 # Object property unpacking utilities
-├── unpacker.unit.test.js       # Unpacker tests
-├── gameManager.js              # Game module management utilities
-├── gameManager.unit.test.js    # GameManager tests
-├── errorFormatter.js           # Error formatting utilities
-├── errorFormatter.unit.test.js # ErrorFormatter tests
-├── localizer.js                # Localization utilities
-├── localizer.unit.test.js      # Localizer tests
-├── hooksLogger.js              # Hook logging and debugging utilities
-└── hooksLogger.unit.test.js    # HooksLogger tests
+├── static.mjs                   # Central entry point (StaticUtils)
+├── static.unit.test.mjs         # StaticUtils tests
+├── validator.mjs                # Data validation utilities
+├── validator.unit.test.mjs      # Validator tests
+├── unpacker.mjs                 # Object property unpacking utilities
+├── unpacker.unit.test.mjs       # Unpacker tests
+├── gameManager.mjs              # Game module management utilities
+├── gameManager.unit.test.mjs    # GameManager tests
+├── errorFormatter.mjs           # Error formatting utilities
+├── errorFormatter.unit.test.mjs # ErrorFormatter tests
+├── localizer.mjs                # Localization utilities
+├── localizer.unit.test.mjs      # Localizer tests
+├── hooksLogger.mjs              # Hook logging and debugging utilities
+└── hooksLogger.unit.test.mjs    # HooksLogger tests
 ```
 
 ## 🚀 Quick Start
@@ -31,7 +31,7 @@ src/utils/static/
 The `StaticUtils` class provides a unified interface to all static utilities:
 
 ```javascript
-import StaticUtils from '@/utils/static/static.js';
+import StaticUtils from '@/utils/static/static.mjs';
 
 // Validation
 const isValid = StaticUtils.validate('isString', { value: 'hello' }); // true
@@ -77,11 +77,11 @@ console.log(info.utilities); // ['Validator', 'Unpacker', 'GameManager', 'ErrorF
 You can also import and use individual utility classes directly:
 
 ```javascript
-import { Validator } from '@/utils/static/validator.js';
-import Unpacker from '@/utils/static/unpacker.js';
-import GameManager from '@/utils/static/gameManager.js';
-import { formatError } from '@/utils/static/errorFormatter.js';
-import Localizer from '@/utils/static/localizer.js';
+import { Validator } from '@/utils/static/validator.mjs';
+import Unpacker from '@/utils/static/unpacker.mjs';
+import GameManager from '@/utils/static/gameManager.mjs';
+import { formatError } from '@/utils/static/errorFormatter.mjs';
+import Localizer from '@/utils/static/localizer.mjs';
 
 // Direct validation
 const isString = Validator.isString('hello'); // true
@@ -108,7 +108,7 @@ const staticText = Localizer.localize('MYMODULE.greeting');
 
 ### 1. StaticUtils (Entry Point)
 
-**File**: `static.js`
+**File**: `static.mjs`
 **Purpose**: Central entry point providing unified access to all static utilities.
 
 #### Key Features:
@@ -133,7 +133,7 @@ const staticText = Localizer.localize('MYMODULE.greeting');
 
 ### 2. Validator
 
-**File**: `validator.js`
+**File**: `validator.mjs`
 **Purpose**: Comprehensive data validation and type checking utilities.
 
 #### Key Features:
@@ -191,7 +191,7 @@ Validator.validate('validateObject', {
 
 ### 3. Unpacker
 
-**File**: `unpacker.js`
+**File**: `unpacker.mjs`
 **Purpose**: Utility for transferring properties from plain objects to class instances.
 
 #### Key Features:
@@ -230,7 +230,7 @@ unpacker.unpack(objWithSymbols, instance);
 
 ### 4. GameManager
 
-**File**: `gameManager.js`
+**File**: `gameManager.mjs`
 **Purpose**: Static utility class for managing game modules and remote contexts.
 
 #### Key Features:
@@ -254,7 +254,7 @@ unpacker.unpack(objWithSymbols, instance);
 const module = GameManager.getModuleObject('my-module-id');
 
 // Get module using manifest object
-import manifest from './manifest.js';
+import manifest from './manifest.mjs';
 const module = GameManager.getModuleObject(manifest);
 
 // Get module using module.json
@@ -285,7 +285,7 @@ if (GameManager.moduleExists(manifest)) {
 
 ### 7. HooksLogger
 
-**File**: `hooksLogger.js`
+**File**: `hooksLogger.mjs`
 **Purpose**: Static utility class for logging and debugging Foundry VTT hook calls with proxy support and in-place modification.
 
 #### Key Features
@@ -308,7 +308,7 @@ if (GameManager.moduleExists(manifest)) {
 #### Usage Examples
 
 ```javascript
-import HooksLogger from '@/utils/static/hooksLogger.js';
+import HooksLogger from '@/utils/static/hooksLogger.mjs';
 
 // Basic in-place hook proxy for debugging
 HooksLogger.createHookProxy(Hooks, 'call', {
@@ -363,7 +363,7 @@ if (HooksLogger.isHooksAvailable()) {
 
 ### 5. ErrorFormatter
 
-**File**: `errorFormatter.js`
+**File**: `errorFormatter.mjs`
 **Purpose**: Static utility for formatting error messages with module context and structured output.
 
 #### Key Features:
@@ -380,7 +380,7 @@ if (HooksLogger.isHooksAvailable()) {
 #### Usage Examples:
 
 ```javascript
-import { formatError } from '@/utils/static/errorFormatter.js';
+import { formatError } from '@/utils/static/errorFormatter.mjs';
 
 // Basic error formatting
 try {
@@ -402,7 +402,7 @@ const formatted = formatError(error, {
 
 ### 6. Localizer
 
-**File**: `localizer.js`
+**File**: `localizer.mjs`
 **Purpose**: Interface for Foundry VTT's i18n localization system with static and instance methods.
 
 #### Key Features:
@@ -422,7 +422,7 @@ const formatted = formatError(error, {
 #### Usage Examples:
 
 ```javascript
-import Localizer from '@/utils/static/localizer.js';
+import Localizer from '@/utils/static/localizer.mjs';
 
 // Instance usage
 const localizer = new Localizer();
@@ -452,12 +452,12 @@ All utilities have comprehensive unit tests with 100% coverage:
 npm test -- src/utils/static/
 
 # Run specific utility tests
-npm test -- src/utils/static/validator.unit.test.js
-npm test -- src/utils/static/unpacker.unit.test.js
-npm test -- src/utils/static/gameManager.unit.test.js
-npm test -- src/utils/static/errorFormatter.unit.test.js
-npm test -- src/utils/static/localizer.unit.test.js
-npm test -- src/utils/static/static.unit.test.js
+npm test -- src/utils/static/validator.unit.test.mjs
+npm test -- src/utils/static/unpacker.unit.test.mjs
+npm test -- src/utils/static/gameManager.unit.test.mjs
+npm test -- src/utils/static/errorFormatter.unit.test.mjs
+npm test -- src/utils/static/localizer.unit.test.mjs
+npm test -- src/utils/static/static.unit.test.mjs
 
 # Run with coverage
 npm test -- src/utils/static/ --coverage
@@ -479,13 +479,13 @@ npm test -- src/utils/static/ --coverage
 
 **Recommended**: Use StaticUtils for convenience
 ```javascript
-import StaticUtils from '@/utils/static/static.js';
+import StaticUtils from '@/utils/static/static.mjs';
 StaticUtils.validate('isString', { value: input });
 ```
 
 **Alternative**: Direct imports for specific use cases
 ```javascript
-import { Validator } from '@/utils/static/validator.js';
+import { Validator } from '@/utils/static/validator.mjs';
 Validator.isString(input);
 ```
 
@@ -605,10 +605,10 @@ The static utilities are designed to be easily extensible:
 ## 📖 API Reference
 
 For detailed API documentation, see the JSDoc comments in each file:
-- [StaticUtils API](./static.js) - Central entry point methods
-- [Validator API](./validator.js) - All validation methods with examples
-- [Unpacker API](./unpacker.js) - Object unpacking functionality
-- [GameManager API](./gameManager.js) - Game module management functionality
+- [StaticUtils API](./static.mjs) - Central entry point methods
+- [Validator API](./validator.mjs) - All validation methods with examples
+- [Unpacker API](./unpacker.mjs) - Object unpacking functionality
+- [GameManager API](./gameManager.mjs) - Game module management functionality
 
 ## 🤝 Contributing
 

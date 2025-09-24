@@ -1,7 +1,7 @@
 /**
- * @file contextValueWrapper.js
+ * @file contextValueWrapper.mjs
  * @description This file contains the ContextValueWrapper class for wrapping values into ContextItem or ContextContainer instances.
- * @path src/contexts/helpers/contextValueWrapper.js
+ * @path src/contexts/helpers/contextValueWrapper.mjs
 
  */
 

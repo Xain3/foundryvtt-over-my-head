@@ -1,7 +1,7 @@
 /**
- * @file contextMerger.js
+ * @file contextMerger.mjs
  * @description This file contains the ContextMerger class for sophisticated merging of Context instances with detailed change tracking and conflict resolution.
- * @path src/contexts/helpers/contextMerger.js
+ * @path src/contexts/helpers/contextMerger.mjs
 
  */
 

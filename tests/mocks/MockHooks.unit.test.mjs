@@ -1,7 +1,7 @@
 /**
- * @file MockHooks.unit.test.js
+ * @file MockHooks.unit.test.mjs
  * @description Unit tests for MockHooks class
- * @path tests/mocks/MockHooks.unit.test.js
+ * @path tests/mocks/MockHooks.unit.test.mjs
  */
 
 import MockHooks from './MockHooks.mjs';

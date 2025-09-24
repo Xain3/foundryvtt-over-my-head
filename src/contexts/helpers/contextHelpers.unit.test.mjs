@@ -1,7 +1,7 @@
 /**
- * @file contextHelpers.unit.test.js
+ * @file contextHelpers.unit.test.mjs
  * @description Unit tests for the ContextHelpers class.
- * @path src/contexts/helpers/contextHelpers.unit.test.js
+ * @path src/contexts/helpers/contextHelpers.unit.test.mjs
  */
 
 import ContextHelpers from './contextHelpers.mjs';

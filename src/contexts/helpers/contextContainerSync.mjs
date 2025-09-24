@@ -1,7 +1,7 @@
 /**
- * @file contextContainerSync.js
+ * @file contextContainerSync.mjs
  * @description This file contains the ContextContainerSync class for synchronizing ContextContainer instances.
- * @path src/contexts/helpers/contextContainerSync.js
+ * @path src/contexts/helpers/contextContainerSync.mjs
 
  */
 

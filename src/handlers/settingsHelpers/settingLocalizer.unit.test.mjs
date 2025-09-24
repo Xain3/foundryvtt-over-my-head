@@ -1,7 +1,7 @@
 /**
- * @file settingLocalizer.unit.test.js
+ * @file settingLocalizer.unit.test.mjs
  * @description Unit tests for SettingLocalizer
- * @path src/handlers/settingsHelpers/settingLocalizer.unit.test.js
+ * @path src/handlers/settingsHelpers/settingLocalizer.unit.test.mjs
  */
 
 import SettingLocalizer from './settingLocalizer.mjs';

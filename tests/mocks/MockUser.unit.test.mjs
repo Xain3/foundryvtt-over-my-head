@@ -1,7 +1,7 @@
 /**
- * @file MockUser.unit.test.js
+ * @file MockUser.unit.test.mjs
  * @description Unit tests for MockUser class
- * @path tests/mocks/MockUser.unit.test.js
+ * @path tests/mocks/MockUser.unit.test.mjs
  */
 
 import MockUser from './MockUser.mjs';

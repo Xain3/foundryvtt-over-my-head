@@ -1,7 +1,7 @@
 /**
- * @file placeableSetter.js
+ * @file placeableSetter.mjs
  * @description Manages setting the current placeable entity.
- * @path src/handlers/placeableHelpers/placeableSetter.js
+ * @path src/handlers/placeableHelpers/placeableSetter.mjs
  */
 
 import Handler from "../../baseClasses/handler.mjs";

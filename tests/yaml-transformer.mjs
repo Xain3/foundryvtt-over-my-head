@@ -1,7 +1,7 @@
 /**
- * @file yaml-transformer.js
+ * @file yaml-transformer.mjs
  * @description Jest mock for handling YAML files with ?raw imports
- * @path tests/yaml-transformer.js
+ * @path tests/yaml-transformer.mjs
  */
 
 import fs from 'fs';

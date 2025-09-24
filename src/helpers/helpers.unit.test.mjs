@@ -1,7 +1,7 @@
 /**
- * @file helpers.unit.test.js
+ * @file helpers.unit.test.mjs
  * @description Unit tests for the Helpers entry point class
- * @path src/helpers/helpers.unit.test.js
+ * @path src/helpers/helpers.unit.test.mjs
  */
 
 // Mock all dependencies that might import manifest BEFORE importing anything

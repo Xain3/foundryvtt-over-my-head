@@ -1,7 +1,7 @@
 /**
- * @file constantsBuilder.unit.test.js
+ * @file constantsBuilder.unit.test.mjs
  * @description Test file for the ConstantsBuilder class functionality.
- * @path src/constants/helpers/constantsBuilder.unit.test.js
+ * @path src/constants/helpers/constantsBuilder.unit.test.mjs
  */
 
 import ConstantsBuilder from './constantsBuilder.mjs';

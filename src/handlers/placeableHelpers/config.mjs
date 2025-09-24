@@ -1,7 +1,7 @@
 /**
- * @file config.js
+ * @file config.mjs
  * @description Configuration access point for placeable helpers that imports from the main config system.
- * @path src/handlers/placeableHelpers/config.js
+ * @path src/handlers/placeableHelpers/config.mjs
  */
 
 import config from '../../config/config.mjs';
@@ -10,7 +10,7 @@ import config from '../../config/config.mjs';
  * PlaceableHelpers configuration that provides access to constants through the main config system.
  * 
  * This module acts as a bridge between the placeable helpers and the main configuration system,
- * ensuring that constants are accessed consistently through config.js → constants.js → constants.yaml
+ * ensuring that constants are accessed consistently through config.mjs → constants.mjs → constants.yaml
  * as requested in the API & DX requirements.
  * 
  * @example

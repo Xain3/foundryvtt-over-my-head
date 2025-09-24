@@ -5,9 +5,9 @@ import PlaceableSetter from './placeableHelpers/placeableSetter.mjs';
 import Handler from '../baseClasses/handler.mjs';
 
 /**
- * @file placeableHandler.unit.test.js
+ * @file placeableHandler.unit.test.mjs
  * @description Unit tests for PlaceableHandler.
- * @path src/handlers/placeableHandler.unit.test.js
+ * @path src/handlers/placeableHandler.unit.test.mjs
  */
 
 // Mock the dependencies

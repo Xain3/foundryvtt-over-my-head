@@ -1,7 +1,7 @@
 /**
- * @file positionChecker.js
+ * @file positionChecker.mjs
  * @description Checks the positional relationship between two entities.
- * @path src/handlers/placeableHelpers/positionChecker.js
+ * @path src/handlers/placeableHelpers/positionChecker.mjs
  */
 
 // Fallback constants if these are not present in config.constants

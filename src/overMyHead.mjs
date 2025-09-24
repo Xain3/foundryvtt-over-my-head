@@ -1,7 +1,7 @@
 /**
- * @file overMyHead.js
+ * @file overMyHead.mjs
  * @description This file contains the main class for the OverMyHead module, responsible for initialization and core functionalities.
- * @path /src/overMyHead.js
+ * @path /src/overMyHead.mjs
  */
 import config from './config/config.mjs';
 

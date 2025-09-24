@@ -1,7 +1,7 @@
 /**
- * @file static.js
+ * @file static.mjs
  * @description This file contains the StaticUtils class that serves as the central entry point for all static utility classes.
- * @path src/utils/static/static.js
+ * @path src/utils/static/static.mjs
  */
 
 import Validator from './validator.mjs';

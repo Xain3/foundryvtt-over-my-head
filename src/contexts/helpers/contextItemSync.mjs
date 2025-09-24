@@ -1,7 +1,7 @@
 /**
- * @file contextItemSync.js
+ * @file contextItemSync.mjs
  * @description Provides synchronization capabilities specifically for ContextItem instances.
- * @path src/contexts/helpers/contextItemSync.js
+ * @path src/contexts/helpers/contextItemSync.mjs
 
  */
 

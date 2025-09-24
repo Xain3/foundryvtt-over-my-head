@@ -1,7 +1,7 @@
 /**
- * @file settingsRetriever.js
+ * @file settingsRetriever.mjs
  * @description A helper class for checking and retrieving settings from Foundry VTT's settings system.
- * @path src/helpers/settingsRetriever.js
+ * @path src/helpers/settingsRetriever.mjs
  */
 
 /**

@@ -1,7 +1,7 @@
 /**
- * @file constantsParser.js
+ * @file constantsParser.mjs
  * @description This file contains a utility class for parsing and processing constants from YAML input, including root map creation.
- * @path src/constants/helpers/constantsParser.js
+ * @path src/constants/helpers/constantsParser.mjs
  */
 
 import yaml from 'js-yaml';

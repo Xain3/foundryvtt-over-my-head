@@ -1,7 +1,7 @@
 /**
- * @file contextLegacySync.js
+ * @file contextLegacySync.mjs
  * @description Legacy synchronization operations for ContextContainer and ContextItem instances.
- * @path src/contexts/helpers/contextLegacySync.js
+ * @path src/contexts/helpers/contextLegacySync.mjs
 
  */
 

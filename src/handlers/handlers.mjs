@@ -1,7 +1,7 @@
 /**
- * @file handlers.js
+ * @file handlers.mjs
  * @description Aggregates and initializes all handler classes for the module.
- * @path src/handlers/handlers.js
+ * @path src/handlers/handlers.mjs
  */
 
 import Handler from "../baseClasses/handler.mjs";

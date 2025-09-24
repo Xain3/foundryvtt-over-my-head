@@ -1,7 +1,7 @@
 /**
- * @file MockCollection.js
+ * @file MockCollection.mjs
  * @description Mock Collection class that extends Map to simulate Foundry's Collection behavior
- * @path tests/mocks/MockCollection.js
+ * @path tests/mocks/MockCollection.mjs
  */
 
 /**

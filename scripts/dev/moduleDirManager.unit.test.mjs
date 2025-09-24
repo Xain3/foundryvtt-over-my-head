@@ -1,7 +1,7 @@
 /**
- * @file moduleDirManager.unit.test.js
+ * @file moduleDirManager.unit.test.mjs
  * @description Unit tests for ModuleDirManager class
- * @path scripts/dev/moduleDirManager.unit.test.js
+ * @path scripts/dev/moduleDirManager.unit.test.mjs
  */
 
 // Mock fs at the top level

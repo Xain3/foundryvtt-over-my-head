@@ -1,7 +1,7 @@
 /**
- * @file gameManager.js
+ * @file gameManager.mjs
  * @description A static utility class for managing game modules and remote contexts.
- * @path src/utils/static/gameManager.js
+ * @path src/utils/static/gameManager.mjs
  */
 
 /**
@@ -44,7 +44,7 @@ class GameManager {
         if (typeof moduleIdentifier === 'string') {
             moduleId = moduleIdentifier;
         } else if (typeof moduleIdentifier === 'object' && moduleIdentifier !== null) {
-            // Check for 'id' property (manifest.js format)
+            // Check for 'id' property (manifest.mjs format)
             if (moduleIdentifier.id) {
                 moduleId = moduleIdentifier.id;
             }

@@ -1,7 +1,7 @@
 /**
- * @file deployer.unit.test.js
+ * @file deployer.unit.test.mjs
  * @description Unit tests for ModuleDeployer class
- * @path scripts/dev/deployer.unit.test.js
+ * @path scripts/dev/deployer.unit.test.mjs
  */
 
 import fs from 'fs';
@@ -26,7 +26,7 @@ describe('ModuleDeployer', () => {
 
     // Default mock implementations
     mockFs.existsSync.mockReturnValue(true);
-    mockFs.readdirSync.mockReturnValue(['main.js', 'main.js.map']);
+    mockFs.readdirSync.mockReturnValue(['main.mjs', 'main.mjs.map']);
     mockFs.statSync.mockReturnValue({
       isFile: () => true,
       isDirectory: () => false,
@@ -283,7 +283,7 @@ describe('ModuleDeployer', () => {
       });
 
       mockFs.readdirSync.mockImplementation((dirPath) => {
-        if (dirPath === './dist') return ['main.js', 'subfolder'];
+        if (dirPath === './dist') return ['main.mjs', 'subfolder'];
         return [];
       });
 
@@ -316,8 +316,8 @@ describe('ModuleDeployer', () => {
       });
 
       mockFs.readdirSync.mockImplementation((dirPath) => {
-        if (dirPath === './dist') return ['main.js', 'subfolder'];
-        if (dirPath === './dist/subfolder') return ['nested.js'];
+        if (dirPath === './dist') return ['main.mjs', 'subfolder'];
+        if (dirPath === './dist/subfolder') return ['nested.mjs'];
         return [];
       });
 
@@ -325,8 +325,8 @@ describe('ModuleDeployer', () => {
 
       expect(mockFs.mkdirSync).toHaveBeenCalledWith('/target/dir/dist', { recursive: true });
       expect(mockFs.mkdirSync).toHaveBeenCalledWith('/target/dir/dist/subfolder', { recursive: true });
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/main.js', '/target/dir/dist/main.js');
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/subfolder/nested.js', '/target/dir/dist/subfolder/nested.js');
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/main.mjs', '/target/dir/dist/main.mjs');
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/subfolder/nested.mjs', '/target/dir/dist/subfolder/nested.mjs');
     });
   });
 
@@ -492,11 +492,11 @@ describe('ModuleDeployer', () => {
         };
       });
 
-      mockFs.readdirSync.mockReturnValue(['file with spaces.js', 'file-with-dashes.css', 'file_with_underscores.json']);
+      mockFs.readdirSync.mockReturnValue(['file with spaces.mjs', 'file-with-dashes.css', 'file_with_underscores.json']);
 
       deployer.deploy();
 
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/file with spaces.js', '/target/dist/file with spaces.js');
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/file with spaces.mjs', '/target/dist/file with spaces.mjs');
       expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/file-with-dashes.css', '/target/dist/file-with-dashes.css');
       expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/file_with_underscores.json', '/target/dist/file_with_underscores.json');
     });

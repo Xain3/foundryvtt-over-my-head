@@ -2,9 +2,9 @@ import config from '@/config/config';
 import PositionChecker from '@/handlers/placeableHelpers/positionChecker.mjs';
 
 /**
- * @file positionChecker.int.test.js
+ * @file positionChecker.int.test.mjs
  * @description Integration tests for PositionChecker with config.constants overrides.
- * @path tests/integration/positionChecker.int.test.js
+ * @path tests/integration/positionChecker.int.test.mjs
  */
 
 describe('PositionChecker Integration', () => {

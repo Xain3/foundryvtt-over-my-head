@@ -1,7 +1,7 @@
 /**
- * @file pathUtils.js
+ * @file pathUtils.mjs
  * @description This file contains a static utility class for path resolution and object navigation operations.
- * @path src/helpers/pathUtils.js
+ * @path src/helpers/pathUtils.mjs
  */
 
 import Validator from '../utils/static/validator.mjs';

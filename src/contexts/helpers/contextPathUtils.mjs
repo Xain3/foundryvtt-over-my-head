@@ -1,7 +1,7 @@
 /**
- * @file contextPathUtils.js
+ * @file contextPathUtils.mjs
  * @description Context-aware path utilities that handle mixed ContextContainer/plain object structures.
- * @path src/contexts/helpers/contextPathUtils.js
+ * @path src/contexts/helpers/contextPathUtils.mjs
  */
 
 import PathUtils from '../../helpers/pathUtils.mjs';

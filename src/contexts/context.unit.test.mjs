@@ -1,7 +1,7 @@
 /**
- * @file context.unit.test.js
+ * @file context.unit.test.mjs
  * @description Unit tests for the Context class.
- * @path src/contexts/context.unit.test.js
+ * @path src/contexts/context.unit.test.mjs
  */
 
 import Context from './context.mjs';

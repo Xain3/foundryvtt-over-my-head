@@ -1,7 +1,7 @@
 /**
- * @file config.js
+ * @file config.mjs
  * @description This file provides the central configuration access point for the entire module.
- * @path src/config/config.js
+ * @path src/config/config.mjs
  */
 
 import constants from "./constants.mjs";

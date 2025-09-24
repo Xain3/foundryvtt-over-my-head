@@ -1,7 +1,7 @@
 /**
- * @file flagEvaluator.unit.test.js
+ * @file flagEvaluator.unit.test.mjs
  * @description Unit tests for FlagEvaluator class
- * @path src/handlers/settingsHelpers/flagEvaluator.unit.test.js
+ * @path src/handlers/settingsHelpers/flagEvaluator.unit.test.mjs
  */
 
 import FlagEvaluator from './flagEvaluator.mjs';

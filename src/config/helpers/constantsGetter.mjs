@@ -1,7 +1,7 @@
 /**
- * @file constantsGetter.js
+ * @file constantsGetter.mjs
  * @description This file contains the ConstantsGetter class for reading constants from YAML files.
- * @path src/config/helpers/constantsGetter.js
+ * @path src/config/helpers/constantsGetter.mjs
  */
 
 // Import the YAML content as a static string asset

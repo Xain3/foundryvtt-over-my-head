@@ -1,7 +1,7 @@
 /**
- * @file errorFormatter.js
+ * @file errorFormatter.mjs
  * @description This file contains a class and function for formatting error messages with module context.
- * @path src/helpers/errorFormatter.js
+ * @path src/helpers/errorFormatter.mjs
  */
 
 import config from '../../config/config.mjs';

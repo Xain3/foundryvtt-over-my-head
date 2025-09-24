@@ -66,9 +66,9 @@ import dayjs from 'dayjs';
   });
 
 /**
- * @file validator.unit.test.js
+ * @file validator.unit.test.mjs
  * @description This file contains tests for the Validator class.
- * @path src/utils/static/validator.unit.test.js
+ * @path src/utils/static/validator.unit.test.mjs
  */
 
 

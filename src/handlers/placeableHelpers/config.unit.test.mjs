@@ -1,13 +1,13 @@
 /**
- * @file config.unit.test.js
+ * @file config.unit.test.mjs
  * @description Unit tests for the placeableHelpers config integration
- * @path src/handlers/placeableHelpers/config.unit.test.js
+ * @path src/handlers/placeableHelpers/config.unit.test.mjs
  */
 
 import { CHECK_TYPES, POSITION_USES, METHOD_KEYS } from './config.mjs';
 
 describe('PlaceableHelpers Config Integration', () => {
-  describe('constants flow through config.js → constants.js → constants.yaml', () => {
+  describe('constants flow through config.mjs → constants.mjs → constants.yaml', () => {
     it('should import CHECK_TYPES from config system with OVER as "above" from constants.yaml', () => {
       expect(CHECK_TYPES.UNDER).toBe('under');
       expect(CHECK_TYPES.OVER).toBe('above'); // This comes from constants.yaml override

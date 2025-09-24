@@ -1,7 +1,7 @@
 /**
- * @file contextItem.js
+ * @file contextItem.mjs
  * @description Represents a data item with value, metadata, and timestamps, supporting immutability patterns.
- * @path src/contexts/helpers/contextItem.js
+ * @path src/contexts/helpers/contextItem.mjs
 
  */
 

@@ -1,7 +1,7 @@
 /**
- * @file MockActor.js
+ * @file MockActor.mjs
  * @description Mock Actor class representing characters, NPCs, and other actors
- * @path tests/mocks/MockActor.js
+ * @path tests/mocks/MockActor.mjs
  */
 
 import MockDocument from './MockDocument.mjs';

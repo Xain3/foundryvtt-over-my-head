@@ -1,7 +1,7 @@
 /**
- * @file contextContainer.js
+ * @file contextContainer.mjs
  * @description This file contains the ContextContainer class for managing collections of named ContextItems.
- * @path src/contexts/helpers/contextContainer.js
+ * @path src/contexts/helpers/contextContainer.mjs
 
  */
 

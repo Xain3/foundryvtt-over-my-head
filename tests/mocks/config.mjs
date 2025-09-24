@@ -1,7 +1,7 @@
 /**
- * @file config.js
+ * @file config.mjs
  * @description Mock configuration class for testing handlers
- * @path /tests/mocks/config.js
+ * @path /tests/mocks/config.mjs
  */
 
 class MockConfig {

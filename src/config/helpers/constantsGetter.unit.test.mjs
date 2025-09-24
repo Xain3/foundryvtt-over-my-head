@@ -1,7 +1,7 @@
 /**
- * @file constantsGetter.unit.test.js
+ * @file constantsGetter.unit.test.mjs
  * @description Test file for the ConstantsGetter class functionality.
- * @path src/config/helpers/constantsGetter.unit.test.js
+ * @path src/config/helpers/constantsGetter.unit.test.mjs
  */
 
 import ConstantsGetter from './constantsGetter.mjs';

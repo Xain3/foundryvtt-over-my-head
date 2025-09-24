@@ -1,7 +1,7 @@
 /**
- * @file static.unit.test.js
+ * @file static.unit.test.mjs
  * @description This file contains unit tests for the StaticUtils class.
- * @path src/utils/static/static.unit.test.js
+ * @path src/utils/static/static.unit.test.mjs
  */
 
 import StaticUtils from './static.mjs';

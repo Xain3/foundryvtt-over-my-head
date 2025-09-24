@@ -1,7 +1,7 @@
 /**
- * @file handler.js
+ * @file handler.mjs
  * @description Base Handler class for all handlers in the module
- * @path src/baseClasses/managers/handler.js
+ * @path src/baseClasses/managers/handler.mjs
  */
 
 /**

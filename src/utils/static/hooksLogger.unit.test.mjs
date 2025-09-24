@@ -1,7 +1,7 @@
 /**
- * @file hooksLogger.unit.test.js
+ * @file hooksLogger.unit.test.mjs
  * @description Unit tests for the HooksLogger class that provides hook logging and debugging utilities.
- * @path src/utils/static/hooksLogger.unit.test.js
+ * @path src/utils/static/hooksLogger.unit.test.mjs
  */
 
 import HooksLogger from './hooksLogger.mjs';

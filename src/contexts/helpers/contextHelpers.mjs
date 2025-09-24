@@ -1,7 +1,7 @@
 /**
- * @file contextHelpers.js
+ * @file contextHelpers.mjs
  * @description This file contains the ContextHelpers class that serves as a centralized entry point for all context helper methods and classes.
- * @path src/contexts/helpers/contextHelpers.js
+ * @path src/contexts/helpers/contextHelpers.mjs
  */
 
 import { ContextItem } from './contextItem.mjs';

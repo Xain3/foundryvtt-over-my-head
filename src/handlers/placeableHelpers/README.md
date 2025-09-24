@@ -47,7 +47,7 @@ A small utility for retrieving common data from placeables.
 #### Usage
 
 ```javascript
-import PlaceableGetter from './placeableGetter.js';
+import PlaceableGetter from './placeableGetter.mjs';
 
 const getter = new PlaceableGetter(config, context, utils);
 const center = getter.getCenter(token);
@@ -93,12 +93,12 @@ positionChecker:
     CENTER_CENTER: "center-center"
 ```
 
-If absent, sensible inlined fallbacks are used inside `positionChecker.js`.
+If absent, sensible inlined fallbacks are used inside `positionChecker.mjs`.
 
 #### Usage
 
 ```javascript
-import PositionChecker from './positionChecker.js';
+import PositionChecker from './positionChecker.mjs';
 
 const pc = new PositionChecker(config, context, utils);
 const center = { x: 5, y: 5 };
@@ -123,9 +123,9 @@ High-level checks that combine `PlaceableGetter` and `PositionChecker`.
 #### Usage
 
 ```javascript
-import PlaceableGetter from './placeableGetter.js';
-import PlaceableChecker from './placeableChecker.js';
-import { CHECK_TYPES, POSITION_USES } from './config.js';
+import PlaceableGetter from './placeableGetter.mjs';
+import PlaceableChecker from './placeableChecker.mjs';
+import { CHECK_TYPES, POSITION_USES } from './config.mjs';
 
 const getter = new PlaceableGetter(config, context, utils);
 const checker = new PlaceableChecker(config, context, utils, getter);
@@ -153,7 +153,7 @@ Minimal state utility to set and get the current placeable.
 #### Usage
 
 ```javascript
-import PlaceableSetter from './placeableSetter.js';
+import PlaceableSetter from './placeableSetter.mjs';
 
 const setter = new PlaceableSetter(config, context, utils);
 setter.setCurrentPlaceable(token);
@@ -161,10 +161,10 @@ setter.setCurrentPlaceable(token);
 
 ## Configuration
 
-Placeable helpers read constants via `src/handlers/placeableHelpers/config.js`, which bridges to the main configuration system (`config.js → constants.js → constants.yaml`). This avoids magic strings and centralizes configuration.
+Placeable helpers read constants via `src/handlers/placeableHelpers/config.mjs`, which bridges to the main configuration system (`config.mjs → constants.mjs → constants.yaml`). This avoids magic strings and centralizes configuration.
 
 ```javascript
-import { CHECK_TYPES, POSITION_USES, METHOD_KEYS } from './config.js';
+import { CHECK_TYPES, POSITION_USES, METHOD_KEYS } from './config.mjs';
 ```
 
 - `CHECK_TYPES`: `{ UNDER, OVER }`
@@ -188,10 +188,10 @@ Comprehensive unit tests exist for all classes in this folder.
 npm test -- --testPathPattern=placeableHelpers
 
 # Run individual files
-npm test -- src/handlers/placeableHelpers/positionChecker.unit.test.js
-npm test -- src/handlers/placeableHelpers/placeableChecker.unit.test.js
-npm test -- src/handlers/placeableHelpers/placeableGetter.unit.test.js
-npm test -- src/handlers/placeableHelpers/placeableSetter.unit.test.js
+npm test -- src/handlers/placeableHelpers/positionChecker.unit.test.mjs
+npm test -- src/handlers/placeableHelpers/placeableChecker.unit.test.mjs
+npm test -- src/handlers/placeableHelpers/placeableGetter.unit.test.mjs
+npm test -- src/handlers/placeableHelpers/placeableSetter.unit.test.mjs
 ```
 
 ## Benefits
@@ -205,9 +205,9 @@ npm test -- src/handlers/placeableHelpers/placeableSetter.unit.test.js
 ## Integration Example
 
 ```javascript
-import PlaceableGetter from './placeableGetter.js';
-import PlaceableChecker from './placeableChecker.js';
-import { CHECK_TYPES, POSITION_USES } from './config.js';
+import PlaceableGetter from './placeableGetter.mjs';
+import PlaceableChecker from './placeableChecker.mjs';
+import { CHECK_TYPES, POSITION_USES } from './config.mjs';
 
 const getter = new PlaceableGetter(config, utils, context);
 const checker = new PlaceableChecker(config, context, utils, getter);

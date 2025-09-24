@@ -1,7 +1,7 @@
 /**
- * @file MockCollection.unit.test.js
+ * @file MockCollection.unit.test.mjs
  * @description Unit tests for MockCollection class
- * @path tests/mocks/MockCollection.unit.test.js
+ * @path tests/mocks/MockCollection.unit.test.mjs
  */
 
 import MockCollection from './MockCollection.mjs';

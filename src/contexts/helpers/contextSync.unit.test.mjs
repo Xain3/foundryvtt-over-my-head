@@ -1,7 +1,7 @@
 /**
- * @file contextSync.unit.test.js
+ * @file contextSync.unit.test.mjs
  * @description Unit tests for the ContextSync class functionality.
- * @path src/contexts/helpers/contextSync.unit.test.js
+ * @path src/contexts/helpers/contextSync.unit.test.mjs
 
  */
 

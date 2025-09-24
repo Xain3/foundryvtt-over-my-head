@@ -22,7 +22,7 @@ This module uses Vite for bundling to resolve MIME type errors and improve perfo
 
 ### Build Process
 
-The module source code is in the `src/` directory and gets bundled into `dist/main.js` using Vite. The bundled file resolves all ES module imports and JSON imports into a single file that works reliably in Foundry VTT environments.
+The module source code is in the `src/` directory and gets bundled into `dist/main.mjs` using Vite. The bundled file resolves all ES module imports and JSON imports into a single file that works reliably in Foundry VTT environments.
 
 ### Configuration System
 
@@ -37,7 +37,7 @@ The module uses a centralized configuration system located in `src/config/`. Key
 **Migration Example**:
 ```javascript
 // Old pattern (deprecated)
-import OverMyHead from './overMyHead.js';
+import OverMyHead from './overMyHead.mjs';
 class MyModule extends OverMyHead {
   async init() {
     this.exportConstants(); // Old method
@@ -46,7 +46,7 @@ class MyModule extends OverMyHead {
 
 // New pattern (recommended)
 
-import config from './config/config.js';
+import config from './config/config.mjs';
 class MyModule {
   async init() {
     config.exportConstants(); // New centralized method

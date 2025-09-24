@@ -16,7 +16,7 @@ The helpers are organized into functional categories:
 
 ### Helpers Class
 
-**File**: helpers.js
+**File**: helpers.mjs
 **Dependencies**: All helper modules
 **Exports**: `Helpers` (class)
 
@@ -49,12 +49,12 @@ Helpers.batchResolvePaths(namespace, paths, options?)
 
 ```javascript
 // Instead of multiple imports:
-// import PathUtils from './helpers/pathUtils.js';
-// import { getModule } from './helpers/moduleGetter.js';
-// import RootMapParser from './helpers/rootMapParser.js';
+// import PathUtils from './helpers/pathUtils.mjs';
+// import { getModule } from './helpers/moduleGetter.mjs';
+// import RootMapParser from './helpers/rootMapParser.mjs';
 
 // Use single import:
-import Helpers from './helpers/helpers.js';
+import Helpers from './helpers/helpers.mjs';
 
 // Access classes directly
 const settings = Helpers.PathUtils.resolvePath(globalThis, 'game.settings');
@@ -86,7 +86,7 @@ const validation = Helpers.validateFoundryEnvironment(globalThis, [
 
 ### PathUtils
 
-**File**: [`pathUtils.js`](pathUtils.js)
+**File**: [`pathUtils.mjs`](pathUtils.mjs)
 **Dependencies**: `Validator` (from utils/static)
 **Exports**: `PathUtils` (class)
 
@@ -155,7 +155,7 @@ const { firstKey, remainingPath } = PathUtils.extractKeyComponents("user.profile
 
 ### moduleGetter
 
-**File**: [`moduleGetter.js`](moduleGetter.js)
+**File**: [`moduleGetter.mjs`](moduleGetter.mjs)
 **Dependencies**: `constants`, `PathUtils`
 **Exports**: `getModule` (function)
 
@@ -202,7 +202,7 @@ if (module?.active) {
 
 ### RootMapParser
 
-**File**: [`rootMapParser.js`](rootMapParser.js)
+**File**: [`rootMapParser.mjs`](rootMapParser.mjs)
 **Dependencies**: `manifest`, `Validator`, `PathUtils`, `moduleGetter`
 **Exports**: `RootMapParser` (class)
 
@@ -281,7 +281,7 @@ const nestedResolved = RootMapParser.parse({
 
 ### errorFormatter
 
-**File**: [`errorFormatter.js`](errorFormatter.js)
+**File**: [`errorFormatter.mjs`](errorFormatter.mjs)
 **Dependencies**: `constants`
 **Exports**: `formatError` (function)
 
@@ -469,7 +469,7 @@ All helpers implement robust error handling:
 
 The helpers include comprehensive test coverage:
 
-- **Unit Tests**: Individual helper testing (`*.unit.test.js`)
+- **Unit Tests**: Individual helper testing (`*.unit.test.mjs`)
 - **Integration Tests**: Cross-helper interaction testing
 - **Real-world Scenarios**: Foundry VTT environment simulation
 
@@ -480,11 +480,11 @@ The helpers include comprehensive test coverage:
 npm test -- src/helpers
 
 # Run specific helper tests
-npm test -- src/helpers/pathUtils.unit.test.js
-npm test -- src/helpers/moduleGetter.unit.test.js
+npm test -- src/helpers/pathUtils.unit.test.mjs
+npm test -- src/helpers/moduleGetter.unit.test.mjs
 
 # Run integration tests
-npm test -- tests/integration/pathUtils-moduleGetter-rootMapParser.int.test.js
+npm test -- tests/integration/pathUtils-moduleGetter-rootMapParser.int.test.mjs
 ```
 
 ## Usage Recommendations
@@ -494,7 +494,7 @@ npm test -- tests/integration/pathUtils-moduleGetter-rootMapParser.int.test.js
 Use `Helpers` as the single entry point when importing from outside the helpers folder:
 
 ```javascript
-import Helpers from './helpers/helpers.js';
+import Helpers from './helpers/helpers.mjs';
 
 // Use convenience methods
 const config = Helpers.parseRootMap({ /* config */ });
@@ -509,8 +509,8 @@ const resolved = Helpers.PathUtils.resolvePath(namespace, path);
 Use direct imports within the helpers folder to avoid circular dependencies:
 
 ```javascript
-import PathUtils from './pathUtils.js';
-import { getModule } from './moduleGetter.js';
+import PathUtils from './pathUtils.mjs';
+import { getModule } from './moduleGetter.mjs';
 ```
 
 ### Performance Considerations

@@ -1,7 +1,7 @@
 /**
- * @file handler.test.js
+ * @file handler.test.mjs
  * @description Unit tests for the Handler base class
- * @path src/baseClasses/handler.test.js
+ * @path src/baseClasses/handler.test.mjs
  */
 
 import Handler from './handler.mjs';

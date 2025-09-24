@@ -1,9 +1,9 @@
 import ItemFilter from './contextItemFilter.mjs';
 
 /**
- * @file contextItemFilter.unit.test.js
+ * @file contextItemFilter.unit.test.mjs
  * @description Unit tests for the ItemFilter class
- * @path src/contexts/helpers/contextItemFilter.unit.test.js
+ * @path src/contexts/helpers/contextItemFilter.unit.test.mjs
 
  */
 

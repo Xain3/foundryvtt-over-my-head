@@ -1,7 +1,7 @@
 /**
- * @file placeableChecker.unit.test.js
+ * @file placeableChecker.unit.test.mjs
  * @description Unit tests for PlaceableChecker.
- * @path src/handlers/placeableHelpers/placeableChecker.unit.test.js
+ * @path src/handlers/placeableHelpers/placeableChecker.unit.test.mjs
  */
 
 import PlaceableChecker from './placeableChecker.mjs';

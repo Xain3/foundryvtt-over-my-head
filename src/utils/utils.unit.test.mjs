@@ -1,7 +1,7 @@
 /**
- * @file utils.unit.test.js
+ * @file utils.unit.test.mjs
  * @description Unit tests for the Utilities class.
- * @path src/utils/utils.unit.test.js
+ * @path src/utils/utils.unit.test.mjs
  */
 
 import Utilities, { Utils } from './utils.mjs';

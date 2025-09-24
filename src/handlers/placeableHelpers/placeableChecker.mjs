@@ -1,7 +1,7 @@
 /**
- * @file placeableChecker.js
+ * @file placeableChecker.mjs
  * @description Checks various conditions and positional relationships for placeable entities.
- * @path src/handlers/placeableHelpers/placeableChecker.js
+ * @path src/handlers/placeableHelpers/placeableChecker.mjs
  */
 
 import Handler from '../../baseClasses/handler.mjs';

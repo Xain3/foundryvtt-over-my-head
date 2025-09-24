@@ -1,7 +1,7 @@
 /**
- * @file initializer.unit.test.js
+ * @file initializer.unit.test.mjs
  * @description Unit tests for the Initializer class, covering context initialization, settings registration, and error handling scenarios.
- * @path src/utils/initializer.unit.test.js
+ * @path src/utils/initializer.unit.test.mjs
  */
 
 import Initializer from './initializer.mjs';

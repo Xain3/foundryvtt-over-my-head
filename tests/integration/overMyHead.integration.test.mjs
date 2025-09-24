@@ -1,7 +1,7 @@
 /**
- * @file overMyHead.integration.test.js
+ * @file overMyHead.integration.test.mjs
  * @description Integration tests for OverMyHead class focusing on config usage, dynamic constants export, and updated init workflow.
- * @path tests/integration/overMyHead.integration.test.js
+ * @path tests/integration/overMyHead.integration.test.mjs
  */
 
 import OverMyHead from '../../src/overMyHead.mjs';

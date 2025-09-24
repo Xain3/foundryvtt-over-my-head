@@ -1,7 +1,7 @@
 /**
- * @file settingsChecker.js
+ * @file settingsChecker.mjs
  * @description A utility class for validating settings objects against required keys and nested properties.
- * @path src/handlers/settingsHelpers/settingsChecker.js
+ * @path src/handlers/settingsHelpers/settingsChecker.mjs
  * @export
  */
 class SettingsChecker {

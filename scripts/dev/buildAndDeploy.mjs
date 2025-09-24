@@ -1,7 +1,7 @@
 /**
- * @file buildAndDeploy.js
+ * @file buildAndDeploy.mjs
  * @description Orchestrates module directory finding, building, and deployment logic
- * @path scripts/dev/buildAndDeploy.js
+ * @path scripts/dev/buildAndDeploy.mjs
  */
 
 import UserDataDirFinder from './userDataDirFinder.mjs';
@@ -88,7 +88,7 @@ class BuildAndDeploy {
 export { UserDataDirFinder, ModuleDirManager, ModuleBuilder, ModuleDeployer, BuildAndDeploy };
 
 // CLI usage if called as main
-const isMain = process.argv[1] && process.argv[1].endsWith('buildAndDeploy.js');
+const isMain = process.argv[1] && process.argv[1].endsWith('buildAndDeploy.mjs');
 if (isMain) {
   (async () => {
     const args = process.argv.slice(2);

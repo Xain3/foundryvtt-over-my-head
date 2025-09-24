@@ -1,7 +1,7 @@
 /**
- * @file vite.config.js
+ * @file vite.config.mjs
  * @description Vite configuration for bundling the Foundry VTT module
- * @path vite.config.js
+ * @path vite.config.mjs
  */
 
 import { defineConfig } from 'vite';

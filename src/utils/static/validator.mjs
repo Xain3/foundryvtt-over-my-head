@@ -1,7 +1,7 @@
 /**
- * @file validator.js
+ * @file validator.mjs
  * @description This file contains a static Validator class with utility methods for type checking and validation.
- * @path src/utils/static/validator.js
+ * @path src/utils/static/validator.mjs
  * @date July 21, 2025
  */
 

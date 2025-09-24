@@ -1,7 +1,7 @@
 /**
- * @file MockSettings.unit.test.js
+ * @file MockSettings.unit.test.mjs
  * @description Unit tests for MockSettings class
- * @path tests/mocks/MockSettings.unit.test.js
+ * @path tests/mocks/MockSettings.unit.test.mjs
  */
 
 import MockSettings from './MockSettings.mjs';

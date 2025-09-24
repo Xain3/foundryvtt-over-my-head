@@ -1,7 +1,7 @@
 /**
- * @file hooksLogger.js
+ * @file hooksLogger.mjs
  * @description This file contains the HooksLogger class that provides utilities for logging and debugging Foundry VTT hook calls.
- * @path src/utils/static/hooksLogger.js
+ * @path src/utils/static/hooksLogger.mjs
  */
 
 /**

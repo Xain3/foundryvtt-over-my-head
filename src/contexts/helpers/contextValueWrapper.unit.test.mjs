@@ -1,7 +1,7 @@
 /**
- * @file contextValueWrapper.unit.test.js
+ * @file contextValueWrapper.unit.test.mjs
  * @description Unit tests for the ContextValueWrapper class.
- * @path src/contexts/helpers/contextValueWrapper.unit.test.js
+ * @path src/contexts/helpers/contextValueWrapper.unit.test.mjs
 
  */
 

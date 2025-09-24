@@ -1,7 +1,7 @@
 /**
- * @file contextOperations.js
+ * @file contextOperations.mjs
  * @description Bulk and multi-context operations using ContextMerger for operations involving multiple sources/targets.
- * @path src/contexts/helpers/contextOperations.js
+ * @path src/contexts/helpers/contextOperations.mjs
 
  */
 

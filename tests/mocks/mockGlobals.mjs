@@ -1,7 +1,7 @@
 /**
- * @file mockGlobals.js
+ * @file mockGlobals.mjs
  * @description Comprehensive mock globals for Foundry VTT v13 integration testing
- * @path tests/mocks/mockGlobals.js
+ * @path tests/mocks/mockGlobals.mjs
  * @date 29 May 2025
  */
 

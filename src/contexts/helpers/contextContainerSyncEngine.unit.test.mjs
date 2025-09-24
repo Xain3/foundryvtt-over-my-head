@@ -1,7 +1,7 @@
 /**
- * @file contextContainerSyncEngine.unit.test.js
+ * @file contextContainerSyncEngine.unit.test.mjs
  * @description Test file for the ContextContainerSyncEngine class functionality.
- * @path src/contexts/helpers/contextContainerSyncEngine.unit.test.js
+ * @path src/contexts/helpers/contextContainerSyncEngine.unit.test.mjs
 
  */
 

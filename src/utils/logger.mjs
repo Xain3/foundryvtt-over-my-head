@@ -1,7 +1,7 @@
 /**
- * @file logger.js
+ * @file logger.mjs
  * @description This file contains the Logger class for logging within a specific module with configurable debug mode.
- * @path src/utils/logger.js
+ * @path src/utils/logger.mjs
  */
 
 import GameManager from "./static/gameManager.mjs";

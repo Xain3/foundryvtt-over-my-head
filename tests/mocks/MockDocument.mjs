@@ -1,7 +1,7 @@
 /**
- * @file MockDocument.js
+ * @file MockDocument.mjs
  * @description Mock Document class representing Foundry Document entities
- * @path tests/mocks/MockDocument.js
+ * @path tests/mocks/MockDocument.mjs
  */
 
 /**

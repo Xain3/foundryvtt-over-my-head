@@ -1,7 +1,7 @@
 /**
- * @file helpers.js
+ * @file helpers.mjs
  * @description Centralized entry point for all helper utilities providing path resolution, module management, and configuration parsing capabilities.
- * @path src/helpers/helpers.js
+ * @path src/helpers/helpers.mjs
  */
 
 import PathUtils from './pathUtils.mjs';

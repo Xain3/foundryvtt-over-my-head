@@ -1,7 +1,7 @@
 /**
- * @file deployer.js
+ * @file deployer.mjs
  * @description Handles deployment of built files to the FoundryVTT module directory
- * @path scripts/dev/deployer.js
+ * @path scripts/dev/deployer.mjs
  */
 
 import fs from 'fs';

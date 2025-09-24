@@ -1,7 +1,7 @@
 /**
- * @file constants.js
+ * @file constants.mjs
  * @description This file exports the parsed and frozen constants object from YAML configuration.
- * @path src/config/constants.js
+ * @path src/config/constants.mjs
  */
 
 import ConstantsBuilder from "./helpers/constantsBuilder.mjs";

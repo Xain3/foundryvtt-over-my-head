@@ -1,7 +1,7 @@
 /**
- * @file MockRoll.js
+ * @file MockRoll.mjs
  * @description Mock Roll class for dice rolling
- * @path tests/mocks/MockRoll.js
+ * @path tests/mocks/MockRoll.mjs
  */
 
 /**

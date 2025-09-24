@@ -1,7 +1,7 @@
 /**
- * @file constantsParser.unit.test.js
+ * @file constantsParser.unit.test.mjs
  * @description Unit tests for the ConstantsParser class.
- * @path src/constants/helpers/constantsParser.unit.test.js
+ * @path src/constants/helpers/constantsParser.unit.test.mjs
  * @date 26 May 2025
  */
 

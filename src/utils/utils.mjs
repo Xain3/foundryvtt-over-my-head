@@ -1,7 +1,7 @@
 /**
- * @file utils.js
+ * @file utils.mjs
  * @description This file contains the Utilities class that serves as a unified interface for all utility operations.
- * @path src/utils/utils.js
+ * @path src/utils/utils.mjs
  */
 
 import StaticUtils from "./static/static.mjs";

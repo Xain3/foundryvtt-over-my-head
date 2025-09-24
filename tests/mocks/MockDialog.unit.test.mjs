@@ -1,7 +1,7 @@
 /**
- * @file MockDialog.unit.test.js
+ * @file MockDialog.unit.test.mjs
  * @description Unit tests for MockDialog class
- * @path tests/mocks/MockDialog.unit.test.js
+ * @path tests/mocks/MockDialog.unit.test.mjs
  */
 
 import MockDialog from './MockDialog.mjs';

@@ -1,7 +1,7 @@
 /**
- * @file context.performance.test.js
+ * @file context.performance.test.mjs
  * @description Performance tests for the Context class to measure operation timing and resource usage
- * @path src/contexts/context.performance.test.js
+ * @path src/contexts/context.performance.test.mjs
  */
 
 import Context from '@contexts/context.mjs';

@@ -8,7 +8,7 @@ The utils are organized into functional categories:
 
 - **Module Lifecycle**: [`Initializer`](#initializer), [`Logger`](#logger)
 - **Hook Management**: [`HookFormatter`](#hookformatter)
-- **General Utilities**: Utils (entry point in `utils.js`)
+- **General Utilities**: Utils (entry point in `utils.mjs`)
 - **Static Utilities**: [`static/`](#static-utilities)
 
 Note: Static utilities now expose a convenience alias `localizer` for the Localizer class at `Utils.static.localizer`.
@@ -18,23 +18,23 @@ Note: Static utilities now expose a convenience alias `localizer` for the Locali
 ```text
 src/utils/
 ├── README.md                   # This documentation
-├── initializer.js              # Module initialization orchestration
-├── initializer.unit.test.js    # Initializer tests
-├── logger.js                   # Module-specific logging
-├── logger.unit.test.js         # Logger tests
-├── hookFormatter.js            # Hook name formatting utilities
-├── hookFormatter.unit.test.js  # HookFormatter tests
-├── utils.js                    # General utility functions
-├── utils.unit.test.js          # Utils tests
+├── initializer.mjs              # Module initialization orchestration
+├── initializer.unit.test.mjs    # Initializer tests
+├── logger.mjs                   # Module-specific logging
+├── logger.unit.test.mjs         # Logger tests
+├── hookFormatter.mjs            # Hook name formatting utilities
+├── hookFormatter.unit.test.mjs  # HookFormatter tests
+├── utils.mjs                    # General utility functions
+├── utils.unit.test.mjs          # Utils tests
 └── static/                     # Static utility classes (see static/README.md)
     ├── README.md               # Static utilities documentation
-    ├── static.js               # Central entry point for static utils
-    ├── validator.js            # Data validation utilities
-    ├── unpacker.js             # Object property unpacking
-    ├── gameManager.js          # Game module management
-    ├── errorFormatter.js       # Error formatting utilities
-    ├── localizer.js            # Localization utilities
-    └── *.unit.test.js          # Comprehensive test coverage
+    ├── static.mjs               # Central entry point for static utils
+    ├── validator.mjs            # Data validation utilities
+    ├── unpacker.mjs             # Object property unpacking
+    ├── gameManager.mjs          # Game module management
+    ├── errorFormatter.mjs       # Error formatting utilities
+    ├── localizer.mjs            # Localization utilities
+    └── *.unit.test.mjs          # Comprehensive test coverage
 ```
 
 ## 🚀 Quick Start
@@ -42,7 +42,7 @@ src/utils/
 ### Using Utils Entry Point (Recommended)
 
 ```javascript
-import Utils from '@/utils/utils.js';
+import Utils from '@/utils/utils.mjs';
 
 // Access all utilities through unified interface
 const logger = Utils.createLogger(constants, manifest, formatError);
@@ -58,7 +58,7 @@ const module = Utils.getModuleObject('my-module');
 ### Utilities Facade (formatHookName, initializeContext, logging)
 
 ```javascript
-import Utilities from '@/utils/utils.js';
+import Utilities from '@/utils/utils.mjs';
 
 // Create a Utilities instance (facade over logger/initializer/hookFormatter)
 const utils = new Utilities(constants, manifest);
@@ -79,10 +79,10 @@ utils.logDebug('Detailed debug info');
 ### Direct Imports for Specific Use Cases
 
 ```javascript
-import Initializer from '@/utils/initializer.js';
-import Logger from '@/utils/logger.js';
-import { formatHook } from '@/utils/hookFormatter.js';
-import StaticUtils from '@/utils/static/static.js';
+import Initializer from '@/utils/initializer.mjs';
+import Logger from '@/utils/logger.mjs';
+import { formatHook } from '@/utils/hookFormatter.mjs';
+import StaticUtils from '@/utils/static/static.mjs';
 
 // Module initialization
 const initializer = new Initializer(constants, manifest, logger, formatError, formatHook);
@@ -94,7 +94,7 @@ initializer.initializeContext({ /* your Context params */ });
 
 ### Initializer
 
-**File**: [`initializer.js`](initializer.js)
+**File**: [`initializer.mjs`](initializer.mjs)
 **Dependencies**: `Context`, `SettingsHandler`, `Logger`, `HookFormatter`
 **Exports**: `Initializer` (class)
 
@@ -126,9 +126,9 @@ _registerSettings(SettingsHandlerOrInstance, utils?)
 #### Initializer Example Usage
 
 ```javascript
-import Initializer from '@/utils/initializer.js';
-import Context from '@/contexts/context.js';
-import SettingsHandler from '@/handlers/settingsHandler.js';
+import Initializer from '@/utils/initializer.mjs';
+import Context from '@/contexts/context.mjs';
+import SettingsHandler from '@/handlers/settingsHandler.mjs';
 
 // Create initializer
 const initializer = new Initializer(
@@ -181,7 +181,7 @@ Hooks.once('init', () => {
 
 ### Logger
 
-**File**: [`logger.js`](logger.js)
+**File**: [`logger.mjs`](logger.mjs)
 **Dependencies**: `GameManager`
 **Exports**: `Logger` (class)
 
@@ -211,7 +211,7 @@ isDebugEnabled()      // Check current debug mode status
 #### Logger Example Usage
 
 ```javascript
-import Logger from '@/utils/logger.js';
+import Logger from '@/utils/logger.mjs';
 
 // Create logger
 const logger = new Logger(constants, manifest, formatError);
@@ -260,7 +260,7 @@ logger.debug('Processing data');
 
 ### HookFormatter
 
-**File**: [`hookFormatter.js`](hookFormatter.js)
+**File**: [`hookFormatter.mjs`](hookFormatter.mjs)
 **Dependencies**: `constants`
 **Exports**: `formatHook` (function)
 
@@ -285,7 +285,7 @@ formatHook(hookBase, hookType, context?)
 #### HookFormatter Example Usage
 
 ```javascript
-import { formatHook } from '@/utils/hookFormatter.js';
+import { formatHook } from '@/utils/hookFormatter.mjs';
 
 // Basic hook formatting
 const initHook = formatHook('myModule', 'init');
@@ -320,7 +320,7 @@ The formatter follows these conventions:
 
 const logger = Utils.createLogger(constants, manifest, formatError); // Updated for multi-function proxy mapping
 
-**File**: [`utils.js`](utils.js)
+**File**: [`utils.mjs`](utils.mjs)
 **Dependencies**: All utils and static utilities
 **Exports**: `Utils` (class)
 
@@ -367,7 +367,7 @@ static getUtilityInfo()
 #### Utils Example Usage
 
 ```javascript
-import Utils from '@/utils/utils.js';
+import Utils from '@/utils/utils.mjs';
 
 // Create utility instances
 const logger = Utils.createLogger(constants, manifest, formatError);
@@ -412,14 +412,14 @@ console.log('Available utilities:', info.utilities);
 ### Static Utilities
 
 **Directory**: [`static/`](static/)
-**Entry Point**: [`static/static.js`](static/static.js)
+**Entry Point**: [`static/static.mjs`](static/static.mjs)
 
 Collection of static utility classes for data validation, object manipulation, error formatting, localization, and game module management. See [`static/README.md`](static/README.md) for detailed documentation.
 
 #### Quick Access via Utils
 
 ```javascript
-import Utils from '@/utils/utils.js';
+import Utils from '@/utils/utils.mjs';
 
 // All static utility functionality is available through Utils
 const validated = Utils.validate('isObject', { value: config });
@@ -432,9 +432,9 @@ const localized = Utils.localize('MYMODULE.title');
 ### Complete Module Initialization Workflow
 
 ```javascript
-import Utils from '@/utils/utils.js';
-import Context from '@/contexts/context.js';
-import SettingsHandler from '@/handlers/settingsHandler.js';
+import Utils from '@/utils/utils.mjs';
+import Context from '@/contexts/context.mjs';
+import SettingsHandler from '@/handlers/settingsHandler.mjs';
 
 // Setup utilities
 const logger = Utils.createLogger(constants, manifest, formatError);
@@ -617,7 +617,7 @@ All utilities implement comprehensive error handling:
 
 The utils include comprehensive test coverage:
 
-- **Unit Tests**: Individual utility testing (`*.unit.test.js`)
+- **Unit Tests**: Individual utility testing (`*.unit.test.mjs`)
 - **Integration Tests**: Cross-utility interaction testing
 - **Mock Support**: Foundry VTT environment simulation
 - **Coverage Metrics**: 100% line, branch, and function coverage
@@ -633,9 +633,9 @@ The utils include comprehensive test coverage:
 npm test -- src/utils
 
 # Run specific utility tests
-npm test -- src/utils/initializer.unit.test.js
-npm test -- src/utils/logger.unit.test.js
-npm test -- src/utils/hookFormatter.unit.test.js
+npm test -- src/utils/initializer.unit.test.mjs
+npm test -- src/utils/logger.unit.test.mjs
+npm test -- src/utils/hookFormatter.unit.test.mjs
 
 # Run static utilities tests
 npm test -- src/utils/static/
@@ -646,7 +646,7 @@ npm test -- src/utils/ --coverage
 Use `Utils` as the single entry point when importing from outside the utils folder:
 
 ```javascript
-import Utils from '@/utils/utils.js';
+import Utils from '@/utils/utils.mjs';
 
 // Create instances
 const logger = Utils.createLogger(constants, manifest, formatError);
@@ -658,9 +658,9 @@ const hookName = Utils.formatHook('module', 'ready');
 ```
 
 ```javascript
-import Logger from './logger.js';
-import { formatHook } from './hookFormatter.js';
-import StaticUtils from './static/static.js';
+import Logger from './logger.mjs';
+import { formatHook } from './hookFormatter.mjs';
+import StaticUtils from './static/static.mjs';
 ```
 
 
@@ -705,10 +705,10 @@ The utils are designed for extensibility:
 
 For detailed API documentation, see the JSDoc comments in each file:
 
-- [Utils API](./utils.js) - Central entry point and factory methods
-- [Initializer API](./initializer.js) - Module initialization orchestration
-- [Logger API](./logger.js) - Module-specific logging functionality
-- [HookFormatter API](./hookFormatter.js) - Hook name formatting utilities
+- [Utils API](./utils.mjs) - Central entry point and factory methods
+- [Initializer API](./initializer.mjs) - Module initialization orchestration
+- [Logger API](./logger.mjs) - Module-specific logging functionality
+- [HookFormatter API](./hookFormatter.mjs) - Hook name formatting utilities
 - [Static Utilities API](./static/README.md) - Complete static utilities documentation
 
 ## Contributing

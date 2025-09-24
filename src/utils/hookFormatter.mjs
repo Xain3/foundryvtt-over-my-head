@@ -1,7 +1,7 @@
 /**
- * @file hookFormatter.js
+ * @file hookFormatter.mjs
  * @description This file contains a utility class for formatting hook names by combining manifest short name with hook constants.
- * @path src/utils/hookFormatter.js
+ * @path src/utils/hookFormatter.mjs
  */
 
 /**

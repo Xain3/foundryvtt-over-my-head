@@ -1,7 +1,7 @@
 /**
- * @file manifestParser.unit.test.js
+ * @file manifestParser.unit.test.mjs
  * @description Test file for the ManifestParser helper class.
- * @path src/constants/helpers/manifestParser.unit.test.js
+ * @path src/constants/helpers/manifestParser.unit.test.mjs
  */
 
 import ManifestParser from './manifestParser.mjs';

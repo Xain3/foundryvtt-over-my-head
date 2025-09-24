@@ -1,7 +1,7 @@
 /**
- * @file settingsChecker.unit.test.js
+ * @file settingsChecker.unit.test.mjs
  * @description Unit tests for the SettingsChecker class
- * @path src/handlers/settingsHelpers/settingsChecker.unit.test.js
+ * @path src/handlers/settingsHelpers/settingsChecker.unit.test.mjs
  */
 
 import SettingsChecker from './settingsChecker.mjs';

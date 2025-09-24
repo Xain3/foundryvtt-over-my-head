@@ -1,7 +1,7 @@
 /**
- * @file MockItem.js
+ * @file MockItem.mjs
  * @description Mock Item class representing equipment, spells, features, and other items
- * @path tests/mocks/MockItem.js
+ * @path tests/mocks/MockItem.mjs
  */
 
 import MockDocument from './MockDocument.mjs';

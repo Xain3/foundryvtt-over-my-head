@@ -1,7 +1,7 @@
 /**
- * @file moduleGetter.js
+ * @file moduleGetter.mjs
  * @description This file contains a function to get a module from the Foundry VTT modules collection.
- * @path src/helpers/moduleGetter.js
+ * @path src/helpers/moduleGetter.mjs
  */
 
 import config from "@config";

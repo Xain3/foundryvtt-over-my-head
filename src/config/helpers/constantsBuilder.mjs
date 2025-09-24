@@ -1,7 +1,7 @@
 /**
- * @file constantsBuilder.js
+ * @file constantsBuilder.mjs
  * @description This file contains the ConstantsBuilder class for retrieving and parsing constant values from YAML sources.
- * @path src/constants/helpers/constantsBuilder.js
+ * @path src/constants/helpers/constantsBuilder.mjs
  */
 
 import ConstantsParser from "./constantsParser.mjs";

@@ -1,7 +1,7 @@
 /**
- * @file settingsRegistrar.unit.test.js
+ * @file settingsRegistrar.unit.test.mjs
  * @description Unit tests for the SettingsRegistrar class for registering Foundry VTT settings.
- * @path src/handlers/settingsHelpers/settingsRegistrar.unit.test.js
+ * @path src/handlers/settingsHelpers/settingsRegistrar.unit.test.mjs
  */
 
 import SettingsRegistrar from './settingsRegistrar.mjs';

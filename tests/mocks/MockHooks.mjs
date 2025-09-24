@@ -1,7 +1,7 @@
 /**
- * @file MockHooks.js
+ * @file MockHooks.mjs
  * @description Mock Hooks system for event handling
- * @path tests/mocks/MockHooks.js
+ * @path tests/mocks/MockHooks.mjs
  */
 
 /**

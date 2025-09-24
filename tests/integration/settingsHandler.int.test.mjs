@@ -1,7 +1,7 @@
 /**
- * @file settingsHandler.int.test.js
+ * @file settingsHandler.int.test.mjs
  * @description Integration tests for the SettingsHandler class with real helper classes
- * @path tests/integration/settingsHandler.int.test.js
+ * @path tests/integration/settingsHandler.int.test.mjs
  */
 
 import SettingsHandler from '../../src/handlers/settingsHandler.mjs';

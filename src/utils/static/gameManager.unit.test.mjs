@@ -1,7 +1,7 @@
 /**
- * @file gameManager.unit.test.js
+ * @file gameManager.unit.test.mjs
  * @description Unit tests for the static GameManager utility class.
- * @path src/utils/static/gameManager.unit.test.js
+ * @path src/utils/static/gameManager.unit.test.mjs
  */
 
 import GameManager from './gameManager.mjs';

@@ -1,7 +1,7 @@
 /**
- * @file settingsRetriever.unit.test.js
+ * @file settingsRetriever.unit.test.mjs
  * @description Unit tests for SettingsRetriever helper class
- * @path src/helpers/settingsRetriever.unit.test.js
+ * @path src/helpers/settingsRetriever.unit.test.mjs
  */
 
 import SettingsRetriever from './settingsRetriever.mjs';

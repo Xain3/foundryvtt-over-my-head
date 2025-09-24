@@ -1,7 +1,7 @@
 /**
- * @file contextItemSetter.unit.test.js
+ * @file contextItemSetter.unit.test.mjs
  * @description Test file for the ContextItemSetter static class functionality.
- * @path src/contexts/helpers/contextItemSetter.unit.test.js
+ * @path src/contexts/helpers/contextItemSetter.unit.test.mjs
 
  */
 

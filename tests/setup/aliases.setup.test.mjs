@@ -1,7 +1,7 @@
 /**
- * @file aliases.setup.test.js
- * @description Tests to validate that aliases in babel.config.js and jsconfig.json are consistent
- * @path /tests/setup/aliases.setup.test.js
+ * @file aliases.setup.test.mjs
+ * @description Tests to validate that aliases in babel.config.mjs and jsconfig.json are consistent
+ * @path /tests/setup/aliases.setup.test.mjs
  */
 
 import fs from 'fs';
@@ -200,7 +200,7 @@ describe('Alias Configuration Validation', () => {
         // Skip file-specific aliases
         if (aliasKey === '@manifest' || aliasKey === '@constants' || aliasKey === '@validator') {
           // For files, check if the file exists or the parent directory exists
-          if (aliasPath.endsWith('.js') || aliasPath.endsWith('.json')) {
+          if (aliasPath.endsWith('.mjs') || aliasPath.endsWith('.json')) {
             const parentDir = path.dirname(resolvedPath);
             // Just verify the parent directory concept is valid
             expect(parentDir).toMatch(/\/(src|tests|scripts|constants)/);

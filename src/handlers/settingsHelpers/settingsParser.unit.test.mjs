@@ -1,7 +1,7 @@
 /**
- * @file settingsParser.unit.test.js
+ * @file settingsParser.unit.test.mjs
  * @description Merged unit tests for SettingsParser, including enhanced onChange hook functionality.
- * @path src/handlers/settingsHelpers/settingsParser.unit.test.js
+ * @path src/handlers/settingsHelpers/settingsParser.unit.test.mjs
  */
 
 import SettingsParser from './settingsParser.mjs';

@@ -15,7 +15,7 @@ The constants helpers are organized into four main classes:
 
 ### ConstantsBuilder
 
-**File**: constantsBuilder.js
+**File**: constantsBuilder.mjs
 **Dependencies**: `ConstantsParser`, `ConstantsGetter`
 **Exports**: `ConstantsBuilder` (class)
 
@@ -35,7 +35,7 @@ new ConstantsBuilder()
 #### ConstantsBuilder Usage
 
 ```javascript
-import ConstantsBuilder from './helpers/constantsBuilder.js';
+import ConstantsBuilder from './helpers/constantsBuilder.mjs';
 
 const constants = new ConstantsBuilder();
 
@@ -63,7 +63,7 @@ console.log(config.context.sync.defaults.autoSync); // true
 
 ### ConstantsGetter
 
-**File**: constantsGetter.js
+**File**: constantsGetter.mjs
 **Dependencies**: `fs`, `path`
 **Exports**: `ConstantsGetter` (class)
 
@@ -84,7 +84,7 @@ ConstantsGetter.getConstantsYaml(constantsFileName, encoding)
 #### ConstantsGetter Usage
 
 ```javascript
-import ConstantsGetter from './helpers/constantsGetter.js';
+import ConstantsGetter from './helpers/constantsGetter.mjs';
 
 // Read default constants.yaml file with default encoding
 const defaultConstants = ConstantsGetter.getConstantsYaml();
@@ -122,7 +122,7 @@ try {
 
 ### ConstantsParser
 
-**File**: constantsParser.js
+**File**: constantsParser.mjs
 **Dependencies**: `js-yaml`, `lodash`, `PathUtils`
 **Exports**: `ConstantsParser` (class)
 
@@ -145,7 +145,7 @@ ConstantsParser.createRootMapFromYaml(config, globalNamespace, module)
 #### ConstantsParser Usage
 
 ```javascript
-import ConstantsParser from './helpers/constantsParser.js';
+import ConstantsParser from './helpers/constantsParser.mjs';
 
 // Basic parsing
 const yamlString = 'testConstant: testValue\ncontext:\n  schema: test';
@@ -231,8 +231,8 @@ try {
 
 ### ManifestParser
 
-**File**: manifestParser.js
-**Dependencies**: `constants.js`
+**File**: manifestParser.mjs
+**Dependencies**: `constants.mjs`
 **Exports**: `ManifestParser` (class)
 
 Comprehensive validation and processing for manifest objects with support for multiple validation strategies and immutability enforcement. Validates manifest structure, required attributes, and ensures immutability by freezing the manifest and its nested objects.
@@ -260,7 +260,7 @@ new ManifestParser(manifest)
 #### ManifestParser Usage
 
 ```javascript
-import ManifestParser from './helpers/manifestParser.js';
+import ManifestParser from './helpers/manifestParser.mjs';
 
 // Basic manifest validation
 const manifestData = {
@@ -390,7 +390,7 @@ const complexManifest = {
   authors: [
     { name: "Developer", email: "dev@example.com" }
   ],
-  scripts: ["scripts/init.js"],
+  scripts: ["scripts/init.mjs"],
   styles: ["styles/main.css"],
   languages: [
     { lang: "en", name: "English", path: "lang/en.json" }
@@ -477,7 +477,7 @@ Each helper class includes comprehensive unit tests with the following patterns:
 
 ### Test Structure
 
-- **File Naming**: `*.unit.test.js` for unit tests
+- **File Naming**: `*.unit.test.mjs` for unit tests
 - **Mocking**: External dependencies are mocked using Jest
 - **Coverage**: Tests cover success cases, error cases, and edge cases
 
@@ -488,10 +488,10 @@ Each helper class includes comprehensive unit tests with the following patterns:
 npm test constants/helpers
 
 # Run specific test file
-npm test -- --testPathPattern="constantsBuilder.unit.test.js"
-npm test -- --testPathPattern="constantsGetter.unit.test.js"
-npm test -- --testPathPattern="constantsParser.unit.test.js"
-npm test -- --testPathPattern="manifestParser.unit.test.js"
+npm test -- --testPathPattern="constantsBuilder.unit.test.mjs"
+npm test -- --testPathPattern="constantsGetter.unit.test.mjs"
+npm test -- --testPathPattern="constantsParser.unit.test.mjs"
+npm test -- --testPathPattern="manifestParser.unit.test.mjs"
 ```
 
 ### Test Coverage Areas
@@ -548,7 +548,7 @@ ConstantsBuilder
     └── PathUtils (../../helpers)
 
 ManifestParser
-└── constants.js (../constants.js)
+└── constants.mjs (../constants.mjs)
 ```
 
 ## Usage Patterns
@@ -556,7 +556,7 @@ ManifestParser
 ### Basic Constants Access
 
 ```javascript
-import ConstantsBuilder from './constants/helpers/constantsBuilder.js';
+import ConstantsBuilder from './constants/helpers/constantsBuilder.mjs';
 
 const constants = new ConstantsBuilder();
 const config = constants.asObject;
@@ -570,8 +570,8 @@ const errorPattern = config.errors.pattern;
 ### Custom Configuration Files
 
 ```javascript
-import ConstantsGetter from './constants/helpers/constantsGetter.js';
-import ConstantsParser from './constants/helpers/constantsParser.js';
+import ConstantsGetter from './constants/helpers/constantsGetter.mjs';
+import ConstantsParser from './constants/helpers/constantsParser.mjs';
 
 // Read custom configuration with default encoding
 const customYaml = ConstantsGetter.getConstantsYaml('environment-specific.yaml');
@@ -584,7 +584,7 @@ const binaryYaml = ConstantsGetter.getConstantsYaml('binary-config.yaml', 'binar
 ### Advanced Root Map Usage
 
 ```javascript
-import ConstantsParser from './constants/helpers/constantsParser.js';
+import ConstantsParser from './constants/helpers/constantsParser.mjs';
 
 // Parse with root map processing for context management
 const fullConfig = ConstantsParser.parseConstants(
@@ -602,7 +602,7 @@ const rootMap = rootMapFn(globalThis, moduleInstance);
 ### Integration with Context System
 
 ```javascript
-import ConstantsBuilder from './constants/helpers/constantsBuilder.js';
+import ConstantsBuilder from './constants/helpers/constantsBuilder.mjs';
 
 const constants = new ConstantsBuilder();
 const contextConfig = constants.asObject.context;
@@ -618,7 +618,7 @@ const context = new Context({
 ### Manifest Validation Integration
 
 ```javascript
-import ManifestParser from './constants/helpers/manifestParser.js';
+import ManifestParser from './constants/helpers/manifestParser.mjs';
 
 // Validate imported manifest
 import rawManifest from '../module.json';
@@ -636,8 +636,8 @@ Object.isFrozen(validatedManifest); // true
 ### Module Initialization Pattern
 
 ```javascript
-import ManifestParser from './constants/helpers/manifestParser.js';
-import ConstantsBuilder from './constants/helpers/constantsBuilder.js';
+import ManifestParser from './constants/helpers/manifestParser.mjs';
+import ConstantsBuilder from './constants/helpers/constantsBuilder.mjs';
 
 // Combined initialization
 const constants = new ConstantsBuilder();

@@ -1,7 +1,7 @@
 /**
- * @file contextContainer.unit.test.js
+ * @file contextContainer.unit.test.mjs
  * @description Unit tests for the ContextContainer class.
- * @path src/contexts/helpers/contextContainer.unit.test.js
+ * @path src/contexts/helpers/contextContainer.unit.test.mjs
  */
 
 import { ContextContainer } from './contextContainer.mjs';

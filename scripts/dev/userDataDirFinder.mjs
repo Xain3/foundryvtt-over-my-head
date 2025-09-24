@@ -1,7 +1,7 @@
 /**
- * @file userDataDirFinder.js
+ * @file userDataDirFinder.mjs
  * @description Finds the FoundryVTT user data directory across platforms
- * @path scripts/dev/userDataDirFinder.js
+ * @path scripts/dev/userDataDirFinder.mjs
  */
 
 import fs from 'fs';

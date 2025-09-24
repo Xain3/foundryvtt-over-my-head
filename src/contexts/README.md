@@ -7,31 +7,31 @@ This directory contains the complete context management system for the Foundry V
 
 ```
 src/contexts/
-├── context.js                # Main Context class - orchestration layer with component management
-├── context.unit.test.js      # Tests for the main Context class
-├── contextFactory.js         # Factory for creating different context manager types
+├── context.mjs                # Main Context class - orchestration layer with component management
+├── context.unit.test.mjs      # Tests for the main Context class
+├── contextFactory.mjs         # Factory for creating different context manager types
 └── helpers/                  # Specialized helper classes and utilities
-    ├── contextHelpers.js     # Centralized entry point for all helper functionality
-    ├── contextItem.js        # Single data item with metadata and timestamps
-    ├── contextContainer.js   # Collection manager with dot-notation access
-    ├── contextValueWrapper.js # Utility for wrapping values into context objects
-    ├── contextPathUtils.js   # Context-aware path resolution utilities
-    ├── contextItemSetter.js  # Item setting operations with validation
-    ├── contextSync.js        # Facade for all synchronization operations
-    ├── contextItemSync.js    # Synchronization for ContextItem instances
-    ├── contextContainerSync.js # Synchronization for ContextContainer instances
-    ├── contextContainerSyncEngine.js # Complex recursive sync operations
-    ├── contextAutoSync.js    # Automatic synchronization (work in progress)
-    ├── contextLegacySync.js  # Legacy sync operations for backward compatibility
-    ├── contextMerger.js      # Sophisticated merging with conflict resolution
-    ├── contextOperations.js  # Bulk operations and multi-source/target workflows
-    ├── contextItemFilter.js  # Filtering capabilities for selective operations
-    ├── contextComparison.js  # Comparison utilities with timestamp analysis
+    ├── contextHelpers.mjs     # Centralized entry point for all helper functionality
+    ├── contextItem.mjs        # Single data item with metadata and timestamps
+    ├── contextContainer.mjs   # Collection manager with dot-notation access
+    ├── contextValueWrapper.mjs # Utility for wrapping values into context objects
+    ├── contextPathUtils.mjs   # Context-aware path resolution utilities
+    ├── contextItemSetter.mjs  # Item setting operations with validation
+    ├── contextSync.mjs        # Facade for all synchronization operations
+    ├── contextItemSync.mjs    # Synchronization for ContextItem instances
+    ├── contextContainerSync.mjs # Synchronization for ContextContainer instances
+    ├── contextContainerSyncEngine.mjs # Complex recursive sync operations
+    ├── contextAutoSync.mjs    # Automatic synchronization (work in progress)
+    ├── contextLegacySync.mjs  # Legacy sync operations for backward compatibility
+    ├── contextMerger.mjs      # Sophisticated merging with conflict resolution
+    ├── contextOperations.mjs  # Bulk operations and multi-source/target workflows
+    ├── contextItemFilter.mjs  # Filtering capabilities for selective operations
+    ├── contextComparison.mjs  # Comparison utilities with timestamp analysis
     ├── validators/           # Validation utilities
-    │   ├── rootMapValidator.js # Root map configuration validation
-    │   └── *.unit.test.js    # Test suites for validators
+    │   ├── rootMapValidator.mjs # Root map configuration validation
+    │   └── *.unit.test.mjs    # Test suites for validators
     ├── README.md            # Detailed helper documentation
-    └── *.unit.test.js       # Comprehensive test suites for each helper
+    └── *.unit.test.mjs       # Comprehensive test suites for each helper
 ```
 
 ## 🎯 System Overview
@@ -48,12 +48,12 @@ The context system is built around a sophisticated modular architecture that emp
 
 ## 📚 Core Components
 
-### context.js
+### context.mjs
 
 **Purpose**: Main orchestration layer providing sophisticated data management framework
 **Architecture**: Composition-based with delegation to specialized helper classes
 **Extends**: `ContextContainer` for enhanced path navigation capabilities
-**Usage**: `import Context from './contexts/context.js'`
+**Usage**: `import Context from './contexts/context.mjs'`
 
 ```javascript
 // Create a Context with component-based architecture
@@ -98,11 +98,11 @@ const inventory = context.pullAndGetItem({
 - **Metadata Management**: Comprehensive timestamp tracking and access logging
 - **Performance Monitoring**: Built-in metrics for pull/push operations with cooldown management
 
-### contextFactory.js
+### contextFactory.mjs
 
 **Purpose**: Factory pattern implementation for creating different context manager types
 **Exports**: `ContextFactory` (class)
-**Usage**: `import ContextFactory from './contexts/contextFactory.js'`
+**Usage**: `import ContextFactory from './contexts/contextFactory.mjs'`
 
 ```javascript
 // Create different types of context managers
@@ -206,8 +206,8 @@ The context system integrates seamlessly with the constants system for configura
 ### Constants Integration
 
 ```javascript
-import constants from '../constants/constants.js';
-import Context from './context.js';
+import constants from '../constants/constants.mjs';
+import Context from './context.mjs';
 
 // Context uses constants for default configuration
 const context = new Context({
@@ -245,7 +245,7 @@ context.reinitialize({
 ### Basic Context Operations
 
 ```javascript
-import Context from './contexts/context.js';
+import Context from './contexts/context.mjs';
 
 // Initialize with structured data
 const context = new Context({
@@ -281,7 +281,7 @@ context.setItem('settings.ui.volume', 0.9);
 ### Advanced Synchronization
 
 ```javascript
-import ContextHelpers from './contexts/helpers/contextHelpers.js';
+import ContextHelpers from './contexts/helpers/contextHelpers.mjs';
 
 // Multi-strategy synchronization
 const result = await ContextHelpers.sync(
@@ -310,7 +310,7 @@ const autoResult = await ContextHelpers.autoSync(sourceContext, targetContext);
 ### Sophisticated Merging
 
 ```javascript
-import ContextHelpers from './contexts/helpers/contextHelpers.js';
+import ContextHelpers from './contexts/helpers/contextHelpers.mjs';
 
 // Filtered merging
 const mergeResult = ContextHelpers.merge(source, target, 'mergeNewerWins', {
@@ -335,7 +335,7 @@ console.log(analysis.changes);   // Planned changes
 ### Bulk Operations
 
 ```javascript
-import ContextHelpers from './contexts/helpers/contextHelpers.js';
+import ContextHelpers from './contexts/helpers/contextHelpers.mjs';
 
 // Multi-source consolidation
 const consolidationResult = ContextHelpers.Operations.consolidateContexts(
@@ -370,7 +370,7 @@ const pushResults = ContextHelpers.Operations.pushToMultipleTargets(
 ### Advanced Filtering
 
 ```javascript
-import ContextHelpers from './contexts/helpers/contextHelpers.js';
+import ContextHelpers from './contexts/helpers/contextHelpers.mjs';
 
 // Path-based filtering
 const pathFilter = ContextHelpers.Filter.allowOnly([
@@ -403,7 +403,7 @@ const result = ContextHelpers.merge(source, target, 'mergeNewerWins', {
 ### Factory-Based Context Creation
 
 ```javascript
-import ContextFactory from './contexts/contextFactory.js';
+import ContextFactory from './contexts/contextFactory.mjs';
 
 // Create context ecosystem
 const contextSystem = ContextFactory.createMultiple({
@@ -465,8 +465,8 @@ The context system includes comprehensive testing at multiple levels:
 npm test contexts
 
 # Run specific component tests
-npm test contexts/context.unit.test.js
-npm test contexts/contextFactory.unit.test.js
+npm test contexts/context.unit.test.mjs
+npm test contexts/contextFactory.unit.test.mjs
 npm test contexts/helpers
 
 # Run integration tests
@@ -553,9 +553,9 @@ npm test -- --coverage contexts
 
 ```javascript
 // In main module
-import Context from './contexts/context.js';
-import constants from './constants/constants.js';
-import manifest from './constants/manifest.js';
+import Context from './contexts/context.mjs';
+import constants from './constants/constants.mjs';
+import manifest from './constants/manifest.mjs';
 
 const moduleContext = new Context({
   initializationParams: {
@@ -640,17 +640,17 @@ const levelUpEvent = eventContext.getItem('state.events.playerLevelUp');
 
 ```javascript
 // Main exports
-import Context from './contexts/context.js';           // Main Context class
-import ContextFactory from './contexts/contextFactory.js'; // Factory for context creation
+import Context from './contexts/context.mjs';           // Main Context class
+import ContextFactory from './contexts/contextFactory.mjs'; // Factory for context creation
 
 // Helper entry point
-import ContextHelpers from './contexts/helpers/contextHelpers.js'; // All helper functionality
+import ContextHelpers from './contexts/helpers/contextHelpers.mjs'; // All helper functionality
 
 // Specialized helpers (advanced usage)
-import { ContextItem } from './contexts/helpers/contextItem.js';
-import { ContextContainer } from './contexts/helpers/contextContainer.js';
-import ContextSync from './contexts/helpers/contextSync.js';
-import ContextMerger from './contexts/helpers/contextMerger.js';
+import { ContextItem } from './contexts/helpers/contextItem.mjs';
+import { ContextContainer } from './contexts/helpers/contextContainer.mjs';
+import ContextSync from './contexts/helpers/contextSync.mjs';
+import ContextMerger from './contexts/helpers/contextMerger.mjs';
 ```
 
 ### Type Information

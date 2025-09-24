@@ -1,7 +1,7 @@
 /**
- * @file flagEvaluator.js
+ * @file flagEvaluator.mjs
  * @description A utility for evaluating flag conditions against a context object to determine setting visibility.
- * @path src/handlers/settingsHelpers/flagEvaluator.js
+ * @path src/handlers/settingsHelpers/flagEvaluator.mjs
  */
 
 /**

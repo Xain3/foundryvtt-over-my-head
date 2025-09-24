@@ -1,7 +1,7 @@
 /**
- * @file unpacker.js
+ * @file unpacker.mjs
  * @description This file contains a utility class for unpacking object properties onto instances.
- * @path src/utils/static/unpacker.js
+ * @path src/utils/static/unpacker.mjs
  */
 
 /**

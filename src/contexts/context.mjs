@@ -1,7 +1,7 @@
 /**
- * @file context.js
+ * @file context.mjs
  * @description This file contains the Context class that provides a sophisticated data management framework for FoundryVTT modules, built on a modular architecture with delegation to specialized helper classes.
- * @path src/contexts/context.js
+ * @path src/contexts/context.mjs
  */
 
 import { ContextContainer } from './helpers/contextContainer.mjs';

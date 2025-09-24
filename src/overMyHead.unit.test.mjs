@@ -1,7 +1,7 @@
 /**
- * @file overMyHead.unit.test.js
+ * @file overMyHead.unit.test.mjs
  * @description Unit tests for OverMyHead class to verify constructor wiring, dev features hook registration, and init workflow.
- * @path src/overMyHead.unit.test.js
+ * @path src/overMyHead.unit.test.mjs
  */
 
 import OverMyHead from './overMyHead.mjs';

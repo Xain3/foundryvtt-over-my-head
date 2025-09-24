@@ -1,7 +1,7 @@
 /**
- * @file userDataDirFinder.unit.test.js
+ * @file userDataDirFinder.unit.test.mjs
  * @description Unit tests for UserDataDirFinder class
- * @path scripts/dev/userDataDirFinder.unit.test.js
+ * @path scripts/dev/userDataDirFinder.unit.test.mjs
  */
 
 import fs from 'fs';

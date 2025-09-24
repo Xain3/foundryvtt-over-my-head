@@ -1,7 +1,7 @@
 /**
- * @file MockUser.js
+ * @file MockUser.mjs
  * @description Mock User class representing players and game masters
- * @path tests/mocks/MockUser.js
+ * @path tests/mocks/MockUser.mjs
  */
 
 import MockDocument from './MockDocument.mjs';

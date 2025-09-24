@@ -1,7 +1,7 @@
 /**
- * @file buildAndDeploy.performance.test.js
+ * @file buildAndDeploy.performance.test.mjs
  * @description Performance tests for buildAndDeploy scripts
- * @path tests/performance/buildAndDeploy.performance.test.js
+ * @path tests/performance/buildAndDeploy.performance.test.mjs
  */
 
 import { jest } from '@jest/globals';
@@ -70,7 +70,7 @@ describe('BuildAndDeploy Performance Tests', () => {
       // Create small test files
       for (let i = 0; i < 10; i++) {
         fs.writeFileSync(
-          path.join(mockDistDir, `file${i}.js`),
+          path.join(mockDistDir, `file${i}.mjs`),
           `console.log('File ${i}');`
         );
       }
@@ -96,7 +96,7 @@ describe('BuildAndDeploy Performance Tests', () => {
 
       // Verify all files were copied
       for (let i = 0; i < 10; i++) {
-        expect(fs.existsSync(path.join(mockTargetDir, 'dist', `file${i}.js`))).toBe(true);
+        expect(fs.existsSync(path.join(mockTargetDir, 'dist', `file${i}.mjs`))).toBe(true);
       }
     });
 
@@ -106,7 +106,7 @@ describe('BuildAndDeploy Performance Tests', () => {
       // Create many small files
       for (let i = 0; i < 100; i++) {
         fs.writeFileSync(
-          path.join(mockDistDir, `file${i}.js`),
+          path.join(mockDistDir, `file${i}.mjs`),
           `console.log('File ${i}'); // ${Math.random()}`
         );
       }
@@ -138,7 +138,7 @@ describe('BuildAndDeploy Performance Tests', () => {
 
       // Create a large file (10MB)
       const largeContent = 'x'.repeat(10 * 1024 * 1024);
-      fs.writeFileSync(path.join(mockDistDir, 'large-file.js'), largeContent);
+      fs.writeFileSync(path.join(mockDistDir, 'large-file.mjs'), largeContent);
 
       // Run deployer from the temp project root
       const originalCwd = process.cwd();
@@ -158,7 +158,7 @@ describe('BuildAndDeploy Performance Tests', () => {
       expect(duration).toBeLessThan(5000); // Should complete in under 5 seconds
 
       // Verify file was copied correctly
-      const copiedContent = fs.readFileSync(path.join(mockTargetDir, 'dist', 'large-file.js'), 'utf8');
+      const copiedContent = fs.readFileSync(path.join(mockTargetDir, 'dist', 'large-file.mjs'), 'utf8');
       expect(copiedContent.length).toBe(largeContent.length);
     });
   });
@@ -216,7 +216,7 @@ describe('BuildAndDeploy Performance Tests', () => {
       // Create test files
       for (let i = 0; i < 10; i++) {
         fs.writeFileSync(
-          path.join(mockDistDir, `test${i}.js`),
+          path.join(mockDistDir, `test${i}.mjs`),
           `console.log('Test ${i}');`
         );
       }
@@ -237,7 +237,7 @@ describe('BuildAndDeploy Performance Tests', () => {
 
         // Clear target directory for next iteration
         for (let j = 0; j < 10; j++) {
-          const targetFile = path.join(mockTargetDir, 'dist', `test${j}.js`);
+          const targetFile = path.join(mockTargetDir, 'dist', `test${j}.mjs`);
           if (fs.existsSync(targetFile)) {
             fs.unlinkSync(targetFile);
           }
@@ -264,7 +264,7 @@ describe('BuildAndDeploy Performance Tests', () => {
       // Create test files
       for (let i = 0; i < 20; i++) {
         fs.writeFileSync(
-          path.join(mockDistDir, `concurrent${i}.js`),
+          path.join(mockDistDir, `concurrent${i}.mjs`),
           `console.log('Concurrent ${i}');`
         );
       }

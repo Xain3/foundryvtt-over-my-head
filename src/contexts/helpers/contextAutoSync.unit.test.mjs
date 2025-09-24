@@ -1,7 +1,7 @@
 /**
- * @file contextAutoSync.unit.test.js
+ * @file contextAutoSync.unit.test.mjs
  * @description Unit tests for the ContextAutoSync class for automatic context synchronization functionality.
- * @path src/contexts/helpers/contextAutoSync.unit.test.js
+ * @path src/contexts/helpers/contextAutoSync.unit.test.mjs
 
  */
 

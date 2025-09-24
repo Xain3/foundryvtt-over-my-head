@@ -1,7 +1,7 @@
 /**
- * @file placeableGetter.unit.test.js
+ * @file placeableGetter.unit.test.mjs
  * @description Unit tests for PlaceableGetter helper.
- * @path src/handlers/placeableHelpers/placeableGetter.unit.test.js
+ * @path src/handlers/placeableHelpers/placeableGetter.unit.test.mjs
  */
 
 import PlaceableGetter from './placeableGetter.mjs';

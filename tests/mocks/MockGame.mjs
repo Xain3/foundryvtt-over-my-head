@@ -1,7 +1,7 @@
 /**
- * @file MockGame.js
+ * @file MockGame.mjs
  * @description Mock Game class representing the main game instance
- * @path tests/mocks/MockGame.js
+ * @path tests/mocks/MockGame.mjs
  */
 
 /**

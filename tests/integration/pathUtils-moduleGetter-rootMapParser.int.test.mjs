@@ -1,7 +1,7 @@
 /**
- * @file pathUtils-moduleGetter-rootMapParser.int.test.js
+ * @file pathUtils-moduleGetter-rootMapParser.int.test.mjs
  * @description Integration tests for PathUtils, moduleGetter, and RootMapParser to verify their interaction and dependency chain.
- * @path tests/integration/pathUtils-moduleGetter-rootMapParser.int.test.js
+ * @path tests/integration/pathUtils-moduleGetter-rootMapParser.int.test.mjs
  */
 
 import PathUtils from '../../src/helpers/pathUtils.mjs';

@@ -1,7 +1,7 @@
 /**
- * @file buildAndDeploy.int.test.js
+ * @file buildAndDeploy.int.test.mjs
  * @description Integration tests for buildAndDeploy scripts
- * @path tests/integration/buildAndDeploy.int.test.js
+ * @path tests/integration/buildAndDeploy.int.test.mjs
  */
 
 import { jest } from '@jest/globals';
@@ -37,7 +37,7 @@ describe('BuildAndDeploy Integration Tests', () => {
     fs.mkdirSync(mockDistDir, { recursive: true });
 
     // Create test files in dist
-    fs.writeFileSync(path.join(mockDistDir, 'main.js'), 'console.log("test");');
+    fs.writeFileSync(path.join(mockDistDir, 'main.mjs'), 'console.log("test");');
     fs.writeFileSync(path.join(mockDistDir, 'style.css'), 'body { color: red; }');
 
     // Create mock module.json
@@ -108,11 +108,11 @@ describe('BuildAndDeploy Integration Tests', () => {
   expect(() => deployer.deploy()).not.toThrow();
 
   // Verify files were copied under preserved directory structure (dist)
-  expect(fs.existsSync(path.join(mockModuleDir, 'dist', 'main.js'))).toBe(true);
+  expect(fs.existsSync(path.join(mockModuleDir, 'dist', 'main.mjs'))).toBe(true);
   expect(fs.existsSync(path.join(mockModuleDir, 'dist', 'style.css'))).toBe(true);
 
       // Verify file contents
-  const mainJs = fs.readFileSync(path.join(mockModuleDir, 'dist', 'main.js'), 'utf8');
+  const mainJs = fs.readFileSync(path.join(mockModuleDir, 'dist', 'main.mjs'), 'utf8');
   const styleCss = fs.readFileSync(path.join(mockModuleDir, 'dist', 'style.css'), 'utf8');
 
       expect(mainJs).toBe('console.log("test");');
@@ -157,7 +157,7 @@ describe('BuildAndDeploy Integration Tests', () => {
 
       // Create a larger test file
       const largeContent = 'x'.repeat(1024 * 100); // 100KB file (reduced for faster tests)
-      const largeFilePath = path.join(mockDistDir, 'large-file.js');
+      const largeFilePath = path.join(mockDistDir, 'large-file.mjs');
       // The previous test may remove the `dist` directory; recreate it if needed
       if (!fs.existsSync(mockDistDir)) {
         fs.mkdirSync(mockDistDir, { recursive: true });
@@ -168,7 +168,7 @@ describe('BuildAndDeploy Integration Tests', () => {
   expect(() => deployer.deploy()).not.toThrow();
 
       // Verify large file was copied correctly
-  const copiedFilePath = path.join(mockModuleDir, 'dist', 'large-file.js');
+  const copiedFilePath = path.join(mockModuleDir, 'dist', 'large-file.mjs');
       expect(fs.existsSync(copiedFilePath)).toBe(true);
 
       const copiedContent = fs.readFileSync(copiedFilePath, 'utf8');

@@ -1,7 +1,7 @@
 /**
- * @file MockItem.unit.test.js
+ * @file MockItem.unit.test.mjs
  * @description Unit tests for MockItem class
- * @path tests/mocks/MockItem.unit.test.js
+ * @path tests/mocks/MockItem.unit.test.mjs
  */
 
 import MockItem from './MockItem.mjs';

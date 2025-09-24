@@ -1,7 +1,7 @@
 /**
- * @file initializer.js
+ * @file initializer.mjs
  * @description This file contains the Initializer class responsible for initializing the context and registering settings for a module.
- * @path src/utils/initializer.js
+ * @path src/utils/initializer.mjs
  */
 
 import Handlers from '@/handlers/handlers.mjs';

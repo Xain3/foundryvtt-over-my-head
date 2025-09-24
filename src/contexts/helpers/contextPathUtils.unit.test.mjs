@@ -1,7 +1,7 @@
 /**
- * @file contextPathUtils.unit.test.js
+ * @file contextPathUtils.unit.test.mjs
  * @description Unit tests for the ContextPathUtils class functionality.
- * @path src/contexts/helpers/contextPathUtils.unit.test.js
+ * @path src/contexts/helpers/contextPathUtils.unit.test.mjs
  */
 
 import ContextPathUtils from './contextPathUtils.mjs';

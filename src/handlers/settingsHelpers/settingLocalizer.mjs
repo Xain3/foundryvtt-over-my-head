@@ -1,7 +1,7 @@
 /**
- * @file settingLocalizer.js
+ * @file settingLocalizer.mjs
  * @description Helper class to localize Foundry VTT setting definitions (name, hint, choices)
- * @path src/handlers/settingsHelpers/settingLocalizer.js
+ * @path src/handlers/settingsHelpers/settingLocalizer.mjs
  */
 
 /**

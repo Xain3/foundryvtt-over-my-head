@@ -2,9 +2,9 @@ import { ContextItem } from './contextItem.mjs';
 import { Validator } from '@/utils/static/validator.mjs';
 
 /**
- * @file contextItem.unit.test.js
+ * @file contextItem.unit.test.mjs
  * @description This file contains tests for the ContextItem class.
- * @path src/contexts/helpers/contextItem.unit.test.js
+ * @path src/contexts/helpers/contextItem.unit.test.mjs
  */
 
 

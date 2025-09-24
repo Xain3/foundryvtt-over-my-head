@@ -1,7 +1,7 @@
 /**
- * @file hookFormatter.unit.test.js
+ * @file hookFormatter.unit.test.mjs
  * @description Unit tests for the HookFormatter utility class.
- * @path src/utils/hookFormatter.unit.test.js
+ * @path src/utils/hookFormatter.unit.test.mjs
  */
 
 import HookFormatter from './hookFormatter.mjs';

@@ -1,7 +1,7 @@
 /**
- * @file contextOperations.unit.test.js
+ * @file contextOperations.unit.test.mjs
  * @description Unit tests for the ContextOperations class functionality.
- * @path src/contexts/helpers/contextOperations.unit.test.js
+ * @path src/contexts/helpers/contextOperations.unit.test.mjs
  */
 
 import ContextOperations from './contextOperations.mjs';

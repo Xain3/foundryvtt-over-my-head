@@ -1,7 +1,7 @@
 /**
- * @file MockRoll.unit.test.js
+ * @file MockRoll.unit.test.mjs
  * @description Unit tests for MockRoll class
- * @path tests/mocks/MockRoll.unit.test.js
+ * @path tests/mocks/MockRoll.unit.test.mjs
  */
 
 import MockRoll from './MockRoll.mjs';

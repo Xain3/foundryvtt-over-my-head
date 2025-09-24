@@ -1,7 +1,7 @@
 /**
- * @file contextComparison.js
+ * @file contextComparison.mjs
  * @description This file contains shared comparison utilities and constants for Context synchronization and merging.
- * @path src/contexts/helpers/contextComparison.js
+ * @path src/contexts/helpers/contextComparison.mjs
 
  */
 

@@ -1,7 +1,7 @@
 /**
- * @file settingsHandler.unit.test.js
+ * @file settingsHandler.unit.test.mjs
  * @description Unit tests for SettingsHandler class and debug mode functionality
- * @path src/handlers/settingsHandler.unit.test.js
+ * @path src/handlers/settingsHandler.unit.test.mjs
  */
 
 import SettingsHandler from './settingsHandler.mjs';

@@ -1,7 +1,7 @@
 # Constants for the module
 # This file contains constants that are used throughout the module.
 # It is recommended to use this file to define constants that are used in multiple places.
-# This file will be parsed into a JavaScript object (in constants.js), which can be used in the module.
+# This file will be parsed into a JavaScript object (in constants.mjs), which can be used in the module.
 
 
 # Configuration constants for Foundry VTT system integration

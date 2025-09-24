@@ -1,7 +1,7 @@
 /**
- * @file localizer.js
+ * @file localizer.mjs
  * @description This file contains the Localizer class that acts as an interface for Foundry VTT's i18n localization system.
- * @path src/utils/static/localizer.js
+ * @path src/utils/static/localizer.mjs
  */
 
 /**

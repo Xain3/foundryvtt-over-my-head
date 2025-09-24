@@ -18,7 +18,7 @@ The helpers are organized into several functional categories:
 
 ### ContextHelpers
 
-**File**: contextHelpers.js
+**File**: contextHelpers.mjs
 **Dependencies**: All helper classes
 **Exports**: `ContextHelpers` (class)
 
@@ -67,12 +67,12 @@ ContextHelpers.MERGE_STRATEGIES
 
 ````javascript
 // Instead of multiple imports:
-// import { ContextItem } from './helpers/contextItem.js';
-// import ContextSync from './helpers/contextSync.js';
-// import ContextMerger from './helpers/contextMerger.js';
+// import { ContextItem } from './helpers/contextItem.mjs';
+// import ContextSync from './helpers/contextSync.mjs';
+// import ContextMerger from './helpers/contextMerger.mjs';
 
 // Use single import:
-import ContextHelpers from './helpers/contextHelpers.js';
+import ContextHelpers from './helpers/contextHelpers.mjs';
 
 // Access classes
 const item = new ContextHelpers.Item('value');
@@ -94,25 +94,25 @@ const operation = ContextHelpers.SYNC_OPERATIONS.MERGE_NEWER_WINS;
 The new file structure now includes:
 
 ```
-contextHelpers.js
-contextHelpers.unit.test.js
+contextHelpers.mjs
+contextHelpers.unit.test.mjs
 ```
 
 ### Real-world Usage Example
 
-Before ContextHelpers, context.js had multiple imports:
+Before ContextHelpers, context.mjs had multiple imports:
 
 ```javascript
-import { ContextContainer } from './helpers/contextContainer.js';
-import ContextMerger from './helpers/contextMerger.js';
-import ContextSync from './helpers/contextSync.js';
-import ContextOperations from './helpers/contextOperations.js';
+import { ContextContainer } from './helpers/contextContainer.mjs';
+import ContextMerger from './helpers/contextMerger.mjs';
+import ContextSync from './helpers/contextSync.mjs';
+import ContextOperations from './helpers/contextOperations.mjs';
 ```
 
 With ContextHelpers, this simplifies to:
 
 ```javascript
-import ContextHelpers from './helpers/contextHelpers.js';
+import ContextHelpers from './helpers/contextHelpers.mjs';
 
 // Then use: ContextHelpers.Container, ContextHelpers.Merger, etc.
 ```
@@ -121,7 +121,7 @@ import ContextHelpers from './helpers/contextHelpers.js';
 
 ### ContextItem
 
-**File**: [`contextItem.js`](contextItem.js)
+**File**: [`contextItem.mjs`](contextItem.mjs)
 **Dependencies**: None
 **Exports**: `ContextItem` (class)
 
@@ -161,7 +161,7 @@ console.log(item.modifiedAt); // Updated timestamp
 
 ### ContextContainer
 
-**File**: contextContainer.js
+**File**: contextContainer.mjs
 **Dependencies**: `ContextItem`, `ContextValueWrapper`, `ContextItemSetter`, `Validator`, `PathUtils`
 **Exports**: `ContextContainer` (class)
 
@@ -234,7 +234,7 @@ console.log(enhancedContainer.hasItem('player.stats.level')); // true (enhanced)
 
 ### ContextValueWrapper
 
-**File**: contextValueWrapper.js
+**File**: contextValueWrapper.mjs
 **Dependencies**: `ContextItem`, `ContextContainer`
 **Exports**: `ContextValueWrapper` (class)
 
@@ -262,8 +262,8 @@ console.log(wrapped instanceof ContextItem); // true
 
 ### ContextPathUtils
 
-**File**: contextPathUtils.js
-**Dependencies**: `PathUtils` (from `../../helpers/pathUtils.js`)
+**File**: contextPathUtils.mjs
+**Dependencies**: `PathUtils` (from `../../helpers/pathUtils.mjs`)
 **Exports**: `ContextPathUtils` (class)
 
 Context-aware path utilities that handle mixed ContextContainer/plain object structures. Provides specialized path resolution for contexts that may contain both ContextContainer instances and plain JavaScript objects in their hierarchy.
@@ -308,7 +308,7 @@ console.log(playerName); // 'John'
 
 ### ContextSync
 
-**File**: contextSync.js
+**File**: contextSync.mjs
 **Dependencies**: `ContextItem`, `ContextContainer`, `ContextComparison`, `ContextAutoSync`, `ContextLegacySync`, `constants`
 **Exports**: `ContextSync` (class)
 
@@ -383,7 +383,7 @@ if (isCompatible) {
 
 ### ContextItemSync
 
-**File**: contextItemSync.js
+**File**: contextItemSync.mjs
 **Dependencies**: `ContextItem`, `ContextComparison`, `lodash`
 **Exports**: `ContextItemSync` (class)
 
@@ -401,7 +401,7 @@ ContextItemSync.mergeWithPriority(source, target, priority, options = {})
 
 ### ContextContainerSync
 
-**File**: contextContainerSync.js
+**File**: contextContainerSync.mjs
 **Dependencies**: `ContextComparison`, `ContextContainerSyncEngine`
 **Exports**: `ContextContainerSync` (class)
 
@@ -419,7 +419,7 @@ ContextContainerSync.mergeWithPriority(source, target, priority, options = {})
 
 ### ContextContainerSyncEngine
 
-**File**: contextContainerSyncEngine.js
+**File**: contextContainerSyncEngine.mjs
 **Dependencies**: `ContextContainer`, `ContextItemSync`
 **Exports**: `ContextContainerSyncEngine` (class)
 
@@ -437,7 +437,7 @@ new ContextContainerSyncEngine(options = {})
 
 ### ContextLegacySync
 
-**File**: contextLegacySync.js
+**File**: contextLegacySync.mjs
 **Dependencies**: `ContextItem`, `ContextContainer`, `ContextComparison`, `ContextItemSync`, `ContextContainerSync`
 **Exports**: `ContextLegacySync` (class)
 
@@ -475,7 +475,7 @@ console.log(result.changes); // Array of changes made
 
 ### ContextAutoSync
 
-**File**: contextAutoSync.js
+**File**: contextAutoSync.mjs
 **Dependencies**: None
 **Exports**: `ContextAutoSync` (class)
 
@@ -493,7 +493,7 @@ ContextAutoSync.determineStrategy(source, target, options = {})
 
 ### ContextMerger
 
-**File**: contextMerger.js
+**File**: contextMerger.mjs
 **Dependencies**: `ContextComparison`, `ContextItem`, `ContextContainer`, `ItemFilter`, `ContextPathUtils`
 **Exports**: `ContextMerger`, `ItemFilter` (classes)
 
@@ -540,7 +540,7 @@ const result = ContextMerger.merge(source, target, 'mergeSourcePriority', {
 
 ### ContextOperations
 
-**File**: `contextOperations.js`
+**File**: `contextOperations.mjs`
 **Dependencies**: `ContextMerger`, `ItemFilter`
 **Exports**: `ContextOperations` (class)
 
@@ -588,7 +588,7 @@ const result = ContextOperations.synchronizeBidirectional(context1, context2, {
 
 ### ItemFilter / ContextItemFilter
 
-**File**: contextItemFilter.js
+**File**: contextItemFilter.mjs
 **Dependencies**: `ContextPathUtils`
 **Exports**: `ItemFilter` (class)
 
@@ -626,7 +626,7 @@ const result = ContextMerger.merge(source, target, 'mergeNewerWins', {
 
 ### ContextItemSetter
 
-**File**: contextItemSetter.js
+**File**: contextItemSetter.mjs
 **Dependencies**: `ContextValueWrapper`, `PathUtils`
 **Exports**: `ContextItemSetter` (class)
 
@@ -642,7 +642,7 @@ ContextItemSetter.setItem(key, rawValue, containerInstance, itemOptionsOverrides
 
 ### ContextComparison
 
-**File**: contextComparison.js
+**File**: contextComparison.mjs
 **Dependencies**: None
 **Exports**: `ContextComparison` (class)
 
@@ -680,7 +680,7 @@ console.log(comparison.timeDifference); // Time difference in milliseconds
 
 ### RootMapValidator
 
-**File**: rootMapValidator.js
+**File**: rootMapValidator.mjs
 **Dependencies**: None
 **Exports**: `RootMapValidator` (class)
 
@@ -697,12 +697,12 @@ Validates root map configurations and initialization parameters.
 
 The helpers include comprehensive unit tests and integration tests:
 
-- **Unit Tests**: Each helper class has individual unit tests (`*.unit.test.js`) that test isolated functionality
-- **Integration Tests**: Located in `tests/integration/contextHelpers.int.test.js` and `tests/integration/contextHelpers.smoke.int.test.js`
+- **Unit Tests**: Each helper class has individual unit tests (`*.unit.test.mjs`) that test isolated functionality
+- **Integration Tests**: Located in `tests/integration/contextHelpers.int.test.mjs` and `tests/integration/contextHelpers.smoke.int.test.mjs`
 
 ### Integration Test Coverage
 
-The comprehensive integration tests (`contextHelpers.int.test.js`) verify:
+The comprehensive integration tests (`contextHelpers.int.test.mjs`) verify:
 
 - **ContextSync Facade**: Testing ContextSync as a unified interface for all synchronization operations
 - **ContextOperations → ContextMerger Workflow**: Complex merging operations with filtering and bulk operations
@@ -715,7 +715,7 @@ The comprehensive integration tests (`contextHelpers.int.test.js`) verify:
 - **Bulk Operations**: Multi-source/target operations and consolidation
 - **Error Handling**: Graceful handling of failures, type mismatches, and edge cases
 
-The simplified smoke tests (`contextHelpers.smoke.int.test.js`) provide:
+The simplified smoke tests (`contextHelpers.smoke.int.test.mjs`) provide:
 
 - **Basic Integration**: Core functionality verification
 - **Essential Workflows**: Primary use cases and common patterns

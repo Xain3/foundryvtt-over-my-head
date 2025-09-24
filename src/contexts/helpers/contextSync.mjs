@@ -1,7 +1,7 @@
 /**
- * @file contextSync.js
+ * @file contextSync.mjs
  * @description This file contains the ContextSync class for synchronizing Context instances, ContextContainers, and ContextItems based on timestamps.
- * @path src/contexts/helpers/contextSync.js
+ * @path src/contexts/helpers/contextSync.mjs
 
  */
 

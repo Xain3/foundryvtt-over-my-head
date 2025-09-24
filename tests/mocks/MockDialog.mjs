@@ -1,7 +1,7 @@
 /**
- * @file MockDialog.js
+ * @file MockDialog.mjs
  * @description Mock Dialog class for modal dialogs and confirmations
- * @path tests/mocks/MockDialog.js
+ * @path tests/mocks/MockDialog.mjs
  */
 
 /**

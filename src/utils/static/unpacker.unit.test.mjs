@@ -1,9 +1,9 @@
 import Unpacker from './unpacker.mjs';
 
 /**
- * @file unpacker.test.js
+ * @file unpacker.test.mjs
  * @description This file contains unit tests for the Unpacker class.
- * @path src/utils/static/unpacker.test.js
+ * @path src/utils/static/unpacker.test.mjs
  */
 
 

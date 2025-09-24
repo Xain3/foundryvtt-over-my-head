@@ -1,7 +1,7 @@
 /**
- * @file manifest.unit.test.js
+ * @file manifest.unit.test.mjs
  * @description Test file for the manifest module, focusing on delegation to ManifestParser.
- * @path src/constants/manifest.unit.test.js
+ * @path src/constants/manifest.unit.test.mjs
  */
 
 // Mock the module.json import

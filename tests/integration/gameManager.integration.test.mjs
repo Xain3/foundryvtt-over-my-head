@@ -1,7 +1,7 @@
 /**
- * @file gameManager.integration.test.js
+ * @file gameManager.integration.test.mjs
  * @description Integration tests for GameManager with real manifest and module.json files.
- * @path src/utils/static/gameManager.integration.test.js
+ * @path src/utils/static/gameManager.integration.test.mjs
  */
 
 import GameManager from '../../src/utils/static/gameManager.mjs';
@@ -38,8 +38,8 @@ describe('GameManager Integration Tests', () => {
         jest.clearAllMocks();
     });
 
-    describe('Real manifest.js integration', () => {
-        it('should work with imported manifest.js', () => {
+    describe('Real manifest.mjs integration', () => {
+        it('should work with imported manifest.mjs', () => {
             const result = GameManager.getModuleObject(config.manifest);
 
             expect(globalThis.game.modules.get).toHaveBeenCalledWith('foundryvtt-over-my-head');
@@ -87,7 +87,7 @@ describe('GameManager Integration Tests', () => {
     });
 
     describe('Cross-compatibility tests', () => {
-        it('should treat manifest.js and module.json the same when they have the same ID', () => {
+        it('should treat manifest.mjs and module.json the same when they have the same ID', () => {
             const manifestResult = GameManager.getModuleObject(config.manifest);
             const moduleJsonResult = GameManager.getModuleObject(moduleJson);
 

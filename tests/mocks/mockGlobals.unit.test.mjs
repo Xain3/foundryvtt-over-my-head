@@ -1,7 +1,7 @@
 /**
- * @file mockGlobals.unit.test.js
+ * @file mockGlobals.unit.test.mjs
  * @description Comprehensive tests for MockGlobals class and utility functions
- * @path tests/mocks/mockGlobals.unit.test.js
+ * @path tests/mocks/mockGlobals.unit.test.mjs
  * @date 29 May 2025
  */
 

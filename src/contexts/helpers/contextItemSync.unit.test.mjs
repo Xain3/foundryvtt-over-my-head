@@ -1,7 +1,7 @@
 /**
- * @file contextItemSync.unit.test.js
+ * @file contextItemSync.unit.test.mjs
  * @description Unit tests for the ContextItemSync class functionality.
- * @path src/contexts/helpers/contextItemSync.unit.test.js
+ * @path src/contexts/helpers/contextItemSync.unit.test.mjs
 
  */
 

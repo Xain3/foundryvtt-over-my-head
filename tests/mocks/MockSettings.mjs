@@ -1,7 +1,7 @@
 /**
- * @file MockSettings.js
+ * @file MockSettings.mjs
  * @description Mock Settings class for game settings
- * @path tests/mocks/MockSettings.js
+ * @path tests/mocks/MockSettings.mjs
  */
 
 /**

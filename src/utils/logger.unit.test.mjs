@@ -1,7 +1,7 @@
 /**
- * @file logger.unit.test.js
+ * @file logger.unit.test.mjs
  * @description Unit tests for the Logger class.
- * @path src/utils/logger.unit.test.js
+ * @path src/utils/logger.unit.test.mjs
  */
 
 jest.mock('./static/gameManager.mjs');

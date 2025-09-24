@@ -1,7 +1,7 @@
 /**
- * @file localizer.unit.test.js
+ * @file localizer.unit.test.mjs
  * @description Unit tests for the Localizer class, covering Foundry VTT i18n interface functionality.
- * @path src/utils/static/localizer.unit.test.js
+ * @path src/utils/static/localizer.unit.test.mjs
  */
 
 import Localizer from './localizer.mjs';

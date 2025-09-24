@@ -1,7 +1,7 @@
 /**
- * @file contextItemSetter.js
+ * @file contextItemSetter.mjs
  * @description Static class for managing item setting operations in ContextContainer instances.
- * @path src/contexts/helpers/contextItemSetter.js
+ * @path src/contexts/helpers/contextItemSetter.mjs
 
  */
 

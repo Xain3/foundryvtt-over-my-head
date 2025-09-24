@@ -1,7 +1,7 @@
 /**
- * @file moduleBuilder.unit.test.js
+ * @file moduleBuilder.unit.test.mjs
  * @description Unit tests for ModuleBuilder class
- * @path scripts/dev/moduleBuilder.unit.test.js
+ * @path scripts/dev/moduleBuilder.unit.test.mjs
  */
 
 import ModuleBuilder from './moduleBuilder.mjs';

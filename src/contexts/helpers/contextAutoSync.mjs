@@ -1,7 +1,7 @@
 /**
- * @file contextAutoSync.js
+ * @file contextAutoSync.mjs
  * @description This file contains the ContextAutoSync class for automatic synchronization (WIP).
- * @path src/contexts/helpers/contextAutoSync.js
+ * @path src/contexts/helpers/contextAutoSync.mjs
 
  */
 

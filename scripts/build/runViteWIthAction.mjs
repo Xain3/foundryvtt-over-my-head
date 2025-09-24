@@ -1,7 +1,7 @@
 /**
- * @file runViteWIthAction.js
+ * @file runViteWIthAction.mjs
  * @description Runs `vite build --watch` and triggers a custom action after each build.
- * @path scripts/build/runViteWIthAction.js
+ * @path scripts/build/runViteWIthAction.mjs
  */
 
 import { spawn } from 'child_process';
@@ -56,7 +56,7 @@ class ViteRunner {
       args.push('--watch');
     }
   // Always pass the explicit config file to avoid picking up other configs
-  const configPath = resolve(process.cwd(), 'vite.config.js');
+  const configPath = resolve(process.cwd(), 'vite.config.mjs');
   args.push('--config', configPath);
     if (preBuildAction) {
       try {
@@ -70,7 +70,7 @@ class ViteRunner {
   }
 
   /**
-   * Executes an action that can be a function, shell script (.sh), or Node.js module (.js).
+   * Executes an action that can be a function, shell script (.sh), or Node.js module (.mjs).
    * @param {Function|string} action - The action to execute.
    * @private
    */
@@ -96,7 +96,7 @@ class ViteRunner {
               else reject(new Error(`Shell script exited with code ${code}`));
             });
           });
-        } else if (ext === '.js') {
+        } else if (ext === '.mjs') {
           const module = await import(actionPath);
           if (typeof module.default === 'function') {
             return await module.default();
@@ -106,7 +106,7 @@ class ViteRunner {
             throw new Error(`No default export or run function found in ${actionPath}`);
           }
         } else {
-          throw new Error(`Unsupported action file type: ${ext}. Only .sh and .js are supported.`);
+          throw new Error(`Unsupported action file type: ${ext}. Only .sh and .mjs are supported.`);
         }
       }
     } catch (error) {
@@ -190,7 +190,7 @@ class ViteRunner {
 export default ViteRunner;
 
 // CLI usage if called as main
-const isMain = process.argv[1] && process.argv[1].endsWith('runViteWIthAction.js');
+const isMain = process.argv[1] && process.argv[1].endsWith('runViteWIthAction.mjs');
 if (isMain) {
   // Simple argument parsing
   const args = process.argv.slice(2);
@@ -214,23 +214,23 @@ if (isMain) {
 
   if (showHelp) {
     console.log(`
-Usage: node runViteWIthAction.js [options]
+Usage: node runViteWIthAction.mjs [options]
 
 Options:
   --help, -h                 Show this help message
   --watch, -w                Run vite in watch mode (default: off)
-  --pre-action <path>        Path to script/module to run before build (.sh or .js)
-  --post-action <path>       Path to script/module to run after each build (.sh or .js)
+  --pre-action <path>        Path to script/module to run before build (.sh or .mjs)
+  --post-action <path>       Path to script/module to run after each build (.sh or .mjs)
 
 Description:
   Runs vite build (optionally with --watch) and triggers custom actions before/after builds.
-  Actions can be shell scripts (.sh) or Node.js modules (.js).
+  Actions can be shell scripts (.sh) or Node.js modules (.mjs).
   Press 'q' to quit the watcher.
 
 Examples:
-  node runViteWIthAction.js --watch
-  node runViteWIthAction.js --watch --post-action ./scripts/deploy.sh
-  node runViteWIthAction.js --pre-action ./setup.js --post-action ./cleanup.sh
+  node runViteWIthAction.mjs --watch
+  node runViteWIthAction.mjs --watch --post-action ./scripts/deploy.sh
+  node runViteWIthAction.mjs --pre-action ./setup.mjs --post-action ./cleanup.sh
 `);
     process.exit(0);
   }

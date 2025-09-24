@@ -1,7 +1,7 @@
 /**
- * @file MockGame.unit.test.js
+ * @file MockGame.unit.test.mjs
  * @description Unit tests for MockGame class and related components
- * @path tests/mocks/MockGame.unit.test.js
+ * @path tests/mocks/MockGame.unit.test.mjs
  */
 
 import MockGame, { MockScene, MockFolder } from './MockGame.mjs';

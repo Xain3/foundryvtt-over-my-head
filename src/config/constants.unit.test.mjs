@@ -1,7 +1,7 @@
 /**
- * @file constants.unit.test.js
+ * @file constants.unit.test.mjs
  * @description Test file for the constants module.
- * @path src/constants/constants.unit.test.js
+ * @path src/constants/constants.unit.test.mjs
  */
 
 const mockObject = { testKey: 'testValue' };

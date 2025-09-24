@@ -1,7 +1,7 @@
 /**
- * @file buildAndDeploy.unit.test.js
+ * @file buildAndDeploy.unit.test.mjs
  * @description Unit tests for buildAndDeploy classes
- * @path scripts/dev/buildAndDeploy.unit.test.js
+ * @path scripts/dev/buildAndDeploy.unit.test.mjs
  */
 
 import { jest } from '@jest/globals';
@@ -531,7 +531,7 @@ describe('Integration', () => {
     // Setup successful mocks
     fs.existsSync.mockReturnValue(true);
     fs.statSync.mockReturnValue({ isDirectory: () => true });
-    fs.readdirSync.mockReturnValue(['main.js']);
+    fs.readdirSync.mockReturnValue(['main.mjs']);
     os.platform.mockReturnValue('linux');
     os.userInfo.mockReturnValue({ username: 'testuser' });
     path.join.mockImplementation((...parts) => parts.join('/'));

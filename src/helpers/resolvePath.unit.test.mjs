@@ -1,7 +1,7 @@
 /**
- * @file resolvePath.unit.test.js
+ * @file resolvePath.unit.test.mjs
  * @description Unit tests for the resolvePath helper function.
- * @path src/helpers/resolvePath.unit.test.js
+ * @path src/helpers/resolvePath.unit.test.mjs
  * @date 25 May 2025
  */
 

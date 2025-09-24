@@ -5,7 +5,7 @@ import path from 'node:path';
 
 import { smokeInstall } from './dev-smoke-install.mjs';
 
-jest.setTimeout(20000);
+vi.setConfig({ testTimeout: 20000 });
 
 describe('dev-smoke-install (unit smoke)', () => {
   test('smokeInstall executes with local path and dry-run', async () => {

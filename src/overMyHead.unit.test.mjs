@@ -9,8 +9,8 @@ import OverMyHead from './overMyHead.mjs';
 import config from './config/config.mjs';
 import Utilities from './utils/utils.mjs';
 
-vi.mock('./utils/utils.mjs', () => {
-  return vi.fn().mockImplementation(() => ({
+vi.mock('./utils/utils.mjs', () => ({
+  default: vi.fn().mockImplementation(() => ({
     static: {
       unpack: vi.fn()
     },
@@ -21,8 +21,8 @@ vi.mock('./utils/utils.mjs', () => {
       initializeSettings: vi.fn(),
       confirmInitialization: vi.fn()
     }
-  }));
-});
+  }))
+}));
 
 // Hooks mock that immediately calls 'init' and 'i18nInit' callbacks
 global.Hooks = {

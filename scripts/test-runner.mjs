@@ -51,7 +51,7 @@ function runCommand(command, args, options = {}) {
 
 async function runTests() {
   const args = process.argv.slice(2);
-  
+
   if (args.includes('--help') || args.includes('-h')) {
     colorLog('cyan', `
 Test Runner for Build and Deployment Scripts
@@ -60,7 +60,7 @@ Usage: node test-runner.mjs [options]
 
 Options:
   --unit              Run only unit tests
-  --integration       Run only integration tests  
+  --integration       Run only integration tests
   --performance       Run only performance tests
   --coverage          Run tests with coverage report
   --watch             Run tests in watch mode
@@ -79,42 +79,41 @@ Examples:
     colorLog('bright', '🧪 Starting Test Suite for Build and Deployment Scripts');
     console.log('');
 
-    const jestArgs = [];
-    
+    const vitestArgs = [];
+
     // Determine which tests to run
     if (args.includes('--unit')) {
-      jestArgs.push('--testMatch', '**/*.unit.test.mjs');
+      vitestArgs.push('--run', '--reporter=verbose', 'tests/**/*.unit.test.mjs');
       colorLog('blue', '📋 Running Unit Tests');
     } else if (args.includes('--integration')) {
-      jestArgs.push('--testMatch', '**/*.int.test.mjs');
+      vitestArgs.push('--run', '--reporter=verbose', 'tests/**/*.int.test.mjs');
       colorLog('blue', '📋 Running Integration Tests');
     } else if (args.includes('--performance')) {
-      jestArgs.push('--testMatch', '**/*.performance.test.mjs');
+      vitestArgs.push('--run', '--reporter=verbose', 'tests/**/*.performance.test.mjs');
       colorLog('blue', '📋 Running Performance Tests');
     } else {
+      vitestArgs.push('--run', '--reporter=verbose');
       colorLog('blue', '📋 Running All Tests');
     }
 
     // Add coverage if requested
     if (args.includes('--coverage')) {
-      jestArgs.push('--coverage');
+      vitestArgs.push('--coverage');
       colorLog('yellow', '📊 Including Coverage Report');
     }
 
     // Add watch mode if requested
     if (args.includes('--watch')) {
-      jestArgs.push('--watch');
+      vitestArgs.splice(vitestArgs.indexOf('--run'), 1); // Remove --run for watch
+      vitestArgs.push('--watch');
       colorLog('yellow', '👀 Running in Watch Mode');
     }
 
-    // Add verbose output for detailed results
-    jestArgs.push('--verbose');
-
     console.log('');
-    colorLog('cyan', `Running: npx jest ${jestArgs.join(' ')}`);
+    colorLog('cyan', `Running: npx vitest ${vitestArgs.join(' ')}`);
     console.log('');
 
-    await runCommand('npx', ['jest', ...jestArgs]);
+    await runCommand('npx', ['vitest', ...vitestArgs]);
 
     console.log('');
     colorLog('green', '✅ All tests completed successfully!');
@@ -130,9 +129,9 @@ Examples:
 // Additional utility functions for specific test scenarios
 async function runTestsForFile(filePath) {
   colorLog('blue', `🎯 Running tests for: ${filePath}`);
-  
+
   try {
-    await runCommand('npx', ['jest', filePath, '--verbose']);
+    await runCommand('npx', ['vitest', 'run', '--reporter=verbose', filePath]);
     colorLog('green', '✅ File tests completed successfully!');
   } catch (error) {
     colorLog('red', `❌ Tests failed for ${filePath}:`);
@@ -143,7 +142,7 @@ async function runTestsForFile(filePath) {
 
 async function lintTests() {
   colorLog('blue', '🔍 Linting test files...');
-  
+
   try {
     await runCommand('npx', ['eslint', 'scripts/**/*.test.mjs', 'tests/**/*.test.mjs']);
     colorLog('green', '✅ Linting completed successfully!');
@@ -156,6 +155,6 @@ async function lintTests() {
 export { runTests, runTestsForFile, lintTests };
 
 // Run if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   runTests();
 }

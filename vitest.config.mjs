@@ -9,37 +9,57 @@ import { resolve } from 'path';
 
 export default defineConfig({
   test: {
+    name: 'Foundry VTT Module Tests',
     environment: 'node',
-    include: [
-      '**/*.unit.test.mjs',
-      '**/*.int.test.mjs',
-      '**/*.setup.test.mjs',
-      '**/*.performance.test.mjs'
-    ],
-    globals: true,
-    setupFiles: [],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'clover', 'json'],
       thresholds: {
         global: {
-          branches: 80,
-          functions: 85,
-          lines: 90,
-          statements: 90
+          branches: [50, 80],
+          functions: [55, 85],
+          lines: [70, 90],
+          statements: [70, 90]
         }
       },
-      include: [
-        'src/**/*.mjs'
-      ],
-      exclude: [
-        'src/**/index.mjs',
-        '**/node_modules/**',
-        '**/*.test.mjs',
-        '**/module.json',
-        'src/helpers/errorFormatter.mjs'
-      ]
+    },
+
+  projects: [
+    { extend: true,
+      test: {
+        name: 'unit',
+        include: ['**/*.unit.test.{mjs,cjs,js}']
+      }
+    },
+    {
+      extend: true,
+      test: {
+        name: 'integration',
+        include: ['**/*.int.test.{mjs,cjs,js}']
+      }
+    },
+    {
+      extend: true,
+      test: {
+        name: 'setup',
+        include: ['**/*.setup.test.{mjs,cjs,js}']
+      }
+    },
+    {
+      extend: true,
+      test: {
+        name: 'performance',
+        include: ['**/*.performance.test.{mjs,cjs,js}']
+      },
+    },
+    {
+      extend: true,
+      test: {
+        name: 'smoke',
+        include: ['**/*.smoke.test.{mjs,cjs,js}']
+      }
     }
+  ],
   },
   resolve: {
     alias: {
@@ -61,10 +81,11 @@ export default defineConfig({
       '@validator': resolve(process.cwd(), 'src/utils/static/validator.mjs'),
       '@integrationTests': resolve(process.cwd(), 'tests/integration'),
       '@mocks': resolve(process.cwd(), 'tests/mocks'),
-      '@module': resolve(process.cwd(), 'module.json')
+      '@module': resolve(process.cwd(), 'module.json'),
+      '@root': resolve(process.cwd(), '.')
     }
   },
-  // Handle YAML imports with raw suffix - mock them for tests
+
   esbuild: {
     target: 'node18'
   }

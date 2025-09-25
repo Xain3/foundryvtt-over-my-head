@@ -4,14 +4,16 @@
  * @path tests/mocks/MockDocument.mjs
  */
 
+import { vi } from 'vitest';
+
 /**
- * Create a mock function that uses jest.fn() when available, otherwise a regular function
+ * Create a mock function that uses vi.fn() when available, otherwise a regular function
  * @param {Function} implementation - The function implementation
- * @returns {Function} Mock function or jest spy
+ * @returns {Function} Mock function or vi spy
  */
 const createMockFunction = (implementation = () => {}) => {
-  if (typeof jest !== 'undefined' && jest.fn) {
-    return jest.fn(implementation);
+  if (typeof vi !== 'undefined' && vi.fn) {
+    return vi.fn(implementation);
   }
   return implementation;
 };
@@ -75,12 +77,12 @@ class MockDocument {
   }
 }
 
-// Make prototype methods trackable when jest is available
-if (typeof jest !== 'undefined' && jest.fn) {
+// Make prototype methods trackable when vi is available
+if (typeof vi !== 'undefined' && vi.fn) {
   const originalUpdate = MockDocument.prototype.update;
   const originalDelete = MockDocument.prototype.delete;
   const originalSetFlag = MockDocument.prototype.setFlag;
-  
+
   MockDocument.prototype.update = createMockFunction(originalUpdate);
   MockDocument.prototype.delete = createMockFunction(originalDelete);
   MockDocument.prototype.setFlag = createMockFunction(originalSetFlag);

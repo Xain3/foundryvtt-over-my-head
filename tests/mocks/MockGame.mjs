@@ -4,14 +4,16 @@
  * @path tests/mocks/MockGame.mjs
  */
 
+import { vi } from 'vitest';
+
 /**
- * Create a mock function that uses jest.fn() when available, otherwise a regular function
+ * Create a mock function that uses vi.fn() when available, otherwise a regular function
  * @param {Function} implementation - The function implementation
- * @returns {Function} Mock function or jest spy
+ * @returns {Function} Mock function or vi spy
  */
 const createMockFunction = (implementation = () => {}) => {
-  if (typeof jest !== 'undefined' && jest.fn) {
-    return jest.fn(implementation);
+  if (typeof vi !== 'undefined' && vi.fn) {
+    return vi.fn(implementation);
   }
   return implementation;
 };

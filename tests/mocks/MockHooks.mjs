@@ -4,14 +4,16 @@
  * @path tests/mocks/MockHooks.mjs
  */
 
+import { vi } from 'vitest';
+
 /**
- * Create a mock function that uses jest.fn() when available, otherwise a regular function
+ * Create a mock function that uses vi.fn() when available, otherwise a regular function
  * @param {Function} implementation - The function implementation
- * @returns {Function} Mock function or jest spy
+ * @returns {Function} Mock function or vi spy
  */
 const createMockFunction = (implementation = () => {}) => {
-  if (typeof jest !== 'undefined' && jest.fn) {
-    return jest.fn(implementation);
+  if (typeof vi !== 'undefined' && vi.fn) {
+    return vi.fn(implementation);
   }
   return implementation;
 };
@@ -75,8 +77,8 @@ class MockHooks {
   }
 }
 
-// Make static methods trackable when jest is available
-if (typeof jest !== 'undefined' && jest.fn) {
+// Make static methods trackable when vi is available
+if (typeof vi !== 'undefined' && vi.fn) {
   MockHooks.on = createMockFunction(MockHooks.on);
   MockHooks.once = createMockFunction(MockHooks.once);
   MockHooks.off = createMockFunction(MockHooks.off);

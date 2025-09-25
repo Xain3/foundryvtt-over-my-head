@@ -1,9 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 vi.mock('@/config/manifest', () => ({
-  id: 'test-module-id'
+  default: {
+    id: 'test-module-id'
+  }
 }));
 
 vi.mock('@utils/static/validator', () => ({
+  default: {
+    validateObject: vi.fn(),
+    validateString: vi.fn()
+  },
   validateObject: vi.fn(),
   validateString: vi.fn()
 }));

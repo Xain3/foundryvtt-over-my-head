@@ -7,10 +7,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 // Mock config before any imports
 vi.mock('@config', () => ({
-  constants: {
-    moduleManagement: {
-      defaults: {
-        modulesLocation: 'game.modules'
+  default: {
+    constants: {
+      moduleManagement: {
+        defaults: {
+          modulesLocation: 'game.modules'
+        }
       }
     }
   }

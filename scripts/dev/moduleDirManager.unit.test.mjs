@@ -4,25 +4,35 @@
  * @path scripts/dev/moduleDirManager.unit.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-// Mock fs at the top level
-vi.mock('fs', () => ({
-  existsSync: vi.fn(),
-  statSync: vi.fn(),
-  mkdirSync: vi.fn(),
-  readFileSync: vi.fn()
-}));
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import fs from 'fs';
+vi.mock('fs', () => {
+  const existsSync = vi.fn();
+  const statSync = vi.fn();
+  const mkdirSync = vi.fn();
+  const readFileSync = vi.fn();
+  return {
+    default: {
+      existsSync,
+      statSync,
+      mkdirSync,
+      readFileSync
+    },
+    existsSync,
+    statSync,
+    mkdirSync,
+    readFileSync
+  };
+});
+
+let fs;
+let ModuleDirManager;
 
 describe('ModuleDirManager', () => {
-  let ModuleDirManager;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
+  beforeEach(async () => {
     vi.resetModules();
 
-    // Default fs mocks
+    ({ default: fs } = await import('fs'));
     fs.existsSync.mockReturnValue(false);
     fs.statSync.mockReturnValue({ isDirectory: () => true });
     fs.mkdirSync.mockImplementation(() => {});
@@ -30,8 +40,7 @@ describe('ModuleDirManager', () => {
       throw new Error('File not found');
     });
 
-    // Fresh import after mocks
-    ModuleDirManager = require('./moduleDirManager.mjs').default;
+    ModuleDirManager = (await import('./moduleDirManager.mjs')).default;
   });
 
   describe('constructor', () => {

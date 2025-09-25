@@ -10,8 +10,21 @@ import path from 'path';
 import ModuleDeployer from './deployer.mjs';
 
 // Mock dependencies
-vi.mock('fs');
-vi.mock('path');
+vi.mock('fs', () => ({
+  default: {
+    existsSync: vi.fn(),
+    mkdirSync: vi.fn(),
+    statSync: vi.fn(),
+    copyFileSync: vi.fn(),
+    readdirSync: vi.fn(),
+  }
+}));
+vi.mock('path', () => ({
+  default: {
+    join: vi.fn(),
+    basename: vi.fn(),
+  }
+}));
 
 describe('ModuleDeployer', () => {
   let mockFs;

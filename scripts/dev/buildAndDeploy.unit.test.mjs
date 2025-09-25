@@ -31,9 +31,9 @@ fs.readFileSync.mockReturnValue(JSON.stringify(mockModuleJson));
 const mockViteRunner = {
   start: vi.fn().mockResolvedValue()
 };
-vi.mock('../build/runViteWIthAction.mjs', () => {
-  return vi.fn().mockImplementation(() => mockViteRunner);
-});
+vi.mock('../build/runViteWIthAction.mjs', () => ({
+  default: vi.fn().mockImplementation(() => mockViteRunner)
+}));
 
 // Import after mocking
 import {

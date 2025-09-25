@@ -15,7 +15,7 @@ describe('Context Performance Tests', () => {
   let largeDataSet;
 
   // Performance thresholds (adjust based on requirements)
-  const SLOW_ENV = process.env.CI || process.env.JEST_WORKER_ID === undefined;
+  const SLOW_ENV = process.env.CI || process.env.VITEST_WORKER_ID === undefined;
   const SCALE = SLOW_ENV ? 3 : 1; // Loosen thresholds on CI/slow runners
   const PERFORMANCE_THRESHOLDS = {
     simpleGet: 1 * SCALE,

@@ -10,7 +10,7 @@ import os from 'os';
 import path from 'path';
 
 describe('BuildAndDeploy Performance Tests', () => {
-  const SLOW_ENV = process.env.CI || process.env.JEST_WORKER_ID === undefined;
+  const SLOW_ENV = process.env.CI || process.env.VITEST_WORKER_ID === undefined;
   let tempDir;
   let mockDistDir;
   let mockTargetDir;

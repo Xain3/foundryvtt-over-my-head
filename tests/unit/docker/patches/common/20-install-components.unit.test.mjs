@@ -1,6 +1,6 @@
 /**
  * Tests for docker/patches/common/20-install-components.mjs
- * Strategy: mock ComponentInstaller module by writing a temporary stub file to the same path via jest.mock using babel-jest CJS interop.
+ * Strategy: mock ComponentInstaller module by writing a temporary stub file to the same path via vi.mock using Vitest.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';

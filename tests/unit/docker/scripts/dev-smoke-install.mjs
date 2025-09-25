@@ -1,7 +1,7 @@
 /**
  * Dev smoke installer
  *
- * Convert the original CLI script into an importable function for Jest.
+ * Convert the original CLI script into an importable function for Vitest.
  * Still runnable via a tiny harness if needed, but primarily used as a smoke test.
  */
 import process from 'process';
@@ -75,7 +75,9 @@ export async function smokeInstall(inputArgs = {}, inputEnv = {}) {
   // eslint-disable-next-line no-console
   console.log(`[smoke] Temp config: ${ENV.CONTAINER_CONFIG_PATH}`);
 
-  // Run installer in a child Node process to handle ESM cleanly under Jest
+  // Run installer in a child Node process to handle ESM cleanly under Vitest
+  // without interfering with Vitest's own module loading.
+  // This also simulates a more realistic usage scenario.
   const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'omh-smoke-'));
   const harness = path.join(tmpRoot, 'smoke-harness.mjs');
   const helperAbs = path.resolve(process.cwd(), 'docker/patches/common/helpers/componentInstaller.mjs');
@@ -112,11 +114,11 @@ export async function smokeInstall(inputArgs = {}, inputEnv = {}) {
   };
 }
 
-// Jest harness: when run via Jest directly (e.g., npx jest path/to/dev-smoke-install.mjs),
+// Vitest harness: when run via Vitest directly (e.g., npx vitest path/to/dev-smoke-install.mjs),
 // execute a dry-run local-path world install as a smoke test.
-if (process.env.JEST_WORKER_ID) {
+if (process.env.VITEST_WORKER_ID) {
   // eslint-disable-next-line no-undef
-  describe('dev-smoke-install (Jest smoke)', () => {
+  describe('dev-smoke-install (Vitest smoke)', () => {
     // eslint-disable-next-line no-undef
     test('runs smoke install (dry-run, local path)', async () => {
       const tmpWorld = path.join(os.tmpdir(), `omh-smoke-world-${Date.now()}`);

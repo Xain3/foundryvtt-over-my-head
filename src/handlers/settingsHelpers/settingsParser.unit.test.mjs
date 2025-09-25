@@ -12,15 +12,15 @@ import FlagEvaluator from './flagEvaluator.mjs';
 // Vitest Mocks
 vi.mock('./settingsChecker.mjs');
 vi.mock('./flagEvaluator.mjs');
-vi.mock('@/baseClasses/handler', () => {
-  return class MockHandler {
+vi.mock('@/baseClasses/handler', () => ({
+  default: class MockHandler {
     constructor(config, utils, context) {
       this.config = config;
       this.context = context;
       this.utils = utils;
     }
-  };
-});
+  }
+}));
 
 // Mock global Hooks early for all tests
 global.Hooks = {
@@ -529,14 +529,14 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
 
   describe('Flag conditional parsing', () => {
     let parser;
-    const mockConfig = { 
+    const mockConfig = {
       constants: { settings: { requiredKeys: ['key', 'config.name', 'config.type'] } },
       manifest: { debugMode: true, dev: false }
     };
-    const mockUtils = { 
-      formatError: (e) => String(e), 
-      logWarning: vi.fn(), 
-      logDebug: vi.fn() 
+    const mockUtils = {
+      formatError: (e) => String(e),
+      logWarning: vi.fn(),
+      logDebug: vi.fn()
     };
     const mockContext = {};
 
@@ -669,14 +669,14 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
 
   describe('Planned vs Unplanned failure reporting', () => {
     let parser;
-    const mockConfig = { 
+    const mockConfig = {
       constants: { settings: { requiredKeys: ['key', 'config.name', 'config.type'] } },
       manifest: { debugMode: true, dev: false }
     };
-    const mockUtils = { 
-      formatError: (e) => String(e), 
-      logWarning: vi.fn(), 
-      logDebug: vi.fn() 
+    const mockUtils = {
+      formatError: (e) => String(e),
+      logWarning: vi.fn(),
+      logDebug: vi.fn()
     };
     const mockContext = {};
 
@@ -693,11 +693,11 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       // First setting: valid and should show
       SettingsChecker.check.mockReturnValueOnce(true);
       FlagEvaluator.shouldShow.mockReturnValueOnce(true);
-      
+
       // Second setting: valid but flag-hidden (planned exclusion)
       SettingsChecker.check.mockReturnValueOnce(true);
       FlagEvaluator.shouldShow.mockReturnValueOnce(false);
-      
+
       // Third setting: invalid format (unplanned failure)
       SettingsChecker.check.mockReturnValueOnce(false);
       FlagEvaluator.shouldShow.mockReturnValueOnce(true);
@@ -727,7 +727,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       expect(result.failed).toEqual(['plannedExcluded', 'unplannedFailed']);
       expect(result.plannedExcluded).toEqual(['plannedExcluded']);
       expect(result.unplannedFailed).toEqual(['unplannedFailed']);
-      
+
       // Should log warning for mixed failures
       expect(mockUtils.logWarning).toHaveBeenCalledTimes(1);
       expect(mockUtils.logDebug).not.toHaveBeenCalled();
@@ -737,7 +737,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       // First setting: valid and should show
       SettingsChecker.check.mockReturnValueOnce(true);
       FlagEvaluator.shouldShow.mockReturnValueOnce(true);
-      
+
       // Second setting: valid but flag-hidden (planned exclusion)
       SettingsChecker.check.mockReturnValueOnce(true);
       FlagEvaluator.shouldShow.mockReturnValueOnce(false);
@@ -763,7 +763,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       expect(result.failed).toEqual(['plannedExcluded']);
       expect(result.plannedExcluded).toEqual(['plannedExcluded']);
       expect(result.unplannedFailed).toEqual([]);
-      
+
       // Should log debug for planned-only exclusions
       expect(mockUtils.logDebug).toHaveBeenCalledTimes(1);
       expect(mockUtils.logWarning).not.toHaveBeenCalled();
@@ -792,7 +792,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       expect(result.failed).toEqual([]);
       expect(result.plannedExcluded).toEqual([]);
       expect(result.unplannedFailed).toEqual([]);
-      
+
       // No logging for all-success scenarios
       expect(mockUtils.logDebug).not.toHaveBeenCalled();
       expect(mockUtils.logWarning).not.toHaveBeenCalled();
@@ -802,7 +802,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       // First setting: valid and should show
       SettingsChecker.check.mockReturnValueOnce(true);
       FlagEvaluator.shouldShow.mockReturnValueOnce(true);
-      
+
       // Second setting: invalid format (unplanned failure)
       SettingsChecker.check.mockReturnValueOnce(false);
       FlagEvaluator.shouldShow.mockReturnValueOnce(true);
@@ -826,7 +826,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       expect(result.failed).toEqual(['unplannedFailed']);
       expect(result.plannedExcluded).toEqual([]);
       expect(result.unplannedFailed).toEqual(['unplannedFailed']);
-      
+
       // Should warn about unplanned failures
       expect(mockUtils.logWarning).toHaveBeenCalledTimes(1);
       expect(mockUtils.logDebug).not.toHaveBeenCalled();

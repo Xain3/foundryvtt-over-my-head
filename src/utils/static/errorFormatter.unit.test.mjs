@@ -18,12 +18,14 @@ vi.mock('@manifest', () => ({
 
 // Mock constants
 vi.mock('@constants', () => ({
-  moduleManagement: {
-    referToModuleBy: 'title',
-  },
-  errors: {
-    separator: ' || ',
-    pattern: '{{module}}{{caller}}{{error}}{{stack}}'
+  default: {
+    moduleManagement: {
+      referToModuleBy: 'title',
+    },
+    errors: {
+      separator: ' || ',
+      pattern: '{{module}}{{caller}}{{error}}{{stack}}'
+    }
   }
 }), { virtual: true });
 

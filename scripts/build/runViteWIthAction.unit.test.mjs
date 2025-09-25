@@ -197,7 +197,7 @@ describe('ViteRunner', () => {
       extname.mockReturnValue('.mjs');
       resolve.mockReturnValue('/path/to/module.mjs');
 
-      // Skip this test due to complexities with mocking dynamic imports in Jest
+      // Skip this test due to complexities with mocking dynamic imports in Vitest
       // In real usage, this would work fine
       expect(true).toBe(true);
     });

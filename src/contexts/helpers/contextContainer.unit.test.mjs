@@ -16,7 +16,16 @@ import dayjs from 'dayjs';
 vi.mock('./contextItem.mjs');
 vi.mock('./contextValueWrapper.mjs');
 vi.mock('./contextItemSetter.mjs');
-vi.mock('../../utils/static/validator.mjs');
+vi.mock('../../utils/static/validator.mjs', () => ({
+  default: {
+    isPlainObject: vi.fn(),
+    isReservedKey: vi.fn()
+  },
+  Validator: {
+    isPlainObject: vi.fn(),
+    isReservedKey: vi.fn()
+  }
+}));
 vi.mock('../../helpers/pathUtils.mjs');
 
 describe('ContextContainer', () => {

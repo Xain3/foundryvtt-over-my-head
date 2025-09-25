@@ -27,7 +27,8 @@ vi.mock('./contextMerger.mjs', () => ({
   __esModule: true,
   default: {
     merge: vi.fn()
-  }
+  },
+  ItemFilter: vi.fn()
 }));
 
 describe('ContextSync', () => {

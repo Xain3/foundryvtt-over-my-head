@@ -17,12 +17,12 @@ vi.mock('./contextComparison.mjs');
 
 // Mock the ContextContainerSyncEngine and its instance methods
 const mockSync = vi.fn();
-vi.mock('./contextContainerSyncEngine.mjs', () => {
-  return vi.fn().mockImplementation((options) => ({
+vi.mock('./contextContainerSyncEngine.mjs', () => ({
+  default: vi.fn().mockImplementation((options) => ({
     ...options,
     sync: mockSync,
-  }));
-});
+  }))
+}));
 
 describe('ContextContainerSync', () => {
   let mockSourceContainer;

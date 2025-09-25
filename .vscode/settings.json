@@ -1,7 +1,3 @@
 {
-  "jest.runMode": {
-    "type": "on-demand"
-  },
-  "jest.jestCommandLine": "npm test -- --coverage",
   "gitlens.ai.generateCommits.customInstructions": "The AI should focus on the staged changes (if any) and generate clear, concise commit messages following conventional commit guidelines. Produce a short, imperative subject (<=50 characters, prepended by a keyword such as feat, fix, etc... and if needed a scope in parentheses), a blank line, and an optional body describing motivation, scope, the effect of the change and a bullet recap of the changes (wrap at ~72 chars). Mention relevant files/modules and reference issue/PR IDs when available. Summarize only staged files; avoid internal implementation minutiae unless it clarifies the change. Keep tone professional and actionable. Do not hesitate to use markdown or bulletpoints. Report any breaking changes. For larger changes, prefer multiple focused commits rather than one large message.\n\nPrioritisation rules:\n1. Commit helpers and shared APIs before any code that uses them.\n2. Always land provider modules before consumer code (dependency order).\n3. Make each commit single-purpose and keep the repo working after every commit.\n4. Include a minimal verification step (test, lint, dry-run) for every commit."
 }

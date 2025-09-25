@@ -7,10 +7,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 // Mock the module.json import
 vi.mock('../../module.json', () => ({
-  id: "test-module",
-  title: "Test Module",
-  description: "A test module",
-  version: "1.0.0"
+  default: {
+    id: "test-module",
+    title: "Test Module",
+    description: "A test module",
+    version: "1.0.0"
+  }
 }), { virtual: true });
 
 // Mock the ManifestParser helper

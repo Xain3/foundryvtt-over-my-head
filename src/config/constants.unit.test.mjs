@@ -10,9 +10,16 @@ const mockObject = { testKey: 'testValue' };
 // Create mock function that we can track
 const mockConstructor = vi.fn();
 
+// Mock the YAML import
+vi.mock('../../../constants.yaml?raw', () => ({
+  default: 'test: value'
+}), { virtual: true });
+
 vi.mock('./helpers/constantsBuilder.mjs', () => ({
   __esModule: true,
-  default: mockConstructor,
+  default: vi.fn().mockImplementation(() => ({
+    asObject: mockObject,
+  }))
 }));
 
 describe('constants module', () => {

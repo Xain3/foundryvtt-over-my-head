@@ -478,7 +478,7 @@ Each helper class includes comprehensive unit tests with the following patterns:
 ### Test Structure
 
 - **File Naming**: `*.unit.test.mjs` for unit tests
-- **Mocking**: External dependencies are mocked using Jest
+- **Mocking**: External dependencies are mocked using Vitest's `vi.mock()`
 - **Coverage**: Tests cover success cases, error cases, and edge cases
 
 ### Running Tests

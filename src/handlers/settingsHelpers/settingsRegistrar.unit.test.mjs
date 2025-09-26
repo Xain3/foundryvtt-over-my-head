@@ -5,12 +5,24 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-import SettingsRegistrar from './settingsRegistrar.mjs';
-import MockSettings from '../../../tests/mocks/MockSettings.mjs';
-import FlagEvaluator from './flagEvaluator.mjs';
+
+// Mock dependencies that use problematic aliases
+vi.mock('@/baseClasses/handler', () => ({
+  default: class MockHandler {
+    constructor(config, utils, context) {
+      this.config = config;
+      this.utils = utils;
+      this.context = context;
+    }
+  }
+}));
 
 // Vitest Mocks
 vi.mock('./flagEvaluator.mjs');
+
+import SettingsRegistrar from './settingsRegistrar.mjs';
+import MockSettings from '../../../tests/mocks/MockSettings.mjs';
+import FlagEvaluator from './flagEvaluator.mjs';
 
 describe('SettingsRegistrar', () => {
   let registrar;

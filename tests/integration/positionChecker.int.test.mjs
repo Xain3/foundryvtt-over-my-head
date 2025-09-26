@@ -8,9 +8,13 @@ vi.mock('../../src/config/helpers/constantsGetter.mjs', () => ({
     UNDER: under
     OVER: above
   positionUses:
-    elevation: checkElevation
+    CENTER: center
+    RECTANGLE: rectangle
   methodKeys:
-    checkElevation: checkElevation
+    CENTER_RECTANGLE: center-rectangle
+    RECTANGLE_CENTER: rectangle-center
+    RECTANGLE_RECTANGLE: rectangle-rectangle
+    CENTER_CENTER: center-center
 requiredManifestAttributes:
   - id
   - title
@@ -28,10 +32,14 @@ vi.mock('../../src/config/helpers/constantsParser.mjs', () => ({
           OVER: 'above'
         },
         positionUses: {
-          elevation: 'checkElevation'
+          CENTER: 'center',
+          RECTANGLE: 'rectangle'
         },
         methodKeys: {
-          checkElevation: 'checkElevation'
+          CENTER_RECTANGLE: 'center-rectangle',
+          RECTANGLE_CENTER: 'rectangle-center',
+          RECTANGLE_RECTANGLE: 'rectangle-rectangle',
+          CENTER_CENTER: 'center-center'
         }
       },
       requiredManifestAttributes: [

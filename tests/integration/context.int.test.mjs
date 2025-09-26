@@ -7,14 +7,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 // Mock dependencies to prevent raw import issues
-vi.mock('../../src/utils/static/validator.mjs', () => ({
-  default: {
+vi.mock('../../src/utils/static/validator.mjs', () => {
+  const Validator = {
     isValidContextSchema: vi.fn(() => true),
     isValidContext: vi.fn(() => true),
     isValidContextComponent: vi.fn(() => true),
     validateAndThrow: vi.fn()
-  }
-}));
+  };
+  return { Validator, default: Validator };
+});
 
 vi.mock('../../src/config/config.mjs', () => ({
   default: {

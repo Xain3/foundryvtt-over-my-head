@@ -17,12 +17,13 @@ vi.mock('../../src/baseClasses/handler.mjs', () => ({
   }
 }));
 
-vi.mock('../../src/utils/static/validator.mjs', () => ({
-  default: {
+vi.mock('../../src/utils/static/validator.mjs', () => {
+  const Validator = {
     isValidSettingsConfig: vi.fn(() => true),
     validateAndThrow: vi.fn()
-  }
-}));
+  };
+  return { Validator, default: Validator };
+});
 
 import SettingsHandler from '../../src/handlers/settingsHandler.mjs';
 import SettingsParser from '../../src/handlers/settingsHelpers/settingsParser.mjs';

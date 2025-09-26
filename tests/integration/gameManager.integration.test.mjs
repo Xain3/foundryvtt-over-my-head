@@ -160,18 +160,18 @@ describe('GameManager Integration Tests', () => {
         it('should work without instantiation', () => {
             // No need to create an instance
             expect(() => {
-                GameManager.getModuleObject(manifest);
+                GameManager.getModuleObject(config.manifest);
                 GameManager.writeToModuleObject(moduleJson, 'test', 'value');
-                GameManager.readFromModuleObject(manifest, 'test');
+                GameManager.readFromModuleObject(config.manifest, 'test');
             }).not.toThrow();
         });
 
         it('should maintain state between calls via the game object', () => {
             // Write some data
-            GameManager.writeToModuleObject(manifest, 'persistentData', 'test-value');
+            GameManager.writeToModuleObject(config.manifest, 'persistentData', 'test-value');
 
             // Read it back in a different call
-            const result = GameManager.readFromModuleObject(manifest, 'persistentData');
+            const result = GameManager.readFromModuleObject(config.manifest, 'persistentData');
             expect(result).toBe('test-value');
 
             // Verify it's still there

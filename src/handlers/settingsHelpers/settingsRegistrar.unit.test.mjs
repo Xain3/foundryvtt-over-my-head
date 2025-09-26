@@ -5,12 +5,27 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock modules with problematic imports first
+vi.mock('@/baseClasses/handler', () => ({
+  default: class MockHandler {
+    constructor(config, utils) {
+      this.config = config;
+      this.utils = utils;
+    }
+  }
+}));
+
+vi.mock('./flagEvaluator.mjs', () => ({
+  default: {
+    evaluate: vi.fn(),
+    checkConditions: vi.fn()
+  }
+}));
+
 import SettingsRegistrar from './settingsRegistrar.mjs';
 import MockSettings from '../../../tests/mocks/MockSettings.mjs';
 import FlagEvaluator from './flagEvaluator.mjs';
-
-// Vitest Mocks
-vi.mock('./flagEvaluator.mjs');
 
 describe('SettingsRegistrar', () => {
   let registrar;

@@ -11,8 +11,8 @@ import ConstantsGetter from './constantsGetter.mjs';
 
 
 // Mock the dependencies
-vi.mock('./constantsParser.mjs');
-vi.mock('./constantsGetter.mjs');
+vi.mock('./constantsParser.mjs', () => ({ default: { parseConstants: vi.fn() } }));
+vi.mock('./constantsGetter.mjs', () => ({ default: { getConstantsYaml: vi.fn() } }));
 
 describe('ConstantsBuilder', () => {
   const mockYamlString = 'testConstant: testValue\ncontext:\n  schema: test';

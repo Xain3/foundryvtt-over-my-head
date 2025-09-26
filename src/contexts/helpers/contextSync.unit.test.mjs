@@ -6,6 +6,68 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock modules with problematic imports first
+vi.mock('./contextItem.mjs', () => ({
+  ContextItem: vi.fn().mockImplementation((value, metadata) => ({
+    value,
+    metadata: metadata || {},
+    modifiedAt: new Date(),
+    setMetadata: vi.fn()
+  }))
+}));
+
+vi.mock('./contextContainer.mjs', () => ({
+  ContextContainer: vi.fn().mockImplementation(() => ({
+    keys: vi.fn(),
+    getItem: vi.fn(),
+    setItem: vi.fn()
+  }))
+}));
+
+vi.mock('../context.mjs', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    container: {
+      keys: vi.fn(),
+      getItem: vi.fn()
+    }
+  }))
+}));
+
+vi.mock('./contextComparison.mjs', () => ({
+  default: {
+    compare: vi.fn(),
+    compareItems: vi.fn()
+  }
+}));
+
+vi.mock('./contextAutoSync.mjs', () => ({
+  default: {
+    sync: vi.fn(),
+    analyze: vi.fn()
+  }
+}));
+
+vi.mock('./contextItemSync.mjs', () => ({
+  default: {
+    syncFromSource: vi.fn(),
+    syncToSource: vi.fn()
+  }
+}));
+
+vi.mock('./contextContainerSync.mjs', () => ({
+  default: {
+    syncFromSource: vi.fn(),
+    syncToSource: vi.fn()
+  }
+}));
+
+vi.mock('./contextLegacySync.mjs', () => ({
+  default: {
+    legacySync: vi.fn()
+  }
+}));
+
 import { ContextSync } from './contextSync.mjs';
 import { ContextItem } from './contextItem.mjs';
 import { ContextContainer } from './contextContainer.mjs';
@@ -15,9 +77,6 @@ import ContextAutoSync from './contextAutoSync.mjs';
 import ContextItemSync from './contextItemSync.mjs';
 import ContextContainerSync from './contextContainerSync.mjs';
 import ContextLegacySync from './contextLegacySync.mjs';
-
-// Vitest Mocks
-vi.mock('./contextAutoSync.mjs');
 vi.mock('./contextItemSync.mjs');
 vi.mock('./contextContainerSync.mjs');
 vi.mock('./contextLegacySync.mjs');

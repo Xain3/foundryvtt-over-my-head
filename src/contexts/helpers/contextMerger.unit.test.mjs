@@ -6,17 +6,66 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock modules with Vite-style imports first
+vi.mock('./contextItem.mjs', () => ({
+  ContextItem: vi.fn().mockImplementation((value, metadata) => ({
+    value,
+    metadata: metadata || {},
+    modifiedAt: new Date(),
+    setMetadata: vi.fn()
+  }))
+}));
+
+vi.mock('./contextContainer.mjs', () => ({
+  ContextContainer: vi.fn().mockImplementation(() => ({
+    keys: vi.fn(),
+    getItem: vi.fn(),
+    setItem: vi.fn()
+  }))
+}));
+
+vi.mock('../context.mjs', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    container: {
+      keys: vi.fn(),
+      getItem: vi.fn()
+    }
+  }))
+}));
+
+vi.mock('./contextComparison.mjs', () => ({
+  default: {
+    compare: vi.fn(),
+    compareItems: vi.fn(),
+    isNewer: vi.fn(),
+    COMPARISON_RESULTS: {
+      SOURCE_NEWER: 'sourceNewer',
+      TARGET_NEWER: 'targetNewer',
+      EQUAL: 'equal',
+      TARGET_MISSING: 'targetMissing',
+      SOURCE_MISSING: 'sourceMissing'
+    }
+  }
+}));
+
+vi.mock('./contextItemFilter.mjs', () => ({
+  ItemFilter: {
+    filterItems: vi.fn(),
+    applyFilter: vi.fn(),
+    allowOnly: vi.fn(),
+    blockOnly: vi.fn(),
+    matchPattern: vi.fn(),
+    custom: vi.fn()
+  }
+}));
+
 import ContextMerger from './contextMerger.mjs';
 import ContextComparison from './contextComparison.mjs';
 import { ContextItem } from './contextItem.mjs';
 import { ContextContainer } from './contextContainer.mjs';
 import { ItemFilter } from './contextItemFilter.mjs';
 import Context from '../context.mjs';
-
-// Vitest Mocks
-vi.mock('../context.mjs');
-vi.mock('./contextComparison.mjs');
-vi.mock('./contextItemFilter.mjs');
 
 describe('ContextMerger', () => {
   let mockSourceContext;

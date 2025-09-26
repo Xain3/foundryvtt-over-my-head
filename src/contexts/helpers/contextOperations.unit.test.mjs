@@ -5,6 +5,46 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock modules with problematic imports
+vi.mock('./contextItem.mjs', () => ({
+  ContextItem: vi.fn().mockImplementation((value, metadata) => ({
+    value,
+    metadata: metadata || {},
+    modifiedAt: new Date(),
+    setMetadata: vi.fn()
+  }))
+}));
+
+vi.mock('./contextContainer.mjs', () => ({
+  ContextContainer: vi.fn().mockImplementation(() => ({
+    keys: vi.fn(),
+    getItem: vi.fn(),
+    setItem: vi.fn()
+  }))
+}));
+
+vi.mock('./contextContainerSync.mjs', () => ({
+  default: {
+    syncFromSource: vi.fn(),
+    syncToSource: vi.fn()
+  }
+}));
+
+vi.mock('./contextItemSync.mjs', () => ({
+  default: {
+    syncFromSource: vi.fn(),
+    syncToSource: vi.fn()
+  }
+}));
+
+vi.mock('./contextMerger.mjs', () => ({
+  default: {
+    merge: vi.fn(),
+    analyze: vi.fn()
+  }
+}));
+
 import ContextOperations from './contextOperations.mjs';
 import ContextContainerSync from './contextContainerSync.mjs';
 import ContextItemSync from './contextItemSync.mjs';
@@ -13,11 +53,6 @@ import ContextMerger from './contextMerger.mjs';
 // Import the actual classes for instanceof checks to work
 import { ContextContainer } from './contextContainer.mjs';
 import { ContextItem } from './contextItem.mjs';
-
-// Mock the sync modules and ContextMerger
-vi.mock('./contextContainerSync.mjs');
-vi.mock('./contextItemSync.mjs');
-vi.mock('./contextMerger.mjs');
 
 describe('ContextOperations', () => {
   let mockContainer1, mockContainer2, mockContainer3, mockTargetContainer, mockTargetContainer2;

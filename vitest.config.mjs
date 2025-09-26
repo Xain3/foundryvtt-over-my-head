@@ -4,6 +4,34 @@
  * @path vitest.config.mjs
  */
 
+const defaultExcludePatterns = [
+  '**/node_modules/**',
+  '**/dist/**',
+  '**/coverage/**'
+];
+
+const integrationTestsPatterns = [
+  '**/*.int.test.{mjs,cjs,js}',
+  '**/*.integration.test.{mjs,cjs,js}',
+  '**/tests/integration/*.test.{mjs,cjs,js}'
+];
+
+const setupTestsPatterns = [
+  '**/*.setup.test.{mjs,cjs,js}',
+  '**/tests/setup/*.test.{mjs,cjs,js}'
+];
+
+const performanceTestsPatterns = [
+  '**/*.performance.test.{mjs,cjs,js}',
+  '**/*.perf.test.{mjs,cjs,js}',
+  '**/tests/performance/*.test.{mjs,cjs,js}'
+];
+
+const smokeTestsPatterns = [
+  '**/*.smoke.test.{mjs,cjs,js}',
+  '**/tests/smoke/*.test.{mjs,cjs,js}'
+];
+
 import { defineConfig } from 'vitest/config';
 import { resolve } from 'path';
 
@@ -23,40 +51,48 @@ export default defineConfig({
         }
       },
     },
+  exclude: [...defaultExcludePatterns],
 
   projects: [
     { extend: true,
       test: {
         name: 'unit',
-        include: ['**/*.unit.test.{mjs,cjs,js}']
+        include: ['**/*.test.{mjs,cjs,js}'],
+        exclude: [
+          ...integrationTestsPatterns,
+          ...setupTestsPatterns,
+          ...performanceTestsPatterns,
+          ...smokeTestsPatterns,
+          ...defaultExcludePatterns
+        ]
       }
     },
     {
       extend: true,
       test: {
         name: 'integration',
-        include: ['**/*.int.test.{mjs,cjs,js}']
+        include: [...integrationTestsPatterns]
       }
     },
     {
       extend: true,
       test: {
         name: 'setup',
-        include: ['**/*.setup.test.{mjs,cjs,js}']
+        include: [...setupTestsPatterns]
       }
     },
     {
       extend: true,
       test: {
         name: 'performance',
-        include: ['**/*.performance.test.{mjs,cjs,js}']
+        include: [...performanceTestsPatterns]
       },
     },
     {
       extend: true,
       test: {
         name: 'smoke',
-        include: ['**/*.smoke.test.{mjs,cjs,js}']
+        include: [...smokeTestsPatterns]
       }
     }
   ],

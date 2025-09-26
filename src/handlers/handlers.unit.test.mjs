@@ -1,4 +1,32 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock dependencies that use problematic aliases
+vi.mock('./settingsHelpers/settingsParser.mjs', () => ({
+  default: class MockSettingsParser {
+    constructor() {}
+    parse(settings) { return { parsed: settings || [], validSettings: settings || [], invalidSettings: [] }; }
+  }
+}));
+
+vi.mock('./settingsHelpers/settingsRegistrar.mjs', () => ({
+  default: class MockSettingsRegistrar {
+    constructor() {}
+    register() { return { success: true, counter: 1, successCounter: 1 }; }
+  }
+}));
+
+vi.mock('./settingsHelpers/settingLocalizer.mjs', () => ({
+  default: class MockSettingLocalizer {
+    constructor() {}
+  }
+}));
+
+vi.mock('@helpers/settingsRetriever.mjs', () => ({
+  default: class MockSettingsRetriever {
+    constructor() {}
+  }
+}));
+
 import Handlers from './handlers.mjs';
 
 import Handler from '../baseClasses/handler.mjs';

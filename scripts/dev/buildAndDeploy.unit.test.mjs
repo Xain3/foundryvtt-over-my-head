@@ -7,14 +7,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 // Mock dependencies first
-vi.mock('fs', () => ({
-  readFileSync: vi.fn(),
-  existsSync: vi.fn(),
-  statSync: vi.fn(),
-  mkdirSync: vi.fn(),
-  readdirSync: vi.fn(),
-  copyFileSync: vi.fn()
-}));
+vi.mock('fs', () => {
+  const fsMock = {
+    readFileSync: vi.fn(),
+    existsSync: vi.fn(),
+    statSync: vi.fn(),
+    mkdirSync: vi.fn(),
+    readdirSync: vi.fn(),
+    copyFileSync: vi.fn()
+  };
+
+  return {
+    ...fsMock,
+    default: fsMock
+  };
+});
 vi.mock('os');
 vi.mock('path');
 

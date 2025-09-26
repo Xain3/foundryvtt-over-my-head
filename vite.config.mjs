@@ -41,8 +41,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(process.cwd(), 'src'),
-  '@docker': resolve(process.cwd(), 'docker'),
+      '@docker': resolve(process.cwd(), 'docker'),
       '@config': resolve(process.cwd(), 'src/config/config.mjs'),
+      '@baseClasses': resolve(process.cwd(), 'src/baseClasses'),
       '@constants': resolve(process.cwd(), 'src/config/constants.mjs'),
       '@manifest': resolve(process.cwd(), 'src/config/manifest.mjs'),
       '@configFolder': resolve(process.cwd(), 'src/config'),

@@ -5,7 +5,8 @@
  */
 
 import { defineConfig } from 'vite';
-import { resolve } from 'path';
+import process from 'node:process';
+import { resolve } from 'node:path';
 
 export default defineConfig({
   // Ensure Vite root is always the repo root
@@ -39,25 +40,27 @@ export default defineConfig({
     copyPublicDir: false
   },
   resolve: {
-    alias: {
-      '@': resolve(process.cwd(), 'src'),
-      '@docker': resolve(process.cwd(), 'docker'),
-      '@config': resolve(process.cwd(), 'src/config/config.mjs'),
-      '@baseClasses': resolve(process.cwd(), 'src/baseClasses'),
-      '@constants': resolve(process.cwd(), 'src/config/constants.mjs'),
-      '@manifest': resolve(process.cwd(), 'src/config/manifest.mjs'),
-      '@configFolder': resolve(process.cwd(), 'src/config'),
-      '@contexts': resolve(process.cwd(), 'src/contexts'),
-      '@data': resolve(process.cwd(), 'src/data'),
-      '@handlers': resolve(process.cwd(), 'src/handlers'),
-      '@utils': resolve(process.cwd(), 'src/utils'),
-      '@listeners': resolve(process.cwd(), 'src/listeners'),
-      '@maps': resolve(process.cwd(), 'src/maps'),
-      '@helpers': resolve(process.cwd(), 'src/helpers'),
-      '@configHelpers': resolve(process.cwd(), 'src/config/helpers'),
-      '@validator': resolve(process.cwd(), 'src/utils/static/validator.mjs'),
-      '@module': resolve(process.cwd(), 'module.json')
-    }
+        alias: [
+      { find: '@', replacement: resolve(process.cwd(), 'src') },
+      { find: '@docker', replacement: resolve(process.cwd(), 'docker') },
+      { find: '@baseClasses', replacement: resolve(process.cwd(), 'src/baseClasses') },
+      { find: '@config', replacement: resolve(process.cwd(), 'src/config/config.mjs') },
+      { find: '@constants', replacement: resolve(process.cwd(), 'src/config/constants.mjs') },
+      { find: '@manifest', replacement: resolve(process.cwd(), 'src/config/manifest.mjs') },
+      { find: '@configFolder', replacement: resolve(process.cwd(), 'src/config') },
+      { find: '@contexts', replacement: resolve(process.cwd(), 'src/contexts') },
+      { find: '@data', replacement: resolve(process.cwd(), 'src/data') },
+      { find: '@handlers', replacement: resolve(process.cwd(), 'src/handlers') },
+      { find: '@utils', replacement: resolve(process.cwd(), 'src/utils') },
+      { find: '@listeners', replacement: resolve(process.cwd(), 'src/listeners') },
+      { find: '@maps', replacement: resolve(process.cwd(), 'src/maps') },
+      { find: '@helpers', replacement: resolve(process.cwd(), 'src/helpers') },
+      { find: '@configHelpers', replacement: resolve(process.cwd(), 'src/config/helpers') },
+      { find: '@validator', replacement: resolve(process.cwd(), 'src/utils/static/validator.mjs') },
+      { find: '@integrationTests', replacement: resolve(process.cwd(), 'tests/integration') },
+      { find: '@mocks', replacement: resolve(process.cwd(), 'tests/mocks') },
+      { find: '@module', replacement: resolve(process.cwd(), 'module.json') }
+    ]
   },
   // Enable JSON loading
   json: {

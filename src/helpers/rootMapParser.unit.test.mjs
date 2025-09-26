@@ -1,11 +1,22 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-vi.mock('@/config/manifest', () => ({
+
+// Mock config before importing anything else
+vi.mock('@config', () => ({
   default: {
-    id: 'test-module-id'
+    constants: {
+      moduleManagement: {
+        defaults: {
+          modulesLocation: 'game.modules'
+        }
+      }
+    },
+    manifest: {
+      id: 'test-module-id'
+    }
   }
 }));
 
-vi.mock('@utils/static/validator', () => ({
+vi.mock('@utils/static/validator.mjs', () => ({
   default: {
     validateObject: vi.fn(),
     validateString: vi.fn()
@@ -14,17 +25,27 @@ vi.mock('@utils/static/validator', () => ({
   validateString: vi.fn()
 }));
 
-vi.mock('@helpers/pathUtils.mjs');
+vi.mock('./pathUtils.mjs', () => ({
+  default: {
+    resolvePath: vi.fn()
+  }
+}));
 
-vi.mock('@/helpers/moduleGetter', () => ({
+vi.mock('./moduleGetter.mjs', () => ({
   getModule: vi.fn()
 }));
 
 import RootMapParser from './rootMapParser.mjs';
-import config from '../config/config.mjs';
-import Validator from '@utils/static/validator';
-import PathUtils from '@helpers/pathUtils.mjs';
-import { getModule } from '@/helpers/moduleGetter';
+import PathUtils from './pathUtils.mjs';
+import { getModule } from './moduleGetter.mjs';
+import Validator from '@utils/static/validator.mjs';
+
+// Create a local config object for test assertions
+const config = {
+  manifest: {
+    id: 'test-module-id'
+  }
+};
 
 const manifest = config.manifest;
 

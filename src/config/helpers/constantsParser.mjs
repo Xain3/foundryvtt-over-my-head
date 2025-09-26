@@ -1,12 +1,11 @@
 /**
  * @file constantsParser.mjs
  * @description This file contains a utility class for parsing and processing constants from YAML input, including root map creation.
- * @path src/constants/helpers/constantsParser.mjs
+ * @path src/config/helpers/constantsParser.mjs
  */
 
 import yaml from 'js-yaml';
-import _ from 'lodash';
-import PathUtils from '../../helpers/pathUtils.mjs';
+import PathUtils from '@helpers/pathUtils.mjs';
 
 /**
  * A utility class for parsing and processing constants from YAML input.
@@ -68,14 +67,19 @@ class ConstantsParser {
 
     try {
       const parsedConstants = yaml.load(constants);
-      globalNamespace = globalNamespace || globalThis;
+      const effectiveGlobalNamespace = globalNamespace || globalThis;
 
-      if (parseContextRootMap && parsedConstants.context?.remote?.rootMap) {
-        parsedConstants.context.rootMap = this.createRootMapFromYaml(
-          parsedConstants.context.remote.rootMap,
-          globalNamespace,
-          module
-        );
+      if (parseContextRootMap && parsedConstants.context) {
+        const contextConfig = parsedConstants.context;
+        const rootMapConfig = contextConfig.remote?.rootMap ?? contextConfig.rootMap;
+
+        if (rootMapConfig) {
+          contextConfig.rootMap = this.createRootMapFromYaml(
+            rootMapConfig,
+            effectiveGlobalNamespace,
+            module
+          );
+        }
       }
 
       return parsedConstants;
@@ -97,18 +101,29 @@ class ConstantsParser {
    * @static
    */
   static createRootMapFromYaml(config, globalNamespace = undefined, module = undefined) {
+    if (!config || typeof config !== 'object') {
+      throw new TypeError('config must be an object when creating a root map');
+    }
+
+    const rootMapDefinition = 'rootMap' in config ? config.rootMap : config;
+
     return (runtimeGlobalNamespace, runtimeModule) => {
       const rootMap = {};
+      const namespace = runtimeGlobalNamespace ?? globalNamespace ?? globalThis;
+      const moduleReference = runtimeModule ?? module ?? null;
 
-      for (const [key, value] of Object.entries(config.rootMap)) {
+      for (const [key, value] of Object.entries(rootMapDefinition)) {
         if (value === null) {
           rootMap[key] = null;
-        } else if (value === "module") {
-          rootMap[key] = runtimeModule;
-        } else {
-          // Dynamically resolve the path
-          rootMap[key] = PathUtils.resolvePath(runtimeGlobalNamespace, value);
+          continue;
         }
+
+        if (value === 'module') {
+          rootMap[key] = moduleReference;
+          continue;
+        }
+
+        rootMap[key] = PathUtils.resolvePath(namespace, value);
       }
 
       return rootMap;

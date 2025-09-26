@@ -4,7 +4,7 @@
  * @path src/utils/initializer.mjs
  */
 
-import Handlers from '@/handlers/handlers.mjs';
+import Handlers from '@handlers/handlers.mjs';
 
 /**
  * Class representing an Initializer.

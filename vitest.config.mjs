@@ -39,6 +39,9 @@ export default defineConfig({
   test: {
     name: 'Foundry VTT Module Tests',
     environment: 'node',
+    deps: {
+      registerNodeLoader: true
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'clover', 'json'],
@@ -96,31 +99,6 @@ export default defineConfig({
       }
     }
   ],
-  },
-  resolve: {
-    alias: {
-      '@': resolve(process.cwd(), 'src'),
-      '@baseClasses': resolve(process.cwd(), 'src/baseClasses'),
-      '@docker': resolve(process.cwd(), 'docker'),
-      '@config': resolve(process.cwd(), 'src/config/config.mjs'),
-      '@constants': resolve(process.cwd(), 'src/config/constants.mjs'),
-      '@manifest': resolve(process.cwd(), 'src/config/manifest.mjs'),
-      '@configFolder': resolve(process.cwd(), 'src/config'),
-      '@contexts': resolve(process.cwd(), 'src/contexts'),
-      '@data': resolve(process.cwd(), 'src/data'),
-      '@handlers': resolve(process.cwd(), 'src/handlers'),
-      '@utils': resolve(process.cwd(), 'src/utils'),
-      '@utils/static': resolve(process.cwd(), 'src/utils/static'),
-      '@listeners': resolve(process.cwd(), 'src/listeners'),
-      '@maps': resolve(process.cwd(), 'src/maps'),
-      '@helpers': resolve(process.cwd(), 'src/helpers'),
-      '@configHelpers': resolve(process.cwd(), 'src/config/helpers'),
-      '@validator': resolve(process.cwd(), 'src/utils/static/validator.mjs'),
-      '@integrationTests': resolve(process.cwd(), 'tests/integration'),
-      '@mocks': resolve(process.cwd(), 'tests/mocks'),
-      '@module': resolve(process.cwd(), 'module.json'),
-      '@root': resolve(process.cwd(), '.')
-    }
   },
 
   esbuild: {

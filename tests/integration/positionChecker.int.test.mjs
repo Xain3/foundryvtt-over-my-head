@@ -1,6 +1,59 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-import config from '@/config/config';
-import PositionChecker from '@/handlers/placeableHelpers/positionChecker.mjs';
+
+// Mock config dependencies to prevent raw imports
+vi.mock('../../src/config/helpers/constantsGetter.mjs', () => ({
+  default: {
+    getConstantsYaml: vi.fn(() => `positionChecker:
+  checkTypes:
+    UNDER: under
+    OVER: above
+  positionUses:
+    CENTER: center
+    RECTANGLE: rectangle
+  methodKeys:
+    CENTER_RECTANGLE: center-rectangle
+    RECTANGLE_CENTER: rectangle-center
+    RECTANGLE_RECTANGLE: rectangle-rectangle
+    CENTER_CENTER: center-center
+requiredManifestAttributes:
+  - id
+  - title
+  - description
+  - version`)
+  }
+}));
+
+vi.mock('../../src/config/helpers/constantsParser.mjs', () => ({
+  default: {
+    parseConstants: vi.fn(() => ({
+      positionChecker: {
+        checkTypes: {
+          UNDER: 'under',
+          OVER: 'above'
+        },
+        positionUses: {
+          CENTER: 'center',
+          RECTANGLE: 'rectangle'
+        },
+        methodKeys: {
+          CENTER_RECTANGLE: 'center-rectangle',
+          RECTANGLE_CENTER: 'rectangle-center',
+          RECTANGLE_RECTANGLE: 'rectangle-rectangle',
+          CENTER_CENTER: 'center-center'
+        }
+      },
+      requiredManifestAttributes: [
+        'id',
+        'title', 
+        'description',
+        'version'
+      ]
+    }))
+  }
+}));
+
+import config from '../../src/config/config.mjs';
+import PositionChecker from '../../src/handlers/placeableHelpers/positionChecker.mjs';
 
 /**
  * @file positionChecker.int.test.mjs

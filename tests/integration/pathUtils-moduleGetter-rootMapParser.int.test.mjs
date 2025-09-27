@@ -5,6 +5,52 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll, fail } from 'vitest';
+
+// Mock config dependencies to prevent raw imports
+vi.mock('../../src/config/helpers/constantsGetter.mjs', () => ({
+  default: {
+    getConstantsYaml: vi.fn(() => `moduleManagement:
+  defaults:
+    modulesLocation: game.modules
+requiredManifestAttributes:
+  - id
+  - title
+  - description
+  - version`)
+  }
+}));
+
+vi.mock('../../src/config/helpers/constantsParser.mjs', () => ({
+  default: {
+    parseConstants: vi.fn(() => ({
+      moduleManagement: {
+        defaults: {
+          modulesLocation: 'game.modules'
+        }
+      },
+      requiredManifestAttributes: [
+        'id',
+        'title', 
+        'description',
+        'version'
+      ]
+    }))
+  }
+}));
+
+// Mock @config alias for moduleGetter.mjs
+vi.mock('../../src/config/config.mjs', () => ({
+  default: {
+    constants: {
+      moduleManagement: {
+        defaults: {
+          modulesLocation: 'game.modules'
+        }
+      }
+    }
+  }
+}));
+
 import PathUtils from '../../src/helpers/pathUtils.mjs';
 import { getModule } from '../../src/helpers/moduleGetter.mjs';
 import config from '../../src/config/config.mjs';

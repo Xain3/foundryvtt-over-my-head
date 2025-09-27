@@ -8,21 +8,84 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Context from './context.mjs';
 import { ContextContainer } from './helpers/contextContainer.mjs';
 import { ContextItem } from './helpers/contextItem.mjs';
-import constants from '../config/constants.mjs';
+import Validator from '@utils/static/validator.mjs';
 
-// Mock the validator import
-vi.mock('@utils/static/validator.mjs', async (importOriginal) => {
-  const actual = await importOriginal();
-  const methodNames = Object.getOwnPropertyNames(actual.Validator)
-    .filter(name => !['length', 'name', 'prototype'].includes(name) && typeof actual.Validator[name] === 'function');
+// Mock config to avoid pulling real constants/manifest and transitive deps in unit tests
+vi.mock('../config/config.mjs', () => ({
+  default: {
+    constants: {
+      context: {
+        naming: {
+          state: 'state',
+          settings: 'settings',
+          flags: 'flags',
+          data: 'data',
+          manifest: 'manifest',
+          timestamp: 'timestamp'
+        },
+        operationsParams: {
+          defaults: {
+            alwaysPullBeforeGetting: false,
+            alwaysPullBeforeSetting: false,
+            pullFrom: [],
+            alwaysPushAfterSetting: false,
+            pushTo: [],
+            errorHandling: {
+              onPullError: 'warn',
+              onPushError: 'warn',
+              onValidationError: 'throw'
+            }
+          }
+        }
+      }
+    }
+  }
+}));
 
-  class MockedValidator extends actual.Validator {}
+// Local constants mirroring the mocked config for assertions in this test
+const constants = {
+  context: {
+    naming: {
+      state: 'state',
+      settings: 'settings',
+      flags: 'flags',
+      data: 'data',
+      manifest: 'manifest',
+      timestamp: 'timestamp'
+    },
+    operationsParams: {
+      defaults: {
+        alwaysPullBeforeGetting: false,
+        alwaysPullBeforeSetting: false,
+        pullFrom: [],
+        alwaysPushAfterSetting: false,
+        pushTo: [],
+        errorHandling: {
+          onPullError: 'warn',
+          onPushError: 'warn',
+          onValidationError: 'throw'
+        }
+      }
+    }
+  }
+};
+
+// Mock the validator import (use importActual to avoid circular self-mock and preserve export shape)
+vi.mock('@utils/static/validator.mjs', async () => {
+  const actual = await vi.importActual('../utils/static/validator.mjs');
+  const ActualValidator = actual.default ?? actual.Validator;
+
+  const methodNames = Object.getOwnPropertyNames(ActualValidator)
+    .filter(name => !['length', 'name', 'prototype'].includes(name) && typeof ActualValidator[name] === 'function');
+
+  class MockedValidator extends ActualValidator {}
 
   for (const name of methodNames) {
-    MockedValidator[name] = vi.fn((...args) => actual.Validator[name](...args));
+    MockedValidator[name] = vi.fn((...args) => ActualValidator[name](...args));
   }
 
   return {
+    ...actual,
     default: MockedValidator,
     Validator: MockedValidator
   };

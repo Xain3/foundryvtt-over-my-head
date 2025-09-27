@@ -5,13 +5,58 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock config-related imports that might cause problems
+vi.mock('@config', () => ({
+  default: {
+    constants: { 
+      positionChecker: {
+        checkTypes: {
+          UNDER: 'under',
+          OVER: 'above'
+        },
+        positionUses: {
+          CENTER: 'center',
+          RECTANGLE: 'rectangle'
+        },
+        methodKeys: {
+          CHECK_METHOD: 'checkMethod'
+        }
+      }
+    },
+    manifest: { id: 'test-module' }
+  }
+}));
+
+// Mock the config file that the placeableHelpers config.mjs imports
+vi.mock('../../config/config.mjs', () => ({
+  default: {
+    constants: { 
+      positionChecker: {
+        checkTypes: {
+          UNDER: 'under',
+          OVER: 'above'
+        },
+        positionUses: {
+          CENTER: 'center',
+          RECTANGLE: 'rectangle'
+        },
+        methodKeys: {
+          CHECK_METHOD: 'checkMethod'
+        }
+      }
+    },
+    manifest: { id: 'test-module' }
+  }
+}));
+
+// Mock dependencies
+vi.mock('./positionChecker.mjs');
+
 import PlaceableChecker from './placeableChecker.mjs';
 import PositionChecker from './positionChecker.mjs';
 import { CHECK_TYPES } from './config.mjs';
 import MockConfig from '../../../tests/mocks/config.mjs';
-
-// Mock dependencies
-vi.mock('./positionChecker.mjs');
 
 describe('PlaceableChecker', () => {
     let placeableChecker;

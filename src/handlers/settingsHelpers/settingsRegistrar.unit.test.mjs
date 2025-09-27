@@ -929,7 +929,7 @@ describe('SettingsRegistrar', () => {
       expect(result.successCounter).toBe(2);
       expect(result.errorMessages).toHaveLength(1);
       expect(result.errorMessages[0]).toContain('not registered due to flag conditions');
-      
+
       // Verify only the allowed settings were registered
       expect(mockGameSettings.get('test-module', 'visibleSetting')).toBe('visible');
       expect(mockGameSettings.get('test-module', 'anotherVisibleSetting')).toBe('anotherVisible');
@@ -938,13 +938,13 @@ describe('SettingsRegistrar', () => {
 
     it('should handle flag evaluation with real context structure', () => {
       const contextWithManifest = {
-        manifest: { 
-          debugMode: true, 
-          dev: false, 
-          id: 'test-module' 
+        manifest: {
+          debugMode: true,
+          dev: false,
+          id: 'test-module'
         }
       };
-      
+
       const registrarWithContext = new SettingsRegistrar(contextWithManifest, mockContext, mockUtils);
       FlagEvaluator.shouldShow.mockReturnValue(true);
 

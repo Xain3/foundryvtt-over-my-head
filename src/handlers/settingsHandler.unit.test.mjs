@@ -5,15 +5,48 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock the dependencies using factory mocks to avoid problematic imports
+vi.mock('./settingsHelpers/settingsParser.mjs', () => {
+  const MockSettingsParser = vi.fn().mockImplementation(function() {
+    this.parse = vi.fn().mockReturnValue({
+      processed: 2,
+      successful: 2,
+      parsed: ['testSetting', 'debugMode'],
+      failed: []
+    });
+  });
+  return { default: MockSettingsParser };
+});
+
+vi.mock('./settingsHelpers/settingsRegistrar.mjs', () => {
+  const MockSettingsRegistrar = vi.fn().mockImplementation(function() {
+    this.register = vi.fn().mockReturnValue({
+      success: true,
+      counter: 1,
+      successCounter: 1,
+      errorMessages: [],
+      message: 'Registration successful'
+    });
+  });
+  return { default: MockSettingsRegistrar };
+});
+
+vi.mock('./settingsHelpers/settingLocalizer.mjs', () => {
+  const MockSettingLocalizer = vi.fn().mockImplementation(function() {});
+  MockSettingLocalizer.localizeSettings = vi.fn((settings) => settings);
+  return { default: MockSettingLocalizer };
+});
+
+vi.mock('@helpers/settingsRetriever.mjs', () => {
+  const MockSettingsRetriever = vi.fn().mockImplementation(function() {});
+  return { default: MockSettingsRetriever };
+});
+
 import SettingsHandler from './settingsHandler.mjs';
 import SettingsParser from './settingsHelpers/settingsParser.mjs';
 import SettingsRegistrar from './settingsHelpers/settingsRegistrar.mjs';
 import SettingLocalizer from './settingsHelpers/settingLocalizer.mjs';
-
-// Mock the dependencies
-vi.mock('./settingsHelpers/settingsParser.mjs');
-vi.mock('./settingsHelpers/settingsRegistrar.mjs');
-vi.mock('./settingsHelpers/settingLocalizer.mjs');
 
 describe('SettingsHandler', () => {
   const mockConfig = {
@@ -63,29 +96,8 @@ describe('SettingsHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Mock SettingsParser
-    SettingsParser.mockImplementation(() => ({
-      parse: vi.fn().mockReturnValue({
-        processed: 2,
-        successful: 2,
-        parsed: ['testSetting', 'debugMode'],
-        failed: []
-      })
-    }));
-
-    // Mock SettingsRegistrar
-    SettingsRegistrar.mockImplementation(() => ({
-      register: vi.fn().mockReturnValue({
-        success: true,
-        counter: 1,
-        successCounter: 1,
-        errorMessages: [],
-        message: 'Registration successful'
-      })
-    }));
-
-    // Mock SettingLocalizer
-    SettingLocalizer.localizeSettings = vi.fn((settings) => settings);
+    // Factory mocks defined above already provide the necessary implementations,
+    // eliminating the need for runtime mockImplementation calls.
   });
 
   describe('constructor', () => {

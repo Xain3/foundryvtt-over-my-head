@@ -77,9 +77,6 @@ import ContextAutoSync from './contextAutoSync.mjs';
 import ContextItemSync from './contextItemSync.mjs';
 import ContextContainerSync from './contextContainerSync.mjs';
 import ContextLegacySync from './contextLegacySync.mjs';
-vi.mock('./contextItemSync.mjs');
-vi.mock('./contextContainerSync.mjs');
-vi.mock('./contextLegacySync.mjs');
 vi.mock('./contextComparison.mjs');
 vi.mock('../context.mjs');
 vi.mock('./contextMerger.mjs', () => ({
@@ -98,7 +95,7 @@ describe('ContextSync', () => {
     targetItem = new ContextItem('target', { meta: 2 });
     sourceContainer = new ContextContainer({ foo: 'bar' });
     targetContainer = new ContextContainer({ foo: 'baz' });
-    
+
     // Create mock Context objects with the isContextObject property
     sourceContext = { isContextObject: true, constructor: { name: 'Context' } };
     targetContext = { isContextObject: true, constructor: { name: 'Context' } };

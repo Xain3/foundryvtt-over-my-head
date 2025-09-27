@@ -5,9 +5,35 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-import OverMyHead from './overMyHead.mjs';
-import config from './config/config.mjs';
-import Utilities from './utils/utils.mjs';
+
+const { configMock, createManifestWithShortName } = vi.hoisted(() => {
+  const manifestTemplate = {
+    id: 'foundryvtt-over-my-head',
+    title: 'Over My Head',
+    version: '0.0.0',
+    flags: { dev: false }
+  };
+
+  const manifestFactory = () => Object.freeze({
+    ...manifestTemplate,
+    flags: { ...manifestTemplate.flags },
+    shortName: 'OMH'
+  });
+
+  return {
+    configMock: {
+      constants: { moduleManagement: { shortName: 'OMH' } },
+      manifest: { ...manifestTemplate },
+      buildManifestWithShortName: vi.fn(() => manifestFactory()),
+      exportConstants: vi.fn()
+    },
+    createManifestWithShortName: manifestFactory
+  };
+});
+
+vi.mock('./config/config.mjs', () => ({
+  default: configMock
+}));
 
 vi.mock('./utils/utils.mjs', () => ({
   default: vi.fn().mockImplementation(() => ({
@@ -24,6 +50,10 @@ vi.mock('./utils/utils.mjs', () => ({
   }))
 }));
 
+import OverMyHead from './overMyHead.mjs';
+import config from './config/config.mjs';
+import Utilities from './utils/utils.mjs';
+
 // Hooks mock that immediately calls 'init' and 'i18nInit' callbacks
 global.Hooks = {
   once: vi.fn((event, callback) => {
@@ -35,6 +65,7 @@ global.Hooks = {
 describe('OverMyHead (unit)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    config.buildManifestWithShortName.mockImplementation(() => createManifestWithShortName());
   });
 
   it('constructs with config constants and manifest and unpacks manifest', () => {

@@ -5,6 +5,25 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock modules with problematic imports
+vi.mock('./contextItem.mjs', () => ({
+  ContextItem: vi.fn().mockImplementation((value, metadata) => ({
+    value,
+    metadata: metadata || {},
+    modifiedAt: new Date(),
+    setMetadata: vi.fn()
+  }))
+}));
+
+vi.mock('./contextContainer.mjs', () => ({
+  ContextContainer: vi.fn().mockImplementation(() => ({
+    keys: vi.fn(),
+    getItem: vi.fn(),
+    setItem: vi.fn()
+  }))
+}));
+
 import ContextPathUtils from './contextPathUtils.mjs';
 import { ContextContainer } from './contextContainer.mjs';
 import { ContextItem } from './contextItem.mjs';

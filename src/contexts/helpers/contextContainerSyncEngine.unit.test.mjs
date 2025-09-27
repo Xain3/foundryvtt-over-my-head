@@ -12,13 +12,23 @@ import ContextItemSync from './contextItemSync.mjs';
 import { Validator } from '../../utils/static/validator.mjs';
 import _ from 'lodash';
 
+function loadAlias(relativePath) {
+  return async () => import(new URL(relativePath, import.meta.url).href);
+}
+
+vi.mock('@utils/static/validator.mjs', loadAlias('../../utils/static/validator.mjs'));
+vi.mock('@helpers/pathUtils.mjs', loadAlias('../../helpers/pathUtils.mjs'));
+vi.mock('@config', loadAlias('../../config/config.mjs'));
+vi.mock('@constants', loadAlias('../../config/constants.mjs'));
+vi.mock('@manifest', loadAlias('../../config/manifest.mjs'));
+
 // Mock dependencies
 vi.mock('./contextContainer.mjs');
 vi.mock('./contextItemSync.mjs');
 vi.mock('lodash', () => {
   const mergeFunction = vi.fn();
   const cloneDeepFunction = vi.fn();
-  
+
   return {
     default: {
       merge: mergeFunction,
@@ -467,8 +477,8 @@ describe('ContextContainerSyncEngine', () => {
 
       it('should handle mixed type updates with syncMetadata', () => {
         const setMetadataSpy = vi.fn();
-        const mixedTarget = { 
-          value: 'old value', 
+        const mixedTarget = {
+          value: 'old value',
           setMetadata: setMetadataSpy,
           _getManagedItem: vi.fn()
         };
@@ -481,8 +491,8 @@ describe('ContextContainerSyncEngine', () => {
       it('should handle mixed type updates without syncMetadata', () => {
         engine = new ContextContainerSyncEngine({ syncMetadata: false });
         const setMetadataSpy = vi.fn();
-        const mixedTarget = { 
-          value: 'old value', 
+        const mixedTarget = {
+          value: 'old value',
           setMetadata: setMetadataSpy,
           _getManagedItem: vi.fn()
         };

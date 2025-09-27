@@ -13,6 +13,16 @@ import { Validator } from '../../utils/static/validator.mjs';
 import PathUtils from '../../helpers/pathUtils.mjs';
 import dayjs from 'dayjs';
 
+function loadAlias(relativePath) {
+  return async () => import(new URL(relativePath, import.meta.url).href);
+}
+
+vi.mock('@utils/static/validator.mjs', loadAlias('../../utils/static/validator.mjs'));
+vi.mock('@helpers/pathUtils.mjs', loadAlias('../../helpers/pathUtils.mjs'));
+vi.mock('@config', loadAlias('../../config/config.mjs'));
+vi.mock('@constants', loadAlias('../../config/constants.mjs'));
+vi.mock('@manifest', loadAlias('../../config/manifest.mjs'));
+
 vi.mock('./contextItem.mjs');
 vi.mock('./contextValueWrapper.mjs');
 vi.mock('./contextItemSetter.mjs');

@@ -5,7 +5,9 @@
 
  */
 
+import '../../../tests/mocks/aliasMocks.mjs';
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
 import ContextAutoSync from './contextAutoSync.mjs';
 import Context from '../context.mjs';
 import { ContextContainer } from './contextContainer.mjs';

@@ -30,7 +30,7 @@ vi.mock('../../src/config/helpers/constantsParser.mjs', () => ({
       },
       requiredManifestAttributes: [
         'id',
-        'title', 
+        'title',
         'description',
         'version'
       ]
@@ -161,7 +161,7 @@ describe('GameManager Integration Tests', () => {
             // No need to create an instance
             expect(() => {
                 GameManager.getModuleObject(config.manifest);
-                GameManager.writeToModuleObject(moduleJson, 'test', 'value');
+                GameManager.writeToModuleObject(config.manifest, 'test', 'value');
                 GameManager.readFromModuleObject(config.manifest, 'test');
             }).not.toThrow();
         });

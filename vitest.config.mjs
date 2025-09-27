@@ -101,6 +101,7 @@ export default defineConfig({
     alias: {
       '@': resolve(process.cwd(), 'src'),
       '@baseClasses': resolve(process.cwd(), 'src/baseClasses'),
+      '@/baseClasses/handler': resolve(process.cwd(), 'src/baseClasses/handler.mjs'),
       '@docker': resolve(process.cwd(), 'docker'),
       '@config': resolve(process.cwd(), 'src/config/config.mjs'),
       '@constants': resolve(process.cwd(), 'src/config/constants.mjs'),
@@ -114,6 +115,7 @@ export default defineConfig({
       '@listeners': resolve(process.cwd(), 'src/listeners'),
       '@maps': resolve(process.cwd(), 'src/maps'),
       '@helpers': resolve(process.cwd(), 'src/helpers'),
+      '@helpers/pathUtils.mjs': resolve(process.cwd(), 'src/helpers/pathUtils.mjs'),
       '@configHelpers': resolve(process.cwd(), 'src/config/helpers'),
       '@validator': resolve(process.cwd(), 'src/utils/static/validator.mjs'),
       '@integrationTests': resolve(process.cwd(), 'tests/integration'),

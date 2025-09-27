@@ -6,8 +6,18 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 // Mock all dependencies that might import manifest BEFORE importing anything
-vi.mock('./pathUtils.mjs');
-vi.mock('./moduleGetter.mjs');
+vi.mock('./pathUtils.mjs', () => ({
+  default: {
+    resolvePath: vi.fn(),
+    extractKeyComponents: vi.fn(),
+    resolveMixedPath: vi.fn(),
+    pathExistsInMixedStructure: vi.fn(),
+    getValueFromMixedPath: vi.fn()
+  }
+}));
+vi.mock('./moduleGetter.mjs', () => ({
+  getModule: vi.fn()
+}));
 vi.mock('./errorFormatter.mjs', () => ({
   formatError: vi.fn((error, options = {}) => `Mocked error: ${error.message}`)
 }));

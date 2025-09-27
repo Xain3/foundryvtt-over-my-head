@@ -1,9 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import PlaceableHandler from './placeableHandler.mjs';
-import PlaceableGetter from './placeableHelpers/placeableGetter.mjs';
-import PlaceableChecker from './placeableHelpers/placeableChecker.mjs';
-import PlaceableSetter from './placeableHelpers/placeableSetter.mjs';
-import Handler from '../baseClasses/handler.mjs';
 
 /**
  * @file placeableHandler.unit.test.mjs
@@ -11,10 +6,22 @@ import Handler from '../baseClasses/handler.mjs';
  * @path src/handlers/placeableHandler.unit.test.mjs
  */
 
-// Mock the dependencies
-vi.mock('./placeableHelpers/placeableGetter.mjs');
-vi.mock('./placeableHelpers/placeableChecker.mjs');
-vi.mock('./placeableHelpers/placeableSetter.mjs');
+// Mock the dependencies using factory mocks to avoid problematic imports
+vi.mock('./placeableHelpers/placeableGetter.mjs', () => {
+  const MockPlaceableGetter = vi.fn().mockImplementation(function() {});
+  return { default: MockPlaceableGetter };
+});
+
+vi.mock('./placeableHelpers/placeableChecker.mjs', () => {
+  const MockPlaceableChecker = vi.fn().mockImplementation(function() {});
+  return { default: MockPlaceableChecker };
+});
+
+vi.mock('./placeableHelpers/placeableSetter.mjs', () => {
+  const MockPlaceableSetter = vi.fn().mockImplementation(function() {});
+  return { default: MockPlaceableSetter };
+});
+
 vi.mock('../baseClasses/handler.mjs', () => ({
     default: class MockHandler {
         constructor(config, utils, context) {
@@ -24,6 +31,20 @@ vi.mock('../baseClasses/handler.mjs', () => ({
         }
     }
 }));
+
+// Mock config-related imports that might cause problems
+vi.mock('@config', () => ({
+  default: {
+    constants: { mockConstants: true },
+    manifest: { id: 'test-module' }
+  }
+}));
+
+import PlaceableHandler from './placeableHandler.mjs';
+import PlaceableGetter from './placeableHelpers/placeableGetter.mjs';
+import PlaceableChecker from './placeableHelpers/placeableChecker.mjs';
+import PlaceableSetter from './placeableHelpers/placeableSetter.mjs';
+import Handler from '../baseClasses/handler.mjs';
 
 describe('PlaceableHandler', () => {
     let placeableHandler;
@@ -62,10 +83,8 @@ describe('PlaceableHandler', () => {
             isOver: vi.fn()
         };
 
-        // Setup mock implementations
-        PlaceableGetter.mockImplementation(() => mockGetter);
-        PlaceableSetter.mockImplementation(() => mockSetter);
-        PlaceableChecker.mockImplementation(() => mockChecker);
+        // Factory mocks defined above replace the need for
+        // runtime mockImplementation calls that were previously set up here.
 
         placeableHandler = new PlaceableHandler(mockConfig, mockContext, mockUtils);
         placeableHandler.getter = mockGetter;

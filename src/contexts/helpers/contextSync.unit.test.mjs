@@ -7,23 +7,56 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
-// Mock modules with problematic imports first
-vi.mock('./contextItem.mjs', () => ({
-  ContextItem: vi.fn().mockImplementation((value, metadata) => ({
-    value,
-    metadata: metadata || {},
-    modifiedAt: new Date(),
-    setMetadata: vi.fn()
-  }))
-}));
+function loadAlias(relativePath) {
+  return async () => import(new URL(relativePath, import.meta.url).href);
+}
 
-vi.mock('./contextContainer.mjs', () => ({
-  ContextContainer: vi.fn().mockImplementation(() => ({
-    keys: vi.fn(),
-    getItem: vi.fn(),
-    setItem: vi.fn()
-  }))
-}));
+vi.mock('@utils/static/validator.mjs', loadAlias('../../utils/static/validator.mjs'));
+vi.mock('@helpers/pathUtils.mjs', loadAlias('../../helpers/pathUtils.mjs'));
+vi.mock('@config', loadAlias('../../config/config.mjs'));
+vi.mock('@constants', loadAlias('../../config/constants.mjs'));
+vi.mock('@manifest', loadAlias('../../config/manifest.mjs'));
+
+// Mock modules with problematic imports first
+vi.mock('./contextItem.mjs', () => {
+  const ContextItem = vi.fn().mockImplementation(function MockContextItem(value, metadata = {}) {
+    this.value = value;
+    this.metadata = metadata;
+    this.modifiedAt = new Date();
+    this.createdAt = this.modifiedAt;
+    this.lastAccessedAt = this.modifiedAt;
+    this.setMetadata = vi.fn((newMetadata = {}, merge = true) => {
+      this.metadata = merge ? { ...this.metadata, ...newMetadata } : newMetadata;
+      this.modifiedAt = new Date();
+    });
+  });
+
+  return {
+    __esModule: true,
+    ContextItem,
+    default: ContextItem
+  };
+});
+
+vi.mock('./contextContainer.mjs', () => {
+  const ContextContainer = vi.fn().mockImplementation(function MockContextContainer(initialValue = {}) {
+    this.value = initialValue;
+    this.metadata = {};
+    this.modifiedAt = new Date();
+    this.createdAt = this.modifiedAt;
+    this.lastAccessedAt = this.modifiedAt;
+    this.isContextContainer = true;
+    this.keys = vi.fn();
+    this.getItem = vi.fn();
+    this.setItem = vi.fn();
+  });
+
+  return {
+    __esModule: true,
+    ContextContainer,
+    default: ContextContainer
+  };
+});
 
 vi.mock('../context.mjs', () => ({
   default: vi.fn().mockImplementation(() => ({
@@ -43,6 +76,7 @@ vi.mock('./contextComparison.mjs', () => ({
 
 vi.mock('./contextAutoSync.mjs', () => ({
   default: {
+    autoSync: vi.fn(),
     sync: vi.fn(),
     analyze: vi.fn()
   }
@@ -51,20 +85,34 @@ vi.mock('./contextAutoSync.mjs', () => ({
 vi.mock('./contextItemSync.mjs', () => ({
   default: {
     syncFromSource: vi.fn(),
-    syncToSource: vi.fn()
+    syncToSource: vi.fn(),
+    updateTargetToSource: vi.fn(),
+    mergeNewerWins: vi.fn()
   }
 }));
 
 vi.mock('./contextContainerSync.mjs', () => ({
   default: {
     syncFromSource: vi.fn(),
-    syncToSource: vi.fn()
+    syncToSource: vi.fn(),
+    mergeWithPriority: vi.fn(),
+    mergeNewerWins: vi.fn()
   }
 }));
 
 vi.mock('./contextLegacySync.mjs', () => ({
   default: {
-    legacySync: vi.fn()
+    legacySync: vi.fn(),
+    validateCompatibility: vi.fn(),
+    performLegacySync: vi.fn(),
+    SYNC_OPERATIONS: {
+      UPDATE_SOURCE_TO_TARGET: 'updateSourceToTarget',
+      UPDATE_TARGET_TO_SOURCE: 'updateTargetToSource',
+      MERGE_NEWER_WINS: 'mergeNewerWins',
+      MERGE_SOURCE_PRIORITY: 'mergeSourcePriority',
+      MERGE_TARGET_PRIORITY: 'mergeTargetPriority',
+      NO_ACTION: 'noAction'
+    }
   }
 }));
 

@@ -6,6 +6,16 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
+function loadAlias(relativePath) {
+  return async () => import(new URL(relativePath, import.meta.url).href);
+}
+
+vi.mock('@utils/static/validator.mjs', loadAlias('../../utils/static/validator.mjs'));
+vi.mock('@helpers/pathUtils.mjs', loadAlias('../../helpers/pathUtils.mjs'));
+vi.mock('@config', loadAlias('../../config/config.mjs'));
+vi.mock('@constants', loadAlias('../../config/constants.mjs'));
+vi.mock('@manifest', loadAlias('../../config/manifest.mjs'));
+
 // Mock modules with problematic imports
 vi.mock('./contextItem.mjs', () => ({
   ContextItem: vi.fn().mockImplementation((value, metadata) => ({
@@ -27,14 +37,18 @@ vi.mock('./contextContainer.mjs', () => ({
 vi.mock('./contextContainerSync.mjs', () => ({
   default: {
     syncFromSource: vi.fn(),
-    syncToSource: vi.fn()
+    syncToSource: vi.fn(),
+    mergeWithPriority: vi.fn(),
+    mergeNewerWins: vi.fn()
   }
 }));
 
 vi.mock('./contextItemSync.mjs', () => ({
   default: {
     syncFromSource: vi.fn(),
-    syncToSource: vi.fn()
+    syncToSource: vi.fn(),
+    updateTargetToSource: vi.fn(),
+    mergeNewerWins: vi.fn()
   }
 }));
 

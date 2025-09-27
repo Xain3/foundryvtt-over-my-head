@@ -5,6 +5,53 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock all alias imports that could be imported by the chain of dependencies
+vi.mock('@utils/static/validator.mjs', () => ({
+  default: {
+    validateObject: vi.fn(),
+    validateString: vi.fn(),
+    validateArray: vi.fn(),
+    validateFunction: vi.fn(),
+    validateNumber: vi.fn(),
+    validateBoolean: vi.fn()
+  },
+  Validator: {
+    validateObject: vi.fn(),
+    validateString: vi.fn(),
+    validateArray: vi.fn(),
+    validateFunction: vi.fn(),
+    validateNumber: vi.fn(),
+    validateBoolean: vi.fn()
+  }
+}));
+
+vi.mock('@helpers/pathUtils.mjs', () => ({
+  default: {
+    resolvePath: vi.fn(),
+    extractKeyComponents: vi.fn(),
+    resolveMixedPath: vi.fn(),
+    pathExistsInMixedStructure: vi.fn(),
+    getValueFromMixedPath: vi.fn()
+  }
+}));
+
+vi.mock('@config', () => ({
+  default: {
+    constants: {
+      moduleManagement: {
+        defaults: {
+          modulesLocation: 'game.modules'
+        }
+      }
+    },
+    manifest: {
+      id: 'test-module-id'
+    },
+    buildManifestWithShortName: vi.fn(() => ({ shortName: 'OMH' })),
+    exportConstants: vi.fn()
+  }
+}));
 import ContextHelpers from './contextHelpers.mjs';
 import { ContextItem } from './contextItem.mjs';
 import { ContextContainer } from './contextContainer.mjs';

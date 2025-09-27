@@ -95,8 +95,9 @@ describe('SettingsHandler', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    // Factory mocks are already in place, no need to mock implementation again
+
+    // Factory mocks defined above already provide the necessary implementations,
+    // eliminating the need for runtime mockImplementation calls.
   });
 
   describe('constructor', () => {

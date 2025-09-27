@@ -83,8 +83,9 @@ describe('PlaceableHandler', () => {
             isOver: vi.fn()
         };
 
-        // Remove mockImplementation calls since we're using factory mocks
-        
+        // Factory mocks defined above replace the need for
+        // runtime mockImplementation calls that were previously set up here.
+
         placeableHandler = new PlaceableHandler(mockConfig, mockContext, mockUtils);
         placeableHandler.getter = mockGetter;
         placeableHandler.setter = mockSetter;

@@ -1,4 +1,27 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock the validator alias before importing anything else
+vi.mock('@utils/static/validator.mjs', () => ({
+  default: {
+    validateObject: vi.fn(),
+    validateString: vi.fn(),
+    validateArray: vi.fn(),
+    validateFunction: vi.fn(),
+    validateNumber: vi.fn(),
+    validateBoolean: vi.fn(),
+    validateDate: vi.fn()
+  },
+  Validator: {
+    validateObject: vi.fn(),
+    validateString: vi.fn(),
+    validateArray: vi.fn(),
+    validateFunction: vi.fn(),
+    validateNumber: vi.fn(),
+    validateBoolean: vi.fn(),
+    validateDate: vi.fn()
+  }
+}));
+
 import { ContextItem } from './contextItem.mjs';
 import { Validator } from '@utils/static/validator.mjs';
 

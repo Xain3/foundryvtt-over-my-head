@@ -7,13 +7,36 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 // Mock dependencies to prevent raw import issues  
-vi.mock('../../src/utils/static/validator.mjs', () => {
-  const Validator = {
-    isValidContext: vi.fn(() => true),
-    isValidContextComponent: vi.fn(() => true),
-    validateAndThrow: vi.fn()
+vi.mock('@utils/static/validator.mjs', async () => {
+  const actual = await vi.importActual('../../src/utils/static/validator.mjs');
+  return {
+    ...actual,
+    Validator: {
+      isValidContext: vi.fn(() => true),
+      isValidContextComponent: vi.fn(() => true),
+      validateAndThrow: vi.fn(),
+      validateDate: vi.fn(),
+      ...actual.Validator
+    }
   };
-  return { Validator, default: Validator };
+});
+
+vi.mock('@helpers/pathUtils.mjs', async () => {
+  const actual = await vi.importActual('../../src/helpers/pathUtils.mjs');
+  return {
+    ...actual,
+    default: {
+      resolvePath: vi.fn(),
+      extractKeyComponents: vi.fn((key) => {
+        const parts = key.split('.');
+        return {
+          firstKey: parts[0],
+          remainingPath: parts.slice(1).join('.')
+        };
+      }),
+      ...actual.default
+    }
+  };
 });
 
 import { ContextContainer } from '../../src/contexts/helpers/contextContainer.mjs';

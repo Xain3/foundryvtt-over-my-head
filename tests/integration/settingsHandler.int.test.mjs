@@ -7,22 +7,30 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 // Mock dependencies to prevent raw import issues
-vi.mock('../../src/baseClasses/handler.mjs', () => ({
-  default: class MockHandler {
-    constructor(config, utils, context) {
-      this.config = config;
-      this.utils = utils;
-      this.context = context;
+vi.mock('@/baseClasses/handler', async () => {
+  const actual = await vi.importActual('../../src/baseClasses/handler.mjs');
+  return {
+    ...actual,
+    default: class MockHandler {
+      constructor(config, utils, context) {
+        this.config = config;
+        this.utils = utils;
+        this.context = context;
+      }
     }
-  }
-}));
-
-vi.mock('../../src/utils/static/validator.mjs', () => {
-  const Validator = {
-    isValidSettingsConfig: vi.fn(() => true),
-    validateAndThrow: vi.fn()
   };
-  return { Validator, default: Validator };
+});
+
+vi.mock('@utils/static/validator.mjs', async () => {
+  const actual = await vi.importActual('../../src/utils/static/validator.mjs');
+  return {
+    ...actual,
+    Validator: {
+      isValidSettingsConfig: vi.fn(() => true),
+      validateAndThrow: vi.fn(),
+      ...actual.Validator
+    }
+  };
 });
 
 import SettingsHandler from '../../src/handlers/settingsHandler.mjs';

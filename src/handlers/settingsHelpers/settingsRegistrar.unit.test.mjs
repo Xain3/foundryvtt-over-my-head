@@ -9,9 +9,10 @@ import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } 
 // Mock modules with problematic imports first
 vi.mock('@/baseClasses/handler', () => ({
   default: class MockHandler {
-    constructor(config, utils) {
+    constructor(config, utils, context = {}) {
       this.config = config;
       this.utils = utils;
+      this.context = context;
     }
   }
 }));

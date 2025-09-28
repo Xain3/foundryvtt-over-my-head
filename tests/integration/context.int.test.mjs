@@ -6,33 +6,148 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
-// Mock dependencies to prevent raw import issues
-vi.mock('../../src/utils/static/validator.mjs', () => {
-  const Validator = {
-    isValidContextSchema: vi.fn(() => true),
-    isValidContext: vi.fn(() => true),
-    isValidContextComponent: vi.fn(() => true),
-    validateAndThrow: vi.fn()
+function loadAlias(relativePath) {
+  return async () => import(new URL(relativePath, import.meta.url).href);
+}
+
+const { constantsMock, manifestMock, configMock } = vi.hoisted(() => {
+  const contextHelpers = {
+    mergeStrategies: {
+      MERGE_NEWER_WINS: 'mergeNewerWins',
+      MERGE_SOURCE_PRIORITY: 'mergeSourcePriority',
+      MERGE_TARGET_PRIORITY: 'mergeTargetPriority',
+      UPDATE_SOURCE_TO_TARGET: 'updateSourceToTarget',
+      UPDATE_TARGET_TO_SOURCE: 'updateTargetToSource',
+      REPLACE: 'replace',
+      NO_ACTION: 'noAction'
+    },
+    comparisonResults: {
+      SOURCE_NEWER: 'sourceNewer',
+      TARGET_NEWER: 'targetNewer',
+      EQUAL: 'equal',
+      SOURCE_MISSING: 'sourceMissing',
+      TARGET_MISSING: 'targetMissing',
+      BOTH_MISSING: 'bothMissing',
+      CONTAINER_A_NEWER: 'containerANewer',
+      CONTAINER_B_NEWER: 'containerBNewer',
+      CONTAINER_A_MISSING: 'containerAMissing',
+      CONTAINER_B_MISSING: 'containerBMissing'
+    },
+    defaultComponents: ['schema', 'constants', 'manifest', 'flags', 'state', 'data', 'settings'],
+    errorMessages: {
+      invalidSourceTarget: 'Source and target contexts must be provided',
+      emptyItemPaths: 'Item paths must be a non-empty array',
+      emptySources: 'Sources must be a non-empty array of contexts',
+      emptyTargets: 'Targets must be a non-empty array of contexts',
+      emptyTarget: 'Target context must be provided',
+      unsupportedObjectType: 'Unsupported object type for synchronization',
+      unsupportedObjectTypes: 'Unsupported object types for synchronization',
+      incompatibleTypes: 'Incompatible object types: type mismatch between source and target',
+      invalidMergeContext: 'Invalid source or target context for merge operation',
+      unknownSyncOperation: 'Unknown synchronization operation: {operation}',
+      cannotOverwriteFrozen: 'Cannot overwrite frozen item at key "{key}". Use ignoreFrozen option to force overwrite.',
+      keyRenamed: 'Key "{key}" is reserved. It will been renamed to "_{key}".'
+    }
   };
-  return { Validator, default: Validator };
+
+  const operationsDefaults = {
+    alwaysPullBeforeGetting: false,
+    alwaysPullBeforeSetting: false,
+    pullFrom: [],
+    alwaysPushAfterSetting: false,
+    pushTo: [],
+    errorHandling: {
+      onPullError: 'warn',
+      onPushError: 'warn',
+      onValidationError: 'throw'
+    }
+  };
+
+  const syncDefaults = {
+    autoSync: true,
+    pullBeforeGet: true,
+    pushAfterSet: true,
+    syncStrategy: 'mergeNewerWins',
+    syncThrottleMs: 1000,
+    deepSync: true,
+    compareBy: 'modifiedAt'
+  };
+
+  const contextConstants = {
+    schema: {
+      manifest: 'object',
+      constants: 'object',
+      flags: 'object',
+      data: 'object',
+      settings: 'object',
+      timestamp: 'number'
+    },
+    naming: {
+      state: 'state',
+      settings: 'settings',
+      flags: 'flags',
+      data: 'data',
+      manifest: 'manifest',
+      timestamp: 'timestamp'
+    },
+    operationsParams: {
+      defaults: operationsDefaults
+    },
+    sync: {
+      defaults: syncDefaults,
+      strategies: [
+        'mergeNewerWins',
+        'mergeSourcePriority',
+        'mergeTargetPriority',
+        'updateSourceToTarget',
+        'updateTargetToSource',
+        'replace',
+        'noAction'
+      ],
+      comparisonMethods: ['modifiedAt', 'createdAt', 'version', 'hash']
+    },
+    helpers: contextHelpers
+  };
+
+  const constantsMock = {
+    moduleManagement: {
+      shortName: 'TM'
+    },
+    errors: {
+      separator: ' || ',
+      pattern: '{{module}}{{caller}}{{error}}{{stack}}'
+    },
+    context: contextConstants
+  };
+
+  const manifestMock = {
+    id: 'test-module',
+    title: 'Test Module',
+    version: '1.0.0',
+    flags: {
+      dev: true
+    }
+  };
+
+  const configMock = {
+    constants: constantsMock,
+    manifest: manifestMock,
+    buildManifestWithShortName: vi.fn(() => ({ ...manifestMock, shortName: 'TM' })),
+    exportConstants: vi.fn()
+  };
+
+  return { constantsMock, manifestMock, configMock };
 });
 
-vi.mock('../../src/config/config.mjs', () => ({
-  default: {
-    constants: {
-      context: {
-        schema: {},
-        sync: { defaults: {} },
-        operationsParams: { defaults: {} },
-        helpers: {}
-      }
-    },
-    manifest: {
-      id: 'test-module',
-      title: 'Test Module'
-    }
-  }
-}));
+// Mock dependencies to prevent raw import issues
+vi.mock('@helpers/pathUtils.mjs', loadAlias('../../src/helpers/pathUtils.mjs'));
+vi.mock('@utils/static/validator.mjs', loadAlias('../../src/utils/static/validator.mjs'));
+vi.mock('../../src/config/constants.mjs', () => ({ default: constantsMock }));
+vi.mock('@constants', () => ({ default: constantsMock }));
+vi.mock('../../src/config/manifest.mjs', () => ({ default: manifestMock }));
+vi.mock('@manifest', () => ({ default: manifestMock }));
+vi.mock('../../src/config/config.mjs', () => ({ default: configMock }));
+vi.mock('@config', () => ({ default: configMock }));
 
 import Context from '../../src/contexts/context.mjs';
 import { ContextContainer } from '../../src/contexts/helpers/contextContainer.mjs';
@@ -820,7 +935,9 @@ describe('Context Integration Tests', () => {
       contextWithReservedKeys.setItem('data.newUser.value', 'This will be renamed');
       expect(contextWithReservedKeys.getItem('data.newUser._value')).toBe('This will be renamed');
       expect(contextWithReservedKeys.hasItem('data.newUser.value')).toBe(false);
-    });    it('should handle dynamically added data with reserved keys', () => {
+  });
+
+  it('should handle dynamically added data with reserved keys', () => {
       // Test setting items with reserved keys after initialization
       context.setItem('data.newItem.value', 'Should be renamed');
       context.setItem('data.nested.deep.value', 'Deep reserved key');

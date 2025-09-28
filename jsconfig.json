@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "types": [],
     "paths": {
       "@/*": ["src/*"],
       "@docker/*": ["docker/*"],

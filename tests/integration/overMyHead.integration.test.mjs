@@ -22,6 +22,17 @@ vi.mock('../../src/config/helpers/constantsParser.mjs', () => ({
   default: {
     parseConstants: vi.fn(() => ({ 
       test: 'value',
+      errors: {
+        separator: ': '
+      },
+      context: {
+        sync: {
+          defaults: {}
+        }
+      },
+      moduleManagement: {
+        referToModuleBy: 'id'
+      },
       requiredManifestAttributes: [
         'id',
         'title', 
@@ -37,7 +48,7 @@ import config from '../../src/config/config.mjs';
 
 // Mock the Utilities class since we're testing config integration and init flow wiring
 vi.mock('../../src/utils/utils.mjs', () => {
-  return vi.fn().mockImplementation(() => ({
+  const MockUtils = vi.fn().mockImplementation(() => ({
     static: {
       unpack: vi.fn()
     },
@@ -49,6 +60,8 @@ vi.mock('../../src/utils/utils.mjs', () => {
       confirmInitialization: vi.fn()
     }
   }));
+  
+  return { default: MockUtils };
 });
 
 // Minimal Hooks mock for tests not running in Foundry

@@ -39,17 +39,22 @@ vi.mock('../../src/config/helpers/constantsParser.mjs', () => ({
 }));
 
 // Mock @config alias for moduleGetter.mjs
-vi.mock('../../src/config/config.mjs', () => ({
-  default: {
-    constants: {
-      moduleManagement: {
-        defaults: {
-          modulesLocation: 'game.modules'
+vi.mock('@config', async () => {
+  const actual = await vi.importActual('../../src/config/config.mjs');
+  return {
+    ...actual,
+    default: {
+      constants: {
+        moduleManagement: {
+          defaults: {
+            modulesLocation: 'game.modules'
+          }
         }
-      }
+      },
+      ...actual.default
     }
-  }
-}));
+  };
+});
 
 import PathUtils from '../../src/helpers/pathUtils.mjs';
 import { getModule } from '../../src/helpers/moduleGetter.mjs';

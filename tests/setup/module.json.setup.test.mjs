@@ -5,64 +5,64 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-import moduleManifest, { id, title, description, version, compatibility, esmodules, scripts, styles, packs, packFolders, relationships, languages, system, authors, socket, url, manifest, download, license, readme, bugs, changelog, library, media as _media, flags, name } from '../../module.json';
+import moduleManifest from '../../module.json';
 
 describe('Module Manifest Validation', () => {
   describe('Required Attributes', () => {
     it('should have id as a string with proper format', () => {
       expect(moduleManifest).toHaveProperty('id');
-      expect(typeof id).toBe('string');
-      expect(id).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
-      expect(id.length).toBeGreaterThan(0);
+      expect(typeof moduleManifest.id).toBe('string');
+      expect(moduleManifest.id).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+      expect(moduleManifest.id.length).toBeGreaterThan(0);
     });
 
     it('should have title as a string', () => {
       expect(moduleManifest).toHaveProperty('title');
-      expect(typeof title).toBe('string');
-      expect(title.length).toBeGreaterThan(0);
+      expect(typeof moduleManifest.title).toBe('string');
+      expect(moduleManifest.title.length).toBeGreaterThan(0);
     });
 
     it('should have description as a string', () => {
       expect(moduleManifest).toHaveProperty('description');
-      expect(typeof description).toBe('string');
-      expect(description.length).toBeGreaterThan(0);
+      expect(typeof moduleManifest.description).toBe('string');
+      expect(moduleManifest.description.length).toBeGreaterThan(0);
     });
 
     it('should have version as a string', () => {
       expect(moduleManifest).toHaveProperty('version');
-      expect(typeof version).toBe('string');
-      expect(version.length).toBeGreaterThan(0);
+      expect(typeof moduleManifest.version).toBe('string');
+      expect(moduleManifest.version.length).toBeGreaterThan(0);
     });
 
     it('version should follow semantic versioning format', () => {
-      expect(version).toMatch(/^\d+\.\d+\.\d+(-[a-z0-9]+)?$/);
+      expect(moduleManifest.version).toMatch(/^\d+\.\d+\.\d+(-[a-z0-9]+)?$/);
     });
   });
 
   describe('Optional Attributes', () => {
     it('compatibility should be properly structured if present', () => {
-      if (compatibility) {
-        expect(typeof compatibility).toBe('object');
-        expect(compatibility).not.toBeNull();
+      if (moduleManifest.compatibility) {
+        expect(typeof moduleManifest.compatibility).toBe('object');
+        expect(moduleManifest.compatibility).not.toBeNull();
 
-        if (compatibility.minimum) {
-          expect(typeof compatibility.minimum).toBe('string');
+        if (moduleManifest.compatibility.minimum) {
+          expect(typeof moduleManifest.compatibility.minimum).toBe('string');
         }
 
-        if (compatibility.verified) {
-          expect(typeof compatibility.verified).toBe('string');
+        if (moduleManifest.compatibility.verified) {
+          expect(typeof moduleManifest.compatibility.verified).toBe('string');
         }
 
-        if (compatibility.maximum) {
-          expect(typeof compatibility.maximum).toBe('string');
+        if (moduleManifest.compatibility.maximum) {
+          expect(typeof moduleManifest.compatibility.maximum).toBe('string');
         }
       }
     });
 
     it('esmodules should be an array of strings if present', () => {
-      if (esmodules) {
-        expect(Array.isArray(esmodules)).toBe(true);
-        esmodules.forEach(module => {
+      if (moduleManifest.esmodules) {
+        expect(Array.isArray(moduleManifest.esmodules)).toBe(true);
+        moduleManifest.esmodules.forEach(module => {
           expect(typeof module).toBe('string');
           expect(module).toMatch(/\.mjs$/);
         });
@@ -70,9 +70,9 @@ describe('Module Manifest Validation', () => {
     });
 
     it('scripts should be an array of strings if present', () => {
-      if (scripts) {
-        expect(Array.isArray(scripts)).toBe(true);
-        scripts.forEach(script => {
+      if (moduleManifest.scripts) {
+        expect(Array.isArray(moduleManifest.scripts)).toBe(true);
+        moduleManifest.scripts.forEach(script => {
           expect(typeof script).toBe('string');
           expect(script).toMatch(/\.mjs$/);
         });
@@ -80,9 +80,9 @@ describe('Module Manifest Validation', () => {
     });
 
     it('styles should be an array of strings if present', () => {
-      if (styles) {
-        expect(Array.isArray(styles)).toBe(true);
-        styles.forEach(style => {
+      if (moduleManifest.styles) {
+        expect(Array.isArray(moduleManifest.styles)).toBe(true);
+        moduleManifest.styles.forEach(style => {
           expect(typeof style).toBe('string');
           expect(style).toMatch(/\.css$/);
         });
@@ -90,9 +90,9 @@ describe('Module Manifest Validation', () => {
     });
 
     it('packs should be properly structured if present', () => {
-      if (packs) {
-        expect(Array.isArray(packs)).toBe(true);
-        packs.forEach(pack => {
+      if (moduleManifest.packs) {
+        expect(Array.isArray(moduleManifest.packs)).toBe(true);
+        moduleManifest.packs.forEach(pack => {
           expect(typeof pack).toBe('object');
           expect(typeof pack.name).toBe('string');
           expect(typeof pack.label).toBe('string');
@@ -116,8 +116,8 @@ describe('Module Manifest Validation', () => {
     });
 
     it('packFolders should be properly structured if present', () => {
-      if (packFolders) {
-        expect(Array.isArray(packFolders)).toBe(true);
+      if (moduleManifest.packFolders) {
+        expect(Array.isArray(moduleManifest.packFolders)).toBe(true);
 
         const validatePackFolder = (folder) => {
           expect(typeof folder).toBe('object');
@@ -133,20 +133,20 @@ describe('Module Manifest Validation', () => {
           }
         };
 
-        packFolders.forEach(validatePackFolder);
+        moduleManifest.packFolders.forEach(validatePackFolder);
       }
     });
 
     it('relationships should be properly structured if present', () => {
-      if (relationships) {
-        expect(typeof relationships).toBe('object');
+      if (moduleManifest.relationships) {
+        expect(typeof moduleManifest.relationships).toBe('object');
 
         const validRelationshipTypes = ['requires', 'recommends', 'conflicts', 'systems'];
-        Object.keys(relationships).forEach(key => {
+        Object.keys(moduleManifest.relationships).forEach(key => {
           expect(validRelationshipTypes).toContain(key);
-          expect(Array.isArray(relationships[key])).toBe(true);
+          expect(Array.isArray(moduleManifest.relationships[key])).toBe(true);
 
-          relationships[key].forEach(relationship => {
+          moduleManifest.relationships[key].forEach(relationship => {
             expect(typeof relationship).toBe('object');
             expect(typeof relationship.id).toBe('string');
 
@@ -175,9 +175,9 @@ describe('Module Manifest Validation', () => {
     });
 
     it('languages should be properly structured if present', () => {
-      if (languages) {
-        expect(Array.isArray(languages)).toBe(true);
-        languages.forEach(language => {
+      if (moduleManifest.languages) {
+        expect(Array.isArray(moduleManifest.languages)).toBe(true);
+        moduleManifest.languages.forEach(language => {
           expect(typeof language).toBe('object');
           expect(typeof language.lang).toBe('string');
           expect(language.lang).toMatch(/^[a-z]{2}(-[A-Z]{2})?$/);
@@ -189,18 +189,18 @@ describe('Module Manifest Validation', () => {
     });
 
     it('system should be an array of strings if present', () => {
-      if (system) {
-        expect(Array.isArray(system)).toBe(true);
-        system.forEach(sys => {
+      if (moduleManifest.system) {
+        expect(Array.isArray(moduleManifest.system)).toBe(true);
+        moduleManifest.system.forEach(sys => {
           expect(typeof sys).toBe('string');
         });
       }
     });
 
     it('authors should be properly structured if present', () => {
-      if (authors) {
-        expect(Array.isArray(authors)).toBe(true);
-        authors.forEach(author => {
+      if (moduleManifest.authors) {
+        expect(Array.isArray(moduleManifest.authors)).toBe(true);
+        moduleManifest.authors.forEach(author => {
           expect(typeof author).toBe('object');
 
           if (author.id) expect(typeof author.id).toBe('string');
@@ -213,69 +213,69 @@ describe('Module Manifest Validation', () => {
     });
 
     it('socket should be a boolean if present', () => {
-      if (socket !== undefined) {
-        expect(typeof socket).toBe('boolean');
+      if (moduleManifest.socket !== undefined) {
+        expect(typeof moduleManifest.socket).toBe('boolean');
       }
     });
 
     it('url should be a string if present', () => {
-      if (url) {
-        expect(typeof url).toBe('string');
-        expect(url.length).toBeGreaterThan(0);
+      if (moduleManifest.url) {
+        expect(typeof moduleManifest.url).toBe('string');
+        expect(moduleManifest.url.length).toBeGreaterThan(0);
       }
     });
 
     it('manifest should be a string if present', () => {
-      if (manifest) {
-        expect(typeof manifest).toBe('string');
-        expect(manifest.length).toBeGreaterThan(0);
+      if (moduleManifest.manifest) {
+        expect(typeof moduleManifest.manifest).toBe('string');
+        expect(moduleManifest.manifest.length).toBeGreaterThan(0);
       }
     });
 
     it('download should be a string if present', () => {
-      if (download) {
-        expect(typeof download).toBe('string');
-        expect(download.length).toBeGreaterThan(0);
+      if (moduleManifest.download) {
+        expect(typeof moduleManifest.download).toBe('string');
+        expect(moduleManifest.download.length).toBeGreaterThan(0);
       }
     });
 
     it('license should be a string if present', () => {
-      if (license) {
-        expect(typeof license).toBe('string');
+      if (moduleManifest.license) {
+        expect(typeof moduleManifest.license).toBe('string');
       }
     });
 
     it('readme should be a string if present', () => {
-      if (readme) {
-        expect(typeof readme).toBe('string');
-        expect(readme.length).toBeGreaterThan(0);
+      if (moduleManifest.readme) {
+        expect(typeof moduleManifest.readme).toBe('string');
+        expect(moduleManifest.readme.length).toBeGreaterThan(0);
       }
     });
 
     it('bugs should be a string if present', () => {
-      if (bugs) {
-        expect(typeof bugs).toBe('string');
-        expect(bugs.length).toBeGreaterThan(0);
+      if (moduleManifest.bugs) {
+        expect(typeof moduleManifest.bugs).toBe('string');
+        expect(moduleManifest.bugs.length).toBeGreaterThan(0);
       }
     });
 
     it('changelog should be a string if present', () => {
-      if (changelog) {
-        expect(typeof changelog).toBe('string');
-        expect(changelog.length).toBeGreaterThan(0);
+      if (moduleManifest.changelog) {
+        expect(typeof moduleManifest.changelog).toBe('string');
+        expect(moduleManifest.changelog.length).toBeGreaterThan(0);
       }
     });
 
     it('library should be a boolean if present', () => {
-      if (library !== undefined) {
-        expect(typeof library).toBe('boolean');
+      if (moduleManifest.library !== undefined) {
+        expect(typeof moduleManifest.library).toBe('boolean');
       }
     });
 
     it('media should be properly structured if present', () => {
-      if (_media) {
-        expect(Array.isArray(_media)).toBe(true);
-        _media.forEach(media => {
+      if (moduleManifest.media) {
+        expect(Array.isArray(moduleManifest.media)).toBe(true);
+        moduleManifest.media.forEach(media => {
           expect(typeof media).toBe('object');
           expect(typeof media.type).toBe('string');
           expect(typeof media.url).toBe('string');
@@ -288,16 +288,16 @@ describe('Module Manifest Validation', () => {
 
   describe('Custom Fields', () => {
     it('flags should be an object if present', () => {
-      if (flags) {
-        expect(typeof flags).toBe('object');
-        expect(flags).not.toBeNull();
+      if (moduleManifest.flags) {
+        expect(typeof moduleManifest.flags).toBe('object');
+        expect(moduleManifest.flags).not.toBeNull();
       }
     });
 
     it('name should be a string if present', () => {
-      if (name) {
-        expect(typeof name).toBe('string');
-        expect(name.length).toBeGreaterThan(0);
+      if (moduleManifest.name) {
+        expect(typeof moduleManifest.name).toBe('string');
+        expect(moduleManifest.name.length).toBeGreaterThan(0);
       }
     });
   });
@@ -310,29 +310,29 @@ describe('Module Manifest Validation', () => {
 
     it('should validate actual manifest structure against current file', () => {
       // Validate required fields exist
-      expect(id).toBe('foundryvtt-over-my-head');
-      expect(title).toBe('OverMyHead');
+      expect(moduleManifest.id).toBe('foundryvtt-over-my-head');
+      expect(moduleManifest.title).toBe('OverMyHead');
       const versioningPattern = /^\d+\.\d+\.\d+(?:-[A-Za-z0-9-.]+)?(?:\+[A-Za-z0-9-.]+)?$/;
-      expect(version).toMatch(versioningPattern);
+      expect(moduleManifest.version).toMatch(versioningPattern);
 
       // Validate custom fields
-      expect(flags).toBeDefined();
-      expect(flags.debugMode).toBe(false);
-      expect(flags.onlyGM).toBe(true);
-      expect(flags.settingsReady).toBe(false);
+      expect(moduleManifest.flags).toBeDefined();
+      expect(moduleManifest.flags.debugMode).toBe(false);
+      expect(moduleManifest.flags.onlyGM).toBe(true);
+      expect(moduleManifest.flags.settingsReady).toBe(false);
     });
 
     it('should validate array fields are not empty if defined', () => {
-      if (esmodules && esmodules.length > 0) {
-        expect(esmodules).toContain('dist/main.mjs');
+      if (moduleManifest.esmodules && moduleManifest.esmodules.length > 0) {
+        expect(moduleManifest.esmodules).toContain('dist/main.mjs');
       }
 
-      if (styles && styles.length > 0) {
-        expect(styles).toContain('styles/foundryvtt-over-my-head.css');
+      if (moduleManifest.styles && moduleManifest.styles.length > 0) {
+        expect(moduleManifest.styles).toContain('styles/foundryvtt-over-my-head.css');
       }
 
-      if (languages && languages.length > 0) {
-        const englishLang = languages.find(lang => lang.lang === 'en');
+      if (moduleManifest.languages && moduleManifest.languages.length > 0) {
+        const englishLang = moduleManifest.languages.find(lang => lang.lang === 'en');
         expect(englishLang).toBeDefined();
         expect(englishLang.path).toBe('lang/en.json');
       }

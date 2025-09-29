@@ -61,7 +61,7 @@ describe('SettingsHandler', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock SettingsParser
     SettingsParser.mockImplementation(() => ({
       parse: jest.fn().mockReturnValue({
@@ -90,7 +90,7 @@ describe('SettingsHandler', () => {
   describe('constructor', () => {
     it('should initialize properly with config containing debugMode', () => {
       const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-      
+
       expect(handler.settingsConfig).toBe(mockConfig.constants.settings);
       expect(handler.parsedSettings).toBe(mockConfig.constants.settings.settingsList);
       expect(SettingsParser).toHaveBeenCalledWith(mockConfig, mockUtils, mockContext);
@@ -101,17 +101,17 @@ describe('SettingsHandler', () => {
   describe('hasDebugModeSettingConfig', () => {
     it('should return true when debugMode setting exists', () => {
       const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-      
+
       const result = handler.hasDebugModeSettingConfig();
-      
+
       expect(result).toBe(true);
     });
 
     it('should return false when debugMode setting does not exist', () => {
       const handler = new SettingsHandler(mockConfigWithoutDebug, mockUtils, mockContext);
-      
+
       const result = handler.hasDebugModeSettingConfig();
-      
+
       expect(result).toBe(false);
     });
   });
@@ -119,9 +119,9 @@ describe('SettingsHandler', () => {
   describe('getDebugModeSettingConfig', () => {
     it('should return debugMode setting when it exists', () => {
       const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-      
+
       const result = handler.getDebugModeSettingConfig();
-      
+
       expect(result).toEqual({
         key: 'debugMode',
         config: { name: 'Debug Mode', type: Boolean, default: false }
@@ -130,9 +130,9 @@ describe('SettingsHandler', () => {
 
     it('should return null when debugMode setting does not exist', () => {
       const handler = new SettingsHandler(mockConfigWithoutDebug, mockUtils, mockContext);
-      
+
       const result = handler.getDebugModeSettingConfig();
-      
+
       expect(result).toBe(null);
     });
   });
@@ -140,7 +140,7 @@ describe('SettingsHandler', () => {
   describe('registerDebugModeSetting', () => {
     it('should register debugMode setting when it exists', () => {
       const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-      
+
       // Mock the private registrar by spying on the register method
       const mockRegisterResult = {
         success: true,
@@ -149,12 +149,12 @@ describe('SettingsHandler', () => {
         errorMessages: [],
         message: 'Debug mode setting registered successfully'
       };
-      
+
       // We need to spy on the existing register method to test the interaction
       jest.spyOn(handler, 'register').mockReturnValue(mockRegisterResult);
-      
+
       const result = handler.registerDebugModeSetting();
-      
+
       expect(SettingLocalizer.localizeSettings).toHaveBeenCalledWith([{
         key: 'debugMode',
         config: { name: 'Debug Mode', type: Boolean, default: false }
@@ -164,9 +164,9 @@ describe('SettingsHandler', () => {
 
     it('should return failure result when debugMode setting does not exist', () => {
       const handler = new SettingsHandler(mockConfigWithoutDebug, mockUtils, mockContext);
-      
+
       const result = handler.registerDebugModeSetting();
-      
+
       expect(result.success).toBe(false);
       expect(result.counter).toBe(0);
       expect(result.successCounter).toBe(0);
@@ -178,9 +178,9 @@ describe('SettingsHandler', () => {
   describe('register method', () => {
     it('should call localizeSettings and proceed with registration', () => {
       const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-      
+
       const result = handler.register();
-      
+
       expect(SettingLocalizer.localizeSettings).toHaveBeenCalledWith(
         mockConfig.constants.settings.settingsList,
         mockUtils
@@ -194,7 +194,7 @@ describe('SettingsHandler', () => {
     describe('registerSettingByKey', () => {
       it('should register a setting by key when it exists', () => {
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const mockRegisterResult = {
           success: true,
           counter: 1,
@@ -202,13 +202,13 @@ describe('SettingsHandler', () => {
           errorMessages: [],
           message: 'Setting registered successfully'
         };
-        
+
         // Mock the registrar's register method to return success
         const mockRegistrarInstance = SettingsRegistrar.mock.instances[0];
         mockRegistrarInstance.register.mockReturnValue(mockRegisterResult);
-        
+
         const result = handler.registerSettingByKey('testSetting');
-        
+
         expect(SettingLocalizer.localizeSettings).toHaveBeenCalledWith([{
           key: 'testSetting',
           config: { name: 'Test Setting', type: Boolean, default: true }
@@ -218,9 +218,9 @@ describe('SettingsHandler', () => {
 
       it('should return failure result when setting does not exist', () => {
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.registerSettingByKey('nonExistentSetting');
-        
+
         expect(result.success).toBe(false);
         expect(result.counter).toBe(0);
         expect(result.successCounter).toBe(0);
@@ -232,17 +232,17 @@ describe('SettingsHandler', () => {
     describe('hasSettingConfigByKey', () => {
       it('should return true when setting exists', () => {
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.hasSettingConfigByKey('testSetting');
-        
+
         expect(result).toBe(true);
       });
 
       it('should return false when setting does not exist', () => {
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.hasSettingConfigByKey('nonExistentSetting');
-        
+
         expect(result).toBe(false);
       });
     });
@@ -250,9 +250,9 @@ describe('SettingsHandler', () => {
     describe('getSettingConfigByKey', () => {
       it('should return setting when it exists', () => {
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.getSettingConfigByKey('testSetting');
-        
+
         expect(result).toEqual({
           key: 'testSetting',
           config: { name: 'Test Setting', type: Boolean, default: true }
@@ -261,9 +261,9 @@ describe('SettingsHandler', () => {
 
       it('should return null when setting does not exist', () => {
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.getSettingConfigByKey('nonExistentSetting');
-        
+
         expect(result).toBe(null);
       });
     });
@@ -284,9 +284,9 @@ describe('SettingsHandler', () => {
       it('should return true when setting exists in game.settings', () => {
         global.game.settings.get.mockReturnValue(true);
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.hasSetting('testSetting');
-        
+
         expect(result).toBe(true);
         expect(global.game.settings.get).toHaveBeenCalledWith('foundryvtt-over-my-head', 'testSetting');
       });
@@ -294,9 +294,9 @@ describe('SettingsHandler', () => {
       it('should return false when setting does not exist in game.settings', () => {
         global.game.settings.get.mockReturnValue(undefined);
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.hasSetting('nonExistentSetting');
-        
+
         expect(result).toBe(false);
       });
 
@@ -305,27 +305,27 @@ describe('SettingsHandler', () => {
           throw new Error('Setting not found');
         });
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.hasSetting('errorSetting');
-        
+
         expect(result).toBe(false);
       });
 
       it('should return false when game.settings is not available', () => {
         delete global.game;
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.hasSetting('testSetting');
-        
+
         expect(result).toBe(false);
       });
 
       it('should return false when game is not available', () => {
         global.game = null;
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.hasSetting('testSetting');
-        
+
         expect(result).toBe(false);
       });
     });
@@ -347,9 +347,9 @@ describe('SettingsHandler', () => {
         const expectedValue = true;
         global.game.settings.get.mockReturnValue(expectedValue);
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.getSettingValue('testSetting');
-        
+
         expect(result).toBe(expectedValue);
         expect(global.game.settings.get).toHaveBeenCalledWith('foundryvtt-over-my-head', 'testSetting');
       });
@@ -357,9 +357,9 @@ describe('SettingsHandler', () => {
       it('should return undefined when setting does not exist', () => {
         global.game.settings.get.mockReturnValue(undefined);
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.getSettingValue('nonExistentSetting');
-        
+
         expect(result).toBe(undefined);
       });
 
@@ -368,36 +368,36 @@ describe('SettingsHandler', () => {
           throw new Error('Setting not found');
         });
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.getSettingValue('errorSetting');
-        
+
         expect(result).toBe(undefined);
       });
 
       it('should return undefined when game.settings is not available', () => {
         delete global.game;
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.getSettingValue('testSetting');
-        
+
         expect(result).toBe(undefined);
       });
 
       it('should return values of different types correctly', () => {
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         // Test boolean
         global.game.settings.get.mockReturnValue(false);
         expect(handler.getSettingValue('boolSetting')).toBe(false);
-        
+
         // Test string
         global.game.settings.get.mockReturnValue('test string');
         expect(handler.getSettingValue('stringSetting')).toBe('test string');
-        
+
         // Test number
         global.game.settings.get.mockReturnValue(42);
         expect(handler.getSettingValue('numberSetting')).toBe(42);
-        
+
         // Test object
         const testObject = { key: 'value' };
         global.game.settings.get.mockReturnValue(testObject);
@@ -421,9 +421,9 @@ describe('SettingsHandler', () => {
       it('should return true when debugMode setting exists', () => {
         global.game.settings.get.mockReturnValue(false);
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.hasDebugModeSetting();
-        
+
         expect(result).toBe(true);
         expect(global.game.settings.get).toHaveBeenCalledWith('foundryvtt-over-my-head', 'debugMode');
       });
@@ -431,18 +431,18 @@ describe('SettingsHandler', () => {
       it('should return false when debugMode setting does not exist', () => {
         global.game.settings.get.mockReturnValue(undefined);
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.hasDebugModeSetting();
-        
+
         expect(result).toBe(false);
       });
 
       it('should return false when game.settings is not available', () => {
         delete global.game;
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.hasDebugModeSetting();
-        
+
         expect(result).toBe(false);
       });
     });
@@ -463,9 +463,9 @@ describe('SettingsHandler', () => {
       it('should return debugMode value when it exists', () => {
         global.game.settings.get.mockReturnValue(true);
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.getDebugModeSettingValue();
-        
+
         expect(result).toBe(true);
         expect(global.game.settings.get).toHaveBeenCalledWith('foundryvtt-over-my-head', 'debugMode');
       });
@@ -473,27 +473,27 @@ describe('SettingsHandler', () => {
       it('should return false value correctly', () => {
         global.game.settings.get.mockReturnValue(false);
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.getDebugModeSettingValue();
-        
+
         expect(result).toBe(false);
       });
 
       it('should return undefined when debugMode setting does not exist', () => {
         global.game.settings.get.mockReturnValue(undefined);
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.getDebugModeSettingValue();
-        
+
         expect(result).toBe(undefined);
       });
 
       it('should return undefined when game.settings is not available', () => {
         delete global.game;
         const handler = new SettingsHandler(mockConfig, mockUtils, mockContext);
-        
+
         const result = handler.getDebugModeSettingValue();
-        
+
         expect(result).toBe(undefined);
       });
     });

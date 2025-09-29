@@ -1,12 +1,12 @@
 /**
- * @file moduleGetter.test.mjs
+ * @file moduleGetter.unit.test.mjs
  * @description This file contains unit tests for the getModule function.
- * @path src/helpers/moduleGetter.test.mjs
+ * @path src/helpers/moduleGetter.unit.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // Mock config before any imports
-vi.mock('@config', () => ({
+vi.mock('../config/config.mjs', () => ({
   default: {
     constants: {
       moduleManagement: {
@@ -22,7 +22,7 @@ vi.mock('./pathUtils.mjs');
 
 import { getModule } from './moduleGetter.mjs';
 import PathUtils from './pathUtils.mjs';
-import config from '@config';
+import config from '../config/config.mjs';
 
 // Get constants from the mocked config
 const constants = config.constants;
@@ -30,8 +30,10 @@ const constants = config.constants;
 describe('getModule', () => {
   let mockGlobalNamespace;
   let mockModulesCollection;
+  let originalGlobalGame;
 
   beforeEach(() => {
+    originalGlobalGame = globalThis.game;
     mockModulesCollection = {
       get: vi.fn()
     };
@@ -45,6 +47,10 @@ describe('getModule', () => {
     PathUtils.resolvePath = vi.fn();
 
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    globalThis.game = originalGlobalGame;
   });
 
   describe('Input Validation', () => {

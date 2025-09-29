@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 // Mock the validator alias before importing anything else
-vi.mock('@utils/static/validator.mjs', () => ({
+vi.mock('../../utils/static/validator.mjs', () => ({
   default: {
     validateObject: vi.fn(),
     validateString: vi.fn(),
@@ -23,7 +23,7 @@ vi.mock('@utils/static/validator.mjs', () => ({
 }));
 
 import { ContextItem } from './contextItem.mjs';
-import { Validator } from '@utils/static/validator.mjs';
+import { Validator } from '../../utils/static/validator.mjs';
 
 /**
  * @file contextItem.unit.test.mjs

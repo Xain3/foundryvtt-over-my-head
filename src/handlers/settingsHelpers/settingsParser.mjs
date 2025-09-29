@@ -4,7 +4,7 @@
  * @path src/handlers/settingsHelpers/settingsParser.mjs
  */
 
-import Handler from "@/baseClasses/handler";
+import Handler from "../../baseClasses/handler.mjs";
 import SettingsChecker from "./settingsChecker";
 import FlagEvaluator from "./flagEvaluator";
 

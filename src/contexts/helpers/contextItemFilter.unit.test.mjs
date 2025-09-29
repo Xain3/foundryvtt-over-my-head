@@ -1,4 +1,15 @@
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import ItemFilter from './contextItemFilter.mjs';
+
+function loadAlias(relativePath) {
+  return async () => import(new URL(relativePath, import.meta.url).href);
+}
+
+vi.mock('@utils/static/validator.mjs', loadAlias('../../utils/static/validator.mjs'));
+vi.mock('@helpers/pathUtils.mjs', loadAlias('../../helpers/pathUtils.mjs'));
+vi.mock('@config', loadAlias('../../config/config.mjs'));
+vi.mock('@constants', loadAlias('../../config/constants.mjs'));
+vi.mock('@manifest', loadAlias('../../config/manifest.mjs'));
 
 /**
  * @file contextItemFilter.unit.test.mjs
@@ -248,7 +259,7 @@ describe('ItemFilter', () => {
 
   describe('custom()', () => {
     it('should create filter based on custom condition', () => {
-      const conditionFn = jest.fn((source, target, path) => {
+      const conditionFn = vi.fn((source, target, path) => {
         return source.timestamp > target.timestamp;
       });
       const filter = ItemFilter.custom(conditionFn);
@@ -272,7 +283,7 @@ describe('ItemFilter', () => {
     });
 
     it('should pass all parameters to condition function', () => {
-      const conditionFn = jest.fn().mockReturnValue(true);
+      const conditionFn = vi.fn().mockReturnValue(true);
       const filter = ItemFilter.custom(conditionFn);
       const testPath = 'test.path.value';
 
@@ -351,7 +362,7 @@ describe('ItemFilter', () => {
 
     it('should short-circuit on first rejection', () => {
       const filter1 = ItemFilter.allowOnly(['data.other']);
-      const filter2 = jest.fn(() => sourceItem);
+      const filter2 = vi.fn(() => sourceItem);
       const combinedFilter = ItemFilter.and(filter1, filter2);
 
       const result = combinedFilter(sourceItem, targetItem, 'data.player');
@@ -361,10 +372,10 @@ describe('ItemFilter', () => {
     });
 
     it('should continue evaluation until rejection', () => {
-      const filter1 = jest.fn(() => sourceItem);
-      const filter2 = jest.fn(() => sourceItem);
-      const filter3 = jest.fn(() => targetItem);
-      const filter4 = jest.fn(() => sourceItem);
+      const filter1 = vi.fn(() => sourceItem);
+      const filter2 = vi.fn(() => sourceItem);
+      const filter3 = vi.fn(() => targetItem);
+      const filter4 = vi.fn(() => sourceItem);
       const combinedFilter = ItemFilter.and(filter1, filter2, filter3, filter4);
 
       const result = combinedFilter(sourceItem, targetItem, 'test.path');
@@ -409,8 +420,8 @@ describe('ItemFilter', () => {
     });
 
     it('should pass correct parameters to all filters', () => {
-      const filter1 = jest.fn(() => sourceItem);
-      const filter2 = jest.fn(() => sourceItem);
+      const filter1 = vi.fn(() => sourceItem);
+      const filter2 = vi.fn(() => sourceItem);
       const combinedFilter = ItemFilter.and(filter1, filter2);
       const testPath = 'test.path';
 
@@ -442,7 +453,7 @@ describe('ItemFilter', () => {
 
     it('should short-circuit on first acceptance', () => {
       const filter1 = ItemFilter.allowOnly(['data.player']);
-      const filter2 = jest.fn(() => sourceItem);
+      const filter2 = vi.fn(() => sourceItem);
       const combinedFilter = ItemFilter.or(filter1, filter2);
 
       const result = combinedFilter(sourceItem, targetItem, 'data.playerStats');
@@ -452,10 +463,10 @@ describe('ItemFilter', () => {
     });
 
     it('should continue evaluation until acceptance', () => {
-      const filter1 = jest.fn(() => targetItem);
-      const filter2 = jest.fn(() => targetItem);
-      const filter3 = jest.fn(() => sourceItem);
-      const filter4 = jest.fn(() => sourceItem);
+      const filter1 = vi.fn(() => targetItem);
+      const filter2 = vi.fn(() => targetItem);
+      const filter3 = vi.fn(() => sourceItem);
+      const filter4 = vi.fn(() => sourceItem);
       const combinedFilter = ItemFilter.or(filter1, filter2, filter3, filter4);
 
       const result = combinedFilter(sourceItem, targetItem, 'test.path');
@@ -501,8 +512,8 @@ describe('ItemFilter', () => {
     });
 
     it('should pass correct parameters to filters', () => {
-      const filter1 = jest.fn(() => targetItem);
-      const filter2 = jest.fn(() => sourceItem);
+      const filter1 = vi.fn(() => targetItem);
+      const filter2 = vi.fn(() => sourceItem);
       const combinedFilter = ItemFilter.or(filter1, filter2);
       const testPath = 'test.path';
 

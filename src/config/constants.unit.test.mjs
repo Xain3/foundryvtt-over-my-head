@@ -1,30 +1,36 @@
 /**
  * @file constants.unit.test.mjs
  * @description Test file for the constants module.
- * @path src/constants/constants.unit.test.mjs
+ * @path src/config/constants.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 const mockObject = { testKey: 'testValue' };
 
 // Create mock function that we can track
-const mockConstructor = jest.fn();
+const mockConstructor = vi.fn();
 
-jest.mock('./helpers/constantsBuilder.mjs', () => ({
+// Mock the YAML import
+vi.mock('../../../constants.yaml?raw', () => ({
+  default: 'test: value'
+}), { virtual: true });
+
+vi.mock('./helpers/constantsBuilder.mjs', () => ({
   __esModule: true,
-  default: mockConstructor,
+  default: mockConstructor
 }));
 
 describe('constants module', () => {
   let constantsModule;
 
-  beforeEach(() => {
-    jest.resetModules();
-    mockConstructor.mockClear();
+  beforeEach(async () => {
+    vi.resetModules();
+    mockConstructor.mockReset();
     mockConstructor.mockImplementation(() => ({
-      asObject: mockObject,
+      asObject: mockObject
     }));
-    // Import the module after setting up mocks
-    constantsModule = require('./constants.mjs').default;
+
+    constantsModule = (await import('./constants.mjs')).default;
   });
 
   it('should call ConstantsBuilder once and return a frozen object', () => {

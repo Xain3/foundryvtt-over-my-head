@@ -4,6 +4,7 @@
  * @path src/handlers/placeableHelpers/placeableSetter.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import PlaceableSetter from './placeableSetter.mjs';
 
 describe('PlaceableSetter', () => {

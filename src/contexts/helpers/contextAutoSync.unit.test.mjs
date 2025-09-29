@@ -5,6 +5,9 @@
 
  */
 
+import '../../../tests/mocks/aliasMocks.mjs';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
 import ContextAutoSync from './contextAutoSync.mjs';
 import Context from '../context.mjs';
 import { ContextContainer } from './contextContainer.mjs';
@@ -35,17 +38,17 @@ describe('ContextAutoSync', () => {
 
     // Create mock ContextContainers
     mockSourceContainer = {
-      keys: jest.fn(() => ['item1', 'item2']),
-      getItem: jest.fn(() => mockSourceItem),
-      hasItem: jest.fn(() => true),
-      setItem: jest.fn()
+      keys: vi.fn(() => ['item1', 'item2']),
+      getItem: vi.fn(() => mockSourceItem),
+      hasItem: vi.fn(() => true),
+      setItem: vi.fn()
     };
 
     mockTargetContainer = {
-      keys: jest.fn(() => ['item1']),
-      getItem: jest.fn(() => mockTargetItem),
-      hasItem: jest.fn(() => true),
-      setItem: jest.fn()
+      keys: vi.fn(() => ['item1']),
+      getItem: vi.fn(() => mockTargetItem),
+      hasItem: vi.fn(() => true),
+      setItem: vi.fn()
     };
 
     // Create mock Context instances
@@ -211,9 +214,9 @@ describe('ContextAutoSync', () => {
 
     it('should handle options with callback functions', async () => {
       const options = {
-        onConflict: jest.fn(),
-        onProgress: jest.fn(),
-        onComplete: jest.fn()
+        onConflict: vi.fn(),
+        onProgress: vi.fn(),
+        onComplete: vi.fn()
       };
 
       const result = await ContextAutoSync.autoSync(mockSourceContext, mockTargetContext, options);
@@ -352,7 +355,7 @@ describe('ContextAutoSync', () => {
         booleanOption: true,
         arrayOption: [1, 2, 3],
         objectOption: { nested: true },
-        functionOption: jest.fn(),
+        functionOption: vi.fn(),
         nullOption: null,
         undefinedOption: undefined
       };
@@ -422,9 +425,9 @@ describe('ContextAutoSync', () => {
           excludePatterns: ['temp.*', '*.cache']
         },
         callbacks: {
-          onConflict: jest.fn(),
-          onProgress: jest.fn(),
-          onError: jest.fn()
+          onConflict: vi.fn(),
+          onProgress: vi.fn(),
+          onError: vi.fn()
         },
         features: {
           enableMachineLearning: true,

@@ -4,7 +4,7 @@
  * @path src/config/manifest.mjs
 */
 
-import importedManifest from "../../module.json";
+import importedManifest from "../../module.json" assert { type: "json" };
 import ManifestParser from "./helpers/manifestParser.mjs";
 
 /**

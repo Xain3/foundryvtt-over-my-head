@@ -4,14 +4,15 @@
  * @path src/constants/helpers/constantsBuilder.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import ConstantsBuilder from './constantsBuilder.mjs';
 import ConstantsParser from './constantsParser.mjs';
 import ConstantsGetter from './constantsGetter.mjs';
 
 
 // Mock the dependencies
-jest.mock('./constantsParser.mjs');
-jest.mock('./constantsGetter.mjs');
+vi.mock('./constantsParser.mjs', () => ({ default: { parseConstants: vi.fn() } }));
+vi.mock('./constantsGetter.mjs', () => ({ default: { getConstantsYaml: vi.fn() } }));
 
 describe('ConstantsBuilder', () => {
   const mockYamlString = 'testConstant: testValue\ncontext:\n  schema: test';
@@ -24,7 +25,7 @@ describe('ConstantsBuilder', () => {
 
   beforeEach(() => {
     // Reset mocks before each test
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Setup default mock implementations
     ConstantsGetter.getConstantsYaml.mockReturnValue(mockYamlString);

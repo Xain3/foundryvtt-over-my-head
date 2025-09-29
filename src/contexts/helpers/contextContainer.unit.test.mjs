@@ -4,6 +4,7 @@
  * @path src/contexts/helpers/contextContainer.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { ContextContainer } from './contextContainer.mjs';
 import { ContextItem } from './contextItem.mjs';
 import { ContextValueWrapper } from './contextValueWrapper.mjs';
@@ -12,11 +13,30 @@ import { Validator } from '../../utils/static/validator.mjs';
 import PathUtils from '../../helpers/pathUtils.mjs';
 import dayjs from 'dayjs';
 
-jest.mock('./contextItem.mjs');
-jest.mock('./contextValueWrapper.mjs');
-jest.mock('./contextItemSetter.mjs');
-jest.mock('../../utils/static/validator.mjs');
-jest.mock('../../helpers/pathUtils.mjs');
+function loadAlias(relativePath) {
+  return async () => import(new URL(relativePath, import.meta.url).href);
+}
+
+vi.mock('@utils/static/validator.mjs', loadAlias('../../utils/static/validator.mjs'));
+vi.mock('@helpers/pathUtils.mjs', loadAlias('../../helpers/pathUtils.mjs'));
+vi.mock('@config', loadAlias('../../config/config.mjs'));
+vi.mock('@constants', loadAlias('../../config/constants.mjs'));
+vi.mock('@manifest', loadAlias('../../config/manifest.mjs'));
+
+vi.mock('./contextItem.mjs');
+vi.mock('./contextValueWrapper.mjs');
+vi.mock('./contextItemSetter.mjs');
+vi.mock('../../utils/static/validator.mjs', () => ({
+  default: {
+    isPlainObject: vi.fn(),
+    isReservedKey: vi.fn()
+  },
+  Validator: {
+    isPlainObject: vi.fn(),
+    isReservedKey: vi.fn()
+  }
+}));
+vi.mock('../../helpers/pathUtils.mjs');
 
 describe('ContextContainer', () => {
   let mockContainerItemInstance;
@@ -24,10 +44,10 @@ describe('ContextContainer', () => {
   let dateNowSpy;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     MOCK_DATE = new Date('2024-01-01T00:00:00.000Z');
-    dateNowSpy = jest.spyOn(global, 'Date').mockImplementation(() => MOCK_DATE);
+    dateNowSpy = vi.spyOn(global, 'Date').mockImplementation(() => MOCK_DATE);
 
     mockContainerItemInstance = {
       value: undefined,
@@ -37,15 +57,15 @@ describe('ContextContainer', () => {
       lastAccessedAt: MOCK_DATE,
       recordAccess: true,
       recordAccessForMetadata: false,
-      _updateAccessTimestamp: jest.fn(),
-      _updateModificationTimestamps: jest.fn(),
-      freeze: jest.fn(),
-      unfreeze: jest.fn(),
-      isFrozen: jest.fn().mockReturnValue(false),
-      setMetadata: jest.fn(),
-      changeAccessRecord: jest.fn(),
-      reinitialize: jest.fn(),
-      clear: jest.fn(),
+      _updateAccessTimestamp: vi.fn(),
+      _updateModificationTimestamps: vi.fn(),
+      freeze: vi.fn(),
+      unfreeze: vi.fn(),
+      isFrozen: vi.fn().mockReturnValue(false),
+      setMetadata: vi.fn(),
+      changeAccessRecord: vi.fn(),
+      reinitialize: vi.fn(),
+      clear: vi.fn(),
     };
 
     ContextItem.mockImplementation((initialValue, metadata, options) => {
@@ -59,8 +79,8 @@ describe('ContextContainer', () => {
 
       // Define value property properly
       Object.defineProperty(instance, 'value', {
-        get: jest.fn(() => initialValue),
-        set: jest.fn((newValue) => { initialValue = newValue; }),
+        get: vi.fn(() => initialValue),
+        set: vi.fn((newValue) => { initialValue = newValue; }),
         configurable: true
       });
 
@@ -99,10 +119,10 @@ describe('ContextContainer', () => {
       if (options.wrapAs === 'ContextContainer') {
         // Return a basic mock container for _createNestedContainer
         const mockNestedContainer = new ContextContainer(value); // Will use mocked ContextItem
-        jest.spyOn(mockNestedContainer, 'setItem');
-        jest.spyOn(mockNestedContainer, 'getItem');
-        jest.spyOn(mockNestedContainer, 'hasItem');
-        jest.spyOn(mockNestedContainer, 'getWrappedItem');
+        vi.spyOn(mockNestedContainer, 'setItem');
+        vi.spyOn(mockNestedContainer, 'getItem');
+        vi.spyOn(mockNestedContainer, 'hasItem');
+        vi.spyOn(mockNestedContainer, 'getWrappedItem');
         return mockNestedContainer;
       }
       return item; // Returns a mocked ContextItem
@@ -294,7 +314,7 @@ describe('ContextContainer', () => {
     it('should return an existing container if it is a ContextContainer', () => {
       const container = new ContextContainer();
       const existingNestedContainer = new ContextContainer();
-      jest.spyOn(existingNestedContainer, 'setItem'); // Ensure it's a "valid" container
+      vi.spyOn(existingNestedContainer, 'setItem'); // Ensure it's a "valid" container
       container._setManagedItem('existingKey', existingNestedContainer);
 
       const nested = container._createNestedContainer('existingKey');
@@ -316,7 +336,7 @@ describe('ContextContainer', () => {
       const container = new ContextContainer();
       const mockInternalItem = ContextItem.mock.results[0].value;
       const mockNestedContainer = new ContextContainer();
-      jest.spyOn(mockNestedContainer, 'setItem');
+      vi.spyOn(mockNestedContainer, 'setItem');
       const itemOptions = { frozen: true };
 
       container._setNestedItem(mockNestedContainer, 'path.to.value', 123, itemOptions);
@@ -352,7 +372,7 @@ describe('ContextContainer', () => {
       const container = new ContextContainer();
       const nestedContainer = new ContextContainer();
       container._setManagedItem('parent', nestedContainer);
-      jest.spyOn(nestedContainer, 'hasItem').mockReturnValue(true);
+      vi.spyOn(nestedContainer, 'hasItem').mockReturnValue(true);
       PathUtils.extractKeyComponents.mockReturnValue({ firstKey: 'parent', remainingPath: 'child' });
 
       expect(container.hasItem('parent.child')).toBe(true);
@@ -397,7 +417,7 @@ describe('ContextContainer', () => {
       const mockItem = new ContextItem('testValue');
       // Manually set the value property on the mock
       Object.defineProperty(mockItem, 'value', {
-        get: jest.fn(() => 'testValue'),
+        get: vi.fn(() => 'testValue'),
         configurable: true
       });
       container._setManagedItem('foo', mockItem);
@@ -416,7 +436,7 @@ describe('ContextContainer', () => {
       const mockInternalItem = ContextItem.mock.results[0].value;
       const nestedContainer = new ContextContainer();
       container._setManagedItem('parent', nestedContainer);
-      jest.spyOn(nestedContainer, 'getItem').mockReturnValue('nestedValue');
+      vi.spyOn(nestedContainer, 'getItem').mockReturnValue('nestedValue');
       PathUtils.extractKeyComponents.mockReturnValue({ firstKey: 'parent', remainingPath: 'child', parts: ['parent', 'child'] });
 
       expect(container.getItem('parent.child')).toBe('nestedValue');
@@ -435,7 +455,7 @@ describe('ContextContainer', () => {
         const container = new ContextContainer({}, {}, { recordAccess: true });
         const mockInternalItem = ContextItem.mock.results[0].value;
         const childContainer = new ContextContainer();
-        jest.spyOn(childContainer, 'getItem').mockReturnValue('deepValue');
+        vi.spyOn(childContainer, 'getItem').mockReturnValue('deepValue');
         container._setManagedItem('parent', childContainer);
 
         PathUtils.extractKeyComponents.mockReturnValueOnce({ firstKey: 'parent', remainingPath: 'child.grandchild', parts: ['parent', 'child', 'grandchild'] });
@@ -462,7 +482,7 @@ describe('ContextContainer', () => {
     it('should return undefined if path is not found in nested structures', () => {
         const container = new ContextContainer();
         const childContainer = new ContextContainer();
-        jest.spyOn(childContainer, 'getItem').mockReturnValue(undefined);
+        vi.spyOn(childContainer, 'getItem').mockReturnValue(undefined);
         container._setManagedItem('parent', childContainer);
         PathUtils.extractKeyComponents.mockReturnValueOnce({ firstKey: 'parent', remainingPath: 'nonexistent', parts: ['parent', 'nonexistent'] });
         expect(container.getItem('parent.nonexistent')).toBeUndefined();
@@ -485,10 +505,10 @@ describe('ContextContainer', () => {
       const container = new ContextContainer();
       const mockItem = new ContextItem('val');
       mockItem.recordAccess = true;
-      mockItem._updateAccessTimestamp = jest.fn();
+      mockItem._updateAccessTimestamp = vi.fn();
       container._setManagedItem('test', mockItem);
 
-      jest.spyOn(container, 'getItem').mockReturnValue('val');
+      vi.spyOn(container, 'getItem').mockReturnValue('val');
 
       expect(container.getValue('test')).toBe('val');
       expect(container.getItem).toHaveBeenCalledWith('test');
@@ -499,9 +519,9 @@ describe('ContextContainer', () => {
       const container = new ContextContainer();
       const mockItem = new ContextItem('val');
       mockItem.recordAccess = false;
-      mockItem._updateAccessTimestamp = jest.fn();
+      mockItem._updateAccessTimestamp = vi.fn();
       container._setManagedItem('test', mockItem);
-      jest.spyOn(container, 'getItem').mockReturnValue('val');
+      vi.spyOn(container, 'getItem').mockReturnValue('val');
 
       container.getValue('test');
       expect(mockItem._updateAccessTimestamp).not.toHaveBeenCalled();
@@ -509,7 +529,7 @@ describe('ContextContainer', () => {
 
     it('should not attempt to update item access timestamp for nested gets (handled by nested container/item)', () => {
       const container = new ContextContainer();
-      jest.spyOn(container, 'getItem').mockReturnValue('nestedVal');
+      vi.spyOn(container, 'getItem').mockReturnValue('nestedVal');
       PathUtils.extractKeyComponents.mockReturnValue({ firstKey: 'a', remainingPath: 'b', parts: ['a', 'b'] });
 
       container.getValue('a.b');
@@ -536,7 +556,7 @@ describe('ContextContainer', () => {
       const nestedContainer = new ContextContainer();
       const mockDeepWrappedItem = new ContextItem('deepVal');
       container._setManagedItem('parent', nestedContainer);
-      jest.spyOn(nestedContainer, 'getWrappedItem').mockReturnValue(mockDeepWrappedItem);
+      vi.spyOn(nestedContainer, 'getWrappedItem').mockReturnValue(mockDeepWrappedItem);
       PathUtils.extractKeyComponents.mockReturnValue({ firstKey: 'parent', remainingPath: 'child' });
 
       expect(container.getWrappedItem('parent.child')).toBe(mockDeepWrappedItem);
@@ -550,7 +570,7 @@ describe('ContextContainer', () => {
 
       const nestedContainer = new ContextContainer();
       container._setManagedItem('parent', nestedContainer);
-      jest.spyOn(nestedContainer, 'getWrappedItem').mockReturnValue(undefined);
+      vi.spyOn(nestedContainer, 'getWrappedItem').mockReturnValue(undefined);
       PathUtils.extractKeyComponents.mockReturnValue({ firstKey: 'parent', remainingPath: 'nonExistentChild' });
       expect(container.getWrappedItem('parent.nonExistentChild')).toBeUndefined();
     });
@@ -652,12 +672,12 @@ describe('ContextContainer', () => {
       const mockInternalItem = ContextItem.mock.results[0].value;
       const item1 = new ContextItem(10);
       Object.defineProperty(item1, 'value', {
-        get: jest.fn(() => 10),
+        get: vi.fn(() => 10),
         configurable: true
       });
       const item2 = new ContextItem({ nested: 20 });
       Object.defineProperty(item2, 'value', {
-        get: jest.fn(() => ({ nested: 20 })),
+        get: vi.fn(() => ({ nested: 20 })),
         configurable: true
       });
       container._setManagedItem('a', item1);
@@ -673,8 +693,8 @@ describe('ContextContainer', () => {
       const container = new ContextContainer();
       const mockInternalItem = ContextItem.mock.results[0].value;
       container._setManagedItem('old', new ContextItem('oldValue'));
-      jest.spyOn(container, 'clearItems');
-      jest.spyOn(container, 'setItem').mockReturnValue(container);
+      vi.spyOn(container, 'clearItems');
+      vi.spyOn(container, 'setItem').mockReturnValue(container);
 
       const newItems = { a: 1, b: 'two' };
       container.value = newItems;
@@ -696,7 +716,7 @@ describe('ContextContainer', () => {
     it('should call internal item reinitialize, update options, clear and repopulate items', () => {
       const container = new ContextContainer({ old: 'val' }, { oldMeta: true }, { recordAccess: false });
       const mockInternalItem = ContextItem.mock.results[0].value;
-      jest.spyOn(container, 'setItem').mockReturnThis();
+      vi.spyOn(container, 'setItem').mockReturnThis();
 
       const newInitialItems = { item1: 'value1' };
       const newMetadata = { newMeta: true };
@@ -719,7 +739,7 @@ describe('ContextContainer', () => {
 
     it('should reinitialize with a single non-plain object value', () => {
       const container = new ContextContainer();
-      jest.spyOn(container, 'setItem').mockReturnThis();
+      vi.spyOn(container, 'setItem').mockReturnThis();
       container.reinitialize('single');
       expect(container.setItem).toHaveBeenCalledWith('default', 'single');
     });
@@ -729,7 +749,7 @@ describe('ContextContainer', () => {
     it('should call clearItems and internal item clear', () => {
       const container = new ContextContainer();
       const mockInternalItem = ContextItem.mock.results[0].value;
-      jest.spyOn(container, 'clearItems').mockImplementation();
+      vi.spyOn(container, 'clearItems').mockImplementation();
 
       container.clear();
       expect(container.clearItems).toHaveBeenCalled();

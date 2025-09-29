@@ -4,6 +4,35 @@
  * @path tests/integration/settingsHandler.int.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock dependencies to prevent raw import issues
+vi.mock('@/baseClasses/handler', async () => {
+  const actual = await vi.importActual('../../src/baseClasses/handler.mjs');
+  return {
+    ...actual,
+    default: class MockHandler {
+      constructor(config, utils, context) {
+        this.config = config;
+        this.utils = utils;
+        this.context = context;
+      }
+    }
+  };
+});
+
+vi.mock('@utils/static/validator.mjs', async () => {
+  const actual = await vi.importActual('../../src/utils/static/validator.mjs');
+  return {
+    ...actual,
+    Validator: {
+      isValidSettingsConfig: vi.fn(() => true),
+      validateAndThrow: vi.fn(),
+      ...actual.Validator
+    }
+  };
+});
+
 import SettingsHandler from '../../src/handlers/settingsHandler.mjs';
 import SettingsParser from '../../src/handlers/settingsHelpers/settingsParser.mjs';
 import SettingsRegistrar from '../../src/handlers/settingsHelpers/settingsRegistrar.mjs';
@@ -11,22 +40,22 @@ import SettingsRegistrar from '../../src/handlers/settingsHelpers/settingsRegist
 // Mock Foundry VTT API
 global.game = {
   settings: {
-    register: jest.fn(),
-    get: jest.fn(),
-    set: jest.fn()
+    register: vi.fn(),
+    get: vi.fn(),
+    set: vi.fn()
   }
 };
 
 global.Hooks = {
-  call: jest.fn(),
-  callAll: jest.fn()
+  call: vi.fn(),
+  callAll: vi.fn()
 };
 
 describe('SettingsHandler Integration Tests', () => {
   let config, context, utils, settingsHandler;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     config = {
       constants: {
@@ -99,11 +128,11 @@ describe('SettingsHandler Integration Tests', () => {
     };
 
     utils = {
-      formatError: jest.fn((error) => `Error: ${error.message || error}`),
-      formatHookName: jest.fn((base, suffix) => `TEST${base}${suffix || ''}`),
-      logWarning: jest.fn(),
-      logDebug: jest.fn(),
-      logInfo: jest.fn()
+      formatError: vi.fn((error) => `Error: ${error.message || error}`),
+      formatHookName: vi.fn((base, suffix) => `TEST${base}${suffix || ''}`),
+      logWarning: vi.fn(),
+      logDebug: vi.fn(),
+      logInfo: vi.fn()
     };
   });
 
@@ -407,15 +436,15 @@ describe('SettingsHandler Integration Tests', () => {
       // Ensure clean setup of global.game for retrieval tests
       global.game = {
         settings: {
-          register: jest.fn(),
-          get: jest.fn(),
-          set: jest.fn()
+          register: vi.fn(),
+          get: vi.fn(),
+          set: vi.fn()
         }
       };
 
       global.Hooks = {
-        call: jest.fn(),
-        callAll: jest.fn()
+        call: vi.fn(),
+        callAll: vi.fn()
       };
 
       settingsHandler = new SettingsHandler(config, utils, context);

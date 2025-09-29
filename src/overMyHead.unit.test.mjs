@@ -4,36 +4,68 @@
  * @path src/overMyHead.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+const { configMock, createManifestWithShortName } = vi.hoisted(() => {
+  const manifestTemplate = {
+    id: 'foundryvtt-over-my-head',
+    title: 'Over My Head',
+    version: '0.0.0',
+    flags: { dev: false }
+  };
+
+  const manifestFactory = () => Object.freeze({
+    ...manifestTemplate,
+    flags: { ...manifestTemplate.flags },
+    shortName: 'OMH'
+  });
+
+  return {
+    configMock: {
+      constants: { moduleManagement: { shortName: 'OMH' } },
+      manifest: { ...manifestTemplate },
+      buildManifestWithShortName: vi.fn(() => manifestFactory()),
+      exportConstants: vi.fn()
+    },
+    createManifestWithShortName: manifestFactory
+  };
+});
+
+vi.mock('./config/config.mjs', () => ({
+  default: configMock
+}));
+
+vi.mock('./utils/utils.mjs', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    static: {
+      unpack: vi.fn()
+    },
+    initializer: {
+      initializeDevFeatures: vi.fn(),
+      initializeContext: vi.fn().mockReturnValue({ setFlags: vi.fn() }),
+      initializeHandlers: vi.fn().mockReturnValue({ settings: {} }),
+      initializeSettings: vi.fn(),
+      confirmInitialization: vi.fn()
+    }
+  }))
+}));
+
 import OverMyHead from './overMyHead.mjs';
 import config from './config/config.mjs';
 import Utilities from './utils/utils.mjs';
 
-jest.mock('./utils/utils.mjs', () => {
-  return jest.fn().mockImplementation(() => ({
-    static: {
-      unpack: jest.fn()
-    },
-    initializer: {
-      initializeDevFeatures: jest.fn(),
-      initializeContext: jest.fn().mockReturnValue({ setFlags: jest.fn() }),
-      initializeHandlers: jest.fn().mockReturnValue({ settings: {} }),
-      initializeSettings: jest.fn(),
-      confirmInitialization: jest.fn()
-    }
-  }));
-});
-
 // Hooks mock that immediately calls 'init' and 'i18nInit' callbacks
 global.Hooks = {
-  once: jest.fn((event, callback) => {
+  once: vi.fn((event, callback) => {
     if ((event === 'init' || event === 'i18nInit') && typeof callback === 'function') callback();
   }),
-  callAll: jest.fn()
+  callAll: vi.fn()
 };
 
 describe('OverMyHead (unit)', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
+    config.buildManifestWithShortName.mockImplementation(() => createManifestWithShortName());
   });
 
   it('constructs with config constants and manifest and unpacks manifest', () => {
@@ -82,7 +114,7 @@ describe('OverMyHead (unit)', () => {
 
   it('init exports constants and runs initializer workflow', async () => {
     const instance = new OverMyHead();
-    const exportSpy = jest.spyOn(config, 'exportConstants');
+    const exportSpy = vi.spyOn(config, 'exportConstants');
 
     await instance.init();
 
@@ -97,7 +129,7 @@ describe('OverMyHead (unit)', () => {
 
   it('init rejects when config.exportConstants throws', async () => {
     const instance = new OverMyHead();
-    const exportSpy = jest.spyOn(config, 'exportConstants').mockImplementation(() => { throw new Error('export failed'); });
+    const exportSpy = vi.spyOn(config, 'exportConstants').mockImplementation(() => { throw new Error('export failed'); });
 
     await expect(instance.init()).rejects.toThrow('export failed');
 
@@ -107,7 +139,7 @@ describe('OverMyHead (unit)', () => {
   it('init rejects when post-localization initialization throws', async () => {
     const instance = new OverMyHead();
     // Make exportConstants succeed
-    const exportSpy = jest.spyOn(config, 'exportConstants').mockImplementation(() => {});
+    const exportSpy = vi.spyOn(config, 'exportConstants').mockImplementation(() => {});
 
     // Force initializer.initializeContext to throw when called from postLocalization
     instance.utils.initializer.initializeContext.mockImplementation(() => { throw new Error('post-init failed'); });

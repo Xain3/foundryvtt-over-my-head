@@ -4,6 +4,7 @@
  * @path src/utils/static/static.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import StaticUtils from './static.mjs';
 import Validator from './validator.mjs';
 import Unpacker from './unpacker.mjs';
@@ -139,10 +140,10 @@ describe('StaticUtils', () => {
       mockModule = { id: 'test-module', customData: { test: true } };
       globalThis.game = {
         modules: {
-          get: jest.fn((id) => id === 'test-module' ? mockModule : null)
+          get: vi.fn((id) => id === 'test-module' ? mockModule : null)
         },
         settings: {
-          get: jest.fn((moduleId, key) => {
+          get: vi.fn((moduleId, key) => {
             if (moduleId === 'test-module' && key === 'testSetting') {
               return 'testValue';
             }
@@ -191,7 +192,7 @@ describe('StaticUtils', () => {
     beforeEach(() => {
       originalGame = globalThis.game;
       mockI18n = {
-        localize: jest.fn((key) => {
+        localize: vi.fn((key) => {
           const translations = {
             'TEST.welcome': 'Welcome',
             'TEST.greeting': 'Hello {name}!',
@@ -200,11 +201,11 @@ describe('StaticUtils', () => {
           };
           return translations[key] || key;
         }),
-        format: jest.fn((key, data = {}) => {
+        format: vi.fn((key, data = {}) => {
           const template = mockI18n.localize(key);
           return template.replace(/{(\w+)}/g, (match, prop) => data[prop] || match);
         }),
-        has: jest.fn((key) => {
+        has: vi.fn((key) => {
           const existingKeys = ['TEST.welcome', 'TEST.greeting', 'TEST.playerCount'];
           return existingKeys.includes(key);
         })
@@ -224,7 +225,7 @@ describe('StaticUtils', () => {
 
     it('should handle localize with custom i18n instance', () => {
       const customI18n = {
-        localize: jest.fn(() => 'Custom Translation')
+        localize: vi.fn(() => 'Custom Translation')
       };
 
       const result = StaticUtils.localize('TEST.custom', customI18n);
@@ -246,7 +247,7 @@ describe('StaticUtils', () => {
 
     it('should handle formatLocalized with custom i18n instance', () => {
       const customI18n = {
-        format: jest.fn(() => 'Custom Formatted Text')
+        format: vi.fn(() => 'Custom Formatted Text')
       };
 
       const result = StaticUtils.formatLocalized('TEST.custom', { value: 42 }, customI18n);
@@ -266,7 +267,7 @@ describe('StaticUtils', () => {
 
     it('should handle hasLocalization with custom i18n instance', () => {
       const customI18n = {
-        has: jest.fn(() => true)
+        has: vi.fn(() => true)
       };
 
       const result = StaticUtils.hasLocalization('TEST.custom', customI18n);
@@ -395,7 +396,7 @@ describe('StaticUtils', () => {
     });
 
     it('should provide consistent error handling across utilities', () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Validation error
       expect(() => StaticUtils.validate('validateString', {
@@ -433,14 +434,14 @@ describe('StaticUtils', () => {
     let mockProxy;
 
     beforeEach(() => {
-      mockHookFunction = jest.fn();
-      mockLogger = jest.fn();
-      mockProxy = jest.fn();
+      mockHookFunction = vi.fn();
+      mockLogger = vi.fn();
+      mockProxy = vi.fn();
 
       // Mock HooksLogger methods
-      HooksLogger.createHookProxy = jest.fn().mockReturnValue(mockProxy);
-      HooksLogger.createHookLogger = jest.fn().mockReturnValue(mockLogger);
-      HooksLogger.proxyFoundryHooks = jest.fn().mockReturnValue(mockProxy);
+      HooksLogger.createHookProxy = vi.fn().mockReturnValue(mockProxy);
+      HooksLogger.createHookLogger = vi.fn().mockReturnValue(mockLogger);
+      HooksLogger.proxyFoundryHooks = vi.fn().mockReturnValue(mockProxy);
     });
 
     describe('createHookProxy method', () => {
@@ -482,7 +483,7 @@ describe('StaticUtils', () => {
       it('should proxy to HooksLogger.createHookLogger with custom parameters', () => {
         const logLevel = 'info';
         const prefix = 'Custom Hook';
-        const filter = jest.fn();
+        const filter = vi.fn();
 
         const result = StaticUtils.createHookLogger(logLevel, prefix, filter);
 

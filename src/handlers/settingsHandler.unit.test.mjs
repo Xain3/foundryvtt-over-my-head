@@ -4,15 +4,49 @@
  * @path src/handlers/settingsHandler.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock the dependencies using factory mocks to avoid problematic imports
+vi.mock('./settingsHelpers/settingsParser.mjs', () => {
+  const MockSettingsParser = vi.fn().mockImplementation(function() {
+    this.parse = vi.fn().mockReturnValue({
+      processed: 2,
+      successful: 2,
+      parsed: ['testSetting', 'debugMode'],
+      failed: []
+    });
+  });
+  return { default: MockSettingsParser };
+});
+
+vi.mock('./settingsHelpers/settingsRegistrar.mjs', () => {
+  const MockSettingsRegistrar = vi.fn().mockImplementation(function() {
+    this.register = vi.fn().mockReturnValue({
+      success: true,
+      counter: 1,
+      successCounter: 1,
+      errorMessages: [],
+      message: 'Registration successful'
+    });
+  });
+  return { default: MockSettingsRegistrar };
+});
+
+vi.mock('./settingsHelpers/settingLocalizer.mjs', () => {
+  const MockSettingLocalizer = vi.fn().mockImplementation(function() {});
+  MockSettingLocalizer.localizeSettings = vi.fn((settings) => settings);
+  return { default: MockSettingLocalizer };
+});
+
+vi.mock('@helpers/settingsRetriever.mjs', () => {
+  const MockSettingsRetriever = vi.fn().mockImplementation(function() {});
+  return { default: MockSettingsRetriever };
+});
+
 import SettingsHandler from './settingsHandler.mjs';
 import SettingsParser from './settingsHelpers/settingsParser.mjs';
 import SettingsRegistrar from './settingsHelpers/settingsRegistrar.mjs';
 import SettingLocalizer from './settingsHelpers/settingLocalizer.mjs';
-
-// Mock the dependencies
-jest.mock('./settingsHelpers/settingsParser.mjs');
-jest.mock('./settingsHelpers/settingsRegistrar.mjs');
-jest.mock('./settingsHelpers/settingLocalizer.mjs');
 
 describe('SettingsHandler', () => {
   const mockConfig = {
@@ -50,41 +84,20 @@ describe('SettingsHandler', () => {
   };
 
   const mockUtils = {
-    formatError: jest.fn((error) => error.toString()),
-    formatHookName: jest.fn((name) => `test.${name}`),
-    logWarning: jest.fn(),
-    logDebug: jest.fn(),
-    log: jest.fn()
+    formatError: vi.fn((error) => error.toString()),
+    formatHookName: vi.fn((name) => `test.${name}`),
+    logWarning: vi.fn(),
+    logDebug: vi.fn(),
+    log: vi.fn()
   };
 
   const mockContext = { test: 'context' };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
-    // Mock SettingsParser
-    SettingsParser.mockImplementation(() => ({
-      parse: jest.fn().mockReturnValue({
-        processed: 2,
-        successful: 2,
-        parsed: ['testSetting', 'debugMode'],
-        failed: []
-      })
-    }));
-
-    // Mock SettingsRegistrar
-    SettingsRegistrar.mockImplementation(() => ({
-      register: jest.fn().mockReturnValue({
-        success: true,
-        counter: 1,
-        successCounter: 1,
-        errorMessages: [],
-        message: 'Registration successful'
-      })
-    }));
-
-    // Mock SettingLocalizer
-    SettingLocalizer.localizeSettings = jest.fn((settings) => settings);
+    // Factory mocks defined above already provide the necessary implementations,
+    // eliminating the need for runtime mockImplementation calls.
   });
 
   describe('constructor', () => {
@@ -151,7 +164,7 @@ describe('SettingsHandler', () => {
       };
 
       // We need to spy on the existing register method to test the interaction
-      jest.spyOn(handler, 'register').mockReturnValue(mockRegisterResult);
+      vi.spyOn(handler, 'register').mockReturnValue(mockRegisterResult);
 
       const result = handler.registerDebugModeSetting();
 
@@ -272,7 +285,7 @@ describe('SettingsHandler', () => {
       beforeEach(() => {
         global.game = {
           settings: {
-            get: jest.fn()
+            get: vi.fn()
           }
         };
       });
@@ -334,7 +347,7 @@ describe('SettingsHandler', () => {
       beforeEach(() => {
         global.game = {
           settings: {
-            get: jest.fn()
+            get: vi.fn()
           }
         };
       });
@@ -409,7 +422,7 @@ describe('SettingsHandler', () => {
       beforeEach(() => {
         global.game = {
           settings: {
-            get: jest.fn()
+            get: vi.fn()
           }
         };
       });
@@ -451,7 +464,7 @@ describe('SettingsHandler', () => {
       beforeEach(() => {
         global.game = {
           settings: {
-            get: jest.fn()
+            get: vi.fn()
           }
         };
       });

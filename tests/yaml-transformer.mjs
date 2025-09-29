@@ -1,6 +1,6 @@
 /**
  * @file yaml-transformer.mjs
- * @description Jest mock for handling YAML files with ?raw imports
+ * @description Vitest mock for handling YAML files with ?raw imports
  * @path tests/yaml-transformer.mjs
  */
 

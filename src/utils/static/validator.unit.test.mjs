@@ -1,3 +1,4 @@
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { Validator } from './validator.mjs';
 import dayjs from 'dayjs';
   describe('isFunction', () => {
@@ -72,11 +73,11 @@ import dayjs from 'dayjs';
  */
 
 
-jest.mock('dayjs');
+vi.mock('dayjs');
 
 describe('Validator', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('isDefined', () => {

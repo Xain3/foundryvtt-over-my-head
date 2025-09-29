@@ -4,6 +4,7 @@
  * @path src/handlers/settingsHelpers/settingLocalizer.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import SettingLocalizer from './settingLocalizer.mjs';
 
 // Helper to create a fake game.i18n

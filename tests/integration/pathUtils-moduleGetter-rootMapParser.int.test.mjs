@@ -4,6 +4,58 @@
  * @path tests/integration/pathUtils-moduleGetter-rootMapParser.int.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll, fail } from 'vitest';
+
+// Mock config dependencies to prevent raw imports
+vi.mock('../../src/config/helpers/constantsGetter.mjs', () => ({
+  default: {
+    getConstantsYaml: vi.fn(() => `moduleManagement:
+  defaults:
+    modulesLocation: game.modules
+requiredManifestAttributes:
+  - id
+  - title
+  - description
+  - version`)
+  }
+}));
+
+vi.mock('../../src/config/helpers/constantsParser.mjs', () => ({
+  default: {
+    parseConstants: vi.fn(() => ({
+      moduleManagement: {
+        defaults: {
+          modulesLocation: 'game.modules'
+        }
+      },
+      requiredManifestAttributes: [
+        'id',
+        'title', 
+        'description',
+        'version'
+      ]
+    }))
+  }
+}));
+
+// Mock @config alias for moduleGetter.mjs
+vi.mock('@config', async () => {
+  const actual = await vi.importActual('../../src/config/config.mjs');
+  return {
+    ...actual,
+    default: {
+      constants: {
+        moduleManagement: {
+          defaults: {
+            modulesLocation: 'game.modules'
+          }
+        }
+      },
+      ...actual.default
+    }
+  };
+});
+
 import PathUtils from '../../src/helpers/pathUtils.mjs';
 import { getModule } from '../../src/helpers/moduleGetter.mjs';
 import config from '../../src/config/config.mjs';
@@ -11,9 +63,9 @@ import config from '../../src/config/config.mjs';
 const constants = config.constants;
 
 // Mock RootMapParser to avoid manifest import issues
-jest.mock('../../src/helpers/rootMapParser.mjs', () => {
-  const actualPathUtils = jest.requireActual('../../src/helpers/pathUtils.mjs').default;
-  const actualGetModule = jest.requireActual('../../src/helpers/moduleGetter.mjs').getModule;
+vi.mock('../../src/helpers/rootMapParser.mjs', async () => {
+  const actualPathUtils = (await vi.importActual('../../src/helpers/pathUtils.mjs')).default;
+  const actualGetModule = (await vi.importActual('../../src/helpers/moduleGetter.mjs')).getModule;
 
   class MockRootMapParser {
     static #retrieveModuleInNamespace(module, namespace) {
@@ -94,7 +146,7 @@ jest.mock('../../src/helpers/rootMapParser.mjs', () => {
   };
 });
 
-const RootMapParser = require('../../src/helpers/rootMapParser.mjs').default;
+import RootMapParser from '../../src/helpers/rootMapParser.mjs';
 
 // Mock Foundry VTT environment
 const createMockFoundryEnvironment = () => {
@@ -123,8 +175,8 @@ const createMockFoundryEnvironment = () => {
     game: {
       modules: mockModulesCollection,
       settings: {
-        get: jest.fn(),
-        set: jest.fn()
+        get: vi.fn(),
+        set: vi.fn()
       },
       user: {
         id: 'user123',
@@ -138,9 +190,9 @@ const createMockFoundryEnvironment = () => {
     },
     ui: {
       notifications: {
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn()
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn()
       },
       windows: {
         apps: []
@@ -155,12 +207,12 @@ const createMockFoundryEnvironment = () => {
     window: global,
     document: global.document || {},
     localStorage: {
-      getItem: jest.fn(),
-      setItem: jest.fn()
+      getItem: vi.fn(),
+      setItem: vi.fn()
     },
     sessionStorage: {
-      getItem: jest.fn(),
-      setItem: jest.fn()
+      getItem: vi.fn(),
+      setItem: vi.fn()
     }
   };
 };
@@ -170,7 +222,7 @@ describe('PathUtils, ModuleGetter, and RootMapParser Integration Tests', () => {
 
   beforeEach(() => {
     mockNamespace = createMockFoundryEnvironment();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('PathUtils Foundation Layer', () => {

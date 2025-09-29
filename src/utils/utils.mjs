@@ -8,7 +8,7 @@ import StaticUtils from "./static/static.mjs";
 import Logger from "./logger.mjs";
 import HookFormatter from "./hookFormatter.mjs";
 import Initializer from "./initializer.mjs";
-import Context from '@contexts/context.mjs';
+import Context from '../contexts/context.mjs';
 
 /**
  * Central utility class that provides a unified interface for all utility operations.

@@ -1,3 +1,4 @@
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import Unpacker from './unpacker.mjs';
 
 /**
@@ -89,7 +90,7 @@ describe('Unpacker', () => {
     it('should throw and log error if instance is frozen', () => {
       const frozen = Object.freeze({});
       const obj = { foo: 'bar' };
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       expect(() => unpacker.unpack(obj, frozen, 'frozenObject')).toThrow();
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Error unpacking frozenObject'),
@@ -99,7 +100,7 @@ describe('Unpacker', () => {
     });
 
     it('should throw and log error if object is not iterable', () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       expect(() => unpacker.unpack(42, instance, 'notIterable')).toThrow();
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Error unpacking notIterable'),

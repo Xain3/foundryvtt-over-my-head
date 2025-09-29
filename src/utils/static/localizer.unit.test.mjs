@@ -4,18 +4,19 @@
  * @path src/utils/static/localizer.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import Localizer from './localizer.mjs';
 
 const mockI18n = {
-  localize: jest.fn(),
-  format: jest.fn(),
-  has: jest.fn()
+  localize: vi.fn(),
+  format: vi.fn(),
+  has: vi.fn()
 };
 
 const mockCustomI18n = {
-  localize: jest.fn(),
-  format: jest.fn(),
-  has: jest.fn()
+  localize: vi.fn(),
+  format: vi.fn(),
+  has: vi.fn()
 };
 
 const mockGame = {
@@ -27,7 +28,7 @@ describe('Localizer', () => {
   let originalGame;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Store original global.game
     originalGame = global.game;
     // Mock global game object

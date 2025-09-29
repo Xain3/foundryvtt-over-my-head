@@ -4,6 +4,7 @@
  * @path src/utils/static/hooksLogger.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import HooksLogger from './hooksLogger.mjs';
 
 describe('HooksLogger', () => {
@@ -14,11 +15,11 @@ describe('HooksLogger', () => {
     // Mock console methods
     originalConsole = { ...console };
     mockConsole = {
-      log: jest.fn(),
-      debug: jest.fn(),
-      info: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn()
+      log: vi.fn(),
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn()
     };
     Object.assign(console, mockConsole);
   });
@@ -26,13 +27,13 @@ describe('HooksLogger', () => {
   afterEach(() => {
     // Restore original console
     Object.assign(console, originalConsole);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('createHookProxy', () => {
     it('should create a proxy that logs hook calls and modifies object in-place', () => {
       const mockObject = {
-        mockHookFunction: jest.fn((hookName, ...args) => `result-${hookName}`)
+        mockHookFunction: vi.fn((hookName, ...args) => `result-${hookName}`)
       };
       
       HooksLogger.createHookProxy(mockObject, 'mockHookFunction');
@@ -48,7 +49,7 @@ describe('HooksLogger', () => {
 
     it('should return proxy when returnProxy is true', () => {
       const mockObject = {
-        mockHookFunction: jest.fn((hookName, ...args) => `result-${hookName}`)
+        mockHookFunction: vi.fn((hookName, ...args) => `result-${hookName}`)
       };
       const originalFunction = mockObject.mockHookFunction;
       
@@ -67,7 +68,7 @@ describe('HooksLogger', () => {
     });
 
     it('should use specified log level', () => {
-      const mockObject = { mockHookFunction: jest.fn() };
+      const mockObject = { mockHookFunction: vi.fn() };
       HooksLogger.createHookProxy(mockObject, 'mockHookFunction', {
         logLevel: 'debug'
       });
@@ -82,7 +83,7 @@ describe('HooksLogger', () => {
     });
 
     it('should use custom prefix', () => {
-      const mockObject = { mockHookFunction: jest.fn() };
+      const mockObject = { mockHookFunction: vi.fn() };
       HooksLogger.createHookProxy(mockObject, 'mockHookFunction', {
         prefix: 'Custom Hook'
       });
@@ -93,7 +94,7 @@ describe('HooksLogger', () => {
     });
 
     it('should hide arguments when logArgs is false', () => {
-      const mockObject = { mockHookFunction: jest.fn() };
+      const mockObject = { mockHookFunction: vi.fn() };
       HooksLogger.createHookProxy(mockObject, 'mockHookFunction', {
         logArgs: false
       });
@@ -104,7 +105,7 @@ describe('HooksLogger', () => {
     });
 
     it('should log results when logResult is true', () => {
-      const mockObject = { mockHookFunction: jest.fn(() => 'test-result') };
+      const mockObject = { mockHookFunction: vi.fn(() => 'test-result') };
       HooksLogger.createHookProxy(mockObject, 'mockHookFunction', {
         logResult: true
       });
@@ -118,8 +119,8 @@ describe('HooksLogger', () => {
     });
 
     it('should apply filter when provided', () => {
-      const mockObject = { mockHookFunction: jest.fn() };
-      const filterFn = jest.fn((hookName) => hookName.startsWith('OMH.'));
+      const mockObject = { mockHookFunction: vi.fn() };
+      const filterFn = vi.fn((hookName) => hookName.startsWith('OMH.'));
       HooksLogger.createHookProxy(mockObject, 'mockHookFunction', {
         filter: filterFn
       });
@@ -133,7 +134,7 @@ describe('HooksLogger', () => {
       );
 
       // Reset mocks
-      jest.clearAllMocks();
+      vi.clearAllMocks();
 
       // This should not be logged
       mockObject.mockHookFunction('someOtherHook', 'arg2');
@@ -142,7 +143,7 @@ describe('HooksLogger', () => {
     });
 
     it('should handle hooks with no arguments', () => {
-      const mockObject = { mockHookFunction: jest.fn() };
+      const mockObject = { mockHookFunction: vi.fn() };
       HooksLogger.createHookProxy(mockObject, 'mockHookFunction');
 
       mockObject.mockHookFunction('testHook');
@@ -153,7 +154,7 @@ describe('HooksLogger', () => {
     it('should preserve this context', () => {
       const mockThis = { value: 'test' };
       const mockObject = {
-        mockHookFunction: jest.fn(function() {
+        mockHookFunction: vi.fn(function() {
           return this.value;
         })
       };
@@ -185,7 +186,7 @@ describe('HooksLogger', () => {
 
     it('should handle complex return values', () => {
       const complexResult = { data: [1, 2, 3], status: 'success' };
-      const mockObject = { mockHookFunction: jest.fn(() => complexResult) };
+      const mockObject = { mockHookFunction: vi.fn(() => complexResult) };
       HooksLogger.createHookProxy(mockObject, 'mockHookFunction');
 
       const result = mockObject.mockHookFunction('testHook');
@@ -197,7 +198,7 @@ describe('HooksLogger', () => {
     it('should handle thrown exceptions', () => {
       const mockError = new Error('Test error');
       const mockObject = {
-        mockHookFunction: jest.fn(() => {
+        mockHookFunction: vi.fn(() => {
           throw mockError;
         })
       };
@@ -235,7 +236,7 @@ describe('HooksLogger', () => {
     });
 
     it('should apply filter when provided', () => {
-      const filterFn = jest.fn((hookName) => hookName.includes('test'));
+      const filterFn = vi.fn((hookName) => hookName.includes('test'));
       const logger = HooksLogger.createHookLogger('debug', 'Filtered', filterFn);
 
       // This should be logged
@@ -244,7 +245,7 @@ describe('HooksLogger', () => {
       expect(mockConsole.debug).toHaveBeenCalledWith('Filtered: testHook');
 
       // Reset mocks
-      jest.clearAllMocks();
+      vi.clearAllMocks();
 
       // This should not be logged
       logger('otherHook');
@@ -278,10 +279,10 @@ describe('HooksLogger', () => {
     beforeEach(() => {
       // Mock global Hooks object with duck typing
       mockHooks = {
-        call: jest.fn((hookName, ...args) => `foundry-result-${hookName}`),
-        callAll: jest.fn((hookName, ...args) => `foundry-all-${hookName}`),
-        on: jest.fn(),
-        once: jest.fn()
+        call: vi.fn((hookName, ...args) => `foundry-result-${hookName}`),
+        callAll: vi.fn((hookName, ...args) => `foundry-all-${hookName}`),
+        on: vi.fn(),
+        once: vi.fn()
       };
       global.Hooks = mockHooks;
     });
@@ -314,7 +315,7 @@ describe('HooksLogger', () => {
       expect(mockConsole.debug).toHaveBeenCalledWith('Foundry Hook: OMH.ready');
 
       // Reset mocks
-      jest.clearAllMocks();
+      vi.clearAllMocks();
 
       // This should not be logged
       Hooks.call('someOtherHook');
@@ -344,7 +345,7 @@ describe('HooksLogger', () => {
     });
 
     it('should return false when Hooks is missing required methods', () => {
-      global.Hooks = { call: jest.fn() }; // Missing 'on', 'once'
+      global.Hooks = { call: vi.fn() }; // Missing 'on', 'once'
       
       const result = HooksLogger.proxyFoundryHooks();
       
@@ -371,7 +372,7 @@ describe('HooksLogger', () => {
       expect(mockConsole.debug).toHaveBeenCalledWith('Foundry Hook: testHook');
 
       // callAll should not be proxied (but should still work)
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       const originalCallAll = mockHooks.callAll;
       Hooks.callAll('allHook');
       expect(mockConsole.debug).not.toHaveBeenCalled();
@@ -380,7 +381,7 @@ describe('HooksLogger', () => {
     it('should handle proxy creation errors gracefully', () => {
       // Mock createHookProxy to throw
       const originalCreateHookProxy = HooksLogger.createHookProxy;
-      HooksLogger.createHookProxy = jest.fn().mockImplementation(() => {
+      HooksLogger.createHookProxy = vi.fn().mockImplementation(() => {
         throw new Error('Proxy creation failed');
       });
 
@@ -420,9 +421,9 @@ describe('HooksLogger', () => {
   describe('isHooksAvailable', () => {
     it('should return true when Hooks has required methods', () => {
       global.Hooks = {
-        on: jest.fn(),
-        once: jest.fn(),
-        call: jest.fn()
+        on: vi.fn(),
+        once: vi.fn(),
+        call: vi.fn()
       };
 
       expect(HooksLogger.isHooksAvailable()).toBe(true);
@@ -442,7 +443,7 @@ describe('HooksLogger', () => {
     });
 
     it('should return false when Hooks is missing required methods', () => {
-      global.Hooks = { call: jest.fn() }; // Missing 'on', 'once'
+      global.Hooks = { call: vi.fn() }; // Missing 'on', 'once'
       expect(HooksLogger.isHooksAvailable()).toBe(false);
       delete global.Hooks;
     });
@@ -451,7 +452,7 @@ describe('HooksLogger', () => {
   describe('Integration scenarios', () => {
     it('should work with complex hook scenarios', () => {
       const mockObject = {
-        mockHooksCall: jest.fn((hookName, data) => {
+        mockHooksCall: vi.fn((hookName, data) => {
           if (hookName === 'ready') return true;
           if (hookName === 'error') throw new Error('Hook error');
           return `processed-${data}`;
@@ -473,12 +474,12 @@ describe('HooksLogger', () => {
       );
 
       // Filtered hook (should not be logged)
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       mockObject.mockHooksCall('internal.secret');
       expect(mockConsole.debug).not.toHaveBeenCalled();
 
       // Hook that throws
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       expect(() => {
         mockObject.mockHooksCall('error');
       }).toThrow('Hook error');
@@ -486,8 +487,8 @@ describe('HooksLogger', () => {
     });
 
     it('should handle multiple proxied functions independently', () => {
-      const obj1 = { func1: jest.fn(() => 'result1') };
-      const obj2 = { func2: jest.fn(() => 'result2') };
+      const obj1 = { func1: vi.fn(() => 'result1') };
+      const obj2 = { func2: vi.fn(() => 'result2') };
 
       HooksLogger.createHookProxy(obj1, 'func1', { prefix: 'Proxy1' });
       HooksLogger.createHookProxy(obj2, 'func2', { prefix: 'Proxy2' });
@@ -504,10 +505,10 @@ describe('HooksLogger', () => {
     it('should work with Foundry VTT integration scenario', () => {
       // Setup mock Hooks like Foundry VTT
       global.Hooks = {
-        call: jest.fn((hookName, ...args) => true),
-        callAll: jest.fn((hookName, ...args) => []),
-        on: jest.fn(),
-        once: jest.fn()
+        call: vi.fn((hookName, ...args) => true),
+        callAll: vi.fn((hookName, ...args) => []),
+        on: vi.fn(),
+        once: vi.fn()
       };
 
       // Use the utility in a realistic way
@@ -523,7 +524,7 @@ describe('HooksLogger', () => {
       expect(mockConsole.debug).toHaveBeenCalledWith('Foundry Hook: myModule.ready', [{ data: 'test' }]);
 
       // Test non-filtered (should not log)
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       Hooks.call('someOtherHook');
       expect(mockConsole.debug).not.toHaveBeenCalled();
 
@@ -533,7 +534,7 @@ describe('HooksLogger', () => {
 
   describe('Edge cases', () => {
     it('should handle undefined return values', () => {
-      const mockObject = { mockHookFunction: jest.fn() }; // Returns undefined
+      const mockObject = { mockHookFunction: vi.fn() }; // Returns undefined
       HooksLogger.createHookProxy(mockObject, 'mockHookFunction', {
         logResult: true
       });
@@ -548,7 +549,7 @@ describe('HooksLogger', () => {
     });
 
     it('should handle null arguments', () => {
-      const mockObject = { mockHookFunction: jest.fn() };
+      const mockObject = { mockHookFunction: vi.fn() };
       HooksLogger.createHookProxy(mockObject, 'mockHookFunction');
 
       mockObject.mockHookFunction('testHook', null, undefined, 0, false, '');
@@ -560,7 +561,7 @@ describe('HooksLogger', () => {
     });
 
     it('should handle non-string hook names', () => {
-      const mockObject = { mockHookFunction: jest.fn() };
+      const mockObject = { mockHookFunction: vi.fn() };
       HooksLogger.createHookProxy(mockObject, 'mockHookFunction');
 
       mockObject.mockHookFunction(123, 'arg1');
@@ -571,10 +572,10 @@ describe('HooksLogger', () => {
     });
 
     it('should handle filter function that throws', () => {
-      const badFilter = jest.fn(() => {
+      const badFilter = vi.fn(() => {
         throw new Error('Filter error');
       });
-      const mockObject = { mockHookFunction: jest.fn() };
+      const mockObject = { mockHookFunction: vi.fn() };
       HooksLogger.createHookProxy(mockObject, 'mockHookFunction', {
         filter: badFilter
       });
@@ -588,7 +589,7 @@ describe('HooksLogger', () => {
     it('should handle objects with non-enumerable properties', () => {
       const mockObject = {};
       Object.defineProperty(mockObject, 'hiddenFunction', {
-        value: jest.fn(),
+        value: vi.fn(),
         enumerable: false,
         writable: true
       });
@@ -601,7 +602,7 @@ describe('HooksLogger', () => {
 
     it('should handle functions that modify their arguments', () => {
       const mockObject = {
-        modifyingFunction: jest.fn((hookName, data) => {
+        modifyingFunction: vi.fn((hookName, data) => {
           if (data && typeof data === 'object') {
             data.modified = true;
           }

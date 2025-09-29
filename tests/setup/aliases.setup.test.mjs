@@ -1,67 +1,97 @@
 /**
  * @file aliases.setup.test.mjs
- * @description Tests to validate that aliases in babel.config.mjs and jsconfig.json are consistent
+ * @description Tests to validate that aliases in vite.config.mjs and jsconfig.json are consistent
  * @path /tests/setup/aliases.setup.test.mjs
  */
 
-import fs from 'fs';
-import path from 'path';
+import { describe, it, expect, beforeAll } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import { parse } from 'jsonc-parser';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const projectRoot = path.resolve(__dirname, '../../');
 
 /**
  * Gets the jsconfig.json content from the project root
  * @returns {object} The parsed jsconfig.json content
  */
 const getJsconfigFromRoot = () => {
-  const jsconfigPath = path.resolve(__dirname, '../../jsconfig.json');
+  const jsconfigPath = path.resolve(projectRoot, 'jsconfig.json');
   const jsconfigContent = fs.readFileSync(jsconfigPath, 'utf8');
   return parse(jsconfigContent);
 };
 
 /**
- * Gets the babel.config.cjs content from the project root
- * @returns {object} The babel configuration object
+ * Loads the Vite configuration from the project root
+ * @returns {Promise<object>} The Vite configuration object
  */
-const getBabelConfigFromRoot = () => {
-  const babelConfigPath = path.resolve(__dirname, '../../babel.config.cjs');
-  delete require.cache[require.resolve(babelConfigPath)];
-  return require(babelConfigPath);
+const loadViteConfigFromRoot = async () => {
+  const viteConfigPath = pathToFileURL(path.resolve(projectRoot, 'vite.config.mjs')).href;
+  const viteModule = await import(viteConfigPath);
+  return viteModule.default ?? viteModule;
 };
 
-const babelConfig = getBabelConfigFromRoot();
-const jsconfigJson = getJsconfigFromRoot();
+const normalizePath = (value) => path.normalize(value).replace(/\\/g, '/');
+const trimTrailingSlash = (value) => value.replace(/\/$/, '');
+
+const buildViteAliasMap = (aliases) => {
+  const entries = new Map();
+  aliases
+    .filter((alias) => alias && typeof alias.find === 'string' && typeof alias.replacement === 'string')
+    .forEach((alias) => {
+      const relativeReplacement = trimTrailingSlash(
+        normalizePath(path.relative(projectRoot, alias.replacement))
+      );
+      entries.set(alias.find, relativeReplacement);
+    });
+  return entries;
+};
+
+const buildJsconfigAliasMap = (pathsConfig) => {
+  const entries = new Map();
+  Object.entries(pathsConfig).forEach(([key, values]) => {
+    if (!Array.isArray(values) || values.length === 0) return;
+    const normalizedKey = key.replace(/\/\*$/, '');
+    const normalizedValue = trimTrailingSlash(normalizePath(values[0].replace(/\/\*$/, '')));
+    entries.set(normalizedKey, normalizedValue);
+  });
+  return entries;
+};
+
+let viteConfig;
+let viteAliasMap;
+let jsconfigJson;
+let jsconfigAliasMap;
+
+beforeAll(async () => {
+  jsconfigJson = getJsconfigFromRoot();
+  viteConfig = await loadViteConfigFromRoot();
+  const aliasArray = viteConfig?.resolve?.alias ?? [];
+  viteAliasMap = buildViteAliasMap(aliasArray);
+  jsconfigAliasMap = buildJsconfigAliasMap(jsconfigJson.compilerOptions.paths);
+});
 
 describe('Alias Configuration Validation', () => {
-  describe('Babel Configuration Structure', () => {
-    it('should have correct babel config structure', () => {
-      expect(babelConfig).toBeDefined();
-      expect(Array.isArray(babelConfig.plugins)).toBe(true);
-
-      const moduleResolverPlugin = babelConfig.plugins.find(plugin =>
-        Array.isArray(plugin) && plugin[0] === 'module-resolver'
-      );
-
-      expect(moduleResolverPlugin).toBeDefined();
-      expect(moduleResolverPlugin[1]).toHaveProperty('root');
-      expect(moduleResolverPlugin[1]).toHaveProperty('alias');
-      expect(Array.isArray(moduleResolverPlugin[1].root)).toBe(true);
-      expect(typeof moduleResolverPlugin[1].alias).toBe('object');
+  describe('Vite Configuration Structure', () => {
+    it('should load Vite configuration with resolve aliases', () => {
+      expect(viteConfig).toBeDefined();
+      expect(viteConfig.resolve).toBeDefined();
+      expect(Array.isArray(viteConfig.resolve.alias)).toBe(true);
+      expect(viteConfig.resolve.alias.length).toBeGreaterThan(0);
     });
 
-    it('should have valid babel alias format', () => {
-      const moduleResolverPlugin = babelConfig.plugins.find(plugin =>
-        Array.isArray(plugin) && plugin[0] === 'module-resolver'
-      );
-
-      const babelAliases = moduleResolverPlugin[1].alias;
-
-      Object.keys(babelAliases).forEach(aliasKey => {
-        // Aliases should start with @
-        expect(aliasKey).toMatch(/^@/);
-
-        // Alias values should be relative paths starting with ./
-        const aliasValue = babelAliases[aliasKey];
-        expect(aliasValue).toMatch(/^\.?\//);
+    it('should have valid Vite alias format', () => {
+      const seenAliases = new Set();
+      viteConfig.resolve.alias.forEach((alias) => {
+        expect(typeof alias.find).toBe('string');
+        expect(alias.find.startsWith('@')).toBe(true);
+        expect(typeof alias.replacement).toBe('string');
+        expect(alias.replacement.startsWith(projectRoot)).toBe(true);
+        expect(seenAliases.has(alias.find)).toBe(false);
+        seenAliases.add(alias.find);
       });
     });
   });
@@ -78,88 +108,36 @@ describe('Alias Configuration Validation', () => {
     it('should have valid jsconfig paths format', () => {
       const jsconfigPaths = jsconfigJson.compilerOptions.paths;
 
-      Object.keys(jsconfigPaths).forEach(pathKey => {
-        // Path keys should start with @
+      Object.keys(jsconfigPaths).forEach((pathKey) => {
         expect(pathKey).toMatch(/^@/);
 
-        // Path values should be arrays
         const pathValue = jsconfigPaths[pathKey];
         expect(Array.isArray(pathValue)).toBe(true);
         expect(pathValue.length).toBe(1);
-
-        // Path value should not start with ./
         expect(pathValue[0]).not.toMatch(/^\.\//);
       });
     });
   });
 
   describe('Alias Consistency Between Configurations', () => {
-    it('should have matching alias configurations between babel and jsconfig', () => {
-      const moduleResolverPlugin = babelConfig.plugins.find(plugin =>
-        Array.isArray(plugin) && plugin[0] === 'module-resolver'
-      );
-
-      const babelAliases = moduleResolverPlugin[1].alias;
-      const jsconfigPaths = jsconfigJson.compilerOptions.paths;
-
-      expect(babelAliases).toBeDefined();
-      expect(jsconfigPaths).toBeDefined();
-
-      // Compare each babel alias with corresponding jsconfig path
-      Object.keys(babelAliases).forEach(aliasKey => {
-        const babelPath = babelAliases[aliasKey];
-
-        // Handle different formats between babel and jsconfig
-        let jsconfigKey = aliasKey;
-        if (!jsconfigKey.endsWith('/*') && !jsconfigKey.endsWith('*')) {
-          // For non-wildcard aliases, check both with and without /*
-          const wildcardKey = `${aliasKey}/*`;
-          if (jsconfigPaths[wildcardKey]) {
-            jsconfigKey = wildcardKey;
-          }
-        }
-
-        expect(jsconfigPaths).toHaveProperty(jsconfigKey);
-
-        const jsconfigPath = jsconfigPaths[jsconfigKey];
-        expect(Array.isArray(jsconfigPath)).toBe(true);
-        expect(jsconfigPath.length).toBe(1);
-
-        // Normalize paths for comparison
-        const normalizedBabelPath = babelPath.replace(/^\.\//, '').replace(/\/$/, '');
-        const normalizedJsconfigPath = jsconfigPath[0].replace(/^\.\//, '').replace(/\/\*$/, '').replace(/\/$/, '');
-        const normalizedBabelPathWithoutWildcard = normalizedBabelPath.replace(/\/\*$/, '');
-
-        expect(normalizedJsconfigPath).toBe(normalizedBabelPathWithoutWildcard);
+    it('should have matching alias configurations between Vite and jsconfig', () => {
+      expect(viteAliasMap.size).toBeGreaterThan(0);
+      viteAliasMap.forEach((vitePath, aliasKey) => {
+        expect(jsconfigAliasMap.has(aliasKey)).toBe(true);
+        const jsconfigPath = jsconfigAliasMap.get(aliasKey);
+        expect(jsconfigPath).toBe(vitePath);
       });
     });
 
-    it('should have all jsconfig paths represented in babel aliases', () => {
-      const moduleResolverPlugin = babelConfig.plugins.find(plugin =>
-        Array.isArray(plugin) && plugin[0] === 'module-resolver'
-      );
-
-      const babelAliases = moduleResolverPlugin[1].alias;
-      const jsconfigPaths = jsconfigJson.compilerOptions.paths;
-
-      Object.keys(jsconfigPaths).forEach(pathKey => {
-        // Remove /* suffix for comparison with babel aliases
-        const baseKey = pathKey.replace(/\/\*$/, '');
-
-        expect(babelAliases).toHaveProperty(baseKey);
+    it('should have all jsconfig paths represented in Vite aliases', () => {
+      jsconfigAliasMap.forEach((_, aliasKey) => {
+        expect(viteAliasMap.has(aliasKey)).toBe(true);
       });
     });
   });
 
   describe('Required Project Aliases', () => {
     it('should have all required aliases in both configurations', () => {
-      const moduleResolverPlugin = babelConfig.plugins.find(plugin =>
-        Array.isArray(plugin) && plugin[0] === 'module-resolver'
-      );
-
-      const babelAliases = moduleResolverPlugin[1].alias;
-      const jsconfigPaths = jsconfigJson.compilerOptions.paths;
-
       const requiredAliases = [
         '@',
         '@config',
@@ -171,167 +149,53 @@ describe('Alias Configuration Validation', () => {
         '@constants'
       ];
 
-      requiredAliases.forEach(alias => {
-        // Check babel config
-        expect(babelAliases).toHaveProperty(alias);
-
-        // Check jsconfig - might have /* suffix
-        const aliasWithWildcard = `${alias}/*`;
-        const hasExactMatch = jsconfigPaths.hasOwnProperty(alias);
-        const hasWildcardMatch = jsconfigPaths.hasOwnProperty(aliasWithWildcard);
-
-        expect(hasExactMatch || hasWildcardMatch).toBe(true);
+      requiredAliases.forEach((alias) => {
+        expect(viteAliasMap.has(alias)).toBe(true);
+        expect(jsconfigAliasMap.has(alias)).toBe(true);
       });
     });
   });
 
   describe('Alias Path Validation', () => {
-    it('should validate alias paths point to existing or expected directory structure', () => {
-      const moduleResolverPlugin = babelConfig.plugins.find(plugin =>
-        Array.isArray(plugin) && plugin[0] === 'module-resolver'
-      );
+    it('should validate alias paths resolve within the project', () => {
+      viteAliasMap.forEach((relativePath, aliasKey) => {
+        expect(relativePath).not.toMatch(/^\.\./);
 
-      const babelAliases = moduleResolverPlugin[1].alias;
-
-      Object.keys(babelAliases).forEach(aliasKey => {
-        const aliasPath = babelAliases[aliasKey];
-        const resolvedPath = path.resolve(__dirname, aliasPath);
-
-        // Skip file-specific aliases
-        if (aliasKey === '@manifest' || aliasKey === '@constants' || aliasKey === '@validator') {
-          // For files, check if the file exists or the parent directory exists
-          if (aliasPath.endsWith('.mjs') || aliasPath.endsWith('.json')) {
-            const parentDir = path.dirname(resolvedPath);
-            // Just verify the parent directory concept is valid
-            expect(parentDir).toMatch(/\/(src|tests|scripts|constants)/);
-          }
-          return;
+        if (['@manifest', '@constants', '@validator', '@module'].includes(aliasKey)) {
+          expect(relativePath).toMatch(/\.(mjs|json)$/);
         }
       });
     });
 
     it('should validate no duplicate aliases exist', () => {
-      const moduleResolverPlugin = babelConfig.plugins.find(plugin =>
-        Array.isArray(plugin) && plugin[0] === 'module-resolver'
-      );
-
-      const babelAliases = moduleResolverPlugin[1].alias;
-      const jsconfigPaths = jsconfigJson.compilerOptions.paths;
-
-      // Check for duplicate aliases in babel config
-      const babelKeys = Object.keys(babelAliases);
-      const uniqueBabelKeys = [...new Set(babelKeys)];
-      expect(babelKeys.length).toBe(uniqueBabelKeys.length);
-
-      // Check for duplicate paths in jsconfig
-      const jsconfigKeys = Object.keys(jsconfigPaths);
+      expect(viteAliasMap.size).toBe(viteConfig.resolve.alias.length);
+      const jsconfigKeys = Object.keys(jsconfigJson.compilerOptions.paths);
       const uniqueJsconfigKeys = [...new Set(jsconfigKeys)];
       expect(jsconfigKeys.length).toBe(uniqueJsconfigKeys.length);
-    });
-
-    it('should validate file extension patterns for script and style aliases', () => {
-      const moduleResolverPlugin = babelConfig.plugins.find(plugin =>
-        Array.isArray(plugin) && plugin[0] === 'module-resolver'
-      );
-
-      const babelAliases = moduleResolverPlugin[1].alias;
-
-      Object.keys(babelAliases).forEach(aliasKey => {
-        const aliasPath = babelAliases[aliasKey];
-
-        // Validate specific file types
-        if (aliasKey === '@manifest') {
-          expect(aliasPath).toMatch(/\.mjs$/);
-        }
-
-        if (aliasKey === '@constants' || aliasKey === '@validator') {
-          expect(aliasPath).toMatch(/\.mjs$/);
-        }
-      });
     });
   });
 
   describe('Future Alias Consistency', () => {
     it('should ensure any new aliases follow the same consistency patterns', () => {
-      const moduleResolverPlugin = babelConfig.plugins.find(plugin =>
-        Array.isArray(plugin) && plugin[0] === 'module-resolver'
-      );
+      const allViteAliases = [...viteAliasMap.keys()];
+      const allJsconfigAliases = [...jsconfigAliasMap.keys()];
 
-      const babelAliases = moduleResolverPlugin[1].alias;
-      const jsconfigPaths = jsconfigJson.compilerOptions.paths;
-
-      // This test ensures that any new aliases added to either config
-      // must follow the same pattern and be present in both
-      const allBabelAliases = Object.keys(babelAliases);
-      const allJsconfigAliases = Object.keys(jsconfigPaths).map(key => key.replace(/\/\*$/, ''));
-
-      // Every babel alias should have a corresponding jsconfig path
-      allBabelAliases.forEach(babelAlias => {
-        expect(allJsconfigAliases).toContain(babelAlias);
+      allViteAliases.forEach((alias) => {
+        expect(allJsconfigAliases).toContain(alias);
       });
 
-      // Every jsconfig path should have a corresponding babel alias
-      allJsconfigAliases.forEach(jsconfigAlias => {
-        expect(allBabelAliases).toContain(jsconfigAlias);
+      allJsconfigAliases.forEach((alias) => {
+        expect(allViteAliases).toContain(alias);
       });
     });
 
     it('should validate new aliases follow naming conventions', () => {
-      const moduleResolverPlugin = babelConfig.plugins.find(plugin =>
-        Array.isArray(plugin) && plugin[0] === 'module-resolver'
-      );
-
-      const babelAliases = moduleResolverPlugin[1].alias;
-      const jsconfigPaths = jsconfigJson.compilerOptions.paths;
-
-      // Validate all aliases follow @ prefix convention
-      Object.keys(babelAliases).forEach(alias => {
-        // Allow for root alias "@" or aliases starting with "@" followed by a letter
+      viteAliasMap.forEach((_, alias) => {
         expect(alias).toMatch(/^@([a-zA-Z]|$)/);
-        // Allow for both camelCase and others since @helpers vs @baseClasses exist
       });
 
-      Object.keys(jsconfigPaths).forEach(alias => {
-        const baseAlias = alias.replace(/\/\*$/, '');
-        // Allow for root alias "@" or aliases starting with "@" followed by a letter
-        expect(baseAlias).toMatch(/^@([a-zA-Z]|$)/);
-        // Allow for both camelCase and others since @helpers vs @baseClasses exist
-      });
-    });
-
-    it('should detect inconsistencies in alias paths between configurations', () => {
-      const moduleResolverPlugin = babelConfig.plugins.find(plugin =>
-        Array.isArray(plugin) && plugin[0] === 'module-resolver'
-      );
-
-      const babelAliases = moduleResolverPlugin[1].alias;
-      const jsconfigPaths = jsconfigJson.compilerOptions.paths;
-
-      // This test will catch any new aliases that are added to one config but not the other
-      // or that point to different paths
-      const allAliases = [
-        ...Object.keys(babelAliases),
-        ...Object.keys(jsconfigPaths).map(key => key.replace(/\/\*$/, ''))
-      ];
-
-      const uniqueAliases = [...new Set(allAliases)];
-
-      uniqueAliases.forEach(alias => {
-        const babelPath = babelAliases[alias];
-        const jsconfigKey = jsconfigPaths[alias] ? alias : `${alias}/*`;
-        const jsconfigPath = jsconfigPaths[jsconfigKey];
-
-        if (babelPath && jsconfigPath) {
-          // Both exist, ensure they point to the same location
-          const normalizedBabelPath = babelPath.replace(/^\.\//, '').replace(/\/$/, '');
-          const normalizedJsconfigPath = jsconfigPath[0].replace(/\/\*$/, '').replace(/\/$/, '');
-
-          expect(normalizedBabelPath).toBe(normalizedJsconfigPath);
-        } else {
-          // One is missing - this should fail the test
-          expect(babelPath).toBeDefined();
-          expect(jsconfigPath).toBeDefined();
-        }
+      jsconfigAliasMap.forEach((_, alias) => {
+        expect(alias).toMatch(/^@([a-zA-Z]|$)/);
       });
     });
   });

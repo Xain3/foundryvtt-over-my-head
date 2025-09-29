@@ -1,25 +1,28 @@
 /**
- * @file moduleGetter.test.mjs
+ * @file moduleGetter.unit.test.mjs
  * @description This file contains unit tests for the getModule function.
- * @path src/helpers/moduleGetter.test.mjs
+ * @path src/helpers/moduleGetter.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // Mock config before any imports
-jest.mock('@config', () => ({
-  constants: {
-    moduleManagement: {
-      defaults: {
-        modulesLocation: 'game.modules'
+vi.mock('../config/config.mjs', () => ({
+  default: {
+    constants: {
+      moduleManagement: {
+        defaults: {
+          modulesLocation: 'game.modules'
+        }
       }
     }
   }
 }));
 
-jest.mock('./pathUtils.mjs');
+vi.mock('./pathUtils.mjs');
 
 import { getModule } from './moduleGetter.mjs';
 import PathUtils from './pathUtils.mjs';
-import config from '@config';
+import config from '../config/config.mjs';
 
 // Get constants from the mocked config
 const constants = config.constants;
@@ -27,10 +30,12 @@ const constants = config.constants;
 describe('getModule', () => {
   let mockGlobalNamespace;
   let mockModulesCollection;
+  let originalGlobalGame;
 
   beforeEach(() => {
+    originalGlobalGame = globalThis.game;
     mockModulesCollection = {
-      get: jest.fn()
+      get: vi.fn()
     };
     mockGlobalNamespace = {
       game: {
@@ -39,9 +44,13 @@ describe('getModule', () => {
     };
 
     // Set up PathUtils mock
-    PathUtils.resolvePath = jest.fn();
+    PathUtils.resolvePath = vi.fn();
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    globalThis.game = originalGlobalGame;
   });
 
   describe('Input Validation', () => {

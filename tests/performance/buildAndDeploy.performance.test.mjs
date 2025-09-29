@@ -4,13 +4,13 @@
  * @path tests/performance/buildAndDeploy.performance.test.mjs
  */
 
-import { jest } from '@jest/globals';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
 describe('BuildAndDeploy Performance Tests', () => {
-  const SLOW_ENV = process.env.CI || process.env.JEST_WORKER_ID === undefined;
+  const SLOW_ENV = process.env.CI || process.env.VITEST_WORKER_ID === undefined;
   let tempDir;
   let mockDistDir;
   let mockTargetDir;
@@ -25,9 +25,9 @@ describe('BuildAndDeploy Performance Tests', () => {
     fs.mkdirSync(mockTargetDir, { recursive: true });
 
     global.console = {
-      log: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn()
+      log: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn()
     };
   });
 
@@ -43,12 +43,12 @@ describe('BuildAndDeploy Performance Tests', () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     global.console = {
-      log: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn()
+      log: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn()
     };
 
     // Clean up mockDistDir before every test to avoid leftover files from previous tests

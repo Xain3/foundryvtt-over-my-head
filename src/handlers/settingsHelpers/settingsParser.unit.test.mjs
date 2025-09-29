@@ -4,34 +4,35 @@
  * @path src/handlers/settingsHelpers/settingsParser.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import SettingsParser from './settingsParser.mjs';
 import SettingsChecker from './settingsChecker.mjs';
 import FlagEvaluator from './flagEvaluator.mjs';
 
-// Jest Mocks
-jest.mock('./settingsChecker.mjs');
-jest.mock('./flagEvaluator.mjs');
-jest.mock('@/baseClasses/handler', () => {
-  return class MockHandler {
+// Vitest Mocks
+vi.mock('./settingsChecker.mjs');
+vi.mock('./flagEvaluator.mjs');
+vi.mock('@/baseClasses/handler', () => ({
+  default: class MockHandler {
     constructor(config, utils, context) {
       this.config = config;
       this.context = context;
       this.utils = utils;
     }
-  };
-});
+  }
+}));
 
 // Mock global Hooks early for all tests
 global.Hooks = {
-  call: jest.fn(),
-  callAll: jest.fn()
+  call: vi.fn(),
+  callAll: vi.fn()
 };
 
 // --- Type Normalization Tests (merged) ---
 describe('SettingsParser type normalization', () => {
   let parser;
   const baseConfig = { constants: { settings: { requiredKeys: ['key', 'config.name', 'config.type'] } } };
-  const smallUtils = { formatError: (e) => String(e), logWarning: jest.fn(), logDebug: jest.fn(), formatHookName: (x) => x };
+  const smallUtils = { formatError: (e) => String(e), logWarning: vi.fn(), logDebug: vi.fn(), formatHookName: (x) => x };
   const smallContext = {};
 
   beforeEach(() => {
@@ -40,7 +41,7 @@ describe('SettingsParser type normalization', () => {
   // Ensure validation passes in this suite
   SettingsChecker.check.mockReturnValue(true);
   // Ensure flag evaluation passes in this suite
-  FlagEvaluator.shouldShow = jest.fn().mockReturnValue(true);
+  FlagEvaluator.shouldShow = vi.fn().mockReturnValue(true);
   });
 
   const makeSetting = (typeVal) => ({
@@ -118,9 +119,9 @@ describe('SettingsParser type normalization', () => {
 // --- Original Unit Tests ---
 const makeUtils = () => ({
   formatError: (msg) => msg,
-  logWarning: jest.fn(),
-  logDebug: jest.fn(),
-  formatHookName: jest.fn((hookName) => `FORMATTED_${hookName}`),
+  logWarning: vi.fn(),
+  logDebug: vi.fn(),
+  formatHookName: vi.fn((hookName) => `FORMATTED_${hookName}`),
 });
 
 const makeConfig = (requiredKeys = ['key', 'name', 'scope']) => ({
@@ -133,9 +134,9 @@ const context = {};
 
 describe('SettingsParser', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Ensure flag evaluation passes by default for existing tests
-    FlagEvaluator.shouldShow = jest.fn().mockReturnValue(true);
+    FlagEvaluator.shouldShow = vi.fn().mockReturnValue(true);
   });
 
   it('parses an array of valid settings successfully', () => {
@@ -251,7 +252,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
 
   beforeEach(() => {
     // Reset all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     global.Hooks.call.mockClear();
     global.Hooks.callAll.mockClear();
 
@@ -269,10 +270,10 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
     mockContext = {};
 
     mockUtils = {
-      formatError: jest.fn((message) => `ERROR: ${message}`),
-      logWarning: jest.fn(),
-      logDebug: jest.fn(),
-      formatHookName: jest.fn((hookName) => `OMH${hookName}`)
+      formatError: vi.fn((message) => `ERROR: ${message}`),
+      logWarning: vi.fn(),
+      logDebug: vi.fn(),
+      formatHookName: vi.fn((hookName) => `OMH${hookName}`)
     };
 
     settingsParser = new SettingsParser(mockConfig, mockUtils, mockContext);
@@ -280,7 +281,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
     // Mock SettingsChecker to return true by default
     SettingsChecker.check.mockReturnValue(true);
     // Mock FlagEvaluator to return true by default for existing tests
-    FlagEvaluator.shouldShow = jest.fn().mockReturnValue(true);
+    FlagEvaluator.shouldShow = vi.fn().mockReturnValue(true);
   });
 
   describe('onChange hook functionality', () => {
@@ -417,7 +418,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
     });
 
     it('should handle onChange callback errors gracefully', () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation();
       global.Hooks.callAll.mockImplementation(() => {
         throw new Error('Hook call failed');
       });
@@ -528,25 +529,25 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
 
   describe('Flag conditional parsing', () => {
     let parser;
-    const mockConfig = { 
+    const mockConfig = {
       constants: { settings: { requiredKeys: ['key', 'config.name', 'config.type'] } },
       manifest: { debugMode: true, dev: false }
     };
-    const mockUtils = { 
-      formatError: (e) => String(e), 
-      logWarning: jest.fn(), 
-      logDebug: jest.fn() 
+    const mockUtils = {
+      formatError: (e) => String(e),
+      logWarning: vi.fn(),
+      logDebug: vi.fn()
     };
     const mockContext = {};
 
     beforeEach(() => {
       parser = new SettingsParser(mockConfig, mockUtils, mockContext);
       SettingsChecker.check.mockReturnValue(true);
-      FlagEvaluator.shouldShow = jest.fn();
+      FlagEvaluator.shouldShow = vi.fn();
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should parse settings when flags allow showing', () => {
@@ -668,35 +669,35 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
 
   describe('Planned vs Unplanned failure reporting', () => {
     let parser;
-    const mockConfig = { 
+    const mockConfig = {
       constants: { settings: { requiredKeys: ['key', 'config.name', 'config.type'] } },
       manifest: { debugMode: true, dev: false }
     };
-    const mockUtils = { 
-      formatError: (e) => String(e), 
-      logWarning: jest.fn(), 
-      logDebug: jest.fn() 
+    const mockUtils = {
+      formatError: (e) => String(e),
+      logWarning: vi.fn(),
+      logDebug: vi.fn()
     };
     const mockContext = {};
 
     beforeEach(() => {
       parser = new SettingsParser(mockConfig, mockUtils, mockContext);
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should differentiate mixed planned and unplanned failures', () => {
       // First setting: valid and should show
       SettingsChecker.check.mockReturnValueOnce(true);
       FlagEvaluator.shouldShow.mockReturnValueOnce(true);
-      
+
       // Second setting: valid but flag-hidden (planned exclusion)
       SettingsChecker.check.mockReturnValueOnce(true);
       FlagEvaluator.shouldShow.mockReturnValueOnce(false);
-      
+
       // Third setting: invalid format (unplanned failure)
       SettingsChecker.check.mockReturnValueOnce(false);
       FlagEvaluator.shouldShow.mockReturnValueOnce(true);
@@ -726,7 +727,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       expect(result.failed).toEqual(['plannedExcluded', 'unplannedFailed']);
       expect(result.plannedExcluded).toEqual(['plannedExcluded']);
       expect(result.unplannedFailed).toEqual(['unplannedFailed']);
-      
+
       // Should log warning for mixed failures
       expect(mockUtils.logWarning).toHaveBeenCalledTimes(1);
       expect(mockUtils.logDebug).not.toHaveBeenCalled();
@@ -736,7 +737,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       // First setting: valid and should show
       SettingsChecker.check.mockReturnValueOnce(true);
       FlagEvaluator.shouldShow.mockReturnValueOnce(true);
-      
+
       // Second setting: valid but flag-hidden (planned exclusion)
       SettingsChecker.check.mockReturnValueOnce(true);
       FlagEvaluator.shouldShow.mockReturnValueOnce(false);
@@ -762,7 +763,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       expect(result.failed).toEqual(['plannedExcluded']);
       expect(result.plannedExcluded).toEqual(['plannedExcluded']);
       expect(result.unplannedFailed).toEqual([]);
-      
+
       // Should log debug for planned-only exclusions
       expect(mockUtils.logDebug).toHaveBeenCalledTimes(1);
       expect(mockUtils.logWarning).not.toHaveBeenCalled();
@@ -791,7 +792,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       expect(result.failed).toEqual([]);
       expect(result.plannedExcluded).toEqual([]);
       expect(result.unplannedFailed).toEqual([]);
-      
+
       // No logging for all-success scenarios
       expect(mockUtils.logDebug).not.toHaveBeenCalled();
       expect(mockUtils.logWarning).not.toHaveBeenCalled();
@@ -801,7 +802,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       // First setting: valid and should show
       SettingsChecker.check.mockReturnValueOnce(true);
       FlagEvaluator.shouldShow.mockReturnValueOnce(true);
-      
+
       // Second setting: invalid format (unplanned failure)
       SettingsChecker.check.mockReturnValueOnce(false);
       FlagEvaluator.shouldShow.mockReturnValueOnce(true);
@@ -825,7 +826,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       expect(result.failed).toEqual(['unplannedFailed']);
       expect(result.plannedExcluded).toEqual([]);
       expect(result.unplannedFailed).toEqual(['unplannedFailed']);
-      
+
       // Should warn about unplanned failures
       expect(mockUtils.logWarning).toHaveBeenCalledTimes(1);
       expect(mockUtils.logDebug).not.toHaveBeenCalled();

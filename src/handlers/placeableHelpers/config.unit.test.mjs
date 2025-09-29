@@ -4,6 +4,52 @@
  * @path src/handlers/placeableHelpers/config.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock config-related imports that might cause problems
+vi.mock('@config', () => ({
+  default: {
+    constants: { 
+      positionChecker: {
+        checkTypes: {
+          UNDER: 'under',
+          OVER: 'above' // Override from constants.yaml
+        },
+        positionUses: {
+          CENTER: 'center',
+          RECTANGLE: 'rectangle'
+        },
+        methodKeys: {
+          CHECK_METHOD: 'checkMethod'
+        }
+      }
+    },
+    manifest: { id: 'test-module' }
+  }
+}));
+
+// Mock the config file that the placeableHelpers config.mjs imports
+vi.mock('../../config/config.mjs', () => ({
+  default: {
+    constants: { 
+      positionChecker: {
+        checkTypes: {
+          UNDER: 'under',
+          OVER: 'above' // Override from constants.yaml
+        },
+        positionUses: {
+          CENTER: 'center',
+          RECTANGLE: 'rectangle'
+        },
+        methodKeys: {
+          CHECK_METHOD: 'checkMethod'
+        }
+      }
+    },
+    manifest: { id: 'test-module' }
+  }
+}));
+
 import { CHECK_TYPES, POSITION_USES, METHOD_KEYS } from './config.mjs';
 
 describe('PlaceableHelpers Config Integration', () => {

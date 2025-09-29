@@ -4,9 +4,28 @@
  * @path src/contexts/context.performance.test.mjs
  */
 
-import Context from '@contexts/context.mjs';
-import { ContextItem } from '@contexts/helpers/contextItem.mjs';
-import { ContextContainer } from '@contexts/helpers/contextContainer.mjs';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock the Validator to avoid import resolution issues in test environment
+vi.mock('@utils/static/validator.mjs', () => ({
+  Validator: {
+    validateDate: vi.fn((value, name = 'Date') => {
+      const date = new Date(value);
+      if (isNaN(date.getTime())) {
+        throw new Error(`${name} must be a valid date. Received: ${value}`);
+      }
+      return date;
+    })
+  }
+}));
+
+// Mock other aliases that might be needed
+vi.mock('@helpers/pathUtils.mjs', () => ({}));
+vi.mock('@config', () => ({}));
+vi.mock('@constants', () => ({}));
+vi.mock('@manifest', () => ({}));
+
+let Context;
 
 describe('Context Performance Tests', () => {
   let context;
@@ -14,7 +33,7 @@ describe('Context Performance Tests', () => {
   let largeDataSet;
 
   // Performance thresholds (adjust based on requirements)
-  const SLOW_ENV = process.env.CI || process.env.JEST_WORKER_ID === undefined;
+  const SLOW_ENV = process.env.CI || process.env.VITEST_WORKER_ID === undefined;
   const SCALE = SLOW_ENV ? 3 : 1; // Loosen thresholds on CI/slow runners
   const PERFORMANCE_THRESHOLDS = {
     simpleGet: 1 * SCALE,
@@ -28,7 +47,9 @@ describe('Context Performance Tests', () => {
     multiContextSync: 200 * SCALE
   };
 
-  beforeAll(() => {
+  beforeAll(async () => {
+    ({ default: Context } = await vi.importActual('../../src/contexts/context.mjs'));
+
     // Create large dataset for stress testing
     largeDataSet = {
       players: {},

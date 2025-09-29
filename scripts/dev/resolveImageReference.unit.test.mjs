@@ -1,3 +1,10 @@
+/**
+ * @file resolveImageReference.unit.test.mjs
+ * @description Unit tests for the resolveImageReference utility and CLI wrapper.
+ * @path scripts/dev/resolveImageReference.unit.test.mjs
+ */
+
+import { describe, it, test, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import resolveImageReference, { BASE_REPO, DEFAULT_VERSION } from './resolveImageReference.mjs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -16,7 +23,7 @@ describe('resolveImageReference', () => {
   test('accepts numeric versions', () => {
     expect(resolveImageReference('10')).toBe(`${BASE_REPO}:10`);
     expect(resolveImageReference('10.291')).toBe(`${BASE_REPO}:10.291`);
-  expect(resolveImageReference('10.1.2')).toBe(`${BASE_REPO}:10.1.2`);
+    expect(resolveImageReference('10.1.2')).toBe(`${BASE_REPO}:10.1.2`);
   });
 
   test('accepts simple alias tags', () => {

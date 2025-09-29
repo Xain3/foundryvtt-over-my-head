@@ -4,36 +4,57 @@
  * @path scripts/dev/buildUtils.unit.test.mjs
  */
 
-import fs from 'fs';
-import path from 'path';
-import { removeRootBuildArtifacts } from './buildUtils.mjs';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock dependencies
-jest.mock('fs');
-jest.mock('path');
+vi.mock('fs', () => {
+  const existsSync = vi.fn();
+  const unlinkSync = vi.fn();
+  return {
+    default: {
+      existsSync,
+      unlinkSync
+    },
+    existsSync,
+    unlinkSync
+  };
+});
+
+vi.mock('path', () => {
+  const resolve = vi.fn();
+  return {
+    default: {
+      resolve
+    },
+    resolve
+  };
+});
+
+let mockFs;
+let mockPath;
+let removeRootBuildArtifacts;
+let processCwdSpy;
 
 describe('buildUtils', () => {
-  let mockFs;
-  let mockPath;
+  beforeEach(async () => {
+    vi.resetModules();
 
-  beforeEach(() => {
-    mockFs = fs;
-    mockPath = path;
-    
-    // Reset all mocks
-    jest.clearAllMocks();
-    
-    // Default mock implementations
+    ({ default: mockFs } = await import('fs'));
+    ({ default: mockPath } = await import('path'));
+    ({ removeRootBuildArtifacts } = await import('./buildUtils.mjs'));
+
+    mockFs.existsSync.mockReset();
+    mockFs.unlinkSync.mockReset();
+    mockPath.resolve.mockReset();
+
     mockFs.existsSync.mockReturnValue(false);
-    mockFs.unlinkSync.mockImplementation();
+    mockFs.unlinkSync.mockImplementation(() => {});
     mockPath.resolve.mockImplementation((...args) => args.join('/'));
-    
-    // Mock process.cwd()
-    jest.spyOn(process, 'cwd').mockReturnValue('/project/root');
+
+    processCwdSpy = vi.spyOn(process, 'cwd').mockReturnValue('/project/root');
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    processCwdSpy?.mockRestore();
   });
 
   describe('removeRootBuildArtifacts', () => {
@@ -41,8 +62,8 @@ describe('buildUtils', () => {
     let consoleWarnSpy;
 
     beforeEach(() => {
-      consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      consoleSpy = vi.spyOn(console, 'log').mockImplementation();
+      consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation();
     });
 
     afterEach(() => {
@@ -51,7 +72,7 @@ describe('buildUtils', () => {
     });
 
     it('should remove main.mjs when it exists', () => {
-      mockFs.existsSync.mockImplementation(file => file.includes('main.mjs') && !file.includes('.map'));
+      mockFs.existsSync.mockImplementation((file) => file === '/project/root/main.mjs');
       
       removeRootBuildArtifacts();
       
@@ -61,7 +82,7 @@ describe('buildUtils', () => {
     });
 
     it('should remove main.mjs.map when it exists', () => {
-      mockFs.existsSync.mockImplementation(file => file.includes('main.mjs.map'));
+      mockFs.existsSync.mockImplementation((file) => file === '/project/root/main.mjs.map');
       
       removeRootBuildArtifacts();
       
@@ -142,7 +163,7 @@ describe('buildUtils', () => {
     });
 
     it('should work with different working directories', () => {
-      process.cwd.mockReturnValue('/different/project/path');
+      processCwdSpy.mockReturnValue('/different/project/path');
       mockFs.existsSync.mockReturnValue(true);
       
       removeRootBuildArtifacts();
@@ -156,7 +177,7 @@ describe('buildUtils', () => {
     let consoleSpy;
 
     beforeEach(() => {
-      consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      consoleSpy = vi.spyOn(console, 'log').mockImplementation();
     });
 
     afterEach(() => {
@@ -172,7 +193,7 @@ describe('buildUtils', () => {
     });
 
     it('should log with correct file names when main.mjs is removed', () => {
-      mockFs.existsSync.mockImplementation(file => file.includes('main.mjs') && !file.includes('.map'));
+      mockFs.existsSync.mockImplementation((file) => file === '/project/root/main.mjs');
       
       removeRootBuildArtifacts();
       
@@ -180,7 +201,7 @@ describe('buildUtils', () => {
     });
 
     it('should log with correct file names when main.mjs.map is removed', () => {
-      mockFs.existsSync.mockImplementation(file => file.includes('main.mjs.map'));
+      mockFs.existsSync.mockImplementation((file) => file === '/project/root/main.mjs.map');
       
       removeRootBuildArtifacts();
       
@@ -200,7 +221,7 @@ describe('buildUtils', () => {
     let consoleWarnSpy;
 
     beforeEach(() => {
-      consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation();
     });
 
     afterEach(() => {
@@ -244,9 +265,9 @@ describe('buildUtils', () => {
   describe('integration scenarios', () => {
     it('should work in typical development scenario', () => {
       // Simulate typical scenario where main.mjs exists but main.mjs.map doesn't
-      mockFs.existsSync.mockImplementation(file => file.includes('main.mjs') && !file.includes('.map'));
+      mockFs.existsSync.mockImplementation((file) => file === '/project/root/main.mjs');
       
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation();
       
       removeRootBuildArtifacts();
       
@@ -261,7 +282,7 @@ describe('buildUtils', () => {
       // Simulate scenario where build tool leaves both artifacts
       mockFs.existsSync.mockReturnValue(true);
       
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation();
       
       removeRootBuildArtifacts();
       

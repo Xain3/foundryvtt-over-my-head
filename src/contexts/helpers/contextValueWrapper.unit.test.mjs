@@ -5,6 +5,48 @@
 
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock the validator alias first
+vi.mock('@utils/static/validator.mjs', () => ({
+  default: {
+    validateObject: vi.fn(),
+    validateString: vi.fn()
+  },
+  Validator: {
+    validateObject: vi.fn(),
+    validateString: vi.fn()
+  }
+}));
+
+// Mock modules with proper class constructors inside the factory
+vi.mock('./contextItem.mjs', () => {
+  class MockContextItem {
+    constructor(value, metadata) {
+      this.value = value;
+      this.metadata = metadata || {};
+      this.modifiedAt = new Date();
+    }
+    setMetadata = vi.fn()
+  }
+  return {
+    ContextItem: MockContextItem
+  };
+});
+
+vi.mock('./contextContainer.mjs', () => {
+  class MockContextContainer {
+    constructor() {
+      this.keys = vi.fn();
+      this.getItem = vi.fn();
+      this.setItem = vi.fn();
+    }
+  }
+  return {
+    ContextContainer: MockContextContainer
+  };
+});
+
 import { ContextValueWrapper } from './contextValueWrapper.mjs';
 import { ContextItem } from './contextItem.mjs';
 import { ContextContainer } from './contextContainer.mjs';

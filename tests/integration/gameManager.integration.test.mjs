@@ -4,6 +4,40 @@
  * @path src/utils/static/gameManager.integration.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock config dependencies to prevent raw imports
+vi.mock('../../src/config/helpers/constantsGetter.mjs', () => ({
+  default: {
+    getConstantsYaml: vi.fn(() => `moduleManagement:
+  defaults:
+    modulesLocation: game.modules
+requiredManifestAttributes:
+  - id
+  - title
+  - description
+  - version`)
+  }
+}));
+
+vi.mock('../../src/config/helpers/constantsParser.mjs', () => ({
+  default: {
+    parseConstants: vi.fn(() => ({
+      moduleManagement: {
+        defaults: {
+          modulesLocation: 'game.modules'
+        }
+      },
+      requiredManifestAttributes: [
+        'id',
+        'title',
+        'description',
+        'version'
+      ]
+    }))
+  }
+}));
+
 import GameManager from '../../src/utils/static/gameManager.mjs';
 import config from '../../src/config/config.mjs';
 
@@ -23,7 +57,7 @@ describe('GameManager Integration Tests', () => {
 
         globalThis.game = {
             modules: {
-                get: jest.fn((id) => {
+                get: vi.fn((id) => {
                     if (id === 'foundryvtt-over-my-head') {
                         return mockModule;
                     }
@@ -35,7 +69,7 @@ describe('GameManager Integration Tests', () => {
 
     afterEach(() => {
         globalThis.game = originalGame;
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('Real manifest.mjs integration', () => {
@@ -126,18 +160,18 @@ describe('GameManager Integration Tests', () => {
         it('should work without instantiation', () => {
             // No need to create an instance
             expect(() => {
-                GameManager.getModuleObject(manifest);
-                GameManager.writeToModuleObject(moduleJson, 'test', 'value');
-                GameManager.readFromModuleObject(manifest, 'test');
+                GameManager.getModuleObject(config.manifest);
+                GameManager.writeToModuleObject(config.manifest, 'test', 'value');
+                GameManager.readFromModuleObject(config.manifest, 'test');
             }).not.toThrow();
         });
 
         it('should maintain state between calls via the game object', () => {
             // Write some data
-            GameManager.writeToModuleObject(manifest, 'persistentData', 'test-value');
+            GameManager.writeToModuleObject(config.manifest, 'persistentData', 'test-value');
 
             // Read it back in a different call
-            const result = GameManager.readFromModuleObject(manifest, 'persistentData');
+            const result = GameManager.readFromModuleObject(config.manifest, 'persistentData');
             expect(result).toBe('test-value');
 
             // Verify it's still there

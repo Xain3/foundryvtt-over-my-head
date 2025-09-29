@@ -4,25 +4,26 @@
  * @path src/utils/initializer.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import Initializer from './initializer.mjs';
 
 
-const mockLog = jest.fn();
-const mockWarn = jest.fn();
-const mockError = jest.fn();
+const mockLog = vi.fn();
+const mockWarn = vi.fn();
+const mockError = vi.fn();
 const mockLogger = {
     log: mockLog,
     warn: mockWarn,
     error: mockError
 };
 
-const mockFormatError = jest.fn((msg) => `Formatted: ${msg}`);
-const mockFormatHook = jest.fn((hook) => hook);
+const mockFormatError = vi.fn((msg) => `Formatted: ${msg}`);
+const mockFormatHook = vi.fn((hook) => hook);
 
-const mockContextInstance = { setFlags: jest.fn() };
-const MockContextClass = jest.fn(() => mockContextInstance);
+const mockContextInstance = { setFlags: vi.fn() };
+const MockContextClass = vi.fn(() => mockContextInstance);
 
-const mockRegister = jest.fn();
+const mockRegister = vi.fn();
 class MockSettingsHandlerClass {
     constructor(cfg, utils, context) {
         this.cfg = cfg;
@@ -50,17 +51,17 @@ const MOCK_MANIFEST = { id: 'test-module' };
 
 let hooks = {};
 global.Hooks = {
-    once: jest.fn((hook, cb) => {
+    once: vi.fn((hook, cb) => {
         hooks[hook] = cb;
     }),
-    callAll: jest.fn()
+    callAll: vi.fn()
 };
 
 describe('Initializer', () => {
     let initializer;
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         hooks = {};
         initializer = new Initializer(
             MOCK_CONSTANTS,
@@ -211,7 +212,7 @@ describe('Initializer', () => {
         });
 
         it('registers immediately when waitHook=false (default)', () => {
-            initializer._registerSettings = jest.fn();
+            initializer._registerSettings = vi.fn();
             initializer.initializeSettings(MockSettingsHandlerClass, {});
             expect(Hooks.once).not.toHaveBeenCalledWith('i18nInit', expect.any(Function));
             expect(initializer._registerSettings).toHaveBeenCalledWith(MockSettingsHandlerClass, {});
@@ -222,7 +223,7 @@ describe('Initializer', () => {
         });
 
         it('defers registration until i18nInit when waitHook=true', () => {
-            initializer._registerSettings = jest.fn();
+            initializer._registerSettings = vi.fn();
             initializer.initializeSettings(MockSettingsHandlerClass, {}, true);
             expect(Hooks.once).toHaveBeenCalledWith('i18nInit', expect.any(Function));
             // Simulate i18nInit
@@ -234,7 +235,7 @@ describe('Initializer', () => {
         });
 
         it('warns if context not available to set flag (immediate)', () => {
-            initializer._registerSettings = jest.fn();
+            initializer._registerSettings = vi.fn();
             initializer.context = null;
             initializer.initializeSettings(MockSettingsHandlerClass, {});
             expect(mockWarn).toHaveBeenCalledWith('Context not available to set settingsReady flag during initialization.');
@@ -247,7 +248,7 @@ describe('Initializer', () => {
 
         beforeEach(() => {
             mockHooksLogger = {
-                proxyFoundryHooks: jest.fn().mockReturnValue(true)
+                proxyFoundryHooks: vi.fn().mockReturnValue(true)
             };
             mockUtils = {
                 static: {

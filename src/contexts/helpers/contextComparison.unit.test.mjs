@@ -5,6 +5,8 @@
 
  */
 
+import '../../../tests/mocks/aliasMocks.mjs';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import ContextComparison from './contextComparison.mjs';
 
 describe('ContextComparison', () => {

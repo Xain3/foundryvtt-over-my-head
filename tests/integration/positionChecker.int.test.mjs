@@ -1,5 +1,59 @@
-import config from '@/config/config';
-import PositionChecker from '@/handlers/placeableHelpers/positionChecker.mjs';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock config dependencies to prevent raw imports
+vi.mock('../../src/config/helpers/constantsGetter.mjs', () => ({
+  default: {
+    getConstantsYaml: vi.fn(() => `positionChecker:
+  checkTypes:
+    UNDER: under
+    OVER: above
+  positionUses:
+    CENTER: center
+    RECTANGLE: rectangle
+  methodKeys:
+    CENTER_RECTANGLE: center-rectangle
+    RECTANGLE_CENTER: rectangle-center
+    RECTANGLE_RECTANGLE: rectangle-rectangle
+    CENTER_CENTER: center-center
+requiredManifestAttributes:
+  - id
+  - title
+  - description
+  - version`)
+  }
+}));
+
+vi.mock('../../src/config/helpers/constantsParser.mjs', () => ({
+  default: {
+    parseConstants: vi.fn(() => ({
+      positionChecker: {
+        checkTypes: {
+          UNDER: 'under',
+          OVER: 'above'
+        },
+        positionUses: {
+          CENTER: 'center',
+          RECTANGLE: 'rectangle'
+        },
+        methodKeys: {
+          CENTER_RECTANGLE: 'center-rectangle',
+          RECTANGLE_CENTER: 'rectangle-center',
+          RECTANGLE_RECTANGLE: 'rectangle-rectangle',
+          CENTER_CENTER: 'center-center'
+        }
+      },
+      requiredManifestAttributes: [
+        'id',
+        'title', 
+        'description',
+        'version'
+      ]
+    }))
+  }
+}));
+
+import config from '../../src/config/config.mjs';
+import PositionChecker from '../../src/handlers/placeableHelpers/positionChecker.mjs';
 
 /**
  * @file positionChecker.int.test.mjs
@@ -22,7 +76,7 @@ describe('PositionChecker Integration', () => {
   });
 
   it('uses config overrides at runtime (elevation and keys)', () => {
-    const utils = { logger: { warn: jest.fn() } };
+    const utils = { logger: { warn: vi.fn() } };
     const pc = new PositionChecker({ constants: config.constants }, {}, utils);
 
     // Elevation checks: YAML sets OVER to 'above'
@@ -40,7 +94,7 @@ describe('PositionChecker Integration', () => {
   });
 
   it('performs a real check with YAML-provided keys/uses', () => {
-    const utils = { logger: { warn: jest.fn() } };
+    const utils = { logger: { warn: vi.fn() } };
     const pc = new PositionChecker({ constants: config.constants }, {}, utils);
 
     const center = { x: 5, y: 5 };

@@ -4,13 +4,59 @@
  * @path src/handlers/placeableHelpers/placeableChecker.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock config-related imports that might cause problems
+vi.mock('@config', () => ({
+  default: {
+    constants: { 
+      positionChecker: {
+        checkTypes: {
+          UNDER: 'under',
+          OVER: 'above'
+        },
+        positionUses: {
+          CENTER: 'center',
+          RECTANGLE: 'rectangle'
+        },
+        methodKeys: {
+          CHECK_METHOD: 'checkMethod'
+        }
+      }
+    },
+    manifest: { id: 'test-module' }
+  }
+}));
+
+// Mock the config file that the placeableHelpers config.mjs imports
+vi.mock('../../config/config.mjs', () => ({
+  default: {
+    constants: { 
+      positionChecker: {
+        checkTypes: {
+          UNDER: 'under',
+          OVER: 'above'
+        },
+        positionUses: {
+          CENTER: 'center',
+          RECTANGLE: 'rectangle'
+        },
+        methodKeys: {
+          CHECK_METHOD: 'checkMethod'
+        }
+      }
+    },
+    manifest: { id: 'test-module' }
+  }
+}));
+
+// Mock dependencies
+vi.mock('./positionChecker.mjs');
+
 import PlaceableChecker from './placeableChecker.mjs';
 import PositionChecker from './positionChecker.mjs';
 import { CHECK_TYPES } from './config.mjs';
 import MockConfig from '../../../tests/mocks/config.mjs';
-
-// Mock dependencies
-jest.mock('./positionChecker.mjs');
 
 describe('PlaceableChecker', () => {
     let placeableChecker;
@@ -26,10 +72,10 @@ describe('PlaceableChecker', () => {
         mockContext = {};
 
         mockLogger = {
-            warn: jest.fn(),
-            log: jest.fn(),
-            error: jest.fn(),
-            debug: jest.fn()
+            warn: vi.fn(),
+            log: vi.fn(),
+            error: vi.fn(),
+            debug: vi.fn()
         };
 
         mockUtils = {
@@ -37,12 +83,12 @@ describe('PlaceableChecker', () => {
         };
 
         mockPlaceableGetter = {
-            getPosition: jest.fn(),
-            getElevation: jest.fn()
+            getPosition: vi.fn(),
+            getElevation: vi.fn()
         };
 
         mockPositionChecker = {
-            check: jest.fn()
+            check: vi.fn()
         };
 
     PositionChecker.mockImplementation(() => mockPositionChecker);
@@ -52,7 +98,7 @@ describe('PlaceableChecker', () => {
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('checkPosition', () => {
@@ -236,7 +282,7 @@ describe('PlaceableChecker', () => {
             const targetUse = 'center';
             const referenceUse = 'rectangle';
 
-            jest.spyOn(placeableChecker, 'isUnder').mockReturnValue(true);
+            vi.spyOn(placeableChecker, 'isUnder').mockReturnValue(true);
 
             const result = placeableChecker.isOver(
                 target,

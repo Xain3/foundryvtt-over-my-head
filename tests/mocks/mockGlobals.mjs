@@ -5,27 +5,30 @@
  * @date 29 May 2025
  */
 
+// Import vi for mocking support
+import { vi } from 'vitest';
+
 /**
- * Create a mock function that uses jest.fn() when available, otherwise a regular function
+ * Create a mock function that uses vitest vi.fn() when available, otherwise a regular function
  * @param {Function} implementation - The function implementation
- * @returns {Function} Mock function or jest spy
+ * @returns {Function} Mock function or vi spy
  */
 export const createMockFunction = (implementation = () => {}) => {
-  if (typeof jest !== 'undefined' && jest.fn) {
-    return jest.fn(implementation);
+  if (vi && vi.fn) {
+    return vi.fn(implementation);
   }
   return implementation;
 };
 
 /**
- * Create a spy function that tracks calls when jest is available
+ * Create a spy function that tracks calls when vitest is available
  * @param {Object} object - Object to spy on
  * @param {string} methodName - Method name to spy on
  * @returns {Function} Spy function or original method
  */
 export const createSpy = (object, methodName) => {
-  if (typeof jest !== 'undefined' && jest.spyOn) {
-    return jest.spyOn(object, methodName);
+  if (vi && vi.spyOn) {
+    return vi.spyOn(object, methodName);
   }
   return object[methodName];
 };
@@ -85,17 +88,17 @@ const createCanvasConfiguration = () => ({
  * @returns {Object} Canvas layers object
  */
 const createCanvasLayers = () => ({
-  background: { render: jest.fn() },
-  drawings: { render: jest.fn(), objects: new MockCollection() },
-  grid: { render: jest.fn() },
-  walls: { render: jest.fn(), objects: new MockCollection() },
-  templates: { render: jest.fn(), objects: new MockCollection() },
-  notes: { render: jest.fn(), objects: new MockCollection() },
-  tokens: { render: jest.fn(), objects: new MockCollection() },
-  foreground: { render: jest.fn() },
-  lighting: { render: jest.fn(), objects: new MockCollection() },
-  sounds: { render: jest.fn(), objects: new MockCollection() },
-  controls: { render: jest.fn() }
+  background: { render: createMockFunction() },
+  drawings: { render: createMockFunction(), objects: new MockCollection() },
+  grid: { render: createMockFunction() },
+  walls: { render: createMockFunction(), objects: new MockCollection() },
+  templates: { render: createMockFunction(), objects: new MockCollection() },
+  notes: { render: createMockFunction(), objects: new MockCollection() },
+  tokens: { render: createMockFunction(), objects: new MockCollection() },
+  foreground: { render: createMockFunction() },
+  lighting: { render: createMockFunction(), objects: new MockCollection() },
+  sounds: { render: createMockFunction(), objects: new MockCollection() },
+  controls: { render: createMockFunction() }
 });
 
 // Create JSDOM instance at module level
@@ -202,15 +205,15 @@ const mockCONFIG = {
 
 // Mock UI elements
 const mockUI = {
-  chat: { render: jest.fn() },
-  combat: { render: jest.fn() },
-  players: { render: jest.fn() },
-  hotbar: { render: jest.fn() },
-  sidebar: { render: jest.fn() },
+  chat: { render: createMockFunction() },
+  combat: { render: createMockFunction() },
+  players: { render: createMockFunction() },
+  hotbar: { render: createMockFunction() },
+  sidebar: { render: createMockFunction() },
   notifications: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn()
+    info: createMockFunction(),
+    warn: createMockFunction(),
+    error: createMockFunction()
   }
 };
 
@@ -381,8 +384,15 @@ class MockGlobals {
     const browserGlobals = createBrowserGlobals();
     Object.entries(browserGlobals).forEach(([key, value]) => {
       this.#saveOriginal(key);
-      globalThis[key] = value;
-      this.managedKeys.add(key);
+      try {
+        globalThis[key] = value;
+        this.managedKeys.add(key);
+      } catch (error) {
+        // Skip properties that can't be set (e.g., getter-only properties like navigator)
+        if (!error.message.includes('has only a getter')) {
+          throw error;
+        }
+      }
     });
   }
 
@@ -405,9 +415,9 @@ class MockGlobals {
     this.game = new MockGame();
     MockHooks._instance = new MockHooks();
 
-    // Only clear jest mocks if jest is available
-    if (typeof jest !== 'undefined' && jest.clearAllMocks) {
-      jest.clearAllMocks();
+    // Clear mocks if vitest is available
+    if (vi && vi.clearAllMocks) {
+      vi.clearAllMocks();
     }
   }
 }

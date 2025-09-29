@@ -5,39 +5,50 @@
 
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { ContextItemSetter } from './contextItemSetter.mjs';
 import { ContextValueWrapper } from './contextValueWrapper.mjs';
 import PathUtils from '../../helpers/pathUtils.mjs';
 
+function loadAlias(relativePath) {
+  return async () => import(new URL(relativePath, import.meta.url).href);
+}
+
+vi.mock('@utils/static/validator.mjs', loadAlias('../../utils/static/validator.mjs'));
+vi.mock('@helpers/pathUtils.mjs', loadAlias('../../helpers/pathUtils.mjs'));
+vi.mock('@config', loadAlias('../../config/config.mjs'));
+vi.mock('@constants', loadAlias('../../config/constants.mjs'));
+vi.mock('@manifest', loadAlias('../../config/manifest.mjs'));
+
 // Mock dependencies
-jest.mock('./contextValueWrapper.mjs');
-jest.mock('../../helpers/pathUtils.mjs');
+vi.mock('./contextValueWrapper.mjs');
+vi.mock('../../helpers/pathUtils.mjs');
 
 describe('ContextItemSetter', () => {
   let mockContainerInstance;
   let mockWrappedItem;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     mockWrappedItem = {
       value: 'test-value',
-      isFrozen: jest.fn(() => false)
+      isFrozen: vi.fn(() => false)
     };
 
     mockContainerInstance = {
-      _isReservedKey: jest.fn(() => false),
-      _createNestedContainer: jest.fn(),
-      _getManagedItem: jest.fn(),
-      _setManagedItem: jest.fn(),
-      _getDefaultItemOptions: jest.fn(() => ({
+      _isReservedKey: vi.fn(() => false),
+      _createNestedContainer: vi.fn(),
+      _getManagedItem: vi.fn(),
+      _setManagedItem: vi.fn(),
+      _getDefaultItemOptions: vi.fn(() => ({
         wrapPrimitives: true,
         wrapAs: 'ContextItem',
         recordAccess: true,
         recordAccessForMetadata: false
       })),
-      _updateModificationTimestamps: jest.fn(),
-      setItem: jest.fn()
+      _updateModificationTimestamps: vi.fn(),
+      setItem: vi.fn()
     };
 
     ContextValueWrapper.wrap.mockReturnValue(mockWrappedItem);
@@ -84,7 +95,7 @@ describe('ContextItemSetter', () => {
 
     it('should handle nested key setting', () => {
       const mockNestedContainer = {
-        setItem: jest.fn()
+        setItem: vi.fn()
       };
       mockContainerInstance._createNestedContainer.mockReturnValue(mockNestedContainer);
 
@@ -100,7 +111,7 @@ describe('ContextItemSetter', () => {
     it('should warn and prefix reserved keys', () => {
       mockContainerInstance._isReservedKey.mockReturnValue(true);
 
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       const result = ContextItemSetter.setItem('value', 'test', mockContainerInstance);
 
@@ -112,14 +123,14 @@ describe('ContextItemSetter', () => {
     });
 
     it('should throw error when trying to overwrite frozen item', () => {
-      const frozenItem = { isFrozen: jest.fn(() => true) };
+      const frozenItem = { isFrozen: vi.fn(() => true) };
       mockContainerInstance._getManagedItem.mockReturnValue(frozenItem);
 
       expect(() => ContextItemSetter.setItem('key', 'new-value', mockContainerInstance)).toThrow('Cannot overwrite frozen item at key "key". Use ignoreFrozen option to force overwrite.');
     });
 
     it('should allow overwriting frozen item with ignoreFrozen option', () => {
-      const frozenItem = { isFrozen: jest.fn(() => true) };
+      const frozenItem = { isFrozen: vi.fn(() => true) };
       mockContainerInstance._getManagedItem.mockReturnValue(frozenItem);
 
       expect(() => ContextItemSetter.setItem('key', 'new-value', mockContainerInstance, { ignoreFrozen: true })).not.toThrow();
@@ -241,7 +252,7 @@ describe('ContextItemSetter', () => {
 
     it('should handle isFrozen method that throws error', () => {
       const problematicItem = {
-        isFrozen: jest.fn().mockImplementation(() => {
+        isFrozen: vi.fn().mockImplementation(() => {
           throw new Error('isFrozen error');
         })
       };

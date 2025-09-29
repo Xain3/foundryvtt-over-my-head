@@ -4,6 +4,7 @@
  * @path src/baseClasses/handler.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import Handler from './handler.mjs';
 
 
@@ -12,7 +13,7 @@ describe('Handler', () => {
 
     beforeEach(() => {
         config = { foo: 'bar' };
-        utils = { log: jest.fn() };
+        utils = { log: vi.fn() };
         context = { state: 'init' };
     });
 
@@ -39,7 +40,7 @@ describe('Handler', () => {
 
         it('should update config, utils, and context when all are provided', () => {
             const newConfig = { foo: 'baz' };
-            const newUtils = { log: jest.fn() };
+            const newUtils = { log: vi.fn() };
             const newContext = { state: 'updated' };
 
             handler.update({ config: newConfig, utils: newUtils, context: newContext });
@@ -59,7 +60,7 @@ describe('Handler', () => {
         });
 
         it('should update only utils if only utils is provided', () => {
-            const newUtils = { log: jest.fn() };
+            const newUtils = { log: vi.fn() };
             handler.update({ utils: newUtils });
 
             expect(handler.config).toBe(config);

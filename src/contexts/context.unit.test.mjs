@@ -4,23 +4,107 @@
  * @path src/contexts/context.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Context from './context.mjs';
 import { ContextContainer } from './helpers/contextContainer.mjs';
 import { ContextItem } from './helpers/contextItem.mjs';
-import constants from '../config/constants.mjs';
+import Validator from '@utils/static/validator.mjs';
+
+// Mock config to avoid pulling real constants/manifest and transitive deps in unit tests
+vi.mock('../config/config.mjs', () => ({
+  default: {
+    constants: {
+      context: {
+        naming: {
+          state: 'state',
+          settings: 'settings',
+          flags: 'flags',
+          data: 'data',
+          manifest: 'manifest',
+          timestamp: 'timestamp'
+        },
+        operationsParams: {
+          defaults: {
+            alwaysPullBeforeGetting: false,
+            alwaysPullBeforeSetting: false,
+            pullFrom: [],
+            alwaysPushAfterSetting: false,
+            pushTo: [],
+            errorHandling: {
+              onPullError: 'warn',
+              onPushError: 'warn',
+              onValidationError: 'throw'
+            }
+          }
+        }
+      }
+    }
+  }
+}));
+
+// Local constants mirroring the mocked config for assertions in this test
+const constants = {
+  context: {
+    naming: {
+      state: 'state',
+      settings: 'settings',
+      flags: 'flags',
+      data: 'data',
+      manifest: 'manifest',
+      timestamp: 'timestamp'
+    },
+    operationsParams: {
+      defaults: {
+        alwaysPullBeforeGetting: false,
+        alwaysPullBeforeSetting: false,
+        pullFrom: [],
+        alwaysPushAfterSetting: false,
+        pushTo: [],
+        errorHandling: {
+          onPullError: 'warn',
+          onPushError: 'warn',
+          onValidationError: 'throw'
+        }
+      }
+    }
+  }
+};
+
+// Mock the validator import (use importActual to avoid circular self-mock and preserve export shape)
+vi.mock('@utils/static/validator.mjs', async () => {
+  const actual = await vi.importActual('../utils/static/validator.mjs');
+  const ActualValidator = actual.default ?? actual.Validator;
+
+  const methodNames = Object.getOwnPropertyNames(ActualValidator)
+    .filter(name => !['length', 'name', 'prototype'].includes(name) && typeof ActualValidator[name] === 'function');
+
+  class MockedValidator extends ActualValidator {}
+
+  for (const name of methodNames) {
+    MockedValidator[name] = vi.fn((...args) => ActualValidator[name](...args));
+  }
+
+  return {
+    ...actual,
+    default: MockedValidator,
+    Validator: MockedValidator
+  };
+});
 
 // Mock helpers to avoid circular dependencies in tests
-jest.mock('./helpers/contextHelpers.mjs', () => {
-  const mockHelpers = {
+var mockContextHelpers;
+
+vi.mock('./helpers/contextHelpers.mjs', () => {
+  mockContextHelpers = {
     Comparison: {
-      compare: jest.fn((source, target, options) => ({
+      compare: vi.fn((source, target, options) => ({
         result: 'equal',
         differences: [],
         options
       }))
     },
     Merger: {
-      merge: jest.fn((source, target, strategy, options) => ({
+      merge: vi.fn((source, target, strategy, options) => ({
         success: true,
         strategy,
         itemsProcessed: 0,
@@ -35,7 +119,7 @@ jest.mock('./helpers/contextHelpers.mjs', () => {
         },
         errors: []
       })),
-      analyze: jest.fn((source, target, strategy, options) => ({
+      analyze: vi.fn((source, target, strategy, options) => ({
         strategy,
         wouldProcess: 0,
         potentialConflicts: 0,
@@ -44,13 +128,13 @@ jest.mock('./helpers/contextHelpers.mjs', () => {
       }))
     },
     Sync: {
-      sync: jest.fn((source, target, operation, options) => ({
+      sync: vi.fn((source, target, operation, options) => ({
         success: true,
         operation,
         itemsProcessed: 0,
         errors: []
       })),
-      syncItem: jest.fn((source, target, itemPath, operation, options) => {
+      syncItem: vi.fn((source, target, itemPath, operation, options) => {
         // Actually transfer the data for testing
         if (operation === 'updateTargetToSource' && source.hasItem && target.setItem) {
           if (source.hasItem(itemPath)) {
@@ -68,7 +152,7 @@ jest.mock('./helpers/contextHelpers.mjs', () => {
       })
     },
     PathUtils: {
-      getValueFromMixedPath: jest.fn((obj, path) => {
+      getValueFromMixedPath: vi.fn((obj, path) => {
         const parts = path.split('.');
         let current = obj;
         for (const part of parts) {
@@ -80,7 +164,7 @@ jest.mock('./helpers/contextHelpers.mjs', () => {
         }
         return current;
       }),
-      pathExists: jest.fn((obj, path) => {
+      pathExists: vi.fn((obj, path) => {
         const parts = path.split('.');
         let current = obj;
         for (const part of parts) {
@@ -96,8 +180,8 @@ jest.mock('./helpers/contextHelpers.mjs', () => {
   };
 
   return {
-    default: mockHelpers,
-    ...mockHelpers
+    default: mockContextHelpers,
+    ...mockContextHelpers
   };
 });
 
@@ -130,7 +214,7 @@ describe('Context', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     context = new Context({
       initializationParams: defaultInitParams,
       operationsParams: defaultOpParams
@@ -376,9 +460,7 @@ describe('Context', () => {
 
       context.compare(mockTargetContext, options);
 
-      // Get the mock from the imported module
-      const ContextHelpers = require('./helpers/contextHelpers.mjs');
-      expect(ContextHelpers.default.Comparison.compare).toHaveBeenCalledWith(
+        expect(mockContextHelpers.Comparison.compare).toHaveBeenCalledWith(
         context,
         mockTargetContext,
         options
@@ -397,8 +479,7 @@ describe('Context', () => {
     it('should use default merge strategy', () => {
       context.merge(mockTargetContext);
 
-      const ContextHelpers = require('./helpers/contextHelpers.mjs');
-      expect(ContextHelpers.default.Merger.merge).toHaveBeenCalledWith(
+      expect(mockContextHelpers.Merger.merge).toHaveBeenCalledWith(
         context,
         mockTargetContext,
         'mergeNewerWins',
@@ -413,8 +494,7 @@ describe('Context', () => {
 
       context.merge(mockTargetContext, 'mergeSourcePriority', options);
 
-      const ContextHelpers = require('./helpers/contextHelpers.mjs');
-      expect(ContextHelpers.default.Merger.merge).toHaveBeenCalledWith(
+      expect(mockContextHelpers.Merger.merge).toHaveBeenCalledWith(
         context,
         mockTargetContext,
         'mergeSourcePriority',
@@ -427,8 +507,7 @@ describe('Context', () => {
 
       expect(result.success).toBe(true);
 
-      const ContextHelpers = require('./helpers/contextHelpers.mjs');
-      expect(ContextHelpers.default.Merger.merge).toHaveBeenCalledWith(
+      expect(mockContextHelpers.Merger.merge).toHaveBeenCalledWith(
         context,
         mockTargetContext,
         'mergeNewerWins',
@@ -441,8 +520,7 @@ describe('Context', () => {
 
       expect(result.strategy).toBe('mergeNewerWins');
 
-      const ContextHelpers = require('./helpers/contextHelpers.mjs');
-      expect(ContextHelpers.default.Merger.analyze).toHaveBeenCalledWith(
+      expect(mockContextHelpers.Merger.analyze).toHaveBeenCalledWith(
         context,
         mockTargetContext,
         'mergeNewerWins',
@@ -488,8 +566,7 @@ describe('Context', () => {
         pullFrom: [sourceContext1, sourceContext2]
       });
 
-      const ContextHelpers = require('./helpers/contextHelpers.mjs');
-      expect(ContextHelpers.default.Sync.syncItem).toHaveBeenCalled();
+  expect(mockContextHelpers.Sync.syncItem).toHaveBeenCalled();
     });
 
     it('should handle pull cooldown', () => {
@@ -546,32 +623,27 @@ describe('Context', () => {
     it('should auto-pull before getting when configured', () => {
       autoContext.getItem('data.test');
 
-      // Access the already mocked ContextHelpers instead of requiring it
-      const mockHelpers = require('./helpers/contextHelpers.mjs').default;
-      // When getting a specific item, syncItem is called, not sync
-      expect(mockHelpers.Sync.syncItem).toHaveBeenCalled();
+  // When getting a specific item, syncItem is called, not sync
+  expect(mockContextHelpers.Sync.syncItem).toHaveBeenCalled();
     });
 
     it('should auto-pull and auto-push when setting items', () => {
       autoContext.setItem('data.test', 'value');
 
-      // Access the already mocked ContextHelpers instead of requiring it
-      const mockHelpers = require('./helpers/contextHelpers.mjs').default;
-      // When setting a specific item, syncItem is called for pull, sync might be called for push
-      expect(mockHelpers.Sync.syncItem).toHaveBeenCalled();
+  // When setting a specific item, syncItem is called for pull, sync might be called for push
+  expect(mockContextHelpers.Sync.syncItem).toHaveBeenCalled();
     });
 
     it('should allow skipping auto-pull/push with overrides', () => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
 
       autoContext.setItem('data.test', 'value', {}, {
         skipPull: true,
         skipPush: true
       });
 
-      const ContextHelpers = require('./helpers/contextHelpers.mjs');
-      // Should not have called sync because of skip overrides
-      expect(ContextHelpers.default.Sync.sync).not.toHaveBeenCalled();
+  // Should not have called sync because of skip overrides
+  expect(mockContextHelpers.Sync.sync).not.toHaveBeenCalled();
     });
   });
 
@@ -924,8 +996,7 @@ describe('Context', () => {
         pullFrom: [playerContext]
       });
 
-      const ContextHelpers = require('./helpers/contextHelpers.mjs');
-      expect(ContextHelpers.default.Sync.syncItem).toHaveBeenCalledWith(
+      expect(mockContextHelpers.Sync.syncItem).toHaveBeenCalledWith(
         playerContext,
         sharedContext,
         'data.character',
@@ -1042,9 +1113,9 @@ describe('Context', () => {
 
   describe('Additional Coverage', () => {
     it('throws on pull error when configured to throw', () => {
-      const helpers = require('./helpers/contextHelpers.mjs').default;
-      const err = new Error('pull boom');
-      helpers.Sync.syncItem.mockImplementationOnce(() => { throw err; });
+  const helpers = mockContextHelpers;
+  const err = new Error('pull boom');
+  helpers.Sync.syncItem.mockImplementationOnce(() => { throw err; });
 
       const throwing = new Context({
         operationsParams: { errorHandling: { onPullError: 'throw', onPushError: 'warn', onValidationError: 'silent' } }
@@ -1054,10 +1125,10 @@ describe('Context', () => {
     });
 
     it('warns (does not throw) on pull error when configured to warn', () => {
-      const helpers = require('./helpers/contextHelpers.mjs').default;
-      const err = new Error('pull warn');
+  const helpers = mockContextHelpers;
+  const err = new Error('pull warn');
       helpers.Sync.syncItem.mockImplementationOnce(() => { throw err; });
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       const warnCtx = new Context({
         operationsParams: { errorHandling: { onPullError: 'warn', onPushError: 'warn', onValidationError: 'silent' } }
@@ -1069,8 +1140,8 @@ describe('Context', () => {
     });
 
     it('throws on push error when configured to throw', () => {
-      const helpers = require('./helpers/contextHelpers.mjs').default;
-      helpers.Sync.syncItem.mockImplementationOnce(() => { throw new Error('push boom'); });
+  const helpers = mockContextHelpers;
+  helpers.Sync.syncItem.mockImplementationOnce(() => { throw new Error('push boom'); });
 
       const pushing = new Context({
         operationsParams: {
@@ -1084,9 +1155,9 @@ describe('Context', () => {
     });
 
     it('warns (does not throw) on push error when configured to warn', () => {
-      const helpers = require('./helpers/contextHelpers.mjs').default;
-      helpers.Sync.syncItem.mockImplementationOnce(() => { throw new Error('push warn'); });
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  const helpers = mockContextHelpers;
+  helpers.Sync.syncItem.mockImplementationOnce(() => { throw new Error('push warn'); });
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       const warnPush = new Context({
         operationsParams: {

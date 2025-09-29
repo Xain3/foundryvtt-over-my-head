@@ -4,6 +4,7 @@
  * @path tests/mocks/MockCollection.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import MockCollection from './MockCollection.mjs';
 
 describe('MockCollection', () => {
@@ -46,7 +47,7 @@ describe('MockCollection', () => {
     });
 
     it('should pass key as second parameter', () => {
-      const predicate = jest.fn(() => false);
+      const predicate = vi.fn(() => false);
       collection.find(predicate);
       expect(predicate).toHaveBeenCalledWith({ id: '1', name: 'item1', type: 'weapon' }, '1');
     });
@@ -72,7 +73,7 @@ describe('MockCollection', () => {
     });
 
     it('should pass key as second parameter', () => {
-      const predicate = jest.fn(() => true);
+      const predicate = vi.fn(() => true);
       collection.filter(predicate);
       expect(predicate).toHaveBeenCalledWith({ id: '1', name: 'item1', type: 'weapon' }, '1');
     });

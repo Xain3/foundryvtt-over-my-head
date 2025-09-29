@@ -1,9 +1,11 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "types": [],
     "paths": {
       "@/*": ["src/*"],
-        "@docker/*": ["docker/*"],
+      "@docker/*": ["docker/*"],
+      "@baseClasses/*": ["src/baseClasses/*"],
       "@config": ["src/config/config.mjs"],
       "@constants": ["src/config/constants.mjs"],
       "@manifest": ["src/config/manifest.mjs"],

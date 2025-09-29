@@ -1,3 +1,4 @@
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import RootMapValidator from './rootMapValidator';
 
 describe('RootMapValidator', () => {
@@ -13,14 +14,14 @@ describe('RootMapValidator', () => {
     manager = {
       module: moduleObj,
       remoteContextDefaults: {
-        ROOT_MAP: jest.fn(() => rootMapResult)
+        ROOT_MAP: vi.fn(() => rootMapResult)
       }
     };
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('returns true for valid arguments', () => {
@@ -112,7 +113,7 @@ describe('RootMapValidator', () => {
   });
 
   it('throws if ROOT_MAP throws an error', () => {
-    manager.remoteContextDefaults.ROOT_MAP = jest.fn(() => {
+    manager.remoteContextDefaults.ROOT_MAP = vi.fn(() => {
       throw new Error('fail!');
     });
     expect(() => RootMapValidator.validateArgs(globalNamespace, manager)).toThrow(
@@ -121,28 +122,28 @@ describe('RootMapValidator', () => {
   });
 
   it('throws if ROOT_MAP returns null', () => {
-    manager.remoteContextDefaults.ROOT_MAP = jest.fn(() => null);
+    manager.remoteContextDefaults.ROOT_MAP = vi.fn(() => null);
     expect(() => RootMapValidator.validateArgs(globalNamespace, manager)).toThrow(
       /ROOT_MAP must return a non-null object/
     );
   });
 
   it('throws if ROOT_MAP returns non-object', () => {
-    manager.remoteContextDefaults.ROOT_MAP = jest.fn(() => 123);
+    manager.remoteContextDefaults.ROOT_MAP = vi.fn(() => 123);
     expect(() => RootMapValidator.validateArgs(globalNamespace, manager)).toThrow(
       /ROOT_MAP must return a non-null object/
     );
   });
 
   it('throws if ROOT_MAP returns empty object', () => {
-    manager.remoteContextDefaults.ROOT_MAP = jest.fn(() => ({}));
+    manager.remoteContextDefaults.ROOT_MAP = vi.fn(() => ({}));
     expect(() => RootMapValidator.validateArgs(globalNamespace, manager)).toThrow(
       /ROOT_MAP must not return an empty object/
     );
   });
 
   it('logs error and returns false if ROOT_MAP returns empty object and throwError=false', () => {
-    manager.remoteContextDefaults.ROOT_MAP = jest.fn(() => ({}));
+    manager.remoteContextDefaults.ROOT_MAP = vi.fn(() => ({}));
     expect(RootMapValidator.validateArgs(globalNamespace, manager, false, true)).toBe(false);
     expect(console.error).toHaveBeenCalledWith(expect.stringContaining('ROOT_MAP must not return an empty object'));
   });
@@ -214,7 +215,7 @@ describe('RootMapValidator', () => {
     });
 
     it('returns false when ROOT_MAP throws an error and throwError=false', () => {
-      manager.remoteContextDefaults.ROOT_MAP = jest.fn(() => {
+      manager.remoteContextDefaults.ROOT_MAP = vi.fn(() => {
         throw new Error('fail!');
       });
       const result = RootMapValidator.validateArgs(globalNamespace, manager, false, true);
@@ -223,14 +224,14 @@ describe('RootMapValidator', () => {
     });
 
     it('returns false when ROOT_MAP returns null and throwError=false', () => {
-      manager.remoteContextDefaults.ROOT_MAP = jest.fn(() => null);
+      manager.remoteContextDefaults.ROOT_MAP = vi.fn(() => null);
       const result = RootMapValidator.validateArgs(globalNamespace, manager, false, true);
       expect(result).toBe(false);
       expect(console.error).toHaveBeenCalledWith(expect.stringContaining('ROOT_MAP must return a non-null object'));
     });
 
     it('returns false when ROOT_MAP returns non-object and throwError=false', () => {
-      manager.remoteContextDefaults.ROOT_MAP = jest.fn(() => 123);
+      manager.remoteContextDefaults.ROOT_MAP = vi.fn(() => 123);
       const result = RootMapValidator.validateArgs(globalNamespace, manager, false, true);
       expect(result).toBe(false);
       expect(console.error).toHaveBeenCalledWith(expect.stringContaining('ROOT_MAP must return a non-null object'));

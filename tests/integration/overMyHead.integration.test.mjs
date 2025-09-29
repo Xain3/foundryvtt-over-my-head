@@ -4,29 +4,70 @@
  * @path tests/integration/overMyHead.integration.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock config dependencies to prevent raw imports
+vi.mock('../../src/config/helpers/constantsGetter.mjs', () => ({
+  default: {
+    getConstantsYaml: vi.fn(() => `test: value
+requiredManifestAttributes:
+  - id
+  - title
+  - description
+  - version`)
+  }
+}));
+
+vi.mock('../../src/config/helpers/constantsParser.mjs', () => ({
+  default: {
+    parseConstants: vi.fn(() => ({ 
+      test: 'value',
+      errors: {
+        separator: ': '
+      },
+      context: {
+        sync: {
+          defaults: {}
+        }
+      },
+      moduleManagement: {
+        referToModuleBy: 'id'
+      },
+      requiredManifestAttributes: [
+        'id',
+        'title', 
+        'description',
+        'version'
+      ]
+    }))
+  }
+}));
+
 import OverMyHead from '../../src/overMyHead.mjs';
 import config from '../../src/config/config.mjs';
 
 // Mock the Utilities class since we're testing config integration and init flow wiring
-jest.mock('../../src/utils/utils.mjs', () => {
-  return jest.fn().mockImplementation(() => ({
+vi.mock('../../src/utils/utils.mjs', () => {
+  const MockUtils = vi.fn().mockImplementation(() => ({
     static: {
-      unpack: jest.fn()
+      unpack: vi.fn()
     },
     initializer: {
-      initializeDevFeatures: jest.fn(),
-      initializeContext: jest.fn().mockReturnValue(Promise.resolve({ setFlags: jest.fn() })),
-      initializeHandlers: jest.fn().mockReturnValue({ settings: {} }),
-      initializeSettings: jest.fn(),
-      confirmInitialization: jest.fn()
+      initializeDevFeatures: vi.fn(),
+      initializeContext: vi.fn().mockReturnValue(Promise.resolve({ setFlags: vi.fn() })),
+      initializeHandlers: vi.fn().mockReturnValue({ settings: {} }),
+      initializeSettings: vi.fn(),
+      confirmInitialization: vi.fn()
     }
   }));
+  
+  return { default: MockUtils };
 });
 
 // Minimal Hooks mock for tests not running in Foundry
 global.Hooks = {
-  once: jest.fn((event, callback) => {}),
-  callAll: jest.fn()
+  once: vi.fn((event, callback) => {}),
+  callAll: vi.fn()
 };
 
 describe('OverMyHead Integration Tests', () => {
@@ -38,9 +79,9 @@ describe('OverMyHead Integration Tests', () => {
     // Remove them for a clean slate
     for (const k of originalExportedVarNames) delete globalThis[k];
 
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -75,7 +116,7 @@ describe('OverMyHead Integration Tests', () => {
   describe('Dynamic Constants Export', () => {
     it('calls config.exportConstants during initialization', async () => {
       const overMyHead = new OverMyHead();
-      const spy = jest.spyOn(config, 'exportConstants');
+      const spy = vi.spyOn(config, 'exportConstants');
       await overMyHead.init();
       expect(spy).toHaveBeenCalledTimes(1);
       // Find exported var with dynamic name like OMHConstants
@@ -159,7 +200,7 @@ describe('OverMyHead Integration Tests', () => {
     it('surface errors from config.exportConstants during initialization', async () => {
       const overMyHead = new OverMyHead();
       const original = config.exportConstants;
-      config.exportConstants = jest.fn(() => { throw new Error('Test error'); });
+      config.exportConstants = vi.fn(() => { throw new Error('Test error'); });
       await expect(overMyHead.init()).rejects.toThrow('Test error');
       expect(console.error).toHaveBeenCalled();
       config.exportConstants = original;

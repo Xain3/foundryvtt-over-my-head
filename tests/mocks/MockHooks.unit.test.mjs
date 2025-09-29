@@ -4,6 +4,7 @@
  * @path tests/mocks/MockHooks.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import MockHooks from './MockHooks.mjs';
 
 describe('MockHooks', () => {
@@ -19,7 +20,7 @@ describe('MockHooks', () => {
 
   describe('static on', () => {
     it('should create instance and register callback', () => {
-      const callback = jest.fn();
+      const callback = vi.fn();
       MockHooks.on('testEvent', callback);
 
       expect(MockHooks._instance).toBeDefined();
@@ -28,8 +29,8 @@ describe('MockHooks', () => {
     });
 
     it('should register multiple callbacks for same event', () => {
-      const callback1 = jest.fn();
-      const callback2 = jest.fn();
+      const callback1 = vi.fn();
+      const callback2 = vi.fn();
       
       MockHooks.on('testEvent', callback1);
       MockHooks.on('testEvent', callback2);
@@ -41,8 +42,8 @@ describe('MockHooks', () => {
     });
 
     it('should register callbacks for different events', () => {
-      const callback1 = jest.fn();
-      const callback2 = jest.fn();
+      const callback1 = vi.fn();
+      const callback2 = vi.fn();
       
       MockHooks.on('event1', callback1);
       MockHooks.on('event2', callback2);
@@ -54,8 +55,8 @@ describe('MockHooks', () => {
 
   describe('static off', () => {
     it('should remove callback from event', () => {
-      const callback1 = jest.fn();
-      const callback2 = jest.fn();
+      const callback1 = vi.fn();
+      const callback2 = vi.fn();
       
       MockHooks.on('testEvent', callback1);
       MockHooks.on('testEvent', callback2);
@@ -68,8 +69,8 @@ describe('MockHooks', () => {
     });
 
     it('should handle removing non-existent callback', () => {
-      const callback1 = jest.fn();
-      const callback2 = jest.fn();
+      const callback1 = vi.fn();
+      const callback2 = vi.fn();
       
       MockHooks.on('testEvent', callback1);
       MockHooks.off('testEvent', callback2);
@@ -80,21 +81,21 @@ describe('MockHooks', () => {
     });
 
     it('should handle removing from non-existent event', () => {
-      const callback = jest.fn();
+      const callback = vi.fn();
       MockHooks.off('nonExistentEvent', callback);
       // Should not throw error
     });
 
     it('should handle no instance', () => {
-      const callback = jest.fn();
+      const callback = vi.fn();
       expect(() => MockHooks.off('testEvent', callback)).not.toThrow();
     });
   });
 
   describe('static call', () => {
     it('should call all registered callbacks', () => {
-      const callback1 = jest.fn(() => true);
-      const callback2 = jest.fn(() => true);
+      const callback1 = vi.fn(() => true);
+      const callback2 = vi.fn(() => true);
       
       MockHooks.on('testEvent', callback1);
       MockHooks.on('testEvent', callback2);
@@ -107,9 +108,9 @@ describe('MockHooks', () => {
     });
 
     it('should return false if any callback returns false', () => {
-      const callback1 = jest.fn(() => true);
-      const callback2 = jest.fn(() => false);
-      const callback3 = jest.fn(() => true);
+      const callback1 = vi.fn(() => true);
+      const callback2 = vi.fn(() => false);
+      const callback3 = vi.fn(() => true);
       
       MockHooks.on('testEvent', callback1);
       MockHooks.on('testEvent', callback2);
@@ -123,9 +124,9 @@ describe('MockHooks', () => {
     });
 
     it('should handle callback errors', () => {
-      const errorCallback = jest.fn(() => { throw new Error('Test error'); });
-      const normalCallback = jest.fn(() => true);
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const errorCallback = vi.fn(() => { throw new Error('Test error'); });
+      const normalCallback = vi.fn(() => true);
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation();
       
       MockHooks.on('testEvent', errorCallback);
       MockHooks.on('testEvent', normalCallback);
@@ -152,7 +153,7 @@ describe('MockHooks', () => {
 
   describe('static callAll', () => {
     it('should alias to call method', () => {
-      const callback = jest.fn(() => true);
+      const callback = vi.fn(() => true);
       MockHooks.on('testEvent', callback);
       
       const result = MockHooks.callAll('testEvent', 'arg1');
@@ -164,18 +165,18 @@ describe('MockHooks', () => {
 
   describe('instance behavior', () => {
     it('should maintain singleton pattern', () => {
-      MockHooks.on('event1', jest.fn());
+      MockHooks.on('event1', vi.fn());
       const instance1 = MockHooks._instance;
       
-      MockHooks.on('event2', jest.fn());
+      MockHooks.on('event2', vi.fn());
       const instance2 = MockHooks._instance;
 
       expect(instance1).toBe(instance2);
     });
 
     it('should preserve events across method calls', () => {
-      const callback1 = jest.fn();
-      const callback2 = jest.fn();
+      const callback1 = vi.fn();
+      const callback2 = vi.fn();
       
       MockHooks.on('event1', callback1);
       MockHooks.on('event2', callback2);

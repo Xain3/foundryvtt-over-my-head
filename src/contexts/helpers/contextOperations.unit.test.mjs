@@ -4,6 +4,61 @@
  * @path src/contexts/helpers/contextOperations.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+function loadAlias(relativePath) {
+  return async () => import(new URL(relativePath, import.meta.url).href);
+}
+
+vi.mock('@utils/static/validator.mjs', loadAlias('../../utils/static/validator.mjs'));
+vi.mock('@helpers/pathUtils.mjs', loadAlias('../../helpers/pathUtils.mjs'));
+vi.mock('@config', loadAlias('../../config/config.mjs'));
+vi.mock('@constants', loadAlias('../../config/constants.mjs'));
+vi.mock('@manifest', loadAlias('../../config/manifest.mjs'));
+
+// Mock modules with problematic imports
+vi.mock('./contextItem.mjs', () => ({
+  ContextItem: vi.fn().mockImplementation((value, metadata) => ({
+    value,
+    metadata: metadata || {},
+    modifiedAt: new Date(),
+    setMetadata: vi.fn()
+  }))
+}));
+
+vi.mock('./contextContainer.mjs', () => ({
+  ContextContainer: vi.fn().mockImplementation(() => ({
+    keys: vi.fn(),
+    getItem: vi.fn(),
+    setItem: vi.fn()
+  }))
+}));
+
+vi.mock('./contextContainerSync.mjs', () => ({
+  default: {
+    syncFromSource: vi.fn(),
+    syncToSource: vi.fn(),
+    mergeWithPriority: vi.fn(),
+    mergeNewerWins: vi.fn()
+  }
+}));
+
+vi.mock('./contextItemSync.mjs', () => ({
+  default: {
+    syncFromSource: vi.fn(),
+    syncToSource: vi.fn(),
+    updateTargetToSource: vi.fn(),
+    mergeNewerWins: vi.fn()
+  }
+}));
+
+vi.mock('./contextMerger.mjs', () => ({
+  default: {
+    merge: vi.fn(),
+    analyze: vi.fn()
+  }
+}));
+
 import ContextOperations from './contextOperations.mjs';
 import ContextContainerSync from './contextContainerSync.mjs';
 import ContextItemSync from './contextItemSync.mjs';
@@ -13,18 +68,13 @@ import ContextMerger from './contextMerger.mjs';
 import { ContextContainer } from './contextContainer.mjs';
 import { ContextItem } from './contextItem.mjs';
 
-// Mock the sync modules and ContextMerger
-jest.mock('./contextContainerSync.mjs');
-jest.mock('./contextItemSync.mjs');
-jest.mock('./contextMerger.mjs');
-
 describe('ContextOperations', () => {
   let mockContainer1, mockContainer2, mockContainer3, mockTargetContainer, mockTargetContainer2;
   let mockItem1, mockItem2, mockItem3, mockTargetItem;
   let mockContainerSyncResult, mockItemSyncResult, mockResult;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Create mock ContextContainer objects
     mockContainer1 = {};
@@ -87,7 +137,7 @@ describe('ContextOperations', () => {
       conflicts: 0,
       changes: [{ type: 'update', path: 'data.value' }]
     };
-    ContextMerger.merge = jest.fn().mockReturnValue(mockResult);
+    ContextMerger.merge = vi.fn().mockReturnValue(mockResult);
   });
 
   describe('pushItems', () => {
@@ -626,7 +676,7 @@ describe('ContextOperations', () => {
     describe('blockOnly and excludePaths filtering', () => {
       beforeEach(() => {
         // Setup the mock return value for ContextMerger.merge
-        ContextMerger.merge = jest.fn().mockReturnValue({
+        ContextMerger.merge = vi.fn().mockReturnValue({
           success: true,
           operation: 'merge',
           itemsProcessed: 2,
@@ -635,7 +685,7 @@ describe('ContextOperations', () => {
       });
 
       afterEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
       });
 
       it('should use ContextMerger when blockOnly is specified', () => {

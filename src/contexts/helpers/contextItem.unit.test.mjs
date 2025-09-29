@@ -1,5 +1,29 @@
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock the validator alias before importing anything else
+vi.mock('../../utils/static/validator.mjs', () => ({
+  default: {
+    validateObject: vi.fn(),
+    validateString: vi.fn(),
+    validateArray: vi.fn(),
+    validateFunction: vi.fn(),
+    validateNumber: vi.fn(),
+    validateBoolean: vi.fn(),
+    validateDate: vi.fn()
+  },
+  Validator: {
+    validateObject: vi.fn(),
+    validateString: vi.fn(),
+    validateArray: vi.fn(),
+    validateFunction: vi.fn(),
+    validateNumber: vi.fn(),
+    validateBoolean: vi.fn(),
+    validateDate: vi.fn()
+  }
+}));
+
 import { ContextItem } from './contextItem.mjs';
-import { Validator } from '@/utils/static/validator.mjs';
+import { Validator } from '../../utils/static/validator.mjs';
 
 /**
  * @file contextItem.unit.test.mjs
@@ -463,7 +487,7 @@ describe('ContextItem', () => {
 
     it('should throw error for non-Date object that fails dayjs validation', () => {
       const item = new ContextItem('test');
-      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation(() => {
+      const mockValidator = vi.spyOn(Validator, 'validateDate').mockImplementation(() => {
         throw new TypeError("date must be a valid Date object");
       });
 
@@ -475,7 +499,7 @@ describe('ContextItem', () => {
     it('should throw error for invalid Date object (NaN getTime)', () => {
       const item = new ContextItem('test');
       const invalidDate = new Date('invalid');
-      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation(() => {
+      const mockValidator = vi.spyOn(Validator, 'validateDate').mockImplementation(() => {
         throw new TypeError("date must be a valid Date object");
       });
 
@@ -487,7 +511,7 @@ describe('ContextItem', () => {
     it('should handle valid Date object without calling validator', () => {
       const item = new ContextItem('test');
       const validDate = new Date('2025-01-01T12:00:00.000Z');
-      const mockValidator = jest.spyOn(Validator, 'validateDate');
+      const mockValidator = vi.spyOn(Validator, 'validateDate');
 
       item._updateAccessTimestamp(validDate);
       expect(item.lastAccessedAt.getTime()).toBe(validDate.getTime());
@@ -499,7 +523,7 @@ describe('ContextItem', () => {
     it('should handle string date that passes validator validation', () => {
       const item = new ContextItem('test');
       const dateString = '2025-01-01';
-      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation(() => {
+      const mockValidator = vi.spyOn(Validator, 'validateDate').mockImplementation(() => {
         // Validator passes, no throw
       });
 
@@ -544,7 +568,7 @@ describe('ContextItem', () => {
 
     it('should throw error for non-Date object that fails dayjs validation', () => {
       const item = new ContextItem('test');
-      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation(() => {
+      const mockValidator = vi.spyOn(Validator, 'validateDate').mockImplementation(() => {
         throw new TypeError("date must be a valid Date object");
       });
 
@@ -556,7 +580,7 @@ describe('ContextItem', () => {
     it('should throw error for invalid Date object (NaN getTime)', () => {
       const item = new ContextItem('test');
       const invalidDate = new Date('invalid');
-      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation(() => {
+      const mockValidator = vi.spyOn(Validator, 'validateDate').mockImplementation(() => {
         throw new TypeError("date must be a valid Date object");
       });
 
@@ -568,7 +592,7 @@ describe('ContextItem', () => {
     it('should handle valid Date object without calling validator', () => {
       const item = new ContextItem('test');
       const validDate = new Date('2025-01-01T12:00:00.000Z');
-      const mockValidator = jest.spyOn(Validator, 'validateDate');
+      const mockValidator = vi.spyOn(Validator, 'validateDate');
 
       item._updateModificationTimestamps(validDate);
       expect(item.modifiedAt.getTime()).toBe(validDate.getTime());
@@ -581,7 +605,7 @@ describe('ContextItem', () => {
     it('should handle string date that passes validator validation', () => {
       const item = new ContextItem('test');
       const dateString = '2025-01-01';
-      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation(() => {
+      const mockValidator = vi.spyOn(Validator, 'validateDate').mockImplementation(() => {
         // Validator passes, no throw
       });
 
@@ -609,7 +633,7 @@ describe('ContextItem', () => {
       const item = new ContextItem('test');
 
       // Test with a string value that should trigger validation
-      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation((value) => {
+      const mockValidator = vi.spyOn(Validator, 'validateDate').mockImplementation((value) => {
         throw new TypeError("date must be a valid Date object");
       });
 
@@ -621,7 +645,7 @@ describe('ContextItem', () => {
 
     it('should handle number input that fails validator validation', () => {
       const item = new ContextItem('test');
-      const mockValidator = jest.spyOn(Validator, 'validateDate').mockImplementation(() => {
+      const mockValidator = vi.spyOn(Validator, 'validateDate').mockImplementation(() => {
         throw new TypeError("date must be a valid Date object");
       });
 

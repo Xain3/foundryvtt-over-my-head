@@ -1,4 +1,89 @@
-import config from '@/config/config';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock config dependencies to prevent raw imports
+vi.mock('../../src/config/helpers/constantsGetter.mjs', () => ({
+  default: {
+    getConstantsYaml: vi.fn(() => `testConstant: testValue
+moduleManagement:
+  referToModuleBy: title
+errors:
+  separator: " | "
+  pattern: "{{error}}"
+placeables:
+  token:
+    name: Token
+context:
+  sync:
+    defaults:
+      syncStrategy: merge
+  operationsParams:
+    defaults: {}
+  helpers:
+    mergeStrategies: {}
+    comparisonResults: {}
+settings:
+  settingsList:
+    - key: debugMode
+    - key: useModule
+requiredManifestAttributes:
+  - id
+  - title
+  - description
+  - version`)
+  }
+}));
+
+vi.mock('../../src/config/helpers/constantsParser.mjs', () => ({
+  default: {
+    parseConstants: vi.fn(() => ({
+      testConstant: 'testValue',
+      moduleManagement: {
+        referToModuleBy: 'title'
+      },
+      errors: {
+        separator: ' | ',
+        pattern: '{{error}}'
+      },
+      placeables: {
+        token: {
+          name: 'Token'
+        }
+      },
+      context: {
+        sync: {
+          defaults: {
+            syncStrategy: 'merge'
+          }
+        },
+        operationsParams: {
+          defaults: {}
+        },
+        helpers: {
+          mergeStrategies: {},
+          comparisonResults: {}
+        },
+        schema: {
+          manifest: 'object',
+          constants: 'object'
+        }
+      },
+      settings: {
+        settingsList: [
+          { key: 'debugMode' },
+          { key: 'useModule' }
+        ]
+      },
+      requiredManifestAttributes: [
+        'id',
+        'title', 
+        'description',
+        'version'
+      ]
+    }))
+  }
+}));
+
+import config from '../../src/config/config.mjs';
 
 describe('Config Integration Test', () => {
   describe('Constants Integration', () => {

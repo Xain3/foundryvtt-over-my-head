@@ -5,6 +5,117 @@
 
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+function loadAlias(relativePath) {
+  return async () => import(new URL(relativePath, import.meta.url).href);
+}
+
+vi.mock('@utils/static/validator.mjs', loadAlias('../../utils/static/validator.mjs'));
+vi.mock('@helpers/pathUtils.mjs', loadAlias('../../helpers/pathUtils.mjs'));
+vi.mock('@config', loadAlias('../../config/config.mjs'));
+vi.mock('@constants', loadAlias('../../config/constants.mjs'));
+vi.mock('@manifest', loadAlias('../../config/manifest.mjs'));
+
+// Mock modules with problematic imports first
+vi.mock('./contextItem.mjs', () => {
+  const ContextItem = vi.fn().mockImplementation(function MockContextItem(value, metadata = {}) {
+    this.value = value;
+    this.metadata = metadata;
+    this.modifiedAt = new Date();
+    this.createdAt = this.modifiedAt;
+    this.lastAccessedAt = this.modifiedAt;
+    this.setMetadata = vi.fn((newMetadata = {}, merge = true) => {
+      this.metadata = merge ? { ...this.metadata, ...newMetadata } : newMetadata;
+      this.modifiedAt = new Date();
+    });
+  });
+
+  return {
+    __esModule: true,
+    ContextItem,
+    default: ContextItem
+  };
+});
+
+vi.mock('./contextContainer.mjs', () => {
+  const ContextContainer = vi.fn().mockImplementation(function MockContextContainer(initialValue = {}) {
+    this.value = initialValue;
+    this.metadata = {};
+    this.modifiedAt = new Date();
+    this.createdAt = this.modifiedAt;
+    this.lastAccessedAt = this.modifiedAt;
+    this.isContextContainer = true;
+    this.keys = vi.fn();
+    this.getItem = vi.fn();
+    this.setItem = vi.fn();
+  });
+
+  return {
+    __esModule: true,
+    ContextContainer,
+    default: ContextContainer
+  };
+});
+
+vi.mock('../context.mjs', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    container: {
+      keys: vi.fn(),
+      getItem: vi.fn()
+    }
+  }))
+}));
+
+vi.mock('./contextComparison.mjs', () => ({
+  default: {
+    compare: vi.fn(),
+    compareItems: vi.fn()
+  }
+}));
+
+vi.mock('./contextAutoSync.mjs', () => ({
+  default: {
+    autoSync: vi.fn(),
+    sync: vi.fn(),
+    analyze: vi.fn()
+  }
+}));
+
+vi.mock('./contextItemSync.mjs', () => ({
+  default: {
+    syncFromSource: vi.fn(),
+    syncToSource: vi.fn(),
+    updateTargetToSource: vi.fn(),
+    mergeNewerWins: vi.fn()
+  }
+}));
+
+vi.mock('./contextContainerSync.mjs', () => ({
+  default: {
+    syncFromSource: vi.fn(),
+    syncToSource: vi.fn(),
+    mergeWithPriority: vi.fn(),
+    mergeNewerWins: vi.fn()
+  }
+}));
+
+vi.mock('./contextLegacySync.mjs', () => ({
+  default: {
+    legacySync: vi.fn(),
+    validateCompatibility: vi.fn(),
+    performLegacySync: vi.fn(),
+    SYNC_OPERATIONS: {
+      UPDATE_SOURCE_TO_TARGET: 'updateSourceToTarget',
+      UPDATE_TARGET_TO_SOURCE: 'updateTargetToSource',
+      MERGE_NEWER_WINS: 'mergeNewerWins',
+      MERGE_SOURCE_PRIORITY: 'mergeSourcePriority',
+      MERGE_TARGET_PRIORITY: 'mergeTargetPriority',
+      NO_ACTION: 'noAction'
+    }
+  }
+}));
+
 import { ContextSync } from './contextSync.mjs';
 import { ContextItem } from './contextItem.mjs';
 import { ContextContainer } from './contextContainer.mjs';
@@ -14,19 +125,14 @@ import ContextAutoSync from './contextAutoSync.mjs';
 import ContextItemSync from './contextItemSync.mjs';
 import ContextContainerSync from './contextContainerSync.mjs';
 import ContextLegacySync from './contextLegacySync.mjs';
-
-// Jest Mocks
-jest.mock('./contextAutoSync.mjs');
-jest.mock('./contextItemSync.mjs');
-jest.mock('./contextContainerSync.mjs');
-jest.mock('./contextLegacySync.mjs');
-jest.mock('./contextComparison.mjs');
-jest.mock('../context.mjs');
-jest.mock('./contextMerger.mjs', () => ({
+vi.mock('./contextComparison.mjs');
+vi.mock('../context.mjs');
+vi.mock('./contextMerger.mjs', () => ({
   __esModule: true,
   default: {
-    merge: jest.fn()
-  }
+    merge: vi.fn()
+  },
+  ItemFilter: vi.fn()
 }));
 
 describe('ContextSync', () => {
@@ -37,7 +143,7 @@ describe('ContextSync', () => {
     targetItem = new ContextItem('target', { meta: 2 });
     sourceContainer = new ContextContainer({ foo: 'bar' });
     targetContainer = new ContextContainer({ foo: 'baz' });
-    
+
     // Create mock Context objects with the isContextObject property
     sourceContext = { isContextObject: true, constructor: { name: 'Context' } };
     targetContext = { isContextObject: true, constructor: { name: 'Context' } };
@@ -53,7 +159,7 @@ describe('ContextSync', () => {
     });
     ContextLegacySync.performLegacySync.mockReturnValue({ success: true, operation: 'test', changes: [] });
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('compare', () => {

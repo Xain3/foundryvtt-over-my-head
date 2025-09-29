@@ -1,3 +1,32 @@
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+// Mock dependencies that use problematic aliases
+vi.mock('./settingsHelpers/settingsParser.mjs', () => ({
+  default: class MockSettingsParser {
+    constructor() {}
+    parse(settings) { return { parsed: settings || [], validSettings: settings || [], invalidSettings: [] }; }
+  }
+}));
+
+vi.mock('./settingsHelpers/settingsRegistrar.mjs', () => ({
+  default: class MockSettingsRegistrar {
+    constructor() {}
+    register() { return { success: true, counter: 1, successCounter: 1 }; }
+  }
+}));
+
+vi.mock('./settingsHelpers/settingLocalizer.mjs', () => ({
+  default: class MockSettingLocalizer {
+    constructor() {}
+  }
+}));
+
+vi.mock('@helpers/settingsRetriever.mjs', () => ({
+  default: class MockSettingsRetriever {
+    constructor() {}
+  }
+}));
+
 import Handlers from './handlers.mjs';
 
 import Handler from '../baseClasses/handler.mjs';
@@ -76,7 +105,7 @@ describe('Handlers', () => {
   describe('Debug Mode convenience methods', () => {
     it('should delegate hasDebugModeSettingConfig to settings handler', () => {
       const handlers = new Handlers(fakeConfigWithDebug, fakeUtils, fakeContext);
-      jest.spyOn(handlers.settings, 'hasDebugModeSettingConfig').mockReturnValue(true);
+      vi.spyOn(handlers.settings, 'hasDebugModeSettingConfig').mockReturnValue(true);
       
       const result = handlers.hasDebugModeSettingConfig();
       
@@ -87,7 +116,7 @@ describe('Handlers', () => {
     it('should delegate getDebugModeSettingConfig to settings handler', () => {
       const handlers = new Handlers(fakeConfigWithDebug, fakeUtils, fakeContext);
       const mockDebugSetting = { key: 'debugMode', config: { name: 'Debug Mode' } };
-      jest.spyOn(handlers.settings, 'getDebugModeSettingConfig').mockReturnValue(mockDebugSetting);
+      vi.spyOn(handlers.settings, 'getDebugModeSettingConfig').mockReturnValue(mockDebugSetting);
       
       const result = handlers.getDebugModeSettingConfig();
       
@@ -98,7 +127,7 @@ describe('Handlers', () => {
     it('should delegate registerDebugModeSetting to settings handler', () => {
       const handlers = new Handlers(fakeConfigWithDebug, fakeUtils, fakeContext);
       const mockResult = { success: true, counter: 1, successCounter: 1 };
-      jest.spyOn(handlers.settings, 'registerDebugModeSetting').mockReturnValue(mockResult);
+      vi.spyOn(handlers.settings, 'registerDebugModeSetting').mockReturnValue(mockResult);
       
       const result = handlers.registerDebugModeSetting();
       
@@ -120,7 +149,7 @@ describe('Handlers', () => {
   describe('Generic setting convenience methods', () => {
     it('should delegate hasSettingConfigByKey to settings handler', () => {
       const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
-      jest.spyOn(handlers.settings, 'hasSettingConfigByKey').mockReturnValue(true);
+      vi.spyOn(handlers.settings, 'hasSettingConfigByKey').mockReturnValue(true);
       
       const result = handlers.hasSettingConfigByKey('testSetting');
       
@@ -131,7 +160,7 @@ describe('Handlers', () => {
     it('should delegate getSettingConfigByKey to settings handler', () => {
       const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
       const mockSetting = { key: 'testSetting', config: { name: 'Test Setting' } };
-      jest.spyOn(handlers.settings, 'getSettingConfigByKey').mockReturnValue(mockSetting);
+      vi.spyOn(handlers.settings, 'getSettingConfigByKey').mockReturnValue(mockSetting);
       
       const result = handlers.getSettingConfigByKey('testSetting');
       
@@ -142,7 +171,7 @@ describe('Handlers', () => {
     it('should delegate registerSettingByKey to settings handler', () => {
       const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
       const mockResult = { success: true, counter: 1, successCounter: 1 };
-      jest.spyOn(handlers.settings, 'registerSettingByKey').mockReturnValue(mockResult);
+      vi.spyOn(handlers.settings, 'registerSettingByKey').mockReturnValue(mockResult);
       
       const result = handlers.registerSettingByKey('testSetting');
       
@@ -178,7 +207,7 @@ describe('Handlers', () => {
     beforeEach(() => {
       global.game = {
         settings: {
-          get: jest.fn()
+          get: vi.fn()
         }
       };
     });

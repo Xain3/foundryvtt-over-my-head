@@ -5,6 +5,7 @@
  * @date 29 May 2025
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import MockGlobals, {
   MockCollection,
   MockDocument,
@@ -131,7 +132,7 @@ describe('MockGlobals', () => {
 
     it('should use provided hooks instance when specified', () => {
       const customHooks = new MockHooks();
-      customHooks.testMethod = jest.fn();
+      customHooks.testMethod = vi.fn();
 
       mockGlobals.setGlobals({ hooksInstance: customHooks });
 
@@ -285,7 +286,7 @@ describe('MockGlobals', () => {
       expect(MockHooks._instance).toBeInstanceOf(MockHooks);
     });
 
-    // Skipped: jest.clearAllMocks is not reliably testable in all environments
+    // Skipped: vi.clearAllMocks is not reliably testable in all environments
   });
 
   describe('Foundry Class Mocking', () => {
@@ -372,7 +373,7 @@ describe('MockGlobals', () => {
       expect(globalThis.ui).toBeDefined();
       expect(globalThis.ui.chat).toBeDefined();
       expect(globalThis.ui.notifications).toBeDefined();
-      expect(jest.isMockFunction(globalThis.ui.notifications.info)).toBe(true);
+      expect(vi.isMockFunction(globalThis.ui.notifications.info)).toBe(true);
     });
   });
 
@@ -489,35 +490,35 @@ describe('MockGlobals', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle missing jest gracefully in createMockFunction', () => {
-      const originalJest = globalThis.jest;
-      delete globalThis.jest;
+    it('should handle missing vi gracefully in createMockFunction', () => {
+      const originalVi = globalThis.vi;
+      delete globalThis.vi;
 
       const mockFn = createMockFunction(() => 'test');
       expect(mockFn()).toBe('test');
 
-      globalThis.jest = originalJest;
+      globalThis.vi = originalVi;
     });
 
-    it('should handle missing jest gracefully in createSpy', () => {
-      const originalJest = globalThis.jest;
-      delete globalThis.jest;
+    it('should handle missing vi gracefully in createSpy', () => {
+      const originalVi = globalThis.vi;
+      delete globalThis.vi;
 
       const obj = { method: () => 'original' };
       const spy = createSpy(obj, 'method');
       expect(spy()).toBe('original');
 
-      globalThis.jest = originalJest;
+      globalThis.vi = originalVi;
     });
 
-    it('should handle missing jest gracefully in reset', () => {
-      const originalJest = globalThis.jest;
-      delete globalThis.jest;
+    it('should handle missing vi gracefully in reset', () => {
+      const originalVi = globalThis.vi;
+      delete globalThis.vi;
 
       expect(() => mockGlobals.reset()).not.toThrow();
       expect(mockGlobals.game).toBeInstanceOf(MockGame);
 
-      globalThis.jest = originalJest;
+      globalThis.vi = originalVi;
     });
 
     it('should not fail when clearing empty globals', () => {
@@ -558,13 +559,13 @@ describe('MockGlobals', () => {
     });
 
     describe('createMockFunction', () => {
-      it('should create jest mock when jest is available', () => {
+      it('should create vi mock when vi is available', () => {
         const mockFn = createMockFunction();
-        expect(jest.isMockFunction(mockFn)).toBe(true);
+        expect(vi.isMockFunction(mockFn)).toBe(true);
       });
 
       it('should use provided implementation', () => {
-        const implementation = jest.fn(() => 'test-result');
+        const implementation = vi.fn(() => 'test-result');
         const mockFn = createMockFunction(implementation);
 
         expect(mockFn()).toBe('test-result');
@@ -573,15 +574,15 @@ describe('MockGlobals', () => {
     });
 
     describe('createSpy', () => {
-      it('should create jest spy when jest is available', () => {
-        const obj = { method: jest.fn(() => 'original') };
+      it('should create vi spy when vi is available', () => {
+        const obj = { method: vi.fn(() => 'original') };
         const spy = createSpy(obj, 'method');
 
-        expect(jest.isMockFunction(spy)).toBe(true);
+        expect(vi.isMockFunction(spy)).toBe(true);
       });
 
       it('should track method calls', () => {
-        const obj = { method: jest.fn(() => 'result') };
+        const obj = { method: vi.fn(() => 'result') };
         const spy = createSpy(obj, 'method');
 
         spy();
@@ -604,9 +605,9 @@ describe('MockGlobals', () => {
       });
 
       it('should export UI with interface methods', () => {
-        expect(jest.isMockFunction(UI.notifications.info)).toBe(true);
-        expect(jest.isMockFunction(UI.notifications.warn)).toBe(true);
-        expect(jest.isMockFunction(UI.notifications.error)).toBe(true);
+        expect(vi.isMockFunction(UI.notifications.info)).toBe(true);
+        expect(vi.isMockFunction(UI.notifications.warn)).toBe(true);
+        expect(vi.isMockFunction(UI.notifications.error)).toBe(true);
       });
     });
 

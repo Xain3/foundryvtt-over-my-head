@@ -5,19 +5,39 @@
 
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import ContextContainerSyncEngine from './contextContainerSyncEngine.mjs';
 import { ContextContainer } from './contextContainer.mjs';
 import ContextItemSync from './contextItemSync.mjs';
 import { Validator } from '../../utils/static/validator.mjs';
 import _ from 'lodash';
 
+function loadAlias(relativePath) {
+  return async () => import(new URL(relativePath, import.meta.url).href);
+}
+
+vi.mock('@utils/static/validator.mjs', loadAlias('../../utils/static/validator.mjs'));
+vi.mock('@helpers/pathUtils.mjs', loadAlias('../../helpers/pathUtils.mjs'));
+vi.mock('@config', loadAlias('../../config/config.mjs'));
+vi.mock('@constants', loadAlias('../../config/constants.mjs'));
+vi.mock('@manifest', loadAlias('../../config/manifest.mjs'));
+
 // Mock dependencies
-jest.mock('./contextContainer.mjs');
-jest.mock('./contextItemSync.mjs');
-jest.mock('lodash', () => ({
-  merge: jest.fn(),
-  cloneDeep: jest.fn()
-}));
+vi.mock('./contextContainer.mjs');
+vi.mock('./contextItemSync.mjs');
+vi.mock('lodash', () => {
+  const mergeFunction = vi.fn();
+  const cloneDeepFunction = vi.fn();
+
+  return {
+    default: {
+      merge: mergeFunction,
+      cloneDeep: cloneDeepFunction
+    },
+    merge: mergeFunction,
+    cloneDeep: cloneDeepFunction
+  };
+});
 
 describe('ContextContainerSyncEngine', () => {
   let engine;
@@ -28,7 +48,7 @@ describe('ContextContainerSyncEngine', () => {
   let mockNestedContainer;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Create mock items
     mockSourceItem = {
@@ -43,7 +63,7 @@ describe('ContextContainerSyncEngine', () => {
       isContextContainer: false,
       value: 'target value',
       metadata: { createdAt: '2024-01-02' },
-      setMetadata: jest.fn()
+      setMetadata: vi.fn()
     };
 
     mockNestedContainer = {
@@ -51,11 +71,11 @@ describe('ContextContainerSyncEngine', () => {
       isContextContainer: true,
       value: 'nested container',
       metadata: { type: 'nested' },
-      keys: jest.fn(() => ['nestedItem1']),
-      getItem: jest.fn(() => mockSourceItem),
-      hasItem: jest.fn(() => false),
-      setItem: jest.fn(),
-      setMetadata: jest.fn()
+      keys: vi.fn(() => ['nestedItem1']),
+      getItem: vi.fn(() => mockSourceItem),
+      hasItem: vi.fn(() => false),
+      setItem: vi.fn(),
+      setMetadata: vi.fn()
     };
 
     // Create mock containers
@@ -63,22 +83,22 @@ describe('ContextContainerSyncEngine', () => {
       isContextContainer: true,
       value: 'source container',
       metadata: { type: 'source' },
-      keys: jest.fn(() => ['item1', 'item2', 'nestedContainer']),
-      getItem: jest.fn(),
-      hasItem: jest.fn(),
-      setItem: jest.fn(),
-      setMetadata: jest.fn()
+      keys: vi.fn(() => ['item1', 'item2', 'nestedContainer']),
+      getItem: vi.fn(),
+      hasItem: vi.fn(),
+      setItem: vi.fn(),
+      setMetadata: vi.fn()
     };
 
     mockTargetContainer = {
       isContextContainer: true,
       value: 'target container',
       metadata: { type: 'target' },
-      keys: jest.fn(() => ['item1']),
-      getItem: jest.fn(),
-      hasItem: jest.fn(),
-      setItem: jest.fn(),
-      setMetadata: jest.fn()
+      keys: vi.fn(() => ['item1']),
+      getItem: vi.fn(),
+      hasItem: vi.fn(),
+      setItem: vi.fn(),
+      setMetadata: vi.fn()
     };
 
     // Setup mock returns
@@ -105,11 +125,11 @@ describe('ContextContainerSyncEngine', () => {
       isContextContainer: true,
       value,
       metadata,
-      keys: jest.fn(() => []),
-      getItem: jest.fn(),
-      hasItem: jest.fn(),
-      setItem: jest.fn(),
-      setMetadata: jest.fn()
+      keys: vi.fn(() => []),
+      getItem: vi.fn(),
+      hasItem: vi.fn(),
+      setItem: vi.fn(),
+      setMetadata: vi.fn()
     }));
   });
 
@@ -148,7 +168,7 @@ describe('ContextContainerSyncEngine', () => {
   describe('sync', () => {
     beforeEach(() => {
       engine = new ContextContainerSyncEngine();
-      jest.spyOn(engine, '_syncContainer').mockImplementation(() => {});
+      vi.spyOn(engine, '_syncContainer').mockImplementation(() => {});
     });
 
     it('should sync sourceToTarget direction correctly', () => {
@@ -173,8 +193,8 @@ describe('ContextContainerSyncEngine', () => {
   describe('_syncContainer', () => {
     beforeEach(() => {
       engine = new ContextContainerSyncEngine();
-      jest.spyOn(engine, '_updateItem').mockImplementation(() => {});
-      jest.spyOn(engine, '_addItem').mockImplementation(() => {});
+      vi.spyOn(engine, '_updateItem').mockImplementation(() => {});
+      vi.spyOn(engine, '_addItem').mockImplementation(() => {});
     });
 
     it('should iterate through all source container keys', () => {
@@ -207,10 +227,10 @@ describe('ContextContainerSyncEngine', () => {
     it('should handle containers with circular references gracefully', () => {
       const circularContainer = {
         isContextContainer: true,
-        keys: jest.fn(() => ['self']),
-        getItem: jest.fn(),
-        hasItem: jest.fn(() => false),
-        setItem: jest.fn()
+        keys: vi.fn(() => ['self']),
+        getItem: vi.fn(),
+        hasItem: vi.fn(() => false),
+        setItem: vi.fn()
       };
 
       circularContainer.getItem.mockReturnValue(circularContainer);
@@ -222,22 +242,22 @@ describe('ContextContainerSyncEngine', () => {
 
     // This test is commented out because it requires a more complex setup to create circular references
     // it('should log warning for circular reference in _syncContainer', () => {
-    //   const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    //   const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     //   const circularContainer1 = {
     //     isContextContainer: true,
-    //     keys: jest.fn(() => ['circular']),
-    //     getItem: jest.fn(),
-    //     hasItem: jest.fn(() => false),
-    //     setItem: jest.fn()
+    //     keys: vi.fn(() => ['circular']),
+    //     getItem: vi.fn(),
+    //     hasItem: vi.fn(() => false),
+    //     setItem: vi.fn()
     //   };
 
     //   const circularContainer2 = {
     //     isContextContainer: true,
-    //     keys: jest.fn(() => ['back']),
-    //     getItem: jest.fn(),
-    //     hasItem: jest.fn(() => false),
-    //     setItem: jest.fn()
+    //     keys: vi.fn(() => ['back']),
+    //     getItem: vi.fn(),
+    //     hasItem: vi.fn(() => false),
+    //     setItem: vi.fn()
     //   };
 
     //   // Create circular reference: container1 -> container2 -> container1
@@ -252,14 +272,14 @@ describe('ContextContainerSyncEngine', () => {
     // });
 
     it('should log warning for self-reference in #syncContainerItems', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       const selfReferencingContainer = {
         isContextContainer: true,
-        keys: jest.fn(() => ['self']),
-        getItem: jest.fn(),
-        hasItem: jest.fn(() => false),
-        setItem: jest.fn()
+        keys: vi.fn(() => ['self']),
+        getItem: vi.fn(),
+        hasItem: vi.fn(() => false),
+        setItem: vi.fn()
       };
 
       // Create self-reference
@@ -276,7 +296,7 @@ describe('ContextContainerSyncEngine', () => {
   describe('_addItem', () => {
     beforeEach(() => {
       engine = new ContextContainerSyncEngine();
-      jest.spyOn(engine, '_cloneAndAddContainer').mockImplementation(() => {});
+      vi.spyOn(engine, '_cloneAndAddContainer').mockImplementation(() => {});
     });
 
     it('should clone and add container items', () => {
@@ -299,7 +319,7 @@ describe('ContextContainerSyncEngine', () => {
   describe('_updateItem', () => {
     beforeEach(() => {
       engine = new ContextContainerSyncEngine({ syncMetadata: true });
-      jest.spyOn(engine, '_syncContainer').mockImplementation(() => {});
+      vi.spyOn(engine, '_syncContainer').mockImplementation(() => {});
     });
 
     it('should update ContextItem to ContextItem', () => {
@@ -351,7 +371,7 @@ describe('ContextContainerSyncEngine', () => {
     describe('plain object synchronization', () => {
       beforeEach(() => {
         engine = new ContextContainerSyncEngine();
-        jest.spyOn(engine, '_syncPlainObjects');
+        vi.spyOn(engine, '_syncPlainObjects');
         _.cloneDeep.mockReturnValue({ nested: { value: 'cloned' } });
       });
 
@@ -376,7 +396,7 @@ describe('ContextContainerSyncEngine', () => {
         const sourceObj = { a: 1 };
         const targetArray = [1, 2, 3];
 
-        jest.spyOn(engine, '_syncPlainObjects');
+        vi.spyOn(engine, '_syncPlainObjects');
         engine._updateItem(sourceObj, targetArray);
         expect(engine._syncPlainObjects).not.toHaveBeenCalled();
       });
@@ -385,8 +405,8 @@ describe('ContextContainerSyncEngine', () => {
     describe('primitive value synchronization', () => {
       beforeEach(() => {
         engine = new ContextContainerSyncEngine();
-        jest.spyOn(engine, '_syncPrimitiveValues');
-        jest.spyOn(console, 'debug').mockImplementation(() => {});
+        vi.spyOn(engine, '_syncPrimitiveValues');
+        vi.spyOn(console, 'debug').mockImplementation(() => {});
       });
 
       afterEach(() => {
@@ -442,7 +462,7 @@ describe('ContextContainerSyncEngine', () => {
         const sourceValue = 'string';
         const targetValue = 42;
 
-        jest.spyOn(engine, '_syncPrimitiveValues');
+        vi.spyOn(engine, '_syncPrimitiveValues');
         engine._updateItem(sourceValue, targetValue);
         // When types differ, both are primitives but different types, so it should still call _syncPrimitiveValues
         // This is because both are primitives, even if they're different types
@@ -456,11 +476,11 @@ describe('ContextContainerSyncEngine', () => {
       });
 
       it('should handle mixed type updates with syncMetadata', () => {
-        const setMetadataSpy = jest.fn();
-        const mixedTarget = { 
-          value: 'old value', 
+        const setMetadataSpy = vi.fn();
+        const mixedTarget = {
+          value: 'old value',
           setMetadata: setMetadataSpy,
-          _getManagedItem: jest.fn()
+          _getManagedItem: vi.fn()
         };
 
         engine._updateItem(mockSourceItem, mixedTarget);
@@ -470,11 +490,11 @@ describe('ContextContainerSyncEngine', () => {
 
       it('should handle mixed type updates without syncMetadata', () => {
         engine = new ContextContainerSyncEngine({ syncMetadata: false });
-        const setMetadataSpy = jest.fn();
-        const mixedTarget = { 
-          value: 'old value', 
+        const setMetadataSpy = vi.fn();
+        const mixedTarget = {
+          value: 'old value',
           setMetadata: setMetadataSpy,
-          _getManagedItem: jest.fn()
+          _getManagedItem: vi.fn()
         };
 
         engine._updateItem(mockSourceItem, mixedTarget);
@@ -493,12 +513,12 @@ describe('ContextContainerSyncEngine', () => {
       });
 
       it('should handle fallback when setMetadata fails', () => {
-        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-        const setMetadataSpy = jest.fn(() => { throw new Error('setMetadata failed'); });
+        const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const setMetadataSpy = vi.fn(() => { throw new Error('setMetadata failed'); });
         const mixedTarget = {
           value: 'old value',
           setMetadata: setMetadataSpy,
-          _getManagedItem: jest.fn()
+          _getManagedItem: vi.fn()
         };
 
         engine._updateItem(mockSourceItem, mixedTarget);
@@ -513,7 +533,7 @@ describe('ContextContainerSyncEngine', () => {
   describe('_cloneAndAddContainer', () => {
     beforeEach(() => {
       engine = new ContextContainerSyncEngine();
-      jest.spyOn(engine, '_syncContainer').mockImplementation(() => {});
+      vi.spyOn(engine, '_syncContainer').mockImplementation(() => {});
     });
 
     it('should create new container with source value and metadata', () => {
@@ -658,7 +678,7 @@ describe('ContextContainerSyncEngine', () => {
 
     describe('_syncPrimitiveValues', () => {
       beforeEach(() => {
-        jest.spyOn(console, 'debug').mockImplementation(() => {});
+        vi.spyOn(console, 'debug').mockImplementation(() => {});
       });
 
       afterEach(() => {
@@ -689,14 +709,14 @@ describe('ContextContainerSyncEngine', () => {
     });
 
     it('should handle undefined direction', () => {
-      jest.spyOn(engine, '_syncContainer').mockImplementation(() => {});
+      vi.spyOn(engine, '_syncContainer').mockImplementation(() => {});
 
       engine.sync(mockSourceContainer, mockTargetContainer, undefined);
       expect(engine._syncContainer).toHaveBeenCalledWith(mockTargetContainer, mockSourceContainer);
     });
 
     it('should handle invalid direction', () => {
-      jest.spyOn(engine, '_syncContainer').mockImplementation(() => {});
+      vi.spyOn(engine, '_syncContainer').mockImplementation(() => {});
 
       engine.sync(mockSourceContainer, mockTargetContainer, 'invalidDirection');
       expect(engine._syncContainer).toHaveBeenCalledWith(mockTargetContainer, mockSourceContainer);
@@ -707,7 +727,7 @@ describe('ContextContainerSyncEngine', () => {
 
       // Test array to object (should fall back to mixed type handling)
       const sourceArray = [1, 2, 3];
-      const targetObj = { value: 'old', setMetadata: jest.fn() };
+      const targetObj = { value: 'old', setMetadata: vi.fn() };
 
       expect(() => {
         engine._updateItem(sourceArray, targetObj);

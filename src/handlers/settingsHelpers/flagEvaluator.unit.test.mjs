@@ -4,6 +4,7 @@
  * @path src/handlers/settingsHelpers/flagEvaluator.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import FlagEvaluator from './flagEvaluator.mjs';
 
 describe('FlagEvaluator', () => {

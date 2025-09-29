@@ -4,6 +4,7 @@
  * @path src/utils/static/gameManager.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import GameManager from './gameManager.mjs';
 
 describe('GameManager (Static)', () => {
@@ -25,7 +26,7 @@ describe('GameManager (Static)', () => {
         // Setup mock game object
         globalThis.game = {
             modules: {
-                get: jest.fn((id) => {
+                get: vi.fn((id) => {
                     if (id === 'test-module' || id === 'foundryvtt-over-my-head') {
                         return mockModule;
                     }
@@ -38,7 +39,7 @@ describe('GameManager (Static)', () => {
     afterEach(() => {
         // Restore original game object
         globalThis.game = originalGame;
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('getModuleObject', () => {
@@ -93,7 +94,7 @@ describe('GameManager (Static)', () => {
 
         describe('error handling', () => {
             it('should return null and log error for invalid object without id or name', () => {
-                const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+                const consoleSpy = vi.spyOn(console, 'error').mockImplementation();
                 const invalidObject = { title: 'Test', version: '1.0.0' };
 
                 const result = GameManager.getModuleObject(invalidObject);
@@ -107,7 +108,7 @@ describe('GameManager (Static)', () => {
             });
 
             it('should return null and log error for invalid input type', () => {
-                const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+                const consoleSpy = vi.spyOn(console, 'error').mockImplementation();
 
                 const result = GameManager.getModuleObject(123);
 
@@ -121,7 +122,7 @@ describe('GameManager (Static)', () => {
 
             it('should return null and log error when game object is not available', () => {
                 globalThis.game = undefined;
-                const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+                const consoleSpy = vi.spyOn(console, 'error').mockImplementation();
 
                 const result = GameManager.getModuleObject('test-module');
 
@@ -135,7 +136,7 @@ describe('GameManager (Static)', () => {
 
             it('should return null and log error when modules collection is not available', () => {
                 globalThis.game = {};
-                const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+                const consoleSpy = vi.spyOn(console, 'error').mockImplementation();
 
                 const result = GameManager.getModuleObject('test-module');
 
@@ -149,7 +150,7 @@ describe('GameManager (Static)', () => {
 
             it('should return null and log error when modules collection does not have get function', () => {
                 globalThis.game = { modules: {} };
-                const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+                const consoleSpy = vi.spyOn(console, 'error').mockImplementation();
 
                 const result = GameManager.getModuleObject('test-module');
 
@@ -162,7 +163,7 @@ describe('GameManager (Static)', () => {
             });
 
             it('should handle null input gracefully', () => {
-                const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+                const consoleSpy = vi.spyOn(console, 'error').mockImplementation();
 
                 const result = GameManager.getModuleObject(null);
 
@@ -193,7 +194,7 @@ describe('GameManager (Static)', () => {
         });
 
         it('should return false and log error when module object cannot be retrieved', () => {
-            const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation();
 
             const result = GameManager.writeToModuleObject('non-existent-module', 'key', 'value');
 
@@ -206,7 +207,7 @@ describe('GameManager (Static)', () => {
         });
 
         it('should handle write errors gracefully', () => {
-            const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation();
 
             // Create a read-only property that will throw when trying to write
             Object.defineProperty(mockModule, 'readOnlyProp', {
@@ -247,7 +248,7 @@ describe('GameManager (Static)', () => {
         });
 
         it('should return undefined and log error when module object cannot be retrieved', () => {
-            const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation();
 
             const result = GameManager.readFromModuleObject('non-existent-module', 'key');
 

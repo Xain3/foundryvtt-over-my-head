@@ -5,14 +5,25 @@
 
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { ContextItemSync } from './contextItemSync.mjs';
 import { ContextItem } from './contextItem.mjs';
 import ContextComparison from './contextComparison.mjs';
 
+function loadAlias(relativePath) {
+  return async () => import(new URL(relativePath, import.meta.url).href);
+}
+
+vi.mock('@utils/static/validator.mjs', loadAlias('../../utils/static/validator.mjs'));
+vi.mock('@helpers/pathUtils.mjs', loadAlias('../../helpers/pathUtils.mjs'));
+vi.mock('@config', loadAlias('../../config/config.mjs'));
+vi.mock('@constants', loadAlias('../../config/constants.mjs'));
+vi.mock('@manifest', loadAlias('../../config/manifest.mjs'));
+
 
 // Mock the dependencies
-jest.mock('./contextItem.mjs');
-jest.mock('./contextComparison.mjs');
+vi.mock('./contextItem.mjs');
+vi.mock('./contextComparison.mjs');
 
 describe('ContextItemSync', () => {
   let mockSource;
@@ -21,25 +32,25 @@ describe('ContextItemSync', () => {
 
   beforeEach(() => {
     // Reset mocks before each test
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Create mock ContextItem instances
     mockSource = {
       value: 'source value',
       metadata: { createdAt: '2024-01-01', modifiedAt: '2024-01-02' },
-      setMetadata: jest.fn()
+      setMetadata: vi.fn()
     };
 
     mockTarget = {
       value: 'target value',
       metadata: { createdAt: '2024-01-03', modifiedAt: '2024-01-04' },
-      setMetadata: jest.fn()
+      setMetadata: vi.fn()
     };
 
     // Mock console methods
     consoleSpy = {
-      debug: jest.spyOn(console, 'debug').mockImplementation(() => {}),
-      warn: jest.spyOn(console, 'warn').mockImplementation(() => {})
+      debug: vi.spyOn(console, 'debug').mockImplementation(() => {}),
+      warn: vi.spyOn(console, 'warn').mockImplementation(() => {})
     };
   });
 

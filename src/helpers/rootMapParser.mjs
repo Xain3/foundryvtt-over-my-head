@@ -55,7 +55,7 @@ class RootMapParser {
       return RootMapParser.#retrieveModuleInNamespace(module, namespace);
     }
 
-  const resolved = PathUtils.resolvePath(namespace, value, true);
+    const resolved = PathUtils.resolvePath(namespace, value, true);
     if (resolved === undefined) {
       throw new Error(`Path "${value}" could not be resolved for key "${key}"`);
     }

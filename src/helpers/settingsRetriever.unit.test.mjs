@@ -4,6 +4,7 @@
  * @path src/helpers/settingsRetriever.unit.test.mjs
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import SettingsRetriever from './settingsRetriever.mjs';
 
 describe('SettingsRetriever', () => {
@@ -42,7 +43,7 @@ describe('SettingsRetriever', () => {
       retriever = new SettingsRetriever(testNamespace);
       global.game = {
         settings: {
-          get: jest.fn()
+          get: vi.fn()
         }
       };
     });
@@ -155,7 +156,7 @@ describe('SettingsRetriever', () => {
       retriever = new SettingsRetriever(testNamespace);
       global.game = {
         settings: {
-          get: jest.fn()
+          get: vi.fn()
         }
       };
     });
@@ -282,7 +283,7 @@ describe('SettingsRetriever', () => {
       retriever = new SettingsRetriever(testNamespace);
       global.game = {
         settings: {
-          get: jest.fn()
+          get: vi.fn()
         }
       };
     });
@@ -324,7 +325,7 @@ describe('SettingsRetriever', () => {
       retriever = new SettingsRetriever(testNamespace);
       global.game = {
         settings: {
-          get: jest.fn()
+          get: vi.fn()
         }
       };
     });

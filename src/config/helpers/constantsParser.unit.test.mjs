@@ -5,22 +5,29 @@
  * @date 26 May 2025
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import yaml from 'js-yaml';
 import ConstantsParser from './constantsParser.mjs';
-import PathUtils from '@helpers/pathUtils.mjs';
+import PathUtils from '../../helpers/pathUtils.mjs';
 
-jest.mock('js-yaml', () => ({
-  load: jest.fn(),
-}));
-jest.mock('@helpers/pathUtils.mjs', () => ({
+vi.mock('js-yaml', () => {
+  const loadFunction = vi.fn();
+  return {
+    default: {
+      load: loadFunction
+    },
+    load: loadFunction
+  };
+});
+vi.mock('../../helpers/pathUtils.mjs', () => ({
   default: {
-    resolvePath: jest.fn(),
+    resolvePath: vi.fn(),
   },
 }));
 
 describe('ConstantsParser', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('parseConstants', () => {
@@ -50,7 +57,7 @@ describe('ConstantsParser', () => {
 
     it('throws and logs error if YAML parsing fails', () => {
       yaml.load.mockImplementation(() => { throw new Error('bad yaml'); });
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       expect(() => ConstantsParser.parseConstants(yamlString)).toThrow('Failed to parse constants');
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -63,7 +70,7 @@ describe('ConstantsParser', () => {
 
     beforeEach(() => {
       // Set up PathUtils mock
-      PathUtils.resolvePath = jest.fn();
+      PathUtils.resolvePath = vi.fn();
       PathUtils.resolvePath.mockClear();
     });
 

@@ -5,23 +5,34 @@
 
  */
 
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import ContextContainerSync from './contextContainerSync.mjs';
 import ContextContainerSyncEngine from './contextContainerSyncEngine.mjs';
 import ContextComparison from './contextComparison.mjs';
 
+function loadAlias(relativePath) {
+  return async () => import(new URL(relativePath, import.meta.url).href);
+}
+
+vi.mock('@utils/static/validator.mjs', loadAlias('../../utils/static/validator.mjs'));
+vi.mock('@helpers/pathUtils.mjs', loadAlias('../../helpers/pathUtils.mjs'));
+vi.mock('@config', loadAlias('../../config/config.mjs'));
+vi.mock('@constants', loadAlias('../../config/constants.mjs'));
+vi.mock('@manifest', loadAlias('../../config/manifest.mjs'));
+
 // Mock dependencies
-jest.mock('./contextContainer.mjs');
-jest.mock('./contextItem.mjs');
-jest.mock('./contextComparison.mjs');
+vi.mock('./contextContainer.mjs');
+vi.mock('./contextItem.mjs');
+vi.mock('./contextComparison.mjs');
 
 // Mock the ContextContainerSyncEngine and its instance methods
-const mockSync = jest.fn();
-jest.mock('./contextContainerSyncEngine.mjs', () => {
-  return jest.fn().mockImplementation((options) => ({
+const mockSync = vi.fn();
+vi.mock('./contextContainerSyncEngine.mjs', () => ({
+  default: vi.fn().mockImplementation((options) => ({
     ...options,
     sync: mockSync,
-  }));
-});
+  }))
+}));
 
 describe('ContextContainerSync', () => {
   let mockSourceContainer;
@@ -29,27 +40,27 @@ describe('ContextContainerSync', () => {
 
   beforeEach(() => {
     // Reset mocks before each test
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Create mock ContextContainer instances
     mockSourceContainer = {
       value: 'source container',
       metadata: { createdAt: '2024-01-01', modifiedAt: '2024-01-02' },
-      keys: jest.fn(() => ['item1', 'item2']),
-      getItem: jest.fn(),
-      hasItem: jest.fn(),
-      setItem: jest.fn(),
-      setMetadata: jest.fn(),
+      keys: vi.fn(() => ['item1', 'item2']),
+      getItem: vi.fn(),
+      hasItem: vi.fn(),
+      setItem: vi.fn(),
+      setMetadata: vi.fn(),
     };
 
     mockTargetContainer = {
       value: 'target container',
       metadata: { createdAt: '2024-01-03', modifiedAt: '2024-01-04' },
-      keys: jest.fn(() => ['item1']),
-      getItem: jest.fn(),
-      hasItem: jest.fn(),
-      setItem: jest.fn(),
-      setMetadata: jest.fn(),
+      keys: vi.fn(() => ['item1']),
+      getItem: vi.fn(),
+      hasItem: vi.fn(),
+      setItem: vi.fn(),
+      setMetadata: vi.fn(),
     };
   });
 

@@ -4,7 +4,8 @@
  * @path src/utils/logger.unit.test.mjs
  */
 
-jest.mock('./static/gameManager.mjs');
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+vi.mock('./static/gameManager.mjs');
 
 import Logger from './logger.mjs';
 import GameManager from './static/gameManager.mjs';
@@ -18,14 +19,14 @@ describe('Logger', () => {
 
   beforeEach(() => {
     // Reset all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Mock console methods
     consoleSpy = {
-      log: jest.spyOn(console, 'log').mockImplementation(() => {}),
-      error: jest.spyOn(console, 'error').mockImplementation(() => {}),
-      warn: jest.spyOn(console, 'warn').mockImplementation(() => {}),
-      debug: jest.spyOn(console, 'debug').mockImplementation(() => {})
+      log: vi.spyOn(console, 'log').mockImplementation(() => {}),
+      error: vi.spyOn(console, 'error').mockImplementation(() => {}),
+      warn: vi.spyOn(console, 'warn').mockImplementation(() => {}),
+      debug: vi.spyOn(console, 'debug').mockImplementation(() => {})
     };
 
     // Setup mock objects
@@ -40,10 +41,10 @@ describe('Logger', () => {
       shortName: 'TM'
     };
 
-    mockFormatError = jest.fn((error, options) => `Formatted: ${error.message}`);
+    mockFormatError = vi.fn((error, options) => `Formatted: ${error.message}`);
 
     // Mock GameManager methods
-    GameManager.getSetting = jest.fn();
+    GameManager.getSetting = vi.fn();
 
     // Create logger instance
     logger = new Logger(mockConstants, mockManifest, mockFormatError);
@@ -151,7 +152,7 @@ describe('Logger', () => {
       const originalGame = globalThis.game;
       globalThis.game = {
         modules: {
-          get: jest.fn().mockReturnValue({
+          get: vi.fn().mockReturnValue({
             flags: { debugMode: true }
           })
         }

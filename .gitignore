@@ -12,3 +12,4 @@ docker/foundry-data/
 docker/foundry-cache/
 docker/secrets.json
 docker/.env
+old-handlers/

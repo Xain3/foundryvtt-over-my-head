@@ -98,34 +98,37 @@ export default defineConfig({
   ],
   },
   resolve: {
-    alias: {
-      '@': resolve(process.cwd(), 'src'),
-      '@baseClasses': resolve(process.cwd(), 'src/baseClasses'),
-      '@/baseClasses/handler': resolve(process.cwd(), 'src/baseClasses/handler.mjs'),
-      '@docker': resolve(process.cwd(), 'docker'),
-      '@config': resolve(process.cwd(), 'src/config/config.mjs'),
-      '@constants': resolve(process.cwd(), 'src/config/constants.mjs'),
-      '@manifest': resolve(process.cwd(), 'src/config/manifest.mjs'),
-      '@configFolder': resolve(process.cwd(), 'src/config'),
-      '@contexts': resolve(process.cwd(), 'src/contexts'),
-      '@data': resolve(process.cwd(), 'src/data'),
-      '@handlers': resolve(process.cwd(), 'src/handlers'),
-      '@utils': resolve(process.cwd(), 'src/utils'),
-      '@utils/static': resolve(process.cwd(), 'src/utils/static'),
-      '@listeners': resolve(process.cwd(), 'src/listeners'),
-      '@maps': resolve(process.cwd(), 'src/maps'),
-      '@helpers': resolve(process.cwd(), 'src/helpers'),
-      '@helpers/pathUtils.mjs': resolve(process.cwd(), 'src/helpers/pathUtils.mjs'),
-      '@configHelpers': resolve(process.cwd(), 'src/config/helpers'),
-      '@validator': resolve(process.cwd(), 'src/utils/static/validator.mjs'),
-      '@integrationTests': resolve(process.cwd(), 'tests/integration'),
-      '@mocks': resolve(process.cwd(), 'tests/mocks'),
-      '@module': resolve(process.cwd(), 'module.json'),
-      '@root': resolve(process.cwd(), '.')
-    }
+    alias: [
+      { find: '@', replacement: resolve(process.cwd(), 'src') },
+      { find: '@baseClasses', replacement: resolve(process.cwd(), 'src/baseClasses') },
+      { find: '@/baseClasses/handler', replacement: resolve(process.cwd(), 'src/baseClasses/handler.mjs') },
+      { find: '@docker', replacement: resolve(process.cwd(), 'docker') },
+      { find: '@config', replacement: resolve(process.cwd(), 'src/config/config.mjs') },
+      { find: '@constants', replacement: resolve(process.cwd(), 'src/config/constants.mjs') },
+      { find: '@manifest', replacement: resolve(process.cwd(), 'src/config/manifest.mjs') },
+      { find: '@configFolder', replacement: resolve(process.cwd(), 'src/config') },
+      { find: '@contexts', replacement: resolve(process.cwd(), 'src/contexts') },
+      { find: '@data', replacement: resolve(process.cwd(), 'src/data') },
+      { find: '@handlers', replacement: resolve(process.cwd(), 'src/handlers') },
+      { find: '@utils', replacement: resolve(process.cwd(), 'src/utils') },
+      { find: '@utils/static', replacement: resolve(process.cwd(), 'src/utils/static') },
+      { find: '@listeners', replacement: resolve(process.cwd(), 'src/listeners') },
+      { find: '@maps', replacement: resolve(process.cwd(), 'src/maps') },
+      { find: '@helpers', replacement: resolve(process.cwd(), 'src/helpers') },
+      { find: '@helpers/pathUtils.mjs', replacement: resolve(process.cwd(), 'src/helpers/pathUtils.mjs') },
+      { find: '@configHelpers', replacement: resolve(process.cwd(), 'src/config/helpers') },
+      { find: '@validator', replacement: resolve(process.cwd(), 'src/utils/static/validator.mjs') },
+      { find: '@integrationTests', replacement: resolve(process.cwd(), 'tests/integration') },
+      { find: '@mocks', replacement: resolve(process.cwd(), 'tests/mocks') },
+      { find: '@module', replacement: resolve(process.cwd(), 'module.json') },
+      { find: '@root', replacement: resolve(process.cwd(), '.') }
+    ]
   },
 
   esbuild: {
     target: 'node18'
+  },
+  deps: {
+    inline: true
   }
 });

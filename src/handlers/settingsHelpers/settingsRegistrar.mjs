@@ -4,7 +4,7 @@
 * @path src/handlers/settingsHelpers/settingsRegistrar.mjs
 */
 
-import Handler from "@/baseClasses/handler";
+import Handler from "../../baseClasses/handler.mjs";
 import FlagEvaluator from "./flagEvaluator";
 
 /**

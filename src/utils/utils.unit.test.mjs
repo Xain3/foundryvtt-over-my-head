@@ -10,14 +10,14 @@ import StaticUtils from './static/static.mjs';
 import Logger from './logger.mjs';
 import HookFormatter from './hookFormatter.mjs';
 import Initializer from './initializer.mjs';
-import Context from '@contexts/context.mjs';
+import Context from '../contexts/context.mjs';
 
 // Mock all dependencies
 vi.mock('./static/static.mjs');
 vi.mock('./logger.mjs');
 vi.mock('./hookFormatter.mjs');
 vi.mock('./initializer.mjs');
-vi.mock('@contexts/context.mjs');
+vi.mock('../contexts/context.mjs');
 
 describe('Utilities', () => {
   let validConstants;

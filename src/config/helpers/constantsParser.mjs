@@ -5,7 +5,7 @@
  */
 
 import yaml from 'js-yaml';
-import PathUtils from '@helpers/pathUtils.mjs';
+import PathUtils from '../../helpers/pathUtils.mjs';
 
 /**
  * A utility class for parsing and processing constants from YAML input.

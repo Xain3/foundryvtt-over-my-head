@@ -4,7 +4,7 @@
  * @path src/helpers/moduleGetter.mjs
  */
 
-import config from "@config";
+import config from "../config/config.mjs";
 import PathUtils from "./pathUtils.mjs";
 
 

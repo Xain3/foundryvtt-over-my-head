@@ -11,6 +11,8 @@ dictionaries:
   - npm
 words:
   - datamodel
+  - dependencygraph
   - foundryvtt
+  - stylelintcache
 ignoreWords: []
 import: []

@@ -67,8 +67,6 @@
     "spellcheck": "cspell '**/*.md' '**/*.txt' '!node_modules/**'",
     "prepare": "husky",
     "precommit": "lint-staged",
-    "markdown:lint": "markdownlint '**/*.md' --ignore node_modules",
-    "markdown:lint:fix": "markdownlint '**/*.md' --ignore node_modules --fix",
     "validate:container-config": "node ./scripts/validate-container-config.mjs"
   }
 }

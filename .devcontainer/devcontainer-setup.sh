@@ -126,7 +126,7 @@ else
     echo "▶️ Setting up ZSH configuration..."
     # Ensure Oh My Zsh is installed
     ensure-zsh
-    cp .dev/config/devcontainer/.zshrc ~/.zshrc
+    cp .devcontainer/.zshrc ~/.zshrc
 fi
 echo "Ensuring ZSH plugins are installed..."
 ZSH_CUSTOM=${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}
@@ -143,7 +143,7 @@ if [[ "$DRY_RUN" == true ]]; then
     pass "Git hooks installed (dry-run)"
 else
     echo "🪝 Installing Git hooks..."
-    npm prepare
+    npm run prepare
     pass "Git hooks installed"
 fi
 

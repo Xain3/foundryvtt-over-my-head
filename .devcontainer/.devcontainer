@@ -1,0 +1,58 @@
+{
+  "name": "New Project Template Dev Environment",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bullseye",
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.11"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "davidanson.vscode-markdownlint",
+        "esbenp.prettier-vscode",
+        "editorconfig.editorconfig",
+        "redhat.vscode-yaml",
+        "streetsidesoftware.code-spell-checker",
+        "eamodio.gitlens",
+        "ms-vscode.vscode-json",
+        "vitest.explorer",
+        "mhutchie.git-graph",
+        "ms-vscode.PowerShell",
+        "PeterSchmalfeldt.explorer-exclude"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "files.eol": "\n"
+      }
+    }
+  },
+
+  "postCreateCommand": "./.dev/scripts/setup/devcontainer-setup.sh",
+
+  "forwardPorts": [3000, 8080],
+
+  "remoteUser": "node",
+
+  "runArgs": [
+    "--sysctl",
+    "net.ipv6.conf.all.disable_ipv6=1",
+    "--sysctl",
+    "net.ipv6.conf.default.disable_ipv6=1",
+    "--sysctl",
+    "net.ipv6.conf.lo.disable_ipv6=1"
+  ]
+}

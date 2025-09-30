@@ -1,4 +1,5 @@
 <!-- markdownlint-disable MD024 -->
+
 # Placeable Helpers Module
 
 ## Overview
@@ -38,7 +39,7 @@ A small utility for retrieving common data from placeables.
 - `getCenter(placeable)`: returns `{ x, y }`
 - `getRectBounds(placeable)`: returns `{ TopRight: {x,y}, BottomLeft: {x,y} }`
   - Uses Foundry's `placeable.bounds` when available; otherwise derives from width/height
--- `getElevation(placeable)`: supports `document.elevation`, `placeable.elevation`, defaults to `0`
+    -- `getElevation(placeable)`: supports `document.elevation`, `placeable.elevation`, defaults to `0`
 - `getCorner(corner, placeable)`: returns a specific corner coordinate; warns on invalid input
 - `getAllPlaceables(type, updateProperty, returnValue)`: reads from `canvas[type].placeables`
 - `getSelectedPlaceables(placeables)`: filters by `controlled`
@@ -47,7 +48,7 @@ A small utility for retrieving common data from placeables.
 #### Usage
 
 ```javascript
-import PlaceableGetter from './placeableGetter.mjs';
+import PlaceableGetter from "./placeableGetter.mjs";
 
 const getter = new PlaceableGetter(config, context, utils);
 const center = getter.getCenter(token);
@@ -81,8 +82,8 @@ Pure geometry checks for centers and rectangles with elevation comparisons. Excl
 ```yaml
 positionChecker:
   checkTypes:
-    UNDER: "under"   # or "below"
-    OVER: "over"     # or "above"
+    UNDER: "under" # or "below"
+    OVER: "over" # or "above"
   positionUses:
     CENTER: "center"
     RECTANGLE: "rectangle"
@@ -98,14 +99,20 @@ If absent, sensible inlined fallbacks are used inside `positionChecker.mjs`.
 #### Usage
 
 ```javascript
-import PositionChecker from './positionChecker.mjs';
+import PositionChecker from "./positionChecker.mjs";
 
 const pc = new PositionChecker(config, context, utils);
 const center = { x: 5, y: 5 };
 const rect = { BottomLeft: { x: 0, y: 0 }, TopRight: { x: 10, y: 10 } };
 
 // Center inside rect, and target is UNDER the reference elevation
-const inside = pc.isCenterRelativeToRect(center, 1, rect, 2, pc.CHECK_TYPES.UNDER);
+const inside = pc.isCenterRelativeToRect(
+  center,
+  1,
+  rect,
+  2,
+  pc.CHECK_TYPES.UNDER,
+);
 ```
 
 ### 3. PlaceableChecker
@@ -123,9 +130,9 @@ High-level checks that combine `PlaceableGetter` and `PositionChecker`.
 #### Usage
 
 ```javascript
-import PlaceableGetter from './placeableGetter.mjs';
-import PlaceableChecker from './placeableChecker.mjs';
-import { CHECK_TYPES, POSITION_USES } from './config.mjs';
+import PlaceableGetter from "./placeableGetter.mjs";
+import PlaceableChecker from "./placeableChecker.mjs";
+import { CHECK_TYPES, POSITION_USES } from "./config.mjs";
 
 const getter = new PlaceableGetter(config, context, utils);
 const checker = new PlaceableChecker(config, context, utils, getter);
@@ -134,11 +141,11 @@ const checker = new PlaceableChecker(config, context, utils, getter);
 const result = checker.isUnder(
   tokenA,
   templateB,
-  getter,        // target manager
-  getter,        // reference manager
+  getter, // target manager
+  getter, // reference manager
   POSITION_USES.CENTER,
   POSITION_USES.RECTANGLE,
-  CHECK_TYPES.UNDER
+  CHECK_TYPES.UNDER,
 );
 ```
 
@@ -153,7 +160,7 @@ Minimal state utility to set and get the current placeable.
 #### Usage
 
 ```javascript
-import PlaceableSetter from './placeableSetter.mjs';
+import PlaceableSetter from "./placeableSetter.mjs";
 
 const setter = new PlaceableSetter(config, context, utils);
 setter.setCurrentPlaceable(token);
@@ -164,7 +171,7 @@ setter.setCurrentPlaceable(token);
 Placeable helpers read constants via `src/handlers/placeableHelpers/config.mjs`, which bridges to the main configuration system (`config.mjs → constants.mjs → constants.yaml`). This avoids magic strings and centralizes configuration.
 
 ```javascript
-import { CHECK_TYPES, POSITION_USES, METHOD_KEYS } from './config.mjs';
+import { CHECK_TYPES, POSITION_USES, METHOD_KEYS } from "./config.mjs";
 ```
 
 - `CHECK_TYPES`: `{ UNDER, OVER }`

@@ -1,6 +1,6 @@
 ---
-description: 'Chat mode for generating commit messages from staged changes.'
-tools: ['codebase', 'changes', 'githubRepo', 'runCommands']
+description: "Chat mode for generating commit messages from staged changes."
+tools: ["codebase", "changes", "githubRepo", "runCommands"]
 ---
 
 The AI should focus on understanding the context of the changes made in the codebase and generating clear, concise commit messages that accurately reflect those changes. It should utilize the available tools to gather information about the codebase, the specific changes made, and any relevant documentation or guidelines for commit messages.

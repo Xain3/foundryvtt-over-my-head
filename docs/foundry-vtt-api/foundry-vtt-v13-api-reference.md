@@ -594,55 +594,55 @@ For a complete listing of all classes and functions, browse the official [Foundr
 
 ```javascript
 // Access collections
-game.actors.get(id)
-game.items.get(id)
-game.scenes.get(id)
+game.actors.get(id);
+game.items.get(id);
+game.scenes.get(id);
 
 // Create documents
-Actor.create(data)
-Item.create(data)
+Actor.create(data);
+Item.create(data);
 
 // Update documents
-actor.update(updateData)
-item.update(updateData)
+actor.update(updateData);
+item.update(updateData);
 ```
 
 #### Canvas Interaction
 
 ```javascript
 // Access canvas layers
-canvas.tokens
-canvas.lighting
-canvas.walls
+canvas.tokens;
+canvas.lighting;
+canvas.walls;
 
 // Get canvas objects
-canvas.tokens.controlled
-canvas.tokens.get(id)
+canvas.tokens.controlled;
+canvas.tokens.get(id);
 ```
 
 #### Hook System
 
 ```javascript
 // Register hooks
-Hooks.on('ready', callback)
-Hooks.on('createActor', callback)
-Hooks.on('updateToken', callback)
+Hooks.on("ready", callback);
+Hooks.on("createActor", callback);
+Hooks.on("updateToken", callback);
 
 // Call hooks
-Hooks.call('customEvent', data)
+Hooks.call("customEvent", data);
 ```
 
 #### Settings Management
 
 ```javascript
 // Register settings
-game.settings.register(module, key, config)
+game.settings.register(module, key, config);
 
 // Get/Set settings
-game.settings.get(module, key)
-game.settings.set(module, key, value)
+game.settings.get(module, key);
+game.settings.set(module, key, value);
 ```
 
 ---
 
-*This reference document is based on the official Foundry Virtual Tabletop v13 API Documentation. For the most up-to-date information, always refer to the [official documentation](https://foundryvtt.com/api/).*
+_This reference document is based on the official Foundry Virtual Tabletop v13 API Documentation. For the most up-to-date information, always refer to the [official documentation](https://foundryvtt.com/api/)._

@@ -8,14 +8,14 @@
 
   "compatibility": {
     "minimum": "12",
-  "verified": "13.347"
+    "verified": "13.347"
   },
 
   "flags": {
     "debugMode": false,
     "onlyGM": true,
     "settingsReady": false,
-    "dev" : true
+    "dev": true
   },
 
   "authors": [
@@ -36,17 +36,11 @@
     }
   ],
 
-  "scripts": [
+  "scripts": [],
 
-  ],
+  "styles": ["styles/foundryvtt-over-my-head.css"],
 
-  "styles": [
-    "styles/foundryvtt-over-my-head.css"
-  ],
-
-  "esmodules": [
-    "dist/main.mjs"
-  ],
+  "esmodules": ["dist/main.mjs"],
 
   "readme": "https://raw.githubusercontent.com/xain3/foundryvtt-over-my-head/releases/latest/README.md",
   "manifest": "https://raw.githubusercontent.com/xain3/foundryvtt-over-my-head/releases/latest/module.json",

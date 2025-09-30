@@ -1,4 +1,5 @@
 <!-- markdownlint-disable MD040 -->
+
 # Foundry VTT v13 - Class Hierarchy Reference
 
 **Version:** 13
@@ -426,4 +427,4 @@ Data models and database backends
 
 ---
 
-*This class hierarchy reference is designed to help developers understand the inheritance relationships and organizational structure of the Foundry VTT v13 API. Use it alongside the [main API reference](./foundry-vtt-v13-api-reference.md) for comprehensive development guidance.*
+_This class hierarchy reference is designed to help developers understand the inheritance relationships and organizational structure of the Foundry VTT v13 API. Use it alongside the [main API reference](./foundry-vtt-v13-api-reference.md) for comprehensive development guidance._

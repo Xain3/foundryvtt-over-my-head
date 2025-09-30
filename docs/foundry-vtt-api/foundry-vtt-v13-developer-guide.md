@@ -12,23 +12,23 @@
 
 ```javascript
 // Basic module initialization
-Hooks.once('init', () => {
-  console.log('My Module | Initializing');
+Hooks.once("init", () => {
+  console.log("My Module | Initializing");
 
   // Register settings
-  game.settings.register('my-module', 'enabled', {
-    name: 'Enable Module',
-    hint: 'Enable or disable module functionality',
-    scope: 'world',
+  game.settings.register("my-module", "enabled", {
+    name: "Enable Module",
+    hint: "Enable or disable module functionality",
+    scope: "world",
     config: true,
     type: Boolean,
-    default: true
+    default: true,
   });
 });
 
 // Ready hook - all data loaded
-Hooks.once('ready', () => {
-  console.log('My Module | Ready');
+Hooks.once("ready", () => {
+  console.log("My Module | Ready");
 
   if (!game.user.isGM) return;
 
@@ -42,32 +42,32 @@ Hooks.once('ready', () => {
 ```javascript
 // Create Actor
 const actorData = {
-  name: 'Test Actor',
-  type: 'character',
-  img: 'path/to/image.jpg',
+  name: "Test Actor",
+  type: "character",
+  img: "path/to/image.jpg",
   system: {
     attributes: {
-      hp: { value: 10, max: 10 }
-    }
-  }
+      hp: { value: 10, max: 10 },
+    },
+  },
 };
 const actor = await Actor.create(actorData);
 
 // Create Item
 const itemData = {
-  name: 'Magic Sword',
-  type: 'weapon',
-  img: 'path/to/sword.jpg',
+  name: "Magic Sword",
+  type: "weapon",
+  img: "path/to/sword.jpg",
   system: {
-    damage: '1d8+2',
-    properties: ['magical', 'versatile']
-  }
+    damage: "1d8+2",
+    properties: ["magical", "versatile"],
+  },
 };
 const item = await Item.create(itemData);
 
 // Update Document
 await actor.update({
-  'system.attributes.hp.value': 8
+  "system.attributes.hp.value": 8,
 });
 
 // Delete Document
@@ -75,8 +75,8 @@ await actor.delete();
 
 // Batch Operations
 const updates = [
-  { _id: actor1.id, 'system.attributes.hp.value': 5 },
-  { _id: actor2.id, 'system.attributes.hp.value': 3 }
+  { _id: actor1.id, "system.attributes.hp.value": 5 },
+  { _id: actor2.id, "system.attributes.hp.value": 3 },
 ];
 await Actor.updateDocuments(updates);
 ```
@@ -85,17 +85,17 @@ await Actor.updateDocuments(updates);
 
 ```javascript
 // Filter collections
-const playerCharacters = game.actors.filter(a =>
-  a.type === 'character' && a.hasPlayerOwner
+const playerCharacters = game.actors.filter(
+  (a) => a.type === "character" && a.hasPlayerOwner,
 );
 
 // Find specific documents
-const actor = game.actors.find(a => a.name === 'Hero');
-const scene = game.scenes.find(s => s.name === 'Tavern');
+const actor = game.actors.find((a) => a.name === "Hero");
+const scene = game.scenes.find((s) => s.name === "Tavern");
 
 // Collection iteration
-game.actors.forEach(actor => {
-  if (actor.type === 'npc') {
+game.actors.forEach((actor) => {
+  if (actor.type === "npc") {
     console.log(`NPC: ${actor.name}`);
   }
 });
@@ -104,7 +104,7 @@ game.actors.forEach(actor => {
 const actorArray = Array.from(game.actors);
 
 // Map collection data
-const actorNames = game.actors.map(a => a.name);
+const actorNames = game.actors.map((a) => a.name);
 ```
 
 ### 4. Canvas and Token Management
@@ -119,33 +119,33 @@ const token = canvas.tokens.get(tokenId);
 // Update token position
 await token.document.update({
   x: 100,
-  y: 100
+  y: 100,
 });
 
 // Animate token movement
 await token.animateMovement({
   x: 200,
   y: 200,
-  duration: 1000
+  duration: 1000,
 });
 
 // Create measured template
 const templateData = {
-  t: 'circle',
+  t: "circle",
   x: 100,
   y: 100,
   distance: 20,
   angle: 0,
-  fillColor: '#ff0000'
+  fillColor: "#ff0000",
 };
-await canvas.scene.createEmbeddedDocuments('MeasuredTemplate', [templateData]);
+await canvas.scene.createEmbeddedDocuments("MeasuredTemplate", [templateData]);
 
 // Work with vision and lighting
 await token.document.update({
-  'sight.enabled': true,
-  'sight.range': 60,
-  'light.bright': 20,
-  'light.dim': 40
+  "sight.enabled": true,
+  "sight.range": 60,
+  "light.bright": 20,
+  "light.dim": 40,
 });
 ```
 
@@ -154,20 +154,20 @@ await token.document.update({
 ```javascript
 // Simple chat message
 ChatMessage.create({
-  content: 'Hello, world!',
-  speaker: ChatMessage.getSpeaker({ actor: actor })
+  content: "Hello, world!",
+  speaker: ChatMessage.getSpeaker({ actor: actor }),
 });
 
 // Dice roll with chat output
-const roll = new Roll('1d20+5');
+const roll = new Roll("1d20+5");
 await roll.evaluate();
 await roll.toMessage({
   speaker: ChatMessage.getSpeaker({ actor: actor }),
-  flavor: 'Attack Roll'
+  flavor: "Attack Roll",
 });
 
 // Complex roll formula
-const formula = '2d6 + @abilities.str.mod + @prof';
+const formula = "2d6 + @abilities.str.mod + @prof";
 const roll = new Roll(formula, actor.getRollData());
 await roll.evaluate();
 
@@ -178,8 +178,8 @@ await result.toMessage();
 
 // Whisper to GM
 ChatMessage.create({
-  content: 'Secret message',
-  whisper: game.users.filter(u => u.isGM).map(u => u.id)
+  content: "Secret message",
+  whisper: game.users.filter((u) => u.isGM).map((u) => u.id),
 });
 ```
 
@@ -188,52 +188,52 @@ ChatMessage.create({
 ```javascript
 // Simple dialog
 new Dialog({
-  title: 'Confirmation',
-  content: '<p>Are you sure?</p>',
+  title: "Confirmation",
+  content: "<p>Are you sure?</p>",
   buttons: {
     yes: {
       icon: '<i class="fas fa-check"></i>',
-      label: 'Yes',
-      callback: () => console.log('Yes clicked')
+      label: "Yes",
+      callback: () => console.log("Yes clicked"),
     },
     no: {
       icon: '<i class="fas fa-times"></i>',
-      label: 'No',
-      callback: () => console.log('No clicked')
-    }
+      label: "No",
+      callback: () => console.log("No clicked"),
+    },
   },
-  default: 'yes'
+  default: "yes",
 }).render(true);
 
 // Custom Application
 class MyApplication extends Application {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'my-app',
-      title: 'My Application',
-      template: 'modules/my-module/templates/app.hbs',
+      id: "my-app",
+      title: "My Application",
+      template: "modules/my-module/templates/app.hbs",
       width: 400,
       height: 300,
-      resizable: true
+      resizable: true,
     });
   }
 
   getData() {
     return {
       actors: game.actors.contents,
-      user: game.user
+      user: game.user,
     };
   }
 
   activateListeners(html) {
     super.activateListeners(html);
 
-    html.find('.my-button').click(this._onButtonClick.bind(this));
+    html.find(".my-button").click(this._onButtonClick.bind(this));
   }
 
   _onButtonClick(event) {
     event.preventDefault();
-    console.log('Button clicked');
+    console.log("Button clicked");
   }
 }
 ```
@@ -242,85 +242,85 @@ class MyApplication extends Application {
 
 ```javascript
 // Document hooks
-Hooks.on('createActor', (actor, options, userId) => {
+Hooks.on("createActor", (actor, options, userId) => {
   console.log(`Actor created: ${actor.name}`);
 });
 
-Hooks.on('updateToken', (token, update, options, userId) => {
-  if ('x' in update || 'y' in update) {
-    console.log('Token moved');
+Hooks.on("updateToken", (token, update, options, userId) => {
+  if ("x" in update || "y" in update) {
+    console.log("Token moved");
   }
 });
 
 // Canvas hooks
-Hooks.on('canvasReady', (canvas) => {
-  console.log('Canvas is ready');
+Hooks.on("canvasReady", (canvas) => {
+  console.log("Canvas is ready");
 });
 
 // Combat hooks
-Hooks.on('combatStart', (combat) => {
+Hooks.on("combatStart", (combat) => {
   ChatMessage.create({
-    content: 'Combat has begun!',
-    speaker: { alias: 'System' }
+    content: "Combat has begun!",
+    speaker: { alias: "System" },
   });
 });
 
 // Custom hooks
-Hooks.on('myModule.customEvent', (data) => {
-  console.log('Custom event triggered', data);
+Hooks.on("myModule.customEvent", (data) => {
+  console.log("Custom event triggered", data);
 });
 
 // Call custom hooks
-Hooks.call('myModule.customEvent', { message: 'Hello' });
+Hooks.call("myModule.customEvent", { message: "Hello" });
 ```
 
 ### 8. Settings and Configuration
 
 ```javascript
 // Register different setting types
-game.settings.register('my-module', 'textSetting', {
-  name: 'Text Setting',
-  hint: 'Enter some text',
-  scope: 'world',
+game.settings.register("my-module", "textSetting", {
+  name: "Text Setting",
+  hint: "Enter some text",
+  scope: "world",
   config: true,
   type: String,
-  default: 'default value'
+  default: "default value",
 });
 
-game.settings.register('my-module', 'numberSetting', {
-  name: 'Number Setting',
-  scope: 'client',
+game.settings.register("my-module", "numberSetting", {
+  name: "Number Setting",
+  scope: "client",
   config: true,
   type: Number,
   default: 10,
-  range: { min: 1, max: 100, step: 1 }
+  range: { min: 1, max: 100, step: 1 },
 });
 
-game.settings.register('my-module', 'choiceSetting', {
-  name: 'Choice Setting',
-  scope: 'world',
+game.settings.register("my-module", "choiceSetting", {
+  name: "Choice Setting",
+  scope: "world",
   config: true,
   type: String,
   choices: {
-    'option1': 'Option 1',
-    'option2': 'Option 2',
-    'option3': 'Option 3'
+    option1: "Option 1",
+    option2: "Option 2",
+    option3: "Option 3",
   },
-  default: 'option1'
+  default: "option1",
 });
 
 // Use settings
-const textValue = game.settings.get('my-module', 'textSetting');
-await game.settings.set('my-module', 'textSetting', 'new value');
+const textValue = game.settings.get("my-module", "textSetting");
+await game.settings.set("my-module", "textSetting", "new value");
 
 // Settings menu
-game.settings.registerMenu('my-module', 'config', {
-  name: 'Configuration',
-  label: 'Configure Module',
-  hint: 'Open configuration dialog',
-  icon: 'fas fa-cog',
+game.settings.registerMenu("my-module", "config", {
+  name: "Configuration",
+  label: "Configure Module",
+  hint: "Open configuration dialog",
+  icon: "fas fa-cog",
   type: MyConfigApplication,
-  restricted: true
+  restricted: true,
 });
 ```
 
@@ -330,7 +330,7 @@ game.settings.registerMenu('my-module', 'config', {
 // Create combat encounter
 const combatData = {
   scene: canvas.scene.id,
-  active: true
+  active: true,
 };
 const combat = await Combat.create(combatData);
 
@@ -338,9 +338,9 @@ const combat = await Combat.create(combatData);
 const combatantData = {
   tokenId: token.id,
   actorId: token.actor.id,
-  initiative: 15
+  initiative: 15,
 };
-await combat.createEmbeddedDocuments('Combatant', [combatantData]);
+await combat.createEmbeddedDocuments("Combatant", [combatantData]);
 
 // Roll initiative for all
 await combat.rollAll();
@@ -366,19 +366,21 @@ if (game.combat?.started) {
 ```javascript
 // Create journal entry
 const journalData = {
-  name: 'Adventure Log',
-  pages: [{
-    name: 'Page 1',
-    type: 'text',
-    text: {
-      content: '<h1>Chapter 1</h1><p>The adventure begins...</p>'
-    }
-  }]
+  name: "Adventure Log",
+  pages: [
+    {
+      name: "Page 1",
+      type: "text",
+      text: {
+        content: "<h1>Chapter 1</h1><p>The adventure begins...</p>",
+      },
+    },
+  ],
 };
 const journal = await JournalEntry.create(journalData);
 
 // Work with compendiums
-const pack = game.packs.get('world.my-compendium');
+const pack = game.packs.get("world.my-compendium");
 const documents = await pack.getDocuments();
 
 // Import from compendium
@@ -394,24 +396,26 @@ await pack.importDocument(actor);
 ```javascript
 // Create active effect
 const effectData = {
-  label: 'Blessing',
-  icon: 'icons/magic/holy/angel-wings-gray.webp',
+  label: "Blessing",
+  icon: "icons/magic/holy/angel-wings-gray.webp",
   duration: {
-    seconds: 3600 // 1 hour
+    seconds: 3600, // 1 hour
   },
-  changes: [{
-    key: 'system.attributes.ac.bonus',
-    mode: 2, // ADD
-    value: '2'
-  }],
+  changes: [
+    {
+      key: "system.attributes.ac.bonus",
+      mode: 2, // ADD
+      value: "2",
+    },
+  ],
   disabled: false,
-  transfer: false
+  transfer: false,
 };
 
-await actor.createEmbeddedDocuments('ActiveEffect', [effectData]);
+await actor.createEmbeddedDocuments("ActiveEffect", [effectData]);
 
 // Toggle effect
-const effect = actor.effects.find(e => e.label === 'Blessing');
+const effect = actor.effects.find((e) => e.label === "Blessing");
 await effect.update({ disabled: !effect.disabled });
 
 // Remove effect
@@ -419,7 +423,7 @@ await effect.delete();
 
 // Temporary effects on tokens
 await token.document.update({
-  'effects': [...token.document.effects, 'path/to/effect.webp']
+  effects: [...token.document.effects, "path/to/effect.webp"],
 });
 ```
 
@@ -428,20 +432,20 @@ await token.document.update({
 ```javascript
 // File picker dialog
 new FilePicker({
-  type: 'image',
+  type: "image",
   callback: (path) => {
-    console.log('Selected image:', path);
-  }
+    console.log("Selected image:", path);
+  },
 }).render(true);
 
 // Upload file
 const file = event.target.files[0];
-const response = await FilePicker.upload('data', 'uploads/', file);
-console.log('Uploaded to:', response.path);
+const response = await FilePicker.upload("data", "uploads/", file);
+console.log("Uploaded to:", response.path);
 
 // Browse files
-const result = await FilePicker.browse('data', 'assets/');
-console.log('Files:', result.files);
+const result = await FilePicker.browse("data", "assets/");
+console.log("Files:", result.files);
 ```
 
 ## Advanced Patterns
@@ -456,7 +460,7 @@ class MyCustomData extends foundry.abstract.DataModel {
       name: new fields.StringField({ required: true }),
       value: new fields.NumberField({ initial: 0 }),
       enabled: new fields.BooleanField({ initial: true }),
-      tags: new fields.ArrayField(new fields.StringField())
+      tags: new fields.ArrayField(new fields.StringField()),
     };
   }
 
@@ -470,16 +474,14 @@ class MyCustomData extends foundry.abstract.DataModel {
 
 ```javascript
 // Register keybindings
-game.keybindings.register('my-module', 'toggleFeature', {
-  name: 'Toggle Feature',
-  hint: 'Toggle the module feature on/off',
-  editable: [
-    { key: 'KeyT', modifiers: ['Control'] }
-  ],
+game.keybindings.register("my-module", "toggleFeature", {
+  name: "Toggle Feature",
+  hint: "Toggle the module feature on/off",
+  editable: [{ key: "KeyT", modifiers: ["Control"] }],
   onDown: () => {
-    console.log('Feature toggled');
+    console.log("Feature toggled");
     return true; // Prevent default behavior
-  }
+  },
 });
 ```
 
@@ -487,26 +489,26 @@ game.keybindings.register('my-module', 'toggleFeature', {
 
 ```javascript
 // Register socket events
-game.socket.on('module.my-module', (data) => {
-  console.log('Socket data received:', data);
+game.socket.on("module.my-module", (data) => {
+  console.log("Socket data received:", data);
   handleSocketData(data);
 });
 
 // Emit socket events
-game.socket.emit('module.my-module', {
-  type: 'update',
+game.socket.emit("module.my-module", {
+  type: "update",
   userId: game.user.id,
-  data: { message: 'Hello, world!' }
+  data: { message: "Hello, world!" },
 });
 
 // GM-only socket handling
 if (game.user.isGM) {
-  game.socket.on('module.my-module', (data) => {
-    if (data.type === 'request') {
+  game.socket.on("module.my-module", (data) => {
+    if (data.type === "request") {
       // Handle request and respond
-      game.socket.emit('module.my-module', {
-        type: 'response',
-        data: processRequest(data.data)
+      game.socket.emit("module.my-module", {
+        type: "response",
+        data: processRequest(data.data),
       });
     }
   });
@@ -517,12 +519,12 @@ if (game.user.isGM) {
 
 ```javascript
 // Register custom Handlebars helpers
-Handlebars.registerHelper('myHelper', function(value, options) {
+Handlebars.registerHelper("myHelper", function (value, options) {
   return value.toUpperCase();
 });
 
-Handlebars.registerHelper('ifEquals', function(arg1, arg2, options) {
-  return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
+Handlebars.registerHelper("ifEquals", function (arg1, arg2, options) {
+  return arg1 == arg2 ? options.fn(this) : options.inverse(this);
 });
 
 // Use in templates
@@ -536,19 +538,19 @@ Handlebars.registerHelper('ifEquals', function(arg1, arg2, options) {
 
 ```javascript
 // Debug helpers
-console.log('Game object:', game);
-console.log('Canvas object:', canvas);
-console.log('Current scene:', canvas.scene);
-console.log('Controlled tokens:', canvas.tokens.controlled);
+console.log("Game object:", game);
+console.log("Canvas object:", canvas);
+console.log("Current scene:", canvas.scene);
+console.log("Controlled tokens:", canvas.tokens.controlled);
 
 // Access collections
-console.log('Actors:', game.actors.contents);
-console.log('Items:', game.items.contents);
-console.log('Scenes:', game.scenes.contents);
+console.log("Actors:", game.actors.contents);
+console.log("Items:", game.items.contents);
+console.log("Scenes:", game.scenes.contents);
 
 // Check user permissions
-console.log('Is GM:', game.user.isGM);
-console.log('User role:', game.user.role);
+console.log("Is GM:", game.user.isGM);
+console.log("User role:", game.user.role);
 ```
 
 ### 2. Error Handling
@@ -557,12 +559,12 @@ console.log('User role:', game.user.role);
 try {
   await someAsyncOperation();
 } catch (error) {
-  console.error('Operation failed:', error);
-  ui.notifications.error('Operation failed. Check console for details.');
+  console.error("Operation failed:", error);
+  ui.notifications.error("Operation failed. Check console for details.");
 }
 
 // Graceful degradation
-if (game.modules.get('some-dependency')?.active) {
+if (game.modules.get("some-dependency")?.active) {
   // Use dependency features
   useDependencyFeatures();
 } else {
@@ -575,9 +577,9 @@ if (game.modules.get('some-dependency')?.active) {
 
 ```javascript
 // Time operations
-console.time('Operation');
+console.time("Operation");
 await performExpensiveOperation();
-console.timeEnd('Operation');
+console.timeEnd("Operation");
 
 // Debounce frequent operations
 const debouncedFunction = foundry.utils.debounce(expensiveFunction, 250);
@@ -592,12 +594,12 @@ const throttledFunction = foundry.utils.throttle(frequentFunction, 100);
 
 ```javascript
 // ❌ Wrong - Data might not be ready
-Hooks.once('init', () => {
+Hooks.once("init", () => {
   const actor = game.actors.get(id); // Might be undefined
 });
 
 // ✅ Correct - Wait for ready
-Hooks.once('ready', () => {
+Hooks.once("ready", () => {
   const actor = game.actors.get(id); // Data is loaded
 });
 ```
@@ -637,14 +639,14 @@ actorData.system.hp.value = 10; // Safe mutation
 class MyApplication extends Application {
   close(options = {}) {
     // Remove custom event listeners
-    this.element.off('.my-namespace');
+    this.element.off(".my-namespace");
     return super.close(options);
   }
 }
 
 // Remove hooks when no longer needed
-const hookId = Hooks.on('updateActor', callback);
-Hooks.off('updateActor', hookId);
+const hookId = Hooks.on("updateActor", callback);
+Hooks.off("updateActor", hookId);
 ```
 
 ---
@@ -693,4 +695,4 @@ Hooks.off('updateActor', hookId);
 
 ---
 
-*This quick reference complements the complete API documentation. For detailed class information and method signatures, refer to the [Complete API Reference](./foundry-vtt-v13-api-reference.md).*
+_This quick reference complements the complete API documentation. For detailed class information and method signatures, refer to the [Complete API Reference](./foundry-vtt-v13-api-reference.md)._

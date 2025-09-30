@@ -1,4 +1,5 @@
 <!-- markdownlint-disable MD024 -->
+
 # Settings Helpers Module
 
 ## Overview
@@ -8,12 +9,14 @@ The Settings Helpers module provides a comprehensive toolkit for managing Foundr
 ## Architecture
 
 ### Class Structure
+
 - **`SettingsChecker`**: Validates setting objects against required keys and nested properties
 - **`SettingsParser`**: Parses settings definitions and sets up automatic hook triggering
 - **`SettingsRegistrar`**: Registers settings with the Foundry VTT game settings system
 - **`SettingLocalizer`**: Localizes setting names, hints, and choices using Foundry's i18n
 
 ### Workflow
+
 1. **Validation**: `SettingsChecker` validates setting format and required fields
 2. **Parsing**: `SettingsParser` processes settings and configures hook triggers
 3. **Registration**: `SettingsRegistrar` registers settings with Foundry VTT
@@ -26,30 +29,32 @@ The Settings Helpers module provides a comprehensive toolkit for managing Foundr
 A utility class for validating settings objects against required keys and nested properties.
 
 #### Features
+
 - Validates setting object format
 - Supports nested property validation using dot notation (e.g., `config.type`)
 - Returns detailed validation results with success flags and error messages
 
 #### Usage
+
 ```javascript
-import SettingsChecker from './settingsChecker';
+import SettingsChecker from "./settingsChecker";
 
 const setting = {
-  key: 'debugMode',
+  key: "debugMode",
   config: {
-    name: 'Debug Mode',
+    name: "Debug Mode",
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 };
 
-const requiredKeys = ['key', 'config.name', 'config.type'];
+const requiredKeys = ["key", "config.name", "config.type"];
 const result = SettingsChecker.check(setting, requiredKeys);
 
 if (result.success) {
-  console.log('Setting is valid');
+  console.log("Setting is valid");
 } else {
-  console.error('Validation failed:', result.message);
+  console.error("Validation failed:", result.message);
 }
 ```
 
@@ -60,22 +65,26 @@ Enhanced parser with robust support for automatic hook triggering when settings 
 #### Key Features
 
 ##### Automatic Hook Generation
+
 - Settings can specify `sendHook: true` to automatically trigger hooks on value changes
 - Hook names are automatically formatted using the module's `HookFormatter` utility
 - Hooks follow the pattern: `{modulePrefix}.setting.{settingKey}` or `{modulePrefix}.setting.{customHookName}`
 
 ##### Scope-Aware Hook Calls
+
 - **Client/User Scope**: Uses `Hooks.call()` (affects only the current client)
 - **World Scope**: Uses `Hooks.callAll()` (affects all connected clients)
 - **Default Scope**: Falls back to `world` scope if not specified
 
 ##### Robust Error Handling
+
 - Graceful handling of hook formatting failures
 - Try-catch blocks around hook calls to prevent crashes
 - Comprehensive logging for debugging
 - Automatic fallback behavior when hook setup fails
 
 ##### Foundry VTT API Compliance
+
 - Fully compatible with Foundry's `SettingConfig` interface
 - Properly replaces custom configuration with standard `onChange` function
 - Clean removal of custom properties before registration
@@ -83,6 +92,7 @@ Enhanced parser with robust support for automatic hook triggering when settings 
 #### Configuration Format
 
 ##### Basic Hook Configuration
+
 ```yaml
 settings:
   settingsList:
@@ -100,6 +110,7 @@ settings:
 ```
 
 ##### Custom Hook Name
+
 ```yaml
 settings:
   settingsList:
@@ -123,21 +134,25 @@ A class for registering Foundry VTT settings with comprehensive error handling a
 #### Key Features
 
 ##### Individual Setting Registration
+
 - Validates settings before registration
 - Provides detailed success/failure feedback
 - Handles Foundry VTT API errors gracefully
 
 ##### Batch Registration
+
 - Supports both array and object input formats
 - Processes multiple settings with aggregate results
 - Continues processing even if individual settings fail
 
 ##### Namespace Management
+
 - Automatic namespace detection from module configuration
 - Support for custom namespace override
 - Proper integration with Foundry VTT's module system
 
 ##### Enhanced Error Handling
+
 - Warning logs for invalid setting objects
 - Comprehensive validation checks
 - Meaningful error messages for debugging
@@ -145,20 +160,21 @@ A class for registering Foundry VTT settings with comprehensive error handling a
 #### Usage Examples
 
 ##### Single Setting Registration
+
 ```javascript
-import SettingsRegistrar from './settingsRegistrar';
+import SettingsRegistrar from "./settingsRegistrar";
 
 const registrar = new SettingsRegistrar(config, utils, context);
 
 const setting = {
-  key: 'debugMode',
+  key: "debugMode",
   config: {
-    name: 'Debug Mode',
-    scope: 'client',
+    name: "Debug Mode",
+    scope: "client",
     config: true,
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 };
 
 const result = registrar.registerSetting(setting);
@@ -170,14 +186,23 @@ if (result.success) {
 ```
 
 ##### Batch Registration
+
 ```javascript
 const settings = [
-  { key: 'setting1', config: { name: 'Setting 1', type: Boolean, default: true } },
-  { key: 'setting2', config: { name: 'Setting 2', type: String, default: 'value' } }
+  {
+    key: "setting1",
+    config: { name: "Setting 1", type: Boolean, default: true },
+  },
+  {
+    key: "setting2",
+    config: { name: "Setting 2", type: String, default: "value" },
+  },
 ];
 
 const result = registrar.register(settings);
-console.log(`Registered ${result.successCounter} out of ${result.counter} settings`);
+console.log(
+  `Registered ${result.successCounter} out of ${result.counter} settings`,
+);
 ```
 
 ### 4. SettingLocalizer
@@ -185,30 +210,33 @@ console.log(`Registered ${result.successCounter} out of ${result.counter} settin
 Localizes settings definitions (name, hint, choices) using Foundry VTT's i18n system.
 
 #### Features
+
 - Safely localizes `config.name`, `config.hint`, and `config.choices` values
 - No-ops when `game.i18n` is missing (e.g., in tests or non-Foundry environments)
 - Immutable approach: returns shallow-copied objects with localized values
 
 #### Usage
+
 ```javascript
-import SettingLocalizer from './settingLocalizer';
+import SettingLocalizer from "./settingLocalizer";
 
 const settings = [
   {
-    key: 'debugMode',
+    key: "debugMode",
     config: {
-      name: 'foundryvtt-over-my-head.settings.debugMode.name',
-      hint: 'foundryvtt-over-my-head.settings.debugMode.hint',
+      name: "foundryvtt-over-my-head.settings.debugMode.name",
+      hint: "foundryvtt-over-my-head.settings.debugMode.hint",
       type: Boolean,
-      default: false
-    }
-  }
+      default: false,
+    },
+  },
 ];
 
 const localized = SettingLocalizer.localizeSettings(settings);
 ```
 
 #### API
+
 - `SettingLocalizer.localizeSetting(setting)` → Localize a single setting
 - `SettingLocalizer.localizeSettings(settings[])` → Localize an array of settings
 
@@ -231,10 +259,13 @@ const onChangeActions = {
           Hooks.callAll(hookName, value);
         }
       } catch (error) {
-        console.error(`Failed to trigger hook ${hookName} for setting change:`, error);
+        console.error(
+          `Failed to trigger hook ${hookName} for setting change:`,
+          error,
+        );
       }
     };
-  }
+  },
 };
 ```
 
@@ -258,12 +289,12 @@ The hook name formatting follows this logic:
 Here's how all three classes work together:
 
 ```javascript
-import SettingsChecker from './settingsChecker';
-import SettingsParser from './settingsParser';
-import SettingsRegistrar from './settingsRegistrar';
+import SettingsChecker from "./settingsChecker";
+import SettingsParser from "./settingsParser";
+import SettingsRegistrar from "./settingsRegistrar";
 
 // 1. Validation with SettingsChecker
-const requiredKeys = ['key', 'config.name', 'config.type'];
+const requiredKeys = ["key", "config.name", "config.type"];
 const isValid = SettingsChecker.check(setting, requiredKeys);
 
 if (isValid.success) {
@@ -275,7 +306,9 @@ if (isValid.success) {
   const registrar = new SettingsRegistrar(config, utils, context);
   const registerResult = registrar.register([setting]);
 
-  console.log(`Successfully processed ${registerResult.successCounter} settings`);
+  console.log(
+    `Successfully processed ${registerResult.successCounter} settings`,
+  );
 }
 ```
 
@@ -285,7 +318,7 @@ The following hook constant should be added to `constants.yaml`:
 
 ```yaml
 hooks:
-  setting: ".setting"  # Base hook for setting changes
+  setting: ".setting" # Base hook for setting changes
 ```
 
 This creates hooks with names like: `OMH.setting.debugMode`, `OMH.setting.tokenBehaviorChanged`, etc.
@@ -296,7 +329,7 @@ This creates hooks with names like: `OMH.setting.debugMode`, `OMH.setting.tokenB
 
 ```javascript
 // Listen for debug mode changes
-Hooks.on('OMH.setting.debugMode', (newValue) => {
+Hooks.on("OMH.setting.debugMode", (newValue) => {
   console.log(`Debug mode changed to: ${newValue}`);
   if (newValue) {
     enableDebugLogging();
@@ -306,7 +339,7 @@ Hooks.on('OMH.setting.debugMode', (newValue) => {
 });
 
 // Listen for token behavior changes
-Hooks.on('OMH.setting.tokenBehaviorChanged', (newBehavior) => {
+Hooks.on("OMH.setting.tokenBehaviorChanged", (newBehavior) => {
   console.log(`Token behavior changed to: ${newBehavior}`);
   updateTokenHandlers(newBehavior);
 });
@@ -316,8 +349,8 @@ Hooks.on('OMH.setting.tokenBehaviorChanged', (newBehavior) => {
 
 ```javascript
 // These will automatically trigger the hooks
-await game.settings.set('over-my-head', 'debugMode', true);
-await game.settings.set('over-my-head', 'behaviorTokens', 'onlyActive');
+await game.settings.set("over-my-head", "debugMode", true);
+await game.settings.set("over-my-head", "behaviorTokens", "onlyActive");
 ```
 
 ## Testing

@@ -1,4 +1,5 @@
 <!-- markdownlint-disable MD022 MD026 MD032 MD024 MD031 MD040 -->
+
 # Static Utilities
 
 This folder contains static utility classes that provide common functionality for data validation, object manipulation, and other utility operations. All utilities are designed to be stateless and can be used throughout the application without instantiation (except where noted).
@@ -31,41 +32,50 @@ src/utils/static/
 The `StaticUtils` class provides a unified interface to all static utilities:
 
 ```javascript
-import StaticUtils from '@/utils/static/static.mjs';
+import StaticUtils from "@/utils/static/static.mjs";
 
 // Validation
-const isValid = StaticUtils.validate('isString', { value: 'hello' }); // true
-StaticUtils.validate('validateNumber', { value: age, name: 'age', options: { min: 0 } });
+const isValid = StaticUtils.validate("isString", { value: "hello" }); // true
+StaticUtils.validate("validateNumber", {
+  value: age,
+  name: "age",
+  options: { min: 0 },
+});
 
 // Object unpacking
 const instance = {};
-const data = { title: 'Test', version: '1.0.0' };
+const data = { title: "Test", version: "1.0.0" };
 StaticUtils.unpack(data, instance);
 // instance now has: instance.title, instance.version
 
 // Game module management
-const module = StaticUtils.getModuleObject('my-module-id');
-StaticUtils.writeToModuleObject('my-module', 'customData', { setting: true });
-const data = StaticUtils.readFromModuleObject('my-module', 'customData');
+const module = StaticUtils.getModuleObject("my-module-id");
+StaticUtils.writeToModuleObject("my-module", "customData", { setting: true });
+const data = StaticUtils.readFromModuleObject("my-module", "customData");
 // Read a setting directly via StaticUtils (proxy to GameManager)
-const debugMode = StaticUtils.getSetting('foundryvtt-over-my-head', 'debugMode');
+const debugMode = StaticUtils.getSetting(
+  "foundryvtt-over-my-head",
+  "debugMode",
+);
 
 // Error formatting
 try {
-  throw new Error('Something went wrong');
+  throw new Error("Something went wrong");
 } catch (error) {
   const formatted = StaticUtils.formatError(error, { includeStack: true });
   console.error(formatted);
 }
 
 // Localization
-const welcomeText = StaticUtils.localize('MYMODULE.welcome');
-const greeting = StaticUtils.formatLocalized('MYMODULE.greeting', { name: 'Player' });
-if (StaticUtils.hasLocalization('MYMODULE.optionalText')) {
-  const optionalText = StaticUtils.localize('MYMODULE.optionalText');
+const welcomeText = StaticUtils.localize("MYMODULE.welcome");
+const greeting = StaticUtils.formatLocalized("MYMODULE.greeting", {
+  name: "Player",
+});
+if (StaticUtils.hasLocalization("MYMODULE.optionalText")) {
+  const optionalText = StaticUtils.localize("MYMODULE.optionalText");
 }
 // Localizer alias is available at StaticUtils.localizer (class reference)
-const fromAlias = StaticUtils.localizer.localize('MYMODULE.title');
+const fromAlias = StaticUtils.localizer.localize("MYMODULE.title");
 
 // Get available utilities info
 const info = StaticUtils.getUtilityInfo();
@@ -77,31 +87,31 @@ console.log(info.utilities); // ['Validator', 'Unpacker', 'GameManager', 'ErrorF
 You can also import and use individual utility classes directly:
 
 ```javascript
-import { Validator } from '@/utils/static/validator.mjs';
-import Unpacker from '@/utils/static/unpacker.mjs';
-import GameManager from '@/utils/static/gameManager.mjs';
-import { formatError } from '@/utils/static/errorFormatter.mjs';
-import Localizer from '@/utils/static/localizer.mjs';
+import { Validator } from "@/utils/static/validator.mjs";
+import Unpacker from "@/utils/static/unpacker.mjs";
+import GameManager from "@/utils/static/gameManager.mjs";
+import { formatError } from "@/utils/static/errorFormatter.mjs";
+import Localizer from "@/utils/static/localizer.mjs";
 
 // Direct validation
-const isString = Validator.isString('hello'); // true
-Validator.validateObject(obj, 'testObject');
+const isString = Validator.isString("hello"); // true
+Validator.validateObject(obj, "testObject");
 
 // Direct unpacking
 const unpacker = new Unpacker();
 unpacker.unpack(data, instance);
 
 // Direct game management
-const module = GameManager.getModuleObject('my-module');
-GameManager.writeToModuleObject('my-module', 'key', 'value');
+const module = GameManager.getModuleObject("my-module");
+GameManager.writeToModuleObject("my-module", "key", "value");
 
 // Direct error formatting
 const formatted = formatError(error, { includeStack: true });
 
 // Direct localization
 const localizer = new Localizer();
-const text = localizer.localize('MYMODULE.title');
-const staticText = Localizer.localize('MYMODULE.greeting');
+const text = localizer.localize("MYMODULE.title");
+const staticText = Localizer.localize("MYMODULE.greeting");
 ```
 
 ## 📚 Available Utilities
@@ -112,12 +122,14 @@ const staticText = Localizer.localize('MYMODULE.greeting');
 **Purpose**: Central entry point providing unified access to all static utilities.
 
 #### Key Features:
+
 - ✅ Unified interface for all static utilities
 - ✅ Convenient proxy methods for common operations
 - ✅ Utility discovery and information methods
 - ✅ Consistent error handling and reporting
 
 #### Main Methods:
+
 - `validate(validationType, {value, name, options})` - Unified validation interface
 - `unpack(object, instance, objectName)` - Object property unpacking
 - `formatError(error, options)` - Error formatting with module context
@@ -137,6 +149,7 @@ const staticText = Localizer.localize('MYMODULE.greeting');
 **Purpose**: Comprehensive data validation and type checking utilities.
 
 #### Key Features:
+
 - ✅ **21 validation methods** covering all common use cases
 - ✅ **Type checking methods** (isString, isObject, isArray, etc.)
 - ✅ **Validation methods** with error throwing (validateString, validateNumber, etc.)
@@ -147,11 +160,13 @@ const staticText = Localizer.localize('MYMODULE.greeting');
 #### Validation Categories:
 
 **Type Checkers** (return boolean):
+
 - `isDefined`, `isNull`, `isString`, `isObject`, `isArray`
 - `isPlainObject`, `isNumber`, `isEmpty`, `isBoolean`, `isPrimitive`
 - `isReservedKey`
 
 **Validators** (throw on failure):
+
 - `validateObject`, `validateString`, `validateNumber`, `validateDate`
 - `validateArgsObjectStructure`, `validateSchemaDefinition`
 - `validateStringAgainstPattern`, `validateObjectKeysExist`
@@ -165,27 +180,27 @@ if (Validator.isString(value) && !Validator.isEmpty(value)) {
 }
 
 // Validation with error throwing
-Validator.validateString(userInput, 'username', { allowEmpty: false });
-Validator.validateNumber(age, 'age', { min: 0, max: 120 });
+Validator.validateString(userInput, "username", { allowEmpty: false });
+Validator.validateNumber(age, "age", { min: 0, max: 120 });
 
 // Pattern validation
 Validator.validateStringAgainstPattern(
   email,
-  'email',
+  "email",
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  'a valid email format'
+  "a valid email format",
 );
 
 // Central validate method
-Validator.validate('isNumber', {
+Validator.validate("isNumber", {
   value: 42,
-  options: { integer: true, positive: true }
+  options: { integer: true, positive: true },
 }); // true
 
-Validator.validate('validateObject', {
+Validator.validate("validateObject", {
   value: userData,
-  name: 'userData',
-  options: { allowEmpty: false }
+  name: "userData",
+  options: { allowEmpty: false },
 }); // throws on failure
 ```
 
@@ -195,6 +210,7 @@ Validator.validate('validateObject', {
 **Purpose**: Utility for transferring properties from plain objects to class instances.
 
 #### Key Features:
+
 - ✅ **Property transfer** from objects to instances
 - ✅ **Symbol key support** handles both string and symbol properties
 - ✅ **Input validation** with comprehensive error checking
@@ -208,21 +224,21 @@ const unpacker = new Unpacker();
 
 // Basic usage
 const instance = {};
-const data = { title: 'Module', version: '1.0.0', active: true };
+const data = { title: "Module", version: "1.0.0", active: true };
 unpacker.unpack(data, instance);
 // Result: instance.title, instance.version, instance.active are now available
 
 // With custom error reporting
 class MyModule {}
 const module = new MyModule();
-const moduleData = { id: 'test', config: { setting: true } };
-unpacker.unpack(moduleData, module, 'module configuration');
+const moduleData = { id: "test", config: { setting: true } };
+unpacker.unpack(moduleData, module, "module configuration");
 
 // Symbol key support
-const sym = Symbol('privateData');
+const sym = Symbol("privateData");
 const objWithSymbols = {
-  publicProp: 'visible',
-  [sym]: 'hidden'
+  publicProp: "visible",
+  [sym]: "hidden",
 };
 unpacker.unpack(objWithSymbols, instance);
 // Both instance.publicProp and instance[sym] are available
@@ -234,6 +250,7 @@ unpacker.unpack(objWithSymbols, instance);
 **Purpose**: Static utility class for managing game modules and remote contexts.
 
 #### Key Features:
+
 - ✅ **Static module management** - no instantiation required
 - ✅ **Flexible module identification** - supports strings, manifest objects, and module.json objects
 - ✅ **Module operations** - read, write, and check existence
@@ -241,6 +258,7 @@ unpacker.unpack(objWithSymbols, instance);
 - ✅ **FoundryVTT integration** - seamless integration with FoundryVTT game object
 
 #### Main Methods:
+
 - `getModuleObject(moduleIdentifier)` - Get module object by ID or manifest
 - `writeToModuleObject(moduleIdentifier, key, value)` - Write data to module
 - `readFromModuleObject(moduleIdentifier, key)` - Read data from module
@@ -251,35 +269,35 @@ unpacker.unpack(objWithSymbols, instance);
 
 ```javascript
 // Get module by string ID
-const module = GameManager.getModuleObject('my-module-id');
+const module = GameManager.getModuleObject("my-module-id");
 
 // Get module using manifest object
-import manifest from './manifest.mjs';
+import manifest from "./manifest.mjs";
 const module = GameManager.getModuleObject(manifest);
 
 // Get module using module.json
-import moduleJson from './module.json';
+import moduleJson from "./module.json";
 const module = GameManager.getModuleObject(moduleJson);
 
 // Write custom data to module
-GameManager.writeToModuleObject('my-module', 'settings', {
+GameManager.writeToModuleObject("my-module", "settings", {
   enabled: true,
-  level: 5
+  level: 5,
 });
 
 // Read custom data from module
-const settings = GameManager.readFromModuleObject('my-module', 'settings');
+const settings = GameManager.readFromModuleObject("my-module", "settings");
 
 // Check if module exists
-if (GameManager.moduleExists('optional-module')) {
+if (GameManager.moduleExists("optional-module")) {
   // Module is available, safe to use
-  GameManager.writeToModuleObject('optional-module', 'integration', true);
+  GameManager.writeToModuleObject("optional-module", "integration", true);
 }
 
 // Using with manifest objects
-const manifest = { id: 'foundryvtt-over-my-head', name: 'OverMyHead' };
+const manifest = { id: "foundryvtt-over-my-head", name: "OverMyHead" };
 if (GameManager.moduleExists(manifest)) {
-  const moduleData = GameManager.readFromModuleObject(manifest, 'customConfig');
+  const moduleData = GameManager.readFromModuleObject(manifest, "customConfig");
 }
 ```
 
@@ -308,56 +326,58 @@ if (GameManager.moduleExists(manifest)) {
 #### Usage Examples
 
 ```javascript
-import HooksLogger from '@/utils/static/hooksLogger.mjs';
+import HooksLogger from "@/utils/static/hooksLogger.mjs";
 
 // Basic in-place hook proxy for debugging
-HooksLogger.createHookProxy(Hooks, 'call', {
-  logLevel: 'debug',
-  prefix: 'Hook Debug'
+HooksLogger.createHookProxy(Hooks, "call", {
+  logLevel: "debug",
+  prefix: "Hook Debug",
 });
 // Hooks.call is now proxied automatically
 
 // Get proxy without modifying original (for manual assignment)
-const proxy = HooksLogger.createHookProxy(Hooks, 'call', {
-  logLevel: 'debug',
-  prefix: 'OMH Hook',
-  filter: (hookName) => hookName.startsWith('OMH.'),
+const proxy = HooksLogger.createHookProxy(Hooks, "call", {
+  logLevel: "debug",
+  prefix: "OMH Hook",
+  filter: (hookName) => hookName.startsWith("OMH."),
   logResult: true,
-  returnProxy: true
+  returnProxy: true,
 });
 // Hooks.call is unchanged, use 'proxy' manually
 
 // Create a simple logger function
-const hookLogger = HooksLogger.createHookLogger('debug', 'Custom Hook',
-  (hookName) => hookName.includes('ready')
+const hookLogger = HooksLogger.createHookLogger(
+  "debug",
+  "Custom Hook",
+  (hookName) => hookName.includes("ready"),
 );
 
 // Use as a hook listener
-Hooks.on('ready', hookLogger);
-Hooks.on('init', hookLogger);
+Hooks.on("ready", hookLogger);
+Hooks.on("init", hookLogger);
 
 // Convenience method for Foundry hook debugging (in-place modification)
-Hooks.once('init', () => {
+Hooks.once("init", () => {
   if (debugMode) {
     const success = HooksLogger.proxyFoundryHooks({
       enabled: true,
-      logLevel: 'debug',
-      moduleFilter: 'OMH.',
-      functions: { call: true, callAll: true }
+      logLevel: "debug",
+      moduleFilter: "OMH.",
+      functions: { call: true, callAll: true },
     });
 
     if (success) {
-      console.log('Hook logging enabled successfully');
+      console.log("Hook logging enabled successfully");
     }
   }
 });
 
 // Check if Hooks is available before using
 if (HooksLogger.isHooksAvailable()) {
-  HooksLogger.proxyFoundryHooks({ moduleFilter: 'myModule.' });
+  HooksLogger.proxyFoundryHooks({ moduleFilter: "myModule." });
 } else {
   // Use Hooks.once('init') for proper timing
-  Hooks.once('init', () => HooksLogger.proxyFoundryHooks());
+  Hooks.once("init", () => HooksLogger.proxyFoundryHooks());
 }
 ```
 
@@ -367,6 +387,7 @@ if (HooksLogger.isHooksAvailable()) {
 **Purpose**: Static utility for formatting error messages with module context and structured output.
 
 #### Key Features:
+
 - ✅ **Module-aware error formatting** - Automatically includes module context
 - ✅ **Configurable stack traces** - Optional stack trace inclusion
 - ✅ **Caller context** - Optional caller information for debugging
@@ -374,17 +395,18 @@ if (HooksLogger.isHooksAvailable()) {
 - ✅ **Error validation** - Ensures proper error objects before formatting
 
 #### Main Methods:
+
 - `formatError(error, options)` - Format error with module context
 - `getModuleName()` - Get the current module name for context
 
 #### Usage Examples:
 
 ```javascript
-import { formatError } from '@/utils/static/errorFormatter.mjs';
+import { formatError } from "@/utils/static/errorFormatter.mjs";
 
 // Basic error formatting
 try {
-  throw new Error('Something went wrong');
+  throw new Error("Something went wrong");
 } catch (error) {
   const formatted = formatError(error);
   console.error(formatted); // [ModuleName] Something went wrong
@@ -394,7 +416,7 @@ try {
 const formatted = formatError(error, {
   includeStack: true,
   includeCaller: true,
-  caller: 'MyFunction'
+  caller: "MyFunction",
 });
 // Output: [ModuleName] MyFunction: Something went wrong
 //         Call Stack: ...
@@ -406,6 +428,7 @@ const formatted = formatError(error, {
 **Purpose**: Interface for Foundry VTT's i18n localization system with static and instance methods.
 
 #### Key Features:
+
 - ✅ **FoundryVTT integration** - Seamless integration with game.i18n
 - ✅ **Instance and static methods** - Flexible usage patterns
 - ✅ **Variable substitution** - Support for dynamic string formatting
@@ -413,6 +436,7 @@ const formatted = formatError(error, {
 - ✅ **Fallback handling** - Graceful handling when i18n not available
 
 #### Main Methods:
+
 - `localize(stringId)` - Translate a localization key
 - `format(stringId, data)` - Translate with variable substitution
 - `has(stringId)` - Check if localization key exists
@@ -422,25 +446,25 @@ const formatted = formatError(error, {
 #### Usage Examples:
 
 ```javascript
-import Localizer from '@/utils/static/localizer.mjs';
+import Localizer from "@/utils/static/localizer.mjs";
 
 // Instance usage
 const localizer = new Localizer();
-const welcomeText = localizer.localize('MYMODULE.welcome');
-const greeting = localizer.format('MYMODULE.greeting', { name: 'Player' });
+const welcomeText = localizer.localize("MYMODULE.welcome");
+const greeting = localizer.format("MYMODULE.greeting", { name: "Player" });
 
 // Static usage
-const text = Localizer.localize('MYMODULE.title');
-const formatted = Localizer.format('MYMODULE.playerCount', { count: 5 });
+const text = Localizer.localize("MYMODULE.title");
+const formatted = Localizer.format("MYMODULE.playerCount", { count: 5 });
 
 // Check if key exists
-if (localizer.has('MYMODULE.optionalText')) {
-  const optionalText = localizer.localize('MYMODULE.optionalText');
+if (localizer.has("MYMODULE.optionalText")) {
+  const optionalText = localizer.localize("MYMODULE.optionalText");
 }
 
 // With custom i18n instance
 const customLocalizer = new Localizer(customI18nInstance);
-const text = customLocalizer.localize('CUSTOM.key');
+const text = customLocalizer.localize("CUSTOM.key");
 ```
 
 ## 🧪 Testing
@@ -464,6 +488,7 @@ npm test -- src/utils/static/ --coverage
 ```
 
 ### Test Coverage:
+
 - **Validator**: 126 tests covering all methods, edge cases, and error scenarios
 - **Unpacker**: 15 tests covering functionality, error handling, and edge cases
 - **GameManager**: 25+ tests covering module management, error handling, and edge cases
@@ -478,49 +503,53 @@ npm test -- src/utils/static/ --coverage
 ### 1. Import Strategy
 
 **Recommended**: Use StaticUtils for convenience
+
 ```javascript
-import StaticUtils from '@/utils/static/static.mjs';
-StaticUtils.validate('isString', { value: input });
+import StaticUtils from "@/utils/static/static.mjs";
+StaticUtils.validate("isString", { value: input });
 ```
 
 **Alternative**: Direct imports for specific use cases
+
 ```javascript
-import { Validator } from '@/utils/static/validator.mjs';
+import { Validator } from "@/utils/static/validator.mjs";
 Validator.isString(input);
 ```
 
 ### 2. Validation Patterns
 
 **Defensive Programming**:
+
 ```javascript
 // Check first, then process
-if (StaticUtils.validate('isObject', { value: config })) {
+if (StaticUtils.validate("isObject", { value: config })) {
   processConfig(config);
 }
 
 // Or validate with errors for required inputs
-StaticUtils.validate('validateObject', {
+StaticUtils.validate("validateObject", {
   value: config,
-  name: 'configuration'
+  name: "configuration",
 });
 ```
 
 **Complex Validation**:
+
 ```javascript
 // Use the central validate method for consistency
 function validateUserData(userData) {
-  StaticUtils.validate('validateObject', { value: userData, name: 'userData' });
-  StaticUtils.validate('validateObjectKeysExist', {
+  StaticUtils.validate("validateObject", { value: userData, name: "userData" });
+  StaticUtils.validate("validateObjectKeysExist", {
     value: userData,
-    options: { keysToCheck: ['name', 'email'] }
+    options: { keysToCheck: ["name", "email"] },
   });
-  StaticUtils.validate('validateStringAgainstPattern', {
+  StaticUtils.validate("validateStringAgainstPattern", {
     value: userData.email,
-    name: 'email',
+    name: "email",
     options: {
       pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-      patternDescription: 'a valid email format'
-    }
+      patternDescription: "a valid email format",
+    },
   });
 }
 ```
@@ -529,11 +558,11 @@ function validateUserData(userData) {
 
 ```javascript
 try {
-  StaticUtils.validate('validateString', { value: input, name: 'userInput' });
-  StaticUtils.unpack(data, instance, 'module data');
+  StaticUtils.validate("validateString", { value: input, name: "userInput" });
+  StaticUtils.unpack(data, instance, "module data");
 } catch (error) {
   // Errors include context and suggestions
-  console.error('Validation failed:', error.message);
+  console.error("Validation failed:", error.message);
   // Handle specific error types if needed
   if (error instanceof TypeError) {
     // Handle type errors
@@ -549,24 +578,24 @@ Many validation methods accept options for customization:
 
 ```javascript
 // Number validation with constraints
-StaticUtils.validate('isNumber', {
+StaticUtils.validate("isNumber", {
   value: 42,
   options: {
-    integer: true,      // Must be integer
-    positive: true,     // Must be positive
-    includeZero: false  // Zero not allowed
-  }
+    integer: true, // Must be integer
+    positive: true, // Must be positive
+    includeZero: false, // Zero not allowed
+  },
 });
 
 // Object validation with flexibility
-StaticUtils.validate('validateObject', {
+StaticUtils.validate("validateObject", {
   value: obj,
-  name: 'config',
+  name: "config",
   options: {
-    allowNull: true,    // Allow null values
-    allowEmpty: false,  // Don't allow empty objects
-    checkKeys: true     // Validate key types
-  }
+    allowNull: true, // Allow null values
+    allowEmpty: false, // Don't allow empty objects
+    checkKeys: true, // Validate key types
+  },
 });
 ```
 
@@ -574,14 +603,15 @@ StaticUtils.validate('validateObject', {
 
 ```javascript
 // Custom pattern validation
-StaticUtils.validate('validateStringAgainstPattern', {
+StaticUtils.validate("validateStringAgainstPattern", {
   value: input,
-  name: 'identifier',
+  name: "identifier",
   options: {
     pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/,
-    patternDescription: 'a valid identifier (letter followed by letters, numbers, or underscores)',
-    stringValidationOptions: { allowEmpty: false }
-  }
+    patternDescription:
+      "a valid identifier (letter followed by letters, numbers, or underscores)",
+    stringValidationOptions: { allowEmpty: false },
+  },
 });
 ```
 
@@ -605,6 +635,7 @@ The static utilities are designed to be easily extensible:
 ## 📖 API Reference
 
 For detailed API documentation, see the JSDoc comments in each file:
+
 - [StaticUtils API](./static.mjs) - Central entry point methods
 - [Validator API](./validator.mjs) - All validation methods with examples
 - [Unpacker API](./unpacker.mjs) - Object unpacking functionality

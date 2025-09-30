@@ -32,12 +32,13 @@ jobs:
 
       # --- Tests that run for ALL triggers ---
       - name: Run Unit Tests
-        # Run unit tests without coverage collection
-        run: npm run test:unit -- --coverage=false
+        run: npm run test:unit
 
       - name: Run Integration Tests
-        # Replace 'npm run test:integration' with your actual integration test command
-        run: npm run test:integration -- --coverage=false
+        run: npm run test:integration
+
+      - name: Run Setup Tests
+        run: npm run test:setup
 
       - name: Run All Tests & Generate Coverage
         # Run all tests and generate coverage report to enforce thresholds
@@ -55,17 +56,20 @@ jobs:
           # npm run test:functional
           exit 0 # Remove this line once you have a real command
 
-      - name: Run Performance Tests (Placeholder)
+      - name: Run Performance Tests
         # Run only on pushes to master/release-* or PRs targeting master
         if: |
           (github.event_name == 'pull_request' && github.base_ref == 'master') ||
           (github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release-')))
-        run: |
-          echo "Running performance tests... (placeholder)"
-          # Replace with your actual performance test command, e.g.:
-          # npm run test:performance
-          exit 0 # Remove this line once you have a real command
+        run: npm run test:performance
 
-      # --- Coverage Check (Implicit via Jest Config) ---
-      # Jest will automatically enforce coverage thresholds defined in jest.config.js
+      - name: Run Smoke Tests
+        # Run only on pushes to master/release-* or PRs targeting master
+        if: |
+          (github.event_name == 'pull_request' && github.base_ref == 'master') ||
+          (github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release-')))
+        run: npm run test:smoke
+
+      # --- Coverage Check (Implicit via Vitest Config) ---
+      # Vitest will automatically enforce coverage thresholds defined in vitest.config.mjs
       # If the thresholds are not met, the 'Run Unit Tests & Generate Coverage' step will fail.

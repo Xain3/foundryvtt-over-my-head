@@ -2,9 +2,9 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "jest - OverMyHead tests",
+			"label": "vitest - OverMyHead tests",
 			"type": "shell",
-			"command": "npm test -- src/overMyHead.unit.test.js tests/integration/overMyHead.integration.test.js",
+			"command": "npm test -- src/overMyHead.unit.test.mjs tests/integration/overMyHead.integration.test.mjs",
 			"isBackground": false,
 			"problemMatcher": [
 				"$eslint-stylish"

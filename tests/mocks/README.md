@@ -25,7 +25,7 @@ The Enhanced MockGlobals System provides a comprehensive mock environment for Fo
 
 ### 📚 **Library Integrations**
 
-- **PIXI.js**: Graphics rendering library mocks
+- **PIXI.mjs**: Graphics rendering library mocks
 - **jQuery**: DOM manipulation and utilities
 - **Handlebars**: Template compilation and rendering
 
@@ -41,7 +41,7 @@ import MockGlobals, {
   MockScene,
   createMockFunction,
   createSpy
-} from '../mocks/mockGlobals.js';
+} from '../mocks/mockGlobals.mjs';
 
 describe('My Foundry Module Tests', () => {
   let mockGlobals;
@@ -135,27 +135,27 @@ Returns the current mock hooks instance.
 ## Utility Functions
 
 ### `createMockFunction(implementation)`
-Creates a Jest mock function when Jest is available, otherwise returns a regular function.
+Creates a Vitest mock function when Vitest is available, otherwise returns a regular function.
 
 ```javascript
-// With Jest available
+// With Vitest available
 const mockFn = createMockFunction(() => 'test result');
-expect(jest.isMockFunction(mockFn)).toBe(true);
+expect(vi.isMockFunction(mockFn)).toBe(true);
 
-// Without Jest
+// Without Vitest
 const regularFn = createMockFunction(() => 'test result');
 expect(typeof regularFn).toBe('function');
 ```
 
 ### `createSpy(object, methodName)`
-Creates a Jest spy when Jest is available, otherwise returns the original method.
+Creates a Vitest spy when Vitest is available, otherwise returns the original method.
 
 ```javascript
 const obj = { method: () => 'original' };
 const spy = createSpy(obj, 'method');
 
-// With Jest, spy tracks calls
-if (jest.isMockFunction(spy)) {
+// With Vitest, spy tracks calls
+if (vi.isMockFunction(spy)) {
   obj.method();
   expect(spy).toHaveBeenCalled();
 }
@@ -482,7 +482,7 @@ reader.readAsText(file);
 
 When `libraries: true` is enabled, the following globals are available:
 
-### PIXI.js Mocks
+### PIXI.mjs Mocks
 
 ```javascript
 // Graphics rendering
@@ -543,7 +543,7 @@ The mock system exports the following constants and classes for direct use:
 ### Exported Constants
 
 ```javascript
-import { CONST, CONFIG, UI } from '../mocks/mockGlobals.js';
+import { CONST, CONFIG, UI } from '../mocks/mockGlobals.mjs';
 
 // User roles
 console.log(CONST.USER_ROLES.PLAYER); // 1
@@ -577,7 +577,7 @@ import {
   MockCombat,
   MockToken,
   MockFolder
-} from '../mocks/mockGlobals.js';
+} from '../mocks/mockGlobals.mjs';
 
 // Use directly without global setup
 const actor = new MockActor({ name: 'Direct Actor' });
@@ -641,7 +641,7 @@ const hasOwnership = document.permission >= CONST.DOCUMENT_PERMISSION_LEVELS.OWN
 ### Custom Document Classes
 
 ```javascript
-import { MockActor, CONFIG } from '../mocks/mockGlobals.js';
+import { MockActor, CONFIG } from '../mocks/mockGlobals.mjs';
 
 // Extend mock documents
 class CustomActor extends MockActor {
@@ -657,7 +657,7 @@ CONFIG.Actor.documentClass = CustomActor;
 ### Event Testing
 
 ```javascript
-import { createMockFunction } from '../mocks/mockGlobals.js';
+import { createMockFunction } from '../mocks/mockGlobals.mjs';
 
 // Test hook interactions
 const handler = createMockFunction();
@@ -667,7 +667,7 @@ Hooks.on('myModule.customEvent', handler);
 Hooks.call('myModule.customEvent', { test: true });
 
 // Verify in tests
-if (jest.isMockFunction(handler)) {
+if (vi.isMockFunction(handler)) {
   expect(handler).toHaveBeenCalledWith({ test: true });
 }
 ```
@@ -741,7 +741,7 @@ beforeEach(() => {
 
 ```javascript
 it('should call the correct methods', () => {
-  const mockMethod = jest.spyOn(game.canvas, 'draw');
+  const mockMethod = vi.spyOn(game.canvas, 'draw');
 
   // Your code that should call canvas.draw()
   myModule.redrawCanvas();
@@ -751,8 +751,8 @@ it('should call the correct methods', () => {
 });
 
 it('should verify mock functions', () => {
-  // Use Jest-specific checks for mock functions
-  expect(jest.isMockFunction(UI.notifications.info)).toBe(true);
+  // Use Vitest-specific checks for mock functions
+  expect(vi.isMockFunction(UI.notifications.info)).toBe(true);
 
   // Test mock calls
   UI.notifications.info('Test message');
@@ -764,7 +764,7 @@ it('should verify mock functions', () => {
 
 ```javascript
 it('should handle hook events', () => {
-  const handler = jest.fn();
+  const handler = vi.fn();
   Hooks.on('myModule.event', handler);
 
   // Trigger event
@@ -786,20 +786,20 @@ it('should handle hook events', () => {
 
 4. **Collection Modifications**: Mock collections behave like Maps - use `set()`, `get()`, `delete()` methods.
 
-5. **Jest Mock Functions**: Use `jest.isMockFunction()` to check if a function is a Jest mock rather than `toBeInstanceOf(Function)`.
+5. **Vitest Mock Functions**: Use `vi.isMockFunction()` to check if a function is a Vitest mock rather than `toBeInstanceOf(Function)`.
 
 6. **Browser Environment Issues**: Some JSDOM operations may cause stack overflow. Skip problematic tests or use simpler alternatives.
 
-### Jest Integration
+### Vitest Integration
 
 ```javascript
-// Check if Jest is available
-if (typeof jest !== 'undefined') {
-  // Use Jest-specific features
+// Check if Vitest is available
+if (typeof vi !== 'undefined') {
+  // Use Vitest-specific features
   const mockFn = createMockFunction();
-  expect(jest.isMockFunction(mockFn)).toBe(true);
+  expect(vi.isMockFunction(mockFn)).toBe(true);
 } else {
-  // Fallback for non-Jest environments
+  // Fallback for non-Vitest environments
   const regularFn = createMockFunction();
   expect(typeof regularFn).toBe('function');
 }
@@ -817,7 +817,7 @@ console.log('User role:', game.user.role);
 console.log('Actors:', game.actors.size);
 
 // Verify exports
-import { CONST, CONFIG } from '../mocks/mockGlobals.js';
+import { CONST, CONFIG } from '../mocks/mockGlobals.mjs';
 console.log('CONST exported:', typeof CONST);
 console.log('CONFIG exported:', typeof CONFIG);
 ```

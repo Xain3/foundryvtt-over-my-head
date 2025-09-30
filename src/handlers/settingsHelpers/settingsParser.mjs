@@ -6,7 +6,7 @@
 
 import Handler from "../../baseClasses/handler.mjs";
 import SettingsChecker from "./settingsChecker";
-import FlagEvaluator from "./flagEvaluator";
+import FlagEvaluator from "./flagEvaluator.mjs";
 
 /**
  * Factory for creating onChange callbacks that trigger hooks when settings change.

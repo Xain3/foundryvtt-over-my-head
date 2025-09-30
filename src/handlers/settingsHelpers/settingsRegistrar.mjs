@@ -5,7 +5,7 @@
 */
 
 import Handler from "../../baseClasses/handler.mjs";
-import FlagEvaluator from "./flagEvaluator";
+import FlagEvaluator from "./flagEvaluator.mjs";
 
 /**
  * SettingsRegistrar class for registering Foundry VTT settings

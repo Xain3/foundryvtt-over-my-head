@@ -122,6 +122,7 @@ fi
 section "Setting up ZSH"
 if [[ "$DRY_RUN" == true ]]; then
     echo "▶️ Would set up ZSH configuration"
+    echo "Would copy .devcontainer/.zshrc to ~/.zshrc"
 else
     echo "▶️ Setting up ZSH configuration..."
     # Ensure Oh My Zsh is installed

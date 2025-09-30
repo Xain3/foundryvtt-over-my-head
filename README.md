@@ -1,6 +1,6 @@
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/gundancer)
-
 # Roof Occlusion Vision And Fade
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/gundancer)
 
 This Foundry Virtual Tabletop module allows for overhead tiles to have occlusion mode of "Vision" and "Fade".
 
@@ -8,9 +8,7 @@ This Foundry Virtual Tabletop module allows for overhead tiles to have occlusion
 
 Module JSON:
 
-```
-https://github.com/Gundancer/foundryvtt-token-color-marker/releases/latest/download/module.json
-```
+`https://github.com/Gundancer/foundryvtt-token-color-marker/releases/latest/download/module.json`
 
 ## Development
 

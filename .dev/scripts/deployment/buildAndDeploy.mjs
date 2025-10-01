@@ -1,14 +1,14 @@
 /**
  * @file buildAndDeploy.mjs
  * @description Orchestrates module directory finding, building, and deployment logic
- * @path scripts/dev/buildAndDeploy.mjs
+ * @path .dev/scripts/deployment/buildAndDeploy.mjs
  */
 
-import UserDataDirFinder from './userDataDirFinder.mjs';
-import ModuleDirManager from './moduleDirManager.mjs';
-import ModuleBuilder from './moduleBuilder.mjs';
+import UserDataDirFinder from '../utilities/userDataDirFinder.mjs';
+import ModuleDirManager from '../utilities/moduleDirManager.mjs';
+import ModuleBuilder from '../build/moduleBuilder.mjs';
 import ModuleDeployer from './deployer.mjs';
-import { removeRootBuildArtifacts } from './buildUtils.mjs';
+import { removeRootBuildArtifacts } from '../build/buildUtils.mjs';
 
 /**
  * @class BuildAndDeploy
@@ -44,15 +44,15 @@ class BuildAndDeploy {
       // Ensure no duplicate root artifacts linger between builds in dev
       removeRootBuildArtifacts();
       this.#deployer.deploy();
-  // Run a delayed cleanup in case any late writes occurred
-  setTimeout(() => removeRootBuildArtifacts(), 250);
+      // Run a delayed cleanup in case any late writes occurred
+      setTimeout(() => removeRootBuildArtifacts(), 250);
     };
 
     // Create builder with deployment as post-build action
     this.#builder = new ModuleBuilder({
-  watch: true,
-  preBuildAction: removeRootBuildArtifacts,
-      postBuildAction: deployAction
+      watch: true,
+      preBuildAction: removeRootBuildArtifacts,
+      postBuildAction: deployAction,
     });
   }
 
@@ -85,10 +85,17 @@ class BuildAndDeploy {
 }
 
 // Export main orchestrator class and re-export individual classes for convenience
-export { UserDataDirFinder, ModuleDirManager, ModuleBuilder, ModuleDeployer, BuildAndDeploy };
+export {
+  UserDataDirFinder,
+  ModuleDirManager,
+  ModuleBuilder,
+  ModuleDeployer,
+  BuildAndDeploy,
+};
 
 // CLI usage if called as main
-const isMain = process.argv[1] && process.argv[1].endsWith('buildAndDeploy.mjs');
+const isMain =
+  process.argv[1] && process.argv[1].endsWith('buildAndDeploy.mjs');
 if (isMain) {
   (async () => {
     const args = process.argv.slice(2);

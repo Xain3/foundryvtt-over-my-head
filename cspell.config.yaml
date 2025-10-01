@@ -10,6 +10,7 @@ dictionaries:
   - bash
   - npm
 words:
+  - csslint
   - datamodel
   - dependencygraph
   - foundryvtt

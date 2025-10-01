@@ -1,7 +1,7 @@
 /**
  * @file moduleDirManager.unit.test.mjs
  * @description Unit tests for ModuleDirManager class
- * @path scripts/dev/moduleDirManager.unit.test.mjs
+ * @path .dev/scripts/utilities/moduleDirManager.unit.test.mjs
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -16,12 +16,12 @@ vi.mock('fs', () => {
       existsSync,
       statSync,
       mkdirSync,
-      readFileSync
+      readFileSync,
     },
     existsSync,
     statSync,
     mkdirSync,
-    readFileSync
+    readFileSync,
   };
 });
 
@@ -56,7 +56,9 @@ describe('ModuleDirManager', () => {
     });
 
     it('handles missing module.json gracefully', () => {
-      fs.readFileSync.mockImplementation(() => { throw new Error('ENOENT'); });
+      fs.readFileSync.mockImplementation(() => {
+        throw new Error('ENOENT');
+      });
       const m = new ModuleDirManager('/test/userdata');
       expect(m).toBeInstanceOf(ModuleDirManager);
     });
@@ -66,7 +68,7 @@ describe('ModuleDirManager', () => {
     it('returns existing modules directory', () => {
       const manager = new ModuleDirManager('/test/userdata', 'test-module');
       const expected = '/test/userdata/Data/modules';
-      fs.existsSync.mockImplementation(p => p === expected);
+      fs.existsSync.mockImplementation((p) => p === expected);
 
       const result = manager.getModulesDir();
       expect(result).toBe(expected);
@@ -85,12 +87,16 @@ describe('ModuleDirManager', () => {
 
     it('throws when user data dir not provided', () => {
       const manager = new ModuleDirManager(null, 'test-module');
-      expect(() => manager.getModulesDir()).toThrow('User data directory not found');
+      expect(() => manager.getModulesDir()).toThrow(
+        'User data directory not found'
+      );
     });
 
     it('throws when user data dir is empty string', () => {
       const manager = new ModuleDirManager('', 'test-module');
-      expect(() => manager.getModulesDir()).toThrow('User data directory not found');
+      expect(() => manager.getModulesDir()).toThrow(
+        'User data directory not found'
+      );
     });
   });
 
@@ -99,7 +105,9 @@ describe('ModuleDirManager', () => {
       const manager = new ModuleDirManager('/test/userdata', 'test-module');
       const modulesPath = '/test/userdata/Data/modules';
       const expected = '/test/userdata/Data/modules/test-module';
-      fs.existsSync.mockImplementation(p => p === modulesPath || p === expected);
+      fs.existsSync.mockImplementation(
+        (p) => p === modulesPath || p === expected
+      );
 
       const result = manager.getModuleDir();
       expect(result).toBe(expected);
@@ -109,7 +117,7 @@ describe('ModuleDirManager', () => {
       const manager = new ModuleDirManager('/test/userdata', 'test-module');
       const modulesPath = '/test/userdata/Data/modules';
       const expected = '/test/userdata/Data/modules/test-module';
-      fs.existsSync.mockImplementation(p => p === modulesPath);
+      fs.existsSync.mockImplementation((p) => p === modulesPath);
 
       const result = manager.getModuleDir();
       expect(result).toBe(expected);
@@ -125,7 +133,9 @@ describe('ModuleDirManager', () => {
 
     it('propagates error from getModulesDir', () => {
       const manager = new ModuleDirManager(null, 'test-module');
-      expect(() => manager.getModuleDir()).toThrow('User data directory not found');
+      expect(() => manager.getModuleDir()).toThrow(
+        'User data directory not found'
+      );
     });
   });
 
@@ -136,7 +146,9 @@ describe('ModuleDirManager', () => {
     });
 
     it('falls back to unknown-module when not found', () => {
-      fs.readFileSync.mockImplementation(() => { throw new Error('ENOENT'); });
+      fs.readFileSync.mockImplementation(() => {
+        throw new Error('ENOENT');
+      });
       const manager = new ModuleDirManager('/test/userdata');
       const result = manager.getModuleDir();
       expect(result).toContain('unknown-module');
@@ -164,12 +176,17 @@ describe('ModuleDirManager', () => {
     it('logs when modules directory is found', () => {
       const manager = new ModuleDirManager('/test/userdata', 'test-module');
       const expected = '/test/userdata/Data/modules';
-      fs.existsSync.mockImplementation(p => p === expected);
+      fs.existsSync.mockImplementation((p) => p === expected);
 
       manager.getModulesDir();
       // Allow either Found or Creating wording depending on how fs mock is bound
-      const messages = logSpy.mock.calls.map(args => args[0]);
-      expect(messages.some(m => m.includes('FoundryVTT modules directory') && m.includes(expected))).toBe(true);
+      const messages = logSpy.mock.calls.map((args) => args[0]);
+      expect(
+        messages.some(
+          (m) =>
+            m.includes('FoundryVTT modules directory') && m.includes(expected)
+        )
+      ).toBe(true);
     });
 
     it('logs when modules directory is created', () => {
@@ -178,7 +195,9 @@ describe('ModuleDirManager', () => {
       fs.existsSync.mockReturnValue(false);
 
       manager.getModulesDir();
-      expect(logSpy).toHaveBeenCalledWith(`Creating FoundryVTT modules directory: ${expected}`);
+      expect(logSpy).toHaveBeenCalledWith(
+        `Creating FoundryVTT modules directory: ${expected}`
+      );
     });
   });
 });

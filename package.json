@@ -7,6 +7,7 @@
   "author": "Andrea Pandolfo",
   "license": "MIT",
   "devDependencies": {
+    "@eslint/js": "^9.36.0",
     "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-json": "^6.1.0",
     "@types/estree": "^1.0.8",
@@ -16,8 +17,13 @@
     "@vitest/coverage-v8": "^3.2.4",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
+    "csslint": "^1.0.5",
+    "cypress": "^15.0.0",
+    "eslint": "^9.36.0",
     "glob": "^11.0.3",
     "husky": "^9.1.7",
+    "jsdom": "^27.0.0",
+    "jsonc-parser": "^3.3.1",
     "lcov": "^1.16.0",
     "lint-staged": "^16.2.0",
     "markdownlint-cli": "^0.45.0",
@@ -25,11 +31,6 @@
     "mock-fs": "^5.5.0",
     "prettier": "^3.0.0",
     "secretlint": "^11.2.4",
-    "csslint": "^1.0.5",
-    "cypress": "^15.0.0",
-    "eslint": "^9.36.0",
-    "jsdom": "^27.0.0",
-    "jsonc-parser": "^3.3.1",
     "semver": "^7.3.8",
     "vite": "^7.1.1",
     "vitest": "^3.2.4"
@@ -68,5 +69,14 @@
     "prepare": "husky",
     "precommit": "lint-staged",
     "validate:container-config": "node ./scripts/validate-container-config.mjs"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   }
 }

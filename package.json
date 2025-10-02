@@ -36,7 +36,9 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@iarna/toml": "^2.2.5",
     "dayjs": "^1.11.13",
+    "ini": "^5.0.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21"
   },

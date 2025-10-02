@@ -10,10 +10,12 @@ dictionaries:
   - bash
   - npm
 words:
+  - chatmodes
   - csslint
   - datamodel
   - dependencygraph
   - foundryvtt
+  - iarna
   - stylelintcache
 ignoreWords: []
 import: []

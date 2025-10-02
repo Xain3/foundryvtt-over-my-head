@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 
 /**
+ * @file bump-version.mjs
+ * @description Version bump script for hybrid release flow with flexible file handling.
+ * @path .dev/scripts/ci/bump-version.mjs
+ */
+
+/**
  * Version bump script for the hybrid release flow
  *
  * This script handles version bumping across multiple files based on bump-version.yaml config.

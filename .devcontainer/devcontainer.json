@@ -42,7 +42,13 @@
         "vitest.explorer",
         "mhutchie.git-graph",
         "ms-vscode.PowerShell",
-        "PeterSchmalfeldt.explorer-exclude"
+        "PeterSchmalfeldt.explorer-exclude",
+        "github.vscode-github-actions",
+        "maciejdems.add-to-gitignore",
+        "mads-hartmann.bash-ide-vscode",
+        "donjayamanne.githistory",
+        "yzhang.markdown-all-in-one",
+        "christian-kohler.npm-intellisense"
       ],
       "settings": {
         "editor.formatOnSave": true,

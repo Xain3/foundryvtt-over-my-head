@@ -152,30 +152,32 @@ class ContextLegacySync {
     const comparison = ContextComparison.compare(source, target, { compareBy: options.compareBy });
 
     switch (operation) {
-      case ContextLegacySync.SYNC_OPERATIONS.UPDATE_SOURCE_TO_TARGET:
+      case ContextLegacySync.SYNC_OPERATIONS.UPDATE_SOURCE_TO_TARGET: {
         const updateSourceResult = ContextLegacySync.#updateSourceToTarget(source, target, options);
-        updateSourceResult.operation = operation; // Ensure operation name matches
         return updateSourceResult;
+      }
 
-      case ContextLegacySync.SYNC_OPERATIONS.UPDATE_TARGET_TO_SOURCE:
+      case ContextLegacySync.SYNC_OPERATIONS.UPDATE_TARGET_TO_SOURCE: {
         const updateTargetResult = ContextLegacySync.#updateTargetToSource(source, target, options);
-        updateTargetResult.operation = operation; // Ensure operation name matches
         return updateTargetResult;
+      }
 
-      case ContextLegacySync.SYNC_OPERATIONS.MERGE_NEWER_WINS:
+      case ContextLegacySync.SYNC_OPERATIONS.MERGE_NEWER_WINS: {
         const mergeNewerResult = ContextLegacySync.#mergeNewerWins(source, target, options);
-        mergeNewerResult.operation = operation; // Ensure operation name matches
         return mergeNewerResult;
+      }
 
-      case ContextLegacySync.SYNC_OPERATIONS.MERGE_SOURCE_PRIORITY:
+      case ContextLegacySync.SYNC_OPERATIONS.MERGE_SOURCE_PRIORITY: {
         const sourcePriorityResult = ContextLegacySync.#mergeWithPriority(source, target, 'source', options);
-        sourcePriorityResult.operation = operation; // Ensure operation name matches the requested operation
+        sourcePriorityResult.operation = operation;
         return sourcePriorityResult;
+      }
 
-      case ContextLegacySync.SYNC_OPERATIONS.MERGE_TARGET_PRIORITY:
+      case ContextLegacySync.SYNC_OPERATIONS.MERGE_TARGET_PRIORITY: {
         const targetPriorityResult = ContextLegacySync.#mergeWithPriority(source, target, 'target', options);
-        targetPriorityResult.operation = operation; // Ensure operation name matches the requested operation
+        targetPriorityResult.operation = operation;
         return targetPriorityResult;
+      }
 
       case ContextLegacySync.SYNC_OPERATIONS.NO_ACTION:
         return {

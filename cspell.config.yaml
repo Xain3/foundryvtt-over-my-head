@@ -1,4 +1,4 @@
-version: "0.2"
+version: '0.2'
 ignorePaths: []
 dictionaryDefinitions: []
 dictionaries:
@@ -10,12 +10,27 @@ dictionaries:
   - bash
   - npm
 words:
+  - anseki
+  - bierner
   - chatmodes
   - csslint
   - datamodel
+  - davidanson
   - dependencygraph
+  - devcontainers
+  - donjayamanne
+  - eamodio
+  - esbenp
   - foundryvtt
+  - geistmann
+  - githistory
   - iarna
+  - jannisx
+  - maciejdems
+  - mhutchie
+  - perkovec
+  - Schmalfeldt
   - stylelintcache
+  - yzhang
 ignoreWords: []
 import: []

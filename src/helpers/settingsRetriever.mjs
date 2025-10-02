@@ -92,7 +92,7 @@ class SettingsRetriever {
       // Try to get the setting - if it doesn't exist, this will return undefined
       const settingValue = globalThis.game.settings.get(this.namespace, key);
       return settingValue !== undefined;
-    } catch (error) {
+    } catch (_error) {
       // Setting doesn't exist or there was an error accessing it
       return false;
     }
@@ -127,7 +127,7 @@ class SettingsRetriever {
 
     try {
       return globalThis.game.settings.get(this.namespace, key);
-    } catch (error) {
+    } catch (_error) {
       // Setting doesn't exist or there was an error accessing it
       return undefined;
     }

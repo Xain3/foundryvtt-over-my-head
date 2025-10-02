@@ -1,0 +1,21 @@
+version: "0.2"
+ignorePaths: []
+dictionaryDefinitions: []
+dictionaries:
+  - en-gb
+  - en-uk
+  - softwareTerms
+  - misc
+  - typescript
+  - bash
+  - npm
+words:
+  - chatmodes
+  - csslint
+  - datamodel
+  - dependencygraph
+  - foundryvtt
+  - iarna
+  - stylelintcache
+ignoreWords: []
+import: []

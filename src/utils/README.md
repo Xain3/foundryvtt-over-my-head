@@ -42,52 +42,70 @@ src/utils/
 ### Using Utils Entry Point (Recommended)
 
 ```javascript
-import Utils from '@/utils/utils.mjs';
+import Utils from "@/utils/utils.mjs";
 
 // Access all utilities through unified interface
 const logger = Utils.createLogger(constants, manifest, formatError);
-const initializer = Utils.createInitializer(constants, manifest, logger, formatError, formatHook);
+const initializer = Utils.createInitializer(
+  constants,
+  manifest,
+  logger,
+  formatError,
+  formatHook,
+);
 
 // Access static utilities
-const isValid = Utils.validate('isString', { value: 'test' });
+const isValid = Utils.validate("isString", { value: "test" });
 Utils.unpack(data, instance);
-const module = Utils.getModuleObject('my-module');
-
+const module = Utils.getModuleObject("my-module");
 ```
 
 ### Utilities Facade (formatHookName, initializeContext, logging)
 
 ```javascript
-import Utilities from '@/utils/utils.mjs';
+import Utilities from "@/utils/utils.mjs";
 
 // Create a Utilities instance (facade over logger/initializer/hookFormatter)
 const utils = new Utilities(constants, manifest);
 
 // Hook name formatting via Utilities facade
-const hookName = utils.formatHookName('ready'); // e.g., 'OMH.ready'
+const hookName = utils.formatHookName("ready"); // e.g., 'OMH.ready'
 
 // Initialize context objects via initializer shortcut (immediate)
-utils.initializeContext({ constants, manifest, logger: utils.logger, formatError: utils.formatError });
+utils.initializeContext({
+  constants,
+  manifest,
+  logger: utils.logger,
+  formatError: utils.formatError,
+});
 
 // Convenience logging methods
-utils.log('Info message');
-utils.logWarning('Something to watch');
-utils.logError('Something went wrong');
-utils.logDebug('Detailed debug info');
+utils.log("Info message");
+utils.logWarning("Something to watch");
+utils.logError("Something went wrong");
+utils.logDebug("Detailed debug info");
 ```
 
 ### Direct Imports for Specific Use Cases
 
 ```javascript
-import Initializer from '@/utils/initializer.mjs';
-import Logger from '@/utils/logger.mjs';
-import { formatHook } from '@/utils/hookFormatter.mjs';
-import StaticUtils from '@/utils/static/static.mjs';
+import Initializer from "@/utils/initializer.mjs";
+import Logger from "@/utils/logger.mjs";
+import { formatHook } from "@/utils/hookFormatter.mjs";
+import StaticUtils from "@/utils/static/static.mjs";
 
 // Module initialization
-const initializer = new Initializer(constants, manifest, logger, formatError, formatHook);
+const initializer = new Initializer(
+  constants,
+  manifest,
+  logger,
+  formatError,
+  formatHook,
+);
 // Initialize immediately
-initializer.initializeContext({ /* your Context params */ });
+initializer.initializeContext({
+  /* your Context params */
+});
 ```
 
 ## Core Utilities
@@ -126,9 +144,9 @@ _registerSettings(SettingsHandlerOrInstance, utils?)
 #### Initializer Example Usage
 
 ```javascript
-import Initializer from '@/utils/initializer.mjs';
-import Context from '@/contexts/context.mjs';
-import SettingsHandler from '@/handlers/settingsHandler.mjs';
+import Initializer from "@/utils/initializer.mjs";
+import Context from "@/contexts/context.mjs";
+import SettingsHandler from "@/handlers/settingsHandler.mjs";
 
 // Create initializer
 const initializer = new Initializer(
@@ -136,11 +154,13 @@ const initializer = new Initializer(
   manifest,
   logger,
   formatError,
-  formatHook
+  formatHook,
 );
 
 // Initialize context immediately
-const contextInitParams = { /* your Context params */ };
+const contextInitParams = {
+  /* your Context params */
+};
 initializer.initializeContext(contextInitParams);
 
 // Defer initialization until i18nInit
@@ -160,18 +180,18 @@ console.log(initializer.context);
 
 ```javascript
 // Defer context init until i18n is ready
-Hooks.once('i18nInit', () => {
+Hooks.once("i18nInit", () => {
   initializer.initializeContext(contextInitParams, true);
 });
 
-Hooks.once('init', () => {
-  logger.log('Initializing settings...');
+Hooks.once("init", () => {
+  logger.log("Initializing settings...");
 
   try {
     // Initialize settings with localization (defer until i18nInit)
     initializer.initializeSettings(SettingsHandler, undefined, true);
 
-    logger.log('Settings initialized successfully');
+    logger.log("Settings initialized successfully");
   } catch (error) {
     logger.error(`Settings initialization failed: ${Utils.formatError(error)}`);
     throw error;
@@ -199,35 +219,35 @@ Provides module-specific logging with configurable debug mode, automatic message
 
 ```javascript
 // Logging methods
-log(message)          // General logging
-error(message)        // Error logging
-warn(message)         // Warning logging
-debug(message)        // Debug logging (only when debug mode enabled)
+log(message); // General logging
+error(message); // Error logging
+warn(message); // Warning logging
+debug(message); // Debug logging (only when debug mode enabled)
 
 // Debug mode management
-isDebugEnabled()      // Check current debug mode status
+isDebugEnabled(); // Check current debug mode status
 ```
 
 #### Logger Example Usage
 
 ```javascript
-import Logger from '@/utils/logger.mjs';
+import Logger from "@/utils/logger.mjs";
 
 // Create logger
 const logger = new Logger(constants, manifest, formatError);
 
 // Basic logging
-logger.log('Module initialization started');
-logger.warn('Configuration missing, using defaults');
-logger.error('Failed to load resource');
+logger.log("Module initialization started");
+logger.warn("Configuration missing, using defaults");
+logger.error("Failed to load resource");
 
 // Debug logging (only shows when debug mode enabled)
-logger.debug('Processing user input:', userInput);
-logger.debug('Context state:', context);
+logger.debug("Processing user input:", userInput);
+logger.debug("Context state:", context);
 
 // Check debug status
 if (logger.isDebugEnabled()) {
-  logger.debug('Debug mode is active');
+  logger.debug("Debug mode is active");
   // Perform expensive debug operations only when needed
 }
 
@@ -251,10 +271,10 @@ The Logger automatically detects debug mode from multiple sources:
 All log messages are automatically formatted with the module prefix:
 
 ```javascript
-logger.log('Context initialized');
+logger.log("Context initialized");
 // Output: "OverMyHead | Context initialized"
 
-logger.debug('Processing data');
+logger.debug("Processing data");
 // Output: "OverMyHead | Processing data" (only if debug mode enabled)
 ```
 
@@ -285,28 +305,28 @@ formatHook(hookBase, hookType, context?)
 #### HookFormatter Example Usage
 
 ```javascript
-import { formatHook } from '@/utils/hookFormatter.mjs';
+import { formatHook } from "@/utils/hookFormatter.mjs";
 
 // Basic hook formatting
-const initHook = formatHook('myModule', 'init');
+const initHook = formatHook("myModule", "init");
 // Result: "myModuleInit"
 
-const readyHook = formatHook('myModule', 'ready');
+const readyHook = formatHook("myModule", "ready");
 // Result: "myModuleReady"
 
 // Context-specific hooks
-const contextHook = formatHook('context', 'update', 'player');
+const contextHook = formatHook("context", "update", "player");
 // Result: "contextUpdatePlayer"
 
-const dataHook = formatHook('data', 'changed', 'inventory');
+const dataHook = formatHook("data", "changed", "inventory");
 // Result: "dataChangedInventory"
 
 // Integration with hook registration
-Hooks.on(formatHook('module', 'ready'), () => {
-  console.log('Module is ready');
+Hooks.on(formatHook("module", "ready"), () => {
+  console.log("Module is ready");
 });
 
-Hooks.call(formatHook('context', 'updated', 'player'), contextData);
+Hooks.call(formatHook("context", "updated", "player"), contextData);
 ```
 
 #### Hook Naming Conventions
@@ -331,7 +351,7 @@ Central entry point providing unified access to all utility functionality, inclu
 - **Unified Interface**: Single import point for all utility functionality
 - **Factory Methods**: Convenient methods for creating utility instances
 - **Static Proxy**: Direct access to static utility methods
-const proxiedHooksCall = Utils.createHookProxy(Hooks.call, {
+  const proxiedHooksCall = Utils.createHookProxy(Hooks.call, {
 
 #### Public API
 
@@ -367,7 +387,7 @@ static getUtilityInfo()
 #### Utils Example Usage
 
 ```javascript
-import Utils from '@/utils/utils.mjs';
+import Utils from "@/utils/utils.mjs";
 
 // Create utility instances
 const logger = Utils.createLogger(constants, manifest, formatError);
@@ -376,37 +396,39 @@ const initializer = Utils.createInitializer(
   manifest,
   logger,
   formatError,
-  formatHook
+  formatHook,
 );
 
 // Format hooks
-const hookName = Utils.formatHook('module', 'ready');
+const hookName = Utils.formatHook("module", "ready");
 
 // Use static utilities
 // Hook formatting
-const hookName = Utils.formatHook('module', 'ready');
+const hookName = Utils.formatHook("module", "ready");
 
 // Use static utilities
-const isValid = Utils.validate('isString', { value: input });
+const isValid = Utils.validate("isString", { value: input });
 Utils.unpack(moduleData, instance);
-const module = Utils.getModuleObject('my-module');
+const module = Utils.getModuleObject("my-module");
 
 // Hook logging and debugging
 const proxiedHooksCall = Utils.createHookProxy(Hooks.call, {
-  logLevel: 'debug',
-  filter: (hookName) => hookName.startsWith('OMH.')
+  logLevel: "debug",
+  filter: (hookName) => hookName.startsWith("OMH."),
 });
-const hookLogger = Utils.createHookLogger('debug', 'MyModule');
+const hookLogger = Utils.createHookLogger("debug", "MyModule");
 
 // Localization
 
 // Localization
-const text = Utils.localize('MYMODULE.welcome');
-const formatted = Utils.formatLocalized('MYMODULE.greeting', { name: 'Player' });
+const text = Utils.localize("MYMODULE.welcome");
+const formatted = Utils.formatLocalized("MYMODULE.greeting", {
+  name: "Player",
+});
 
 // Get utility information
 const info = Utils.getUtilityInfo();
-console.log('Available utilities:', info.utilities);
+console.log("Available utilities:", info.utilities);
 ```
 
 ### Static Utilities
@@ -419,12 +441,12 @@ Collection of static utility classes for data validation, object manipulation, e
 #### Quick Access via Utils
 
 ```javascript
-import Utils from '@/utils/utils.mjs';
+import Utils from "@/utils/utils.mjs";
 
 // All static utility functionality is available through Utils
-const validated = Utils.validate('isObject', { value: config });
+const validated = Utils.validate("isObject", { value: config });
 const formatted = Utils.formatError(error, { includeStack: true });
-const localized = Utils.localize('MYMODULE.title');
+const localized = Utils.localize("MYMODULE.title");
 ```
 
 ## Integration and Workflows
@@ -432,9 +454,9 @@ const localized = Utils.localize('MYMODULE.title');
 ### Complete Module Initialization Workflow
 
 ```javascript
-import Utils from '@/utils/utils.mjs';
-import Context from '@/contexts/context.mjs';
-import SettingsHandler from '@/handlers/settingsHandler.mjs';
+import Utils from "@/utils/utils.mjs";
+import Context from "@/contexts/context.mjs";
+import SettingsHandler from "@/handlers/settingsHandler.mjs";
 
 // Setup utilities
 const logger = Utils.createLogger(constants, manifest, formatError);
@@ -443,45 +465,47 @@ const initializer = Utils.createInitializer(
   manifest,
   logger,
   formatError,
-  formatHook
+  formatHook,
 );
 
 // Foundry VTT hook integration
-Hooks.once('i18nInit', () => {
-  logger.log('Initializing settings...');
+Hooks.once("i18nInit", () => {
+  logger.log("Initializing settings...");
 
   try {
     // Initialize context
-  const contextParams = { /* your Context params */ };
-  initializer.initializeContext(contextParams, true);
+    const contextParams = {
+      /* your Context params */
+    };
+    initializer.initializeContext(contextParams, true);
 
-    logger.log('Context initialized successfully');
+    logger.log("Context initialized successfully");
   } catch (error) {
     logger.error(`Context initialization failed: ${Utils.formatError(error)}`);
     throw error;
   }
 });
 
-Hooks.once('init', () => {
-  logger.log('Initializing settings...');
+Hooks.once("init", () => {
+  logger.log("Initializing settings...");
 
   try {
-  // Initialize settings with localization (defer until i18nInit)
-  initializer.initializeSettings(SettingsHandler, undefined, true);
+    // Initialize settings with localization (defer until i18nInit)
+    initializer.initializeSettings(SettingsHandler, undefined, true);
 
-    logger.log('Settings initialized successfully');
+    logger.log("Settings initialized successfully");
   } catch (error) {
     logger.error(`Settings initialization failed: ${Utils.formatError(error)}`);
     throw error;
   }
 });
 
-Hooks.once('ready', () => {
+Hooks.once("ready", () => {
   logger.log(`${manifest.title} v${manifest.version} is ready!`);
 
   if (logger.isDebugEnabled()) {
-    logger.debug('Module context:', initializer.context);
-    logger.debug('Available utilities:', Utils.getUtilityInfo());
+    logger.debug("Module context:", initializer.context);
+    logger.debug("Available utilities:", Utils.getUtilityInfo());
   }
 });
 ```
@@ -491,16 +515,16 @@ Hooks.once('ready', () => {
 ```javascript
 // Define custom hooks for module events
 const HOOKS = {
-  MODULE_INIT: Utils.formatHook('module', 'init'),
-  MODULE_READY: Utils.formatHook('module', 'ready'),
-  CONTEXT_UPDATE: Utils.formatHook('context', 'update'),
-  SETTINGS_CHANGE: Utils.formatHook('settings', 'change'),
-  DATA_SYNC: Utils.formatHook('data', 'sync', 'remote')
+  MODULE_INIT: Utils.formatHook("module", "init"),
+  MODULE_READY: Utils.formatHook("module", "ready"),
+  CONTEXT_UPDATE: Utils.formatHook("context", "update"),
+  SETTINGS_CHANGE: Utils.formatHook("settings", "change"),
+  DATA_SYNC: Utils.formatHook("data", "sync", "remote"),
 };
 
 // Register hook listeners
 Hooks.on(HOOKS.CONTEXT_UPDATE, (contextData) => {
-  logger.debug('Context updated:', contextData);
+  logger.debug("Context updated:", contextData);
 });
 
 Hooks.on(HOOKS.SETTINGS_CHANGE, (setting, value) => {
@@ -526,7 +550,7 @@ async function performOperation(operationName, operation) {
   } catch (error) {
     const formattedError = Utils.formatError(error, {
       includeStack: logger.isDebugEnabled(),
-      caller: operationName
+      caller: operationName,
     });
 
     logger.error(`${operationName} failed: ${formattedError}`);
@@ -541,7 +565,7 @@ initializer.initializeSettings(SettingsHandler);
 
 ### Validation and Data Processing
 
-```javascript
+````javascript
 // Comprehensive data validation and processing
 function processModuleData(rawData, moduleName) {
   logger.debug('Processing module data...');
@@ -582,7 +606,7 @@ Utils (Entry Point)
     ├── GameManager
     ├── ErrorFormatter
     └── Localizer
-```
+````
 
 ### Interaction Flow
 
@@ -628,7 +652,7 @@ The utils include comprehensive test coverage:
 
 ### Running Tests
 
-```bash
+````bash
 # Run all utils tests
 npm test -- src/utils
 
@@ -655,14 +679,13 @@ const initializer = Utils.createInitializer(constants, manifest, logger, formatE
 // Use proxy methods
 const validated = Utils.validate('isString', { value: input });
 const hookName = Utils.formatHook('module', 'ready');
-```
+````
 
 ```javascript
-import Logger from './logger.mjs';
-import { formatHook } from './hookFormatter.mjs';
-import StaticUtils from './static/static.mjs';
+import Logger from "./logger.mjs";
+import { formatHook } from "./hookFormatter.mjs";
+import StaticUtils from "./static/static.mjs";
 ```
-
 
 ### Performance Considerations
 

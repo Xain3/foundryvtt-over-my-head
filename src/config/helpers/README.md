@@ -25,17 +25,14 @@ The main entry point for constants management. Provides both raw YAML string and
 
 ```javascript
 // Constructor
-new ConstantsBuilder()
-
 // Properties (getters)
-.asString     // The YAML string representation of constants
-.asObject     // The parsed object representation of constants
+new ConstantsBuilder().asString.asObject; // The YAML string representation of constants // The parsed object representation of constants
 ```
 
 #### ConstantsBuilder Usage
 
 ```javascript
-import ConstantsBuilder from './helpers/constantsBuilder.mjs';
+import ConstantsBuilder from "./helpers/constantsBuilder.mjs";
 
 const constants = new ConstantsBuilder();
 
@@ -73,7 +70,7 @@ Static utility class for reading constants from YAML files with configurable fil
 
 ```javascript
 // Static Methods
-ConstantsGetter.getConstantsYaml(constantsFileName, encoding)
+ConstantsGetter.getConstantsYaml(constantsFileName, encoding);
 // Parameters:
 // - constantsFileName: string (optional) - The YAML file name (default: 'constants.yaml')
 // - encoding: string (optional) - File encoding (default: 'utf8')
@@ -84,19 +81,22 @@ ConstantsGetter.getConstantsYaml(constantsFileName, encoding)
 #### ConstantsGetter Usage
 
 ```javascript
-import ConstantsGetter from './helpers/constantsGetter.mjs';
+import ConstantsGetter from "./helpers/constantsGetter.mjs";
 
 // Read default constants.yaml file with default encoding
 const defaultConstants = ConstantsGetter.getConstantsYaml();
 
 // Read custom YAML file
-const customConstants = ConstantsGetter.getConstantsYaml('custom-config.yaml');
+const customConstants = ConstantsGetter.getConstantsYaml("custom-config.yaml");
 
 // Read with custom encoding
-const asciiConstants = ConstantsGetter.getConstantsYaml('constants.yaml', 'ascii');
+const asciiConstants = ConstantsGetter.getConstantsYaml(
+  "constants.yaml",
+  "ascii",
+);
 
 // Read custom file with custom encoding
-const customFile = ConstantsGetter.getConstantsYaml('config.yaml', 'utf16le');
+const customFile = ConstantsGetter.getConstantsYaml("config.yaml", "utf16le");
 ```
 
 #### Features
@@ -111,9 +111,9 @@ const customFile = ConstantsGetter.getConstantsYaml('config.yaml', 'utf16le');
 
 ```javascript
 try {
-  const constants = ConstantsGetter.getConstantsYaml('missing-file.yaml');
+  const constants = ConstantsGetter.getConstantsYaml("missing-file.yaml");
 } catch (error) {
-  console.error('Failed to read constants:', error.message);
+  console.error("Failed to read constants:", error.message);
   // Handle error appropriately
 }
 ```
@@ -132,8 +132,13 @@ Advanced YAML parsing with support for context root map creation and dynamic pat
 
 ```javascript
 // Static Methods
-ConstantsParser.parseConstants(constants, globalNamespace, parseContextRootMap, module)
-ConstantsParser.createRootMapFromYaml(config, globalNamespace, module)
+ConstantsParser.parseConstants(
+  constants,
+  globalNamespace,
+  parseContextRootMap,
+  module,
+);
+ConstantsParser.createRootMapFromYaml(config, globalNamespace, module);
 
 // Parameters:
 // - constants: string - YAML string to parse
@@ -145,10 +150,10 @@ ConstantsParser.createRootMapFromYaml(config, globalNamespace, module)
 #### ConstantsParser Usage
 
 ```javascript
-import ConstantsParser from './helpers/constantsParser.mjs';
+import ConstantsParser from "./helpers/constantsParser.mjs";
 
 // Basic parsing
-const yamlString = 'testConstant: testValue\ncontext:\n  schema: test';
+const yamlString = "testConstant: testValue\ncontext:\n  schema: test";
 const parsed = ConstantsParser.parseConstants(yamlString);
 console.log(parsed.testConstant); // 'testValue'
 
@@ -157,16 +162,16 @@ const parsedWithRootMap = ConstantsParser.parseConstants(
   yamlString,
   globalThis,
   true,
-  moduleInstance
+  moduleInstance,
 );
 
 // Manual root map creation
 const rootMapConfig = {
   rootMap: {
-    game: 'game',
-    module: 'module',
-    window: 'globalNamespace.window'
-  }
+    game: "game",
+    module: "module",
+    window: "globalNamespace.window",
+  },
 };
 const rootMapFn = ConstantsParser.createRootMapFromYaml(rootMapConfig);
 const rootMap = rootMapFn(globalThis, moduleInstance);
@@ -216,7 +221,7 @@ The parser uses `PathUtils.resolvePath()` to dynamically resolve object paths:
 try {
   const parsed = ConstantsParser.parseConstants(invalidYaml);
 } catch (error) {
-  console.error('Parsing failed:', error.message);
+  console.error("Parsing failed:", error.message);
   // Error logged and re-thrown as generic "Failed to parse constants"
 }
 ```
@@ -241,33 +246,30 @@ Comprehensive validation and processing for manifest objects with support for mu
 
 ```javascript
 // Constructor
+// Properties
 new ManifestParser(manifest)
 
-// Validation Methods
-.validateRequiredManifestAttributes()    // Validates required attributes are defined
-.validateImportedManifest()             // Validates manifest structure and type
-.validateManifestAttributesArray()      // Validates array-based required attributes
-.validateManifestAttributesObject()     // Validates object-based required attributes
-.validateManifestHasRequiredAttributes() // Orchestrates validation based on attribute type
-.freezeManifest()                       // Makes manifest immutable
-.getValidatedManifest()                 // Main entry point - performs complete validation
-
-// Properties
-.manifest           // The manifest object being validated
-.requiredAttributes // Required attributes configuration from constants
+  // Validation Methods
+  .validateRequiredManifestAttributes() // Validates required attributes are defined
+  .validateImportedManifest() // Validates manifest structure and type
+  .validateManifestAttributesArray() // Validates array-based required attributes
+  .validateManifestAttributesObject() // Validates object-based required attributes
+  .validateManifestHasRequiredAttributes() // Orchestrates validation based on attribute type
+  .freezeManifest() // Makes manifest immutable
+  .getValidatedManifest().manifest.requiredAttributes; // Main entry point - performs complete validation // The manifest object being validated // Required attributes configuration from constants
 ```
 
 #### ManifestParser Usage
 
 ```javascript
-import ManifestParser from './helpers/manifestParser.mjs';
+import ManifestParser from "./helpers/manifestParser.mjs";
 
 // Basic manifest validation
 const manifestData = {
   id: "my-module",
   title: "My Module",
   description: "A Foundry VTT module",
-  version: "1.0.0"
+  version: "1.0.0",
 };
 
 const parser = new ManifestParser(manifestData);
@@ -281,33 +283,36 @@ console.log(validatedManifest.id); // "my-module"
 #### Validation Features
 
 **Required Attributes Support:**
+
 - **Array Format**: `["id", "title", "description", "version"]`
 - **Object Format**: `{ id: true, title: true, description: true, version: true }`
 - **Type Validation**: Ensures array elements are strings
 - **Presence Validation**: Verifies all required attributes exist in manifest
 
 **Manifest Structure Validation:**
+
 ```javascript
 // Valid manifest - object with required properties
 const validManifest = {
   id: "module-id",
   title: "Module Title",
   description: "Module description",
-  version: "1.0.0"
+  version: "1.0.0",
 };
 
 // Invalid manifests that will throw errors
 const invalidManifests = [
-  null,                    // Error: "Manifest data is not available"
-  undefined,               // Error: "Manifest data is not available"
-  [],                      // Error: "Manifest data is not an object"
-  "string",                // Error: "Manifest data is not an object"
-  123,                     // Error: "Manifest data is not an object"
-  { id: "test" }          // Error: "Manifest is missing required attribute: title"
+  null, // Error: "Manifest data is not available"
+  undefined, // Error: "Manifest data is not available"
+  [], // Error: "Manifest data is not an object"
+  "string", // Error: "Manifest data is not an object"
+  123, // Error: "Manifest data is not an object"
+  { id: "test" }, // Error: "Manifest is missing required attribute: title"
 ];
 ```
 
 **Immutability Enforcement:**
+
 ```javascript
 const parser = new ManifestParser(manifestData);
 const frozen = parser.getValidatedManifest();
@@ -338,7 +343,7 @@ try {
   // "Manifest is missing required attribute: title"
   // "Required manifest attribute \"123\" is not a string."
   // "Required manifest attributes must be an array or an object."
-  console.error('Manifest validation failed:', error.message);
+  console.error("Manifest validation failed:", error.message);
 }
 ```
 
@@ -355,6 +360,7 @@ The `getValidatedManifest()` method executes validation in this order:
 #### Advanced Usage Patterns
 
 **Custom Required Attributes:**
+
 ```javascript
 const parser = new ManifestParser(manifestData);
 parser.requiredAttributes = ["id", "title"]; // Override defaults
@@ -362,6 +368,7 @@ const validated = parser.getValidatedManifest();
 ```
 
 **Step-by-Step Validation:**
+
 ```javascript
 const parser = new ManifestParser(manifestData);
 
@@ -376,6 +383,7 @@ const result = parser.getValidatedManifest();
 ```
 
 **Real-World Manifest Processing:**
+
 ```javascript
 // Complex manifest with nested objects
 const complexManifest = {
@@ -385,16 +393,12 @@ const complexManifest = {
   version: "2.1.0",
   compatibility: {
     minimum: "11",
-    verified: "12"
+    verified: "12",
   },
-  authors: [
-    { name: "Developer", email: "dev@example.com" }
-  ],
+  authors: [{ name: "Developer", email: "dev@example.com" }],
   scripts: ["scripts/init.mjs"],
   styles: ["styles/main.css"],
-  languages: [
-    { lang: "en", name: "English", path: "lang/en.json" }
-  ]
+  languages: [{ lang: "en", name: "English", path: "lang/en.json" }],
 };
 
 const parser = new ManifestParser(complexManifest);
@@ -556,7 +560,7 @@ ManifestParser
 ### Basic Constants Access
 
 ```javascript
-import ConstantsBuilder from './constants/helpers/constantsBuilder.mjs';
+import ConstantsBuilder from "./constants/helpers/constantsBuilder.mjs";
 
 const constants = new ConstantsBuilder();
 const config = constants.asObject;
@@ -570,28 +574,37 @@ const errorPattern = config.errors.pattern;
 ### Custom Configuration Files
 
 ```javascript
-import ConstantsGetter from './constants/helpers/constantsGetter.mjs';
-import ConstantsParser from './constants/helpers/constantsParser.mjs';
+import ConstantsGetter from "./constants/helpers/constantsGetter.mjs";
+import ConstantsParser from "./constants/helpers/constantsParser.mjs";
 
 // Read custom configuration with default encoding
-const customYaml = ConstantsGetter.getConstantsYaml('environment-specific.yaml');
-const customConfig = ConstantsParser.parseConstants(customYaml, globalThis, false);
+const customYaml = ConstantsGetter.getConstantsYaml(
+  "environment-specific.yaml",
+);
+const customConfig = ConstantsParser.parseConstants(
+  customYaml,
+  globalThis,
+  false,
+);
 
 // Read with custom encoding
-const binaryYaml = ConstantsGetter.getConstantsYaml('binary-config.yaml', 'binary');
+const binaryYaml = ConstantsGetter.getConstantsYaml(
+  "binary-config.yaml",
+  "binary",
+);
 ```
 
 ### Advanced Root Map Usage
 
 ```javascript
-import ConstantsParser from './constants/helpers/constantsParser.mjs';
+import ConstantsParser from "./constants/helpers/constantsParser.mjs";
 
 // Parse with root map processing for context management
 const fullConfig = ConstantsParser.parseConstants(
   yamlString,
-  globalThis,    // Global namespace
-  true,          // Process root map
-  moduleInstance // Module reference
+  globalThis, // Global namespace
+  true, // Process root map
+  moduleInstance, // Module reference
 );
 
 // Access generated root map function
@@ -602,7 +615,7 @@ const rootMap = rootMapFn(globalThis, moduleInstance);
 ### Integration with Context System
 
 ```javascript
-import ConstantsBuilder from './constants/helpers/constantsBuilder.mjs';
+import ConstantsBuilder from "./constants/helpers/constantsBuilder.mjs";
 
 const constants = new ConstantsBuilder();
 const contextConfig = constants.asObject.context;
@@ -611,17 +624,17 @@ const contextConfig = constants.asObject.context;
 const context = new Context({
   syncDefaults: contextConfig.sync.defaults,
   operationParams: contextConfig.operationsParams.defaults,
-  rootMap: contextConfig.external.rootMap
+  rootMap: contextConfig.external.rootMap,
 });
 ```
 
 ### Manifest Validation Integration
 
 ```javascript
-import ManifestParser from './constants/helpers/manifestParser.mjs';
+import ManifestParser from "./constants/helpers/manifestParser.mjs";
 
 // Validate imported manifest
-import rawManifest from '../module.json';
+import rawManifest from "../module.json";
 const parser = new ManifestParser(rawManifest);
 const validatedManifest = parser.getValidatedManifest();
 
@@ -636,15 +649,15 @@ Object.isFrozen(validatedManifest); // true
 ### Module Initialization Pattern
 
 ```javascript
-import ManifestParser from './constants/helpers/manifestParser.mjs';
-import ConstantsBuilder from './constants/helpers/constantsBuilder.mjs';
+import ManifestParser from "./constants/helpers/manifestParser.mjs";
+import ConstantsBuilder from "./constants/helpers/constantsBuilder.mjs";
 
 // Combined initialization
 const constants = new ConstantsBuilder();
 const config = constants.asObject;
 
 // Validate manifest with current constants
-import moduleManifest from '../module.json';
+import moduleManifest from "../module.json";
 const manifestParser = new ManifestParser(moduleManifest);
 const manifest = manifestParser.getValidatedManifest();
 
@@ -654,7 +667,7 @@ const moduleInstance = {
   title: manifest.title,
   version: manifest.version,
   config: config,
-  manifest: manifest
+  manifest: manifest,
 };
 ```
 

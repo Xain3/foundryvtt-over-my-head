@@ -4,7 +4,16 @@
  * @path tests/performance/buildAndDeploy.performance.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -27,7 +36,7 @@ describe('BuildAndDeploy Performance Tests', () => {
     global.console = {
       log: vi.fn(),
       warn: vi.fn(),
-      error: vi.fn()
+      error: vi.fn(),
     };
   });
 
@@ -38,7 +47,9 @@ describe('BuildAndDeploy Performance Tests', () => {
     }
     // Cleanup mockDistDir in case tempDir persists
     if (mockDistDir && fs.existsSync(mockDistDir)) {
-      fs.readdirSync(mockDistDir).forEach(f => fs.unlinkSync(path.join(mockDistDir, f)));
+      fs.readdirSync(mockDistDir).forEach((f) =>
+        fs.unlinkSync(path.join(mockDistDir, f))
+      );
     }
   });
 
@@ -48,12 +59,14 @@ describe('BuildAndDeploy Performance Tests', () => {
     global.console = {
       log: vi.fn(),
       warn: vi.fn(),
-      error: vi.fn()
+      error: vi.fn(),
     };
 
     // Clean up mockDistDir before every test to avoid leftover files from previous tests
     if (mockDistDir && fs.existsSync(mockDistDir)) {
-      fs.readdirSync(mockDistDir).forEach(f => fs.unlinkSync(path.join(mockDistDir, f)));
+      fs.readdirSync(mockDistDir).forEach((f) =>
+        fs.unlinkSync(path.join(mockDistDir, f))
+      );
     }
 
     // Create mock module.json in the project root for testing
@@ -65,7 +78,9 @@ describe('BuildAndDeploy Performance Tests', () => {
 
   describe('File Deployment Performance', () => {
     it('should deploy small files quickly (< 100ms)', async () => {
-      const { ModuleDeployer } = await import('../../scripts/dev/buildAndDeploy.mjs');
+      const { ModuleDeployer } = await import(
+        '../../.dev/scripts/deployment/buildAndDeploy.mjs'
+      );
 
       // Create small test files
       for (let i = 0; i < 10; i++) {
@@ -79,29 +94,36 @@ describe('BuildAndDeploy Performance Tests', () => {
       const originalCwd = process.cwd();
       const projectModuleJson = path.join(tempDir, 'module.json');
       if (!fs.existsSync(projectModuleJson)) {
-        fs.writeFileSync(projectModuleJson, JSON.stringify({ id: 'test-module' }));
+        fs.writeFileSync(
+          projectModuleJson,
+          JSON.stringify({ id: 'test-module' })
+        );
       }
       process.chdir(tempDir);
 
       const deployer = new ModuleDeployer(mockTargetDir);
       const startTime = performance.now();
       deployer.deploy();
-    const endTime = performance.now();
+      const endTime = performance.now();
       process.chdir(originalCwd);
 
-  const duration = endTime - startTime;
-  // Allow extra headroom on slower runners and shared dev machines
-  const threshold = SLOW_ENV ? 300 : 200;
-  expect(duration).toBeLessThan(threshold); // Allow more time on CI/slow envs
+      const duration = endTime - startTime;
+      // Allow extra headroom on slower runners and shared dev machines
+      const threshold = SLOW_ENV ? 300 : 200;
+      expect(duration).toBeLessThan(threshold); // Allow more time on CI/slow envs
 
       // Verify all files were copied
       for (let i = 0; i < 10; i++) {
-        expect(fs.existsSync(path.join(mockTargetDir, 'dist', `file${i}.mjs`))).toBe(true);
+        expect(
+          fs.existsSync(path.join(mockTargetDir, 'dist', `file${i}.mjs`))
+        ).toBe(true);
       }
     });
 
     it('should handle many files efficiently (< 1000ms for 100 files)', async () => {
-      const { ModuleDeployer } = await import('../../scripts/dev/buildAndDeploy.mjs');
+      const { ModuleDeployer } = await import(
+        '../../.dev/scripts/deployment/buildAndDeploy.mjs'
+      );
 
       // Create many small files
       for (let i = 0; i < 100; i++) {
@@ -115,7 +137,10 @@ describe('BuildAndDeploy Performance Tests', () => {
       const originalCwd = process.cwd();
       const projectModuleJson = path.join(tempDir, 'module.json');
       if (!fs.existsSync(projectModuleJson)) {
-        fs.writeFileSync(projectModuleJson, JSON.stringify({ id: 'test-module' }));
+        fs.writeFileSync(
+          projectModuleJson,
+          JSON.stringify({ id: 'test-module' })
+        );
       }
       process.chdir(tempDir);
 
@@ -134,7 +159,9 @@ describe('BuildAndDeploy Performance Tests', () => {
     });
 
     it('should handle large files reasonably (< 5000ms for 10MB file)', async () => {
-      const { ModuleDeployer } = await import('../../scripts/dev/buildAndDeploy.mjs');
+      const { ModuleDeployer } = await import(
+        '../../.dev/scripts/deployment/buildAndDeploy.mjs'
+      );
 
       // Create a large file (10MB)
       const largeContent = 'x'.repeat(10 * 1024 * 1024);
@@ -144,7 +171,10 @@ describe('BuildAndDeploy Performance Tests', () => {
       const originalCwd = process.cwd();
       const projectModuleJson = path.join(tempDir, 'module.json');
       if (!fs.existsSync(projectModuleJson)) {
-        fs.writeFileSync(projectModuleJson, JSON.stringify({ id: 'test-module' }));
+        fs.writeFileSync(
+          projectModuleJson,
+          JSON.stringify({ id: 'test-module' })
+        );
       }
       process.chdir(tempDir);
 
@@ -158,14 +188,19 @@ describe('BuildAndDeploy Performance Tests', () => {
       expect(duration).toBeLessThan(5000); // Should complete in under 5 seconds
 
       // Verify file was copied correctly
-      const copiedContent = fs.readFileSync(path.join(mockTargetDir, 'dist', 'large-file.mjs'), 'utf8');
+      const copiedContent = fs.readFileSync(
+        path.join(mockTargetDir, 'dist', 'large-file.mjs'),
+        'utf8'
+      );
       expect(copiedContent.length).toBe(largeContent.length);
     });
   });
 
   describe('Directory Discovery Performance', () => {
     it('should find directories quickly', async () => {
-      const { UserDataDirFinder } = await import('../../scripts/dev/buildAndDeploy.mjs');
+      const { UserDataDirFinder } = await import(
+        '../../.dev/scripts/deployment/buildAndDeploy.mjs'
+      );
 
       const finder = new UserDataDirFinder('linux', 'testuser');
 
@@ -183,7 +218,9 @@ describe('BuildAndDeploy Performance Tests', () => {
     });
 
     it('should handle multiple module directory operations efficiently', async () => {
-      const { ModuleDirManager } = await import('../../scripts/dev/buildAndDeploy.mjs');
+      const { ModuleDirManager } = await import(
+        '../../.dev/scripts/deployment/buildAndDeploy.mjs'
+      );
 
       // Create a mock foundry directory
       const mockFoundryDir = path.join(tempDir, 'FoundryVTT');
@@ -193,7 +230,10 @@ describe('BuildAndDeploy Performance Tests', () => {
 
       // Create multiple module directories
       for (let i = 0; i < 50; i++) {
-        const manager = new ModuleDirManager(mockFoundryDir, `test-module-${i}`);
+        const manager = new ModuleDirManager(
+          mockFoundryDir,
+          `test-module-${i}`
+        );
         manager.getModuleDir();
       }
 
@@ -211,7 +251,9 @@ describe('BuildAndDeploy Performance Tests', () => {
 
   describe('Memory Usage', () => {
     it('should not leak memory during repeated operations', async () => {
-      const { ModuleDeployer } = await import('../../scripts/dev/buildAndDeploy.mjs');
+      const { ModuleDeployer } = await import(
+        '../../.dev/scripts/deployment/buildAndDeploy.mjs'
+      );
 
       // Create test files
       for (let i = 0; i < 10; i++) {
@@ -228,7 +270,10 @@ describe('BuildAndDeploy Performance Tests', () => {
         const originalCwd = process.cwd();
         const projectModuleJson = path.join(tempDir, 'module.json');
         if (!fs.existsSync(projectModuleJson)) {
-          fs.writeFileSync(projectModuleJson, JSON.stringify({ id: 'test-module' }));
+          fs.writeFileSync(
+            projectModuleJson,
+            JSON.stringify({ id: 'test-module' })
+          );
         }
         process.chdir(tempDir);
         const deployer = new ModuleDeployer(mockTargetDir);
@@ -259,7 +304,9 @@ describe('BuildAndDeploy Performance Tests', () => {
 
   describe('Concurrent Operations', () => {
     it('should handle concurrent file operations safely', async () => {
-      const { ModuleDeployer } = await import('../../scripts/dev/buildAndDeploy.mjs');
+      const { ModuleDeployer } = await import(
+        '../../.dev/scripts/deployment/buildAndDeploy.mjs'
+      );
 
       // Create test files
       for (let i = 0; i < 20; i++) {
@@ -280,12 +327,15 @@ describe('BuildAndDeploy Performance Tests', () => {
       const startTime = performance.now();
 
       // Run concurrent deployments
-      const deploymentPromises = targetDirs.map(targetDir => {
+      const deploymentPromises = targetDirs.map((targetDir) => {
         return new Promise((resolve) => {
           const originalCwd = process.cwd();
           const projectModuleJson = path.join(tempDir, 'module.json');
           if (!fs.existsSync(projectModuleJson)) {
-            fs.writeFileSync(projectModuleJson, JSON.stringify({ id: 'test-module' }));
+            fs.writeFileSync(
+              projectModuleJson,
+              JSON.stringify({ id: 'test-module' })
+            );
           }
           process.chdir(tempDir);
           const deployer = new ModuleDeployer(targetDir);

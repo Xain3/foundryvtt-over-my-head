@@ -1,10 +1,19 @@
 /**
  * @file buildAndDeploy.unit.test.mjs
  * @description Unit tests for buildAndDeploy classes
- * @path scripts/dev/buildAndDeploy.unit.test.mjs
+ * @path .dev/scripts/deployment/buildAndDeploy.unit.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 
 // Mock dependencies first
 vi.mock('fs', () => {
@@ -14,12 +23,13 @@ vi.mock('fs', () => {
     statSync: vi.fn(),
     mkdirSync: vi.fn(),
     readdirSync: vi.fn(),
-    copyFileSync: vi.fn()
+    copyFileSync: vi.fn(),
+    unlinkSync: vi.fn(),
   };
 
   return {
     ...fsMock,
-    default: fsMock
+    default: fsMock,
   };
 });
 vi.mock('os');
@@ -36,10 +46,10 @@ fs.readFileSync.mockReturnValue(JSON.stringify(mockModuleJson));
 
 // Mock ViteRunner
 const mockViteRunner = {
-  start: vi.fn().mockResolvedValue()
+  start: vi.fn().mockResolvedValue(),
 };
 vi.mock('../build/runViteWIthAction.mjs', () => ({
-  default: vi.fn().mockImplementation(() => mockViteRunner)
+  default: vi.fn().mockImplementation(() => mockViteRunner),
 }));
 
 // Import after mocking
@@ -48,7 +58,7 @@ import {
   ModuleDirManager,
   ModuleBuilder,
   ModuleDeployer,
-  BuildAndDeploy
+  BuildAndDeploy,
 } from './buildAndDeploy.mjs';
 
 describe('UserDataDirFinder', () => {
@@ -67,7 +77,7 @@ describe('UserDataDirFinder', () => {
     global.console = {
       log: vi.fn(),
       warn: vi.fn(),
-      error: vi.fn()
+      error: vi.fn(),
     };
   });
 
@@ -107,20 +117,26 @@ describe('UserDataDirFinder', () => {
       const finder = new UserDataDirFinder('darwin', 'testuser');
 
       os.homedir.mockReturnValue('/Users/testuser');
-      path.join.mockReturnValue('/Users/testuser/Library/Application Support/FoundryVTT');
+      path.join.mockReturnValue(
+        '/Users/testuser/Library/Application Support/FoundryVTT'
+      );
       fs.existsSync.mockReturnValue(true);
       fs.statSync.mockReturnValue({ isDirectory: () => true });
 
       const result = finder.find();
 
-      expect(result).toBe('/Users/testuser/Library/Application Support/FoundryVTT');
+      expect(result).toBe(
+        '/Users/testuser/Library/Application Support/FoundryVTT'
+      );
     });
 
     it('should find FoundryVTT directory on Windows', () => {
       const finder = new UserDataDirFinder('win32', 'testuser');
 
       process.env.LOCALAPPDATA = 'C:\\Users\\testuser\\AppData\\Local';
-      path.join.mockReturnValue('C:\\Users\\testuser\\AppData\\Local\\FoundryVTT');
+      path.join.mockReturnValue(
+        'C:\\Users\\testuser\\AppData\\Local\\FoundryVTT'
+      );
       fs.existsSync.mockReturnValue(true);
       fs.statSync.mockReturnValue({ isDirectory: () => true });
 
@@ -137,7 +153,9 @@ describe('UserDataDirFinder', () => {
       const result = finder.find();
 
       expect(result).toBe('');
-      expect(console.warn).toHaveBeenCalledWith('No FoundryVTT user data directory found');
+      expect(console.warn).toHaveBeenCalledWith(
+        'No FoundryVTT user data directory found'
+      );
     });
 
     it('should return empty array for unknown platform', () => {
@@ -171,7 +189,7 @@ describe('ModuleDirManager', () => {
     global.console = {
       log: vi.fn(),
       warn: vi.fn(),
-      error: vi.fn()
+      error: vi.fn(),
     };
   });
 
@@ -193,7 +211,9 @@ describe('ModuleDirManager', () => {
     it('should throw error when user data directory not found', () => {
       const manager = new ModuleDirManager('');
 
-      expect(() => manager.getModulesDir()).toThrow('User data directory not found');
+      expect(() => manager.getModulesDir()).toThrow(
+        'User data directory not found'
+      );
     });
 
     it('should return existing modules directory', () => {
@@ -275,7 +295,7 @@ describe('ModuleBuilder', () => {
     global.console = {
       log: vi.fn(),
       warn: vi.fn(),
-      error: vi.fn()
+      error: vi.fn(),
     };
   });
 
@@ -293,7 +313,7 @@ describe('ModuleBuilder', () => {
       const builder = new ModuleBuilder({
         watch: true,
         preBuildAction,
-        postBuildAction
+        postBuildAction,
       });
 
       expect(builder).toBeDefined();
@@ -318,7 +338,9 @@ describe('ModuleBuilder', () => {
 
       await builder.buildWithWatch(postBuildAction);
 
-      expect(console.log).toHaveBeenCalledWith('Starting module build with watch mode...');
+      expect(console.log).toHaveBeenCalledWith(
+        'Starting module build with watch mode...'
+      );
       expect(mockViteRunner.start).toHaveBeenCalledWith({});
     });
   });
@@ -331,7 +353,7 @@ describe('ModuleDeployer', () => {
     global.console = {
       log: vi.fn(),
       warn: vi.fn(),
-      error: vi.fn()
+      error: vi.fn(),
     };
   });
 
@@ -353,8 +375,9 @@ describe('ModuleDeployer', () => {
     it('should throw error when target directory not specified', () => {
       const deployer = new ModuleDeployer();
 
-
-      expect(() => deployer.deploy()).toThrow('Target directory not specified for deployment');
+      expect(() => deployer.deploy()).toThrow(
+        'Target directory not specified for deployment'
+      );
     });
 
     it('should sync TO_DEPLOY items when they exist', () => {
@@ -372,7 +395,7 @@ describe('ModuleDeployer', () => {
             isFile: () => true,
             isDirectory: () => false,
             size: 500,
-            mtime: new Date('2023-01-01')
+            mtime: new Date('2023-01-01'),
           };
         }
         return { isFile: () => false, isDirectory: () => true };
@@ -383,12 +406,19 @@ describe('ModuleDeployer', () => {
       path.basename.mockImplementation((filePath) => filePath.split('/').pop());
 
       // Mock Date.prototype.toLocaleString to pass an arbitrary value
-      const dateSpy = vi.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
+      const dateSpy = vi
+        .spyOn(Date.prototype, 'toLocaleString')
+        .mockReturnValue('TEST_TIME');
 
       deployer.deploy();
 
-      expect(console.log).toHaveBeenCalledWith('Syncing TO_DEPLOY items to /target at TEST_TIME');
-      expect(fs.copyFileSync).toHaveBeenCalledWith('./module.json', '/target/module.json');
+      expect(console.log).toHaveBeenCalledWith(
+        'Syncing TO_DEPLOY items to /target at TEST_TIME'
+      );
+      expect(fs.copyFileSync).toHaveBeenCalledWith(
+        './module.json',
+        '/target/module.json'
+      );
       expect(console.log).toHaveBeenCalledWith('Synced: module.json');
 
       dateSpy.mockRestore();
@@ -402,13 +432,27 @@ describe('ModuleDeployer', () => {
 
       deployer.deploy();
 
-      expect(console.log).toHaveBeenCalledWith('Skipping ./dist - does not exist');
-      expect(console.log).toHaveBeenCalledWith('Skipping ./assets - does not exist');
-      expect(console.log).toHaveBeenCalledWith('Skipping ./public - does not exist');
-      expect(console.log).toHaveBeenCalledWith('Skipping ./lang - does not exist');
-      expect(console.log).toHaveBeenCalledWith('Skipping ./packs - does not exist');
-      expect(console.log).toHaveBeenCalledWith('Skipping ./styles - does not exist');
-      expect(console.log).toHaveBeenCalledWith('Skipping ./module.json - does not exist');
+      expect(console.log).toHaveBeenCalledWith(
+        'Skipping ./dist - does not exist'
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        'Skipping ./assets - does not exist'
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        'Skipping ./public - does not exist'
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        'Skipping ./lang - does not exist'
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        'Skipping ./packs - does not exist'
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        'Skipping ./styles - does not exist'
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        'Skipping ./module.json - does not exist'
+      );
     });
   });
 });
@@ -427,7 +471,7 @@ describe('BuildAndDeploy', () => {
     global.console = {
       log: vi.fn(),
       warn: vi.fn(),
-      error: vi.fn()
+      error: vi.fn(),
     };
   });
 
@@ -441,7 +485,9 @@ describe('BuildAndDeploy', () => {
     it('should throw error when FoundryVTT directory not found', () => {
       fs.existsSync.mockReturnValue(false);
 
-      expect(() => new BuildAndDeploy()).toThrow('Could not find FoundryVTT user data directory');
+      expect(() => new BuildAndDeploy()).toThrow(
+        'Could not find FoundryVTT user data directory'
+      );
     });
   });
 
@@ -451,7 +497,9 @@ describe('BuildAndDeploy', () => {
 
       await buildAndDeploy.start();
 
-      expect(console.log).toHaveBeenCalledWith('Starting build and deploy process...');
+      expect(console.log).toHaveBeenCalledWith(
+        'Starting build and deploy process...'
+      );
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('Target module directory:')
       );
@@ -473,12 +521,14 @@ describe('BuildAndDeploy', () => {
     });
 
     it('should deploy only', () => {
-  // Ensure consistent platform/user mocks
-  os.platform.mockReturnValue('linux');
-  os.userInfo.mockReturnValue({ username: 'testuser' });
+      // Ensure consistent platform/user mocks
+      os.platform.mockReturnValue('linux');
+      os.userInfo.mockReturnValue({ username: 'testuser' });
 
-  // Bypass import-time platform caching by stubbing the finder result directly
-  const finderSpy = vi.spyOn(UserDataDirFinder.prototype, 'find').mockReturnValue('/home/testuser/.local/share/FoundryVTT');
+      // Bypass import-time platform caching by stubbing the finder result directly
+      const finderSpy = vi
+        .spyOn(UserDataDirFinder.prototype, 'find')
+        .mockReturnValue('/home/testuser/.local/share/FoundryVTT');
 
       // Setup fs mocks to ensure directory finding works
       fs.existsSync.mockImplementation((filePath) => {
@@ -487,8 +537,13 @@ describe('BuildAndDeploy', () => {
 
         // Mock FoundryVTT directory finding (match the exact paths the finder will check)
         if (filePath === '/home/testuser/.local/share/FoundryVTT') return true;
-        if (filePath === '/home/testuser/.local/share/FoundryVTT/Data/modules') return true;
-        if (filePath === '/home/testuser/.local/share/FoundryVTT/Data/modules/test-module') return true;
+        if (filePath === '/home/testuser/.local/share/FoundryVTT/Data/modules')
+          return true;
+        if (
+          filePath ===
+          '/home/testuser/.local/share/FoundryVTT/Data/modules/test-module'
+        )
+          return true;
         // Mock only module.json exists from TO_DEPLOY array
         if (filePath === './module.json') return true;
         return false;
@@ -500,7 +555,7 @@ describe('BuildAndDeploy', () => {
             isFile: () => true,
             isDirectory: () => false,
             size: 500,
-            mtime: new Date('2023-01-01')
+            mtime: new Date('2023-01-01'),
           };
         }
         return { isDirectory: () => true };
@@ -515,10 +570,13 @@ describe('BuildAndDeploy', () => {
 
       BuildAndDeploy.deployOnly();
 
-      expect(fs.copyFileSync).toHaveBeenCalledWith('./module.json', expect.stringContaining('module.json'));
+      expect(fs.copyFileSync).toHaveBeenCalledWith(
+        './module.json',
+        expect.stringContaining('module.json')
+      );
 
-  // cleanup
-  finderSpy.mockRestore();
+      // cleanup
+      finderSpy.mockRestore();
     });
 
     it('should throw error in deployOnly when directory not found', () => {
@@ -546,7 +604,7 @@ describe('Integration', () => {
     global.console = {
       log: vi.fn(),
       warn: vi.fn(),
-      error: vi.fn()
+      error: vi.fn(),
     };
   });
 
@@ -557,7 +615,9 @@ describe('Integration', () => {
 
     // Verify that the process was started
     expect(mockViteRunner.start).toHaveBeenCalled();
-    expect(console.log).toHaveBeenCalledWith('Starting build and deploy process...');
+    expect(console.log).toHaveBeenCalledWith(
+      'Starting build and deploy process...'
+    );
   });
 
   it('should handle errors gracefully', async () => {

@@ -54,29 +54,33 @@ Helpers.batchResolvePaths(namespace, paths, options?)
 // import RootMapParser from './helpers/rootMapParser.mjs';
 
 // Use single import:
-import Helpers from './helpers/helpers.mjs';
+import Helpers from "./helpers/helpers.mjs";
 
 // Access classes directly
-const settings = Helpers.PathUtils.resolvePath(globalThis, 'game.settings');
-const module = Helpers.getModule('my-module-id');
+const settings = Helpers.PathUtils.resolvePath(globalThis, "game.settings");
+const module = Helpers.getModule("my-module-id");
 
 // Use convenience methods
-const userSettings = Helpers.resolvePath(globalThis, 'game.user.settings');
-const pathExists = Helpers.pathExists(container, 'player.inventory');
+const userSettings = Helpers.resolvePath(globalThis, "game.user.settings");
+const pathExists = Helpers.pathExists(container, "player.inventory");
 
 // Use workflow methods
 const result = Helpers.resolveModuleConfiguration({
-  rootMap: { 
-    game: "game", 
-    user: "game.user", 
-    module: "module" 
+  rootMap: {
+    game: "game",
+    user: "game.user",
+    module: "module",
   },
-  moduleId: 'my-foundry-module'
+  moduleId: "my-foundry-module",
 });
 
 // Validate Foundry environment
 const validation = Helpers.validateFoundryEnvironment(globalThis, [
-  'game', 'game.user', 'game.modules', 'ui', 'canvas'
+  "game",
+  "game.user",
+  "game.modules",
+  "ui",
+  "canvas",
 ]);
 ```
 
@@ -145,11 +149,16 @@ if (result.exists) {
 
 // Check existence before access
 if (PathUtils.pathExistsInMixedStructure(container, "player.inventory")) {
-  const inventory = PathUtils.getValueFromMixedPath(container, "player.inventory");
+  const inventory = PathUtils.getValueFromMixedPath(
+    container,
+    "player.inventory",
+  );
 }
 
 // Extract components for dynamic processing
-const { firstKey, remainingPath } = PathUtils.extractKeyComponents("user.profile.settings.theme");
+const { firstKey, remainingPath } = PathUtils.extractKeyComponents(
+  "user.profile.settings.theme",
+);
 // firstKey: "user", remainingPath: "profile.settings.theme"
 ```
 
@@ -180,20 +189,20 @@ getModule(moduleName, globalNamespace?)
 
 ```javascript
 // Basic module retrieval
-const module = getModule('my-module-id');
+const module = getModule("my-module-id");
 if (module) {
   console.log(module.title); // Module title
   console.log(module.active); // Whether module is active
 }
 
 // Custom namespace (for testing or different environments)
-const module = getModule('test-module', customNamespace);
+const module = getModule("test-module", customNamespace);
 
 // Handle missing modules
-const module = getModule('non-existent-module'); // returns null
+const module = getModule("non-existent-module"); // returns null
 
 // Access module data
-const module = getModule('my-module');
+const module = getModule("my-module");
 if (module?.active) {
   console.log(`Module ${module.title} is active`);
   console.log(`Version: ${module.data.version}`);
@@ -237,13 +246,13 @@ const rootMap = {
   user: "game.user",
   ui: "ui.notifications",
   module: "module", // Special case - resolves to actual module
-  settings: "game.settings"
+  settings: "game.settings",
 };
 
 const resolved = RootMapParser.parse({
   rootMap,
   namespace: globalThis,
-  module: 'my-foundry-module'
+  module: "my-foundry-module",
 });
 
 console.log(resolved.game); // globalThis.game
@@ -254,27 +263,27 @@ console.log(resolved.ui); // globalThis.ui.notifications
 // Parse specific key only
 const gameObject = RootMapParser.parse({
   rootMap,
-  key: 'game',
+  key: "game",
   namespace: globalThis,
-  module: 'my-module'
+  module: "my-module",
 });
 
 // Nested root map parsing
 const nestedConfig = {
   external: {
     window: "window",
-    game: "game"
+    game: "game",
   },
   internal: {
     module: "module",
-    settings: "game.settings"
-  }
+    settings: "game.settings",
+  },
 };
 
 const nestedResolved = RootMapParser.parse({
   rootMap: nestedConfig,
   namespace: globalThis,
-  module: 'my-module'
+  module: "my-module",
 });
 // Results in nested structure with resolved references
 ```
@@ -317,13 +326,13 @@ try {
   const detailed = formatError(error, {
     includeStack: true,
     moduleContext: true,
-    timestamp: true
+    timestamp: true,
   });
   console.error(detailed);
 
   // Custom format
   const custom = formatError(error, {
-    format: 'json'
+    format: "json",
   });
 }
 ```
@@ -344,25 +353,25 @@ const result = Helpers.resolveModuleConfiguration({
     user: "game.user",
     canvas: "canvas",
     ui: "ui.notifications",
-    
+
     // Module reference
     module: "module",
-    
+
     // Nested configuration
     contexts: {
       player: "game.user",
-      world: "game.world"
-    }
+      world: "game.world",
+    },
   },
-  moduleId: 'my-foundry-module',
-  namespace: globalThis
+  moduleId: "my-foundry-module",
+  namespace: globalThis,
 });
 
 if (result.success) {
-  console.log('Module:', result.module);
-  console.log('Resolved Config:', result.resolvedConfig);
+  console.log("Module:", result.module);
+  console.log("Resolved Config:", result.resolvedConfig);
 } else {
-  console.error('Configuration failed:', result.error);
+  console.error("Configuration failed:", result.error);
 }
 ```
 
@@ -371,20 +380,20 @@ if (result.success) {
 ```javascript
 // Validate Foundry environment setup
 const validation = Helpers.validateFoundryEnvironment(globalThis, [
-  'game',
-  'game.user',
-  'game.modules',
-  'game.settings',
-  'ui',
-  'ui.notifications',
-  'canvas'
+  "game",
+  "game.user",
+  "game.modules",
+  "game.settings",
+  "ui",
+  "ui.notifications",
+  "canvas",
 ]);
 
 if (validation.isValid) {
-  console.log('Environment ready:', validation.summary);
+  console.log("Environment ready:", validation.summary);
   // Proceed with module initialization
 } else {
-  console.error('Missing required objects:', validation.missingPaths);
+  console.error("Missing required objects:", validation.missingPaths);
   // Handle incomplete environment
 }
 ```
@@ -394,23 +403,23 @@ if (validation.isValid) {
 ```javascript
 // Resolve multiple paths at once
 const paths = {
-  currentUser: 'game.user',
-  gameSettings: 'game.settings',
-  notifications: 'ui.notifications',
-  modules: 'game.modules',
-  activeScene: 'game.scenes.active'
+  currentUser: "game.user",
+  gameSettings: "game.settings",
+  notifications: "ui.notifications",
+  modules: "game.modules",
+  activeScene: "game.scenes.active",
 };
 
 const resolution = Helpers.batchResolvePaths(globalThis, paths, {
-  continueOnError: true
+  continueOnError: true,
 });
 
 if (resolution.success) {
-  console.log('All paths resolved:', resolution.resolved);
+  console.log("All paths resolved:", resolution.resolved);
 } else {
-  console.log('Resolved:', resolution.resolved);
-  console.error('Failed:', resolution.failed);
-  console.error('Errors:', resolution.errors);
+  console.log("Resolved:", resolution.resolved);
+  console.error("Failed:", resolution.failed);
+  console.error("Errors:", resolution.errors);
 }
 ```
 
@@ -494,11 +503,13 @@ npm test -- tests/integration/pathUtils-moduleGetter-rootMapParser.int.test.mjs
 Use `Helpers` as the single entry point when importing from outside the helpers folder:
 
 ```javascript
-import Helpers from './helpers/helpers.mjs';
+import Helpers from "./helpers/helpers.mjs";
 
 // Use convenience methods
-const config = Helpers.parseRootMap({ /* config */ });
-const module = Helpers.getModule('module-id');
+const config = Helpers.parseRootMap({
+  /* config */
+});
+const module = Helpers.getModule("module-id");
 
 // Or access classes directly
 const resolved = Helpers.PathUtils.resolvePath(namespace, path);
@@ -509,8 +520,8 @@ const resolved = Helpers.PathUtils.resolvePath(namespace, path);
 Use direct imports within the helpers folder to avoid circular dependencies:
 
 ```javascript
-import PathUtils from './pathUtils.mjs';
-import { getModule } from './moduleGetter.mjs';
+import PathUtils from "./pathUtils.mjs";
+import { getModule } from "./moduleGetter.mjs";
 ```
 
 ### Performance Considerations

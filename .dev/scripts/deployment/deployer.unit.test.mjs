@@ -1,10 +1,19 @@
 /**
  * @file deployer.unit.test.mjs
  * @description Unit tests for ModuleDeployer class
- * @path scripts/dev/deployer.unit.test.mjs
+ * @path .dev/scripts/deployment/deployer.unit.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import ModuleDeployer from './deployer.mjs';
@@ -17,19 +26,27 @@ vi.mock('fs', () => ({
     statSync: vi.fn(),
     copyFileSync: vi.fn(),
     readdirSync: vi.fn(),
-  }
+  },
 }));
 vi.mock('path', () => ({
   default: {
     join: vi.fn(),
     basename: vi.fn(),
-  }
+  },
 }));
 
 describe('ModuleDeployer', () => {
   let mockFs;
   let mockPath;
-  const TO_DEPLOY = ['./dist', './assets', './public', './lang', './packs', './styles', './module.json'];
+  const TO_DEPLOY = [
+    './dist',
+    './assets',
+    './public',
+    './lang',
+    './packs',
+    './styles',
+    './module.json',
+  ];
 
   beforeEach(() => {
     mockFs = fs;
@@ -45,12 +62,14 @@ describe('ModuleDeployer', () => {
       isFile: () => true,
       isDirectory: () => false,
       size: 1000,
-      mtime: new Date('2023-01-01')
+      mtime: new Date('2023-01-01'),
     });
     mockFs.copyFileSync.mockImplementation();
     mockFs.mkdirSync.mockImplementation();
     mockPath.join.mockImplementation((...args) => args.join('/'));
-    mockPath.basename.mockImplementation((filePath) => filePath.split('/').pop());
+    mockPath.basename.mockImplementation((filePath) =>
+      filePath.split('/').pop()
+    );
   });
 
   describe('constructor', () => {
@@ -81,19 +100,25 @@ describe('ModuleDeployer', () => {
     it('should throw error when target directory not specified', () => {
       const deployer = new ModuleDeployer();
 
-      expect(() => deployer.deploy()).toThrow('Target directory not specified for deployment');
+      expect(() => deployer.deploy()).toThrow(
+        'Target directory not specified for deployment'
+      );
     });
 
     it('should throw error when target directory is null', () => {
       const deployer = new ModuleDeployer(null);
 
-      expect(() => deployer.deploy()).toThrow('Target directory not specified for deployment');
+      expect(() => deployer.deploy()).toThrow(
+        'Target directory not specified for deployment'
+      );
     });
 
     it('should throw error when target directory is empty string', () => {
       const deployer = new ModuleDeployer('');
 
-      expect(() => deployer.deploy()).toThrow('Target directory not specified for deployment');
+      expect(() => deployer.deploy()).toThrow(
+        'Target directory not specified for deployment'
+      );
     });
 
     it('should create target directory if it does not exist', () => {
@@ -106,8 +131,12 @@ describe('ModuleDeployer', () => {
 
       deployer.deploy();
 
-      expect(mockFs.mkdirSync).toHaveBeenCalledWith('/target/dir', { recursive: true });
-      expect(consoleSpy).toHaveBeenCalledWith('Created target directory: /target/dir');
+      expect(mockFs.mkdirSync).toHaveBeenCalledWith('/target/dir', {
+        recursive: true,
+      });
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Created target directory: /target/dir'
+      );
     });
 
     it('should sync all TO_DEPLOY items successfully', () => {
@@ -126,25 +155,32 @@ describe('ModuleDeployer', () => {
             isFile: () => true,
             isDirectory: () => false,
             size: 500,
-            mtime: new Date('2023-01-01')
+            mtime: new Date('2023-01-01'),
           };
         }
         return {
           isFile: () => false,
           isDirectory: () => true,
           size: 0,
-          mtime: new Date('2023-01-01')
+          mtime: new Date('2023-01-01'),
         };
       });
 
-  // Mock the date string to ensure deterministic assertion
-  const dateSpy = vi.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
+      // Mock the date string to ensure deterministic assertion
+      const dateSpy = vi
+        .spyOn(Date.prototype, 'toLocaleString')
+        .mockReturnValue('TEST_TIME');
 
-  deployer.deploy();
+      deployer.deploy();
 
-  expect(consoleSpy).toHaveBeenCalledWith('Syncing TO_DEPLOY items to /target/dir at TEST_TIME');
-  dateSpy.mockRestore();
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./module.json', '/target/dir/module.json');
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Syncing TO_DEPLOY items to /target/dir at TEST_TIME'
+      );
+      dateSpy.mockRestore();
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith(
+        './module.json',
+        '/target/dir/module.json'
+      );
       expect(consoleSpy).toHaveBeenCalledWith('Synced: module.json');
     });
 
@@ -159,8 +195,12 @@ describe('ModuleDeployer', () => {
 
       deployer.deploy();
 
-      expect(consoleSpy).toHaveBeenCalledWith('Skipping ./assets - does not exist');
-      expect(consoleSpy).toHaveBeenCalledWith('Skipping ./public - does not exist');
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Skipping ./assets - does not exist'
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Skipping ./public - does not exist'
+      );
     });
 
     it('should only copy changed files', () => {
@@ -174,12 +214,15 @@ describe('ModuleDeployer', () => {
       });
 
       mockFs.statSync.mockImplementation((filePath) => {
-        if (filePath === './module.json' || filePath === '/target/dir/module.json') {
+        if (
+          filePath === './module.json' ||
+          filePath === '/target/dir/module.json'
+        ) {
           return {
             isFile: () => true,
             isDirectory: () => false,
             size: 500,
-            mtime: new Date('2023-01-01')
+            mtime: new Date('2023-01-01'),
           };
         }
         return { isFile: () => false, isDirectory: () => true };
@@ -187,7 +230,10 @@ describe('ModuleDeployer', () => {
 
       deployer.deploy();
 
-      expect(mockFs.copyFileSync).not.toHaveBeenCalledWith('./module.json', '/target/dir/module.json');
+      expect(mockFs.copyFileSync).not.toHaveBeenCalledWith(
+        './module.json',
+        '/target/dir/module.json'
+      );
       expect(consoleSpy).toHaveBeenCalledWith('Unchanged: module.json');
     });
 
@@ -206,7 +252,7 @@ describe('ModuleDeployer', () => {
             isFile: () => true,
             isDirectory: () => false,
             size: 600, // Different size
-            mtime: new Date('2023-01-01')
+            mtime: new Date('2023-01-01'),
           };
         }
         if (filePath === '/target/dir/module.json') {
@@ -214,7 +260,7 @@ describe('ModuleDeployer', () => {
             isFile: () => true,
             isDirectory: () => false,
             size: 500,
-            mtime: new Date('2023-01-01')
+            mtime: new Date('2023-01-01'),
           };
         }
         return { isFile: () => false, isDirectory: () => true };
@@ -222,7 +268,10 @@ describe('ModuleDeployer', () => {
 
       deployer.deploy();
 
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./module.json', '/target/dir/module.json');
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith(
+        './module.json',
+        '/target/dir/module.json'
+      );
       expect(consoleSpy).toHaveBeenCalledWith('Synced: module.json');
     });
 
@@ -241,7 +290,7 @@ describe('ModuleDeployer', () => {
             isFile: () => true,
             isDirectory: () => false,
             size: 500,
-            mtime: new Date('2023-01-02') // Newer
+            mtime: new Date('2023-01-02'), // Newer
           };
         }
         if (filePath === '/target/dir/module.json') {
@@ -249,7 +298,7 @@ describe('ModuleDeployer', () => {
             isFile: () => true,
             isDirectory: () => false,
             size: 500,
-            mtime: new Date('2023-01-01')
+            mtime: new Date('2023-01-01'),
           };
         }
         return { isFile: () => false, isDirectory: () => true };
@@ -257,7 +306,10 @@ describe('ModuleDeployer', () => {
 
       deployer.deploy();
 
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./module.json', '/target/dir/module.json');
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith(
+        './module.json',
+        '/target/dir/module.json'
+      );
       expect(consoleSpy).toHaveBeenCalledWith('Synced: module.json');
     });
   });
@@ -292,7 +344,7 @@ describe('ModuleDeployer', () => {
           isFile: () => true,
           isDirectory: () => false,
           size: 1000,
-          mtime: new Date('2023-01-01')
+          mtime: new Date('2023-01-01'),
         };
       });
 
@@ -303,7 +355,9 @@ describe('ModuleDeployer', () => {
 
       deployer.deploy();
 
-      expect(mockFs.mkdirSync).toHaveBeenCalledWith('/target/dir/dist', { recursive: true });
+      expect(mockFs.mkdirSync).toHaveBeenCalledWith('/target/dir/dist', {
+        recursive: true,
+      });
       expect(consoleSpy).toHaveBeenCalledWith('Created directory: dist');
     });
 
@@ -325,7 +379,7 @@ describe('ModuleDeployer', () => {
           isFile: () => true,
           isDirectory: () => false,
           size: 1000,
-          mtime: new Date('2023-01-01')
+          mtime: new Date('2023-01-01'),
         };
       });
 
@@ -337,10 +391,21 @@ describe('ModuleDeployer', () => {
 
       deployer.deploy();
 
-      expect(mockFs.mkdirSync).toHaveBeenCalledWith('/target/dir/dist', { recursive: true });
-      expect(mockFs.mkdirSync).toHaveBeenCalledWith('/target/dir/dist/subfolder', { recursive: true });
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/main.mjs', '/target/dir/dist/main.mjs');
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/subfolder/nested.mjs', '/target/dir/dist/subfolder/nested.mjs');
+      expect(mockFs.mkdirSync).toHaveBeenCalledWith('/target/dir/dist', {
+        recursive: true,
+      });
+      expect(mockFs.mkdirSync).toHaveBeenCalledWith(
+        '/target/dir/dist/subfolder',
+        { recursive: true }
+      );
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith(
+        './dist/main.mjs',
+        '/target/dir/dist/main.mjs'
+      );
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith(
+        './dist/subfolder/nested.mjs',
+        '/target/dir/dist/subfolder/nested.mjs'
+      );
     });
   });
 
@@ -430,24 +495,39 @@ describe('ModuleDeployer', () => {
             isFile: () => true,
             isDirectory: () => false,
             size: 1000,
-            mtime: new Date('2023-01-01')
+            mtime: new Date('2023-01-01'),
           };
         }
         return { isFile: () => false, isDirectory: () => true };
       });
 
-  // Mock the date string to ensure deterministic assertion
-  const dateSpy2 = vi.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
+      // Mock the date string to ensure deterministic assertion
+      const dateSpy2 = vi
+        .spyOn(Date.prototype, 'toLocaleString')
+        .mockReturnValue('TEST_TIME');
 
-  deployer.deploy();
+      deployer.deploy();
 
-  expect(consoleSpy).toHaveBeenCalledWith('Syncing TO_DEPLOY items to /foundry/modules/test-module at TEST_TIME');
-  dateSpy2.mockRestore();
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./module.json', '/foundry/modules/test-module/module.json');
-      expect(consoleSpy).toHaveBeenCalledWith('Skipping ./dist - does not exist');
-      expect(consoleSpy).toHaveBeenCalledWith('Skipping ./assets - does not exist');
-      expect(consoleSpy).toHaveBeenCalledWith('Skipping ./public - does not exist');
-      expect(consoleSpy).toHaveBeenCalledWith('Skipping ./lang - does not exist');
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Syncing TO_DEPLOY items to /foundry/modules/test-module at TEST_TIME'
+      );
+      dateSpy2.mockRestore();
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith(
+        './module.json',
+        '/foundry/modules/test-module/module.json'
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Skipping ./dist - does not exist'
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Skipping ./assets - does not exist'
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Skipping ./public - does not exist'
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Skipping ./lang - does not exist'
+      );
     });
 
     it('should handle mixed existing and non-existing TO_DEPLOY items', () => {
@@ -467,12 +547,24 @@ describe('ModuleDeployer', () => {
 
       deployer.deploy();
 
-      expect(consoleSpy).toHaveBeenCalledWith('Skipping ./dist - does not exist');
-      expect(consoleSpy).toHaveBeenCalledWith('Skipping ./assets - does not exist');
-      expect(consoleSpy).toHaveBeenCalledWith('Skipping ./public - does not exist');
-      expect(consoleSpy).toHaveBeenCalledWith('Skipping ./lang - does not exist');
-      expect(consoleSpy).toHaveBeenCalledWith('Skipping ./packs - does not exist');
-      expect(consoleSpy).toHaveBeenCalledWith('Skipping ./styles - does not exist');
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Skipping ./dist - does not exist'
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Skipping ./assets - does not exist'
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Skipping ./public - does not exist'
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Skipping ./lang - does not exist'
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Skipping ./packs - does not exist'
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Skipping ./styles - does not exist'
+      );
     });
   });
 
@@ -502,17 +594,30 @@ describe('ModuleDeployer', () => {
           isFile: () => true,
           isDirectory: () => false,
           size: 1000,
-          mtime: new Date('2023-01-01')
+          mtime: new Date('2023-01-01'),
         };
       });
 
-      mockFs.readdirSync.mockReturnValue(['file with spaces.mjs', 'file-with-dashes.css', 'file_with_underscores.json']);
+      mockFs.readdirSync.mockReturnValue([
+        'file with spaces.mjs',
+        'file-with-dashes.css',
+        'file_with_underscores.json',
+      ]);
 
       deployer.deploy();
 
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/file with spaces.mjs', '/target/dist/file with spaces.mjs');
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/file-with-dashes.css', '/target/dist/file-with-dashes.css');
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/file_with_underscores.json', '/target/dist/file_with_underscores.json');
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith(
+        './dist/file with spaces.mjs',
+        '/target/dist/file with spaces.mjs'
+      );
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith(
+        './dist/file-with-dashes.css',
+        '/target/dist/file-with-dashes.css'
+      );
+      expect(mockFs.copyFileSync).toHaveBeenCalledWith(
+        './dist/file_with_underscores.json',
+        '/target/dist/file_with_underscores.json'
+      );
     });
 
     it('should handle empty directories', () => {
@@ -530,7 +635,9 @@ describe('ModuleDeployer', () => {
 
       deployer.deploy();
 
-      expect(mockFs.mkdirSync).toHaveBeenCalledWith('/target/dist', { recursive: true });
+      expect(mockFs.mkdirSync).toHaveBeenCalledWith('/target/dist', {
+        recursive: true,
+      });
       expect(mockFs.copyFileSync).not.toHaveBeenCalled();
     });
   });

@@ -21,7 +21,7 @@
       "@validator": ["src/utils/static/validator.mjs"],
       "@integrationTests/*": ["tests/integration/*"],
       "@mocks/*": ["tests/mocks/*"],
-      "@module": ["module.json"],
+      "@module": ["module.json"]
     }
   },
   "include": ["src/**/*", "tests/**/*"],

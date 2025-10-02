@@ -26,66 +26,68 @@ Centralized entry point for all context helper classes and methods. This class p
 
 #### Public API
 
-````javascript
+```javascript
 // All helper classes exposed as static properties
-ContextHelpers.Item
-ContextHelpers.Container
-ContextHelpers.ValueWrapper
-ContextHelpers.PathUtils
-ContextHelpers.ItemSetter
-ContextHelpers.Sync
-ContextHelpers.ItemSync
-ContextHelpers.ContainerSync
-ContextHelpers.ContainerSyncEngine
-ContextHelpers.AutoSync
-ContextHelpers.LegacySync
-ContextHelpers.Merger
-ContextHelpers.Operations
-ContextHelpers.Filter
-ContextHelpers.Comparison
-ContextHelpers.Validator
+ContextHelpers.Item;
+ContextHelpers.Container;
+ContextHelpers.ValueWrapper;
+ContextHelpers.PathUtils;
+ContextHelpers.ItemSetter;
+ContextHelpers.Sync;
+ContextHelpers.ItemSync;
+ContextHelpers.ContainerSync;
+ContextHelpers.ContainerSyncEngine;
+ContextHelpers.AutoSync;
+ContextHelpers.LegacySync;
+ContextHelpers.Merger;
+ContextHelpers.Operations;
+ContextHelpers.Filter;
+ContextHelpers.Comparison;
+ContextHelpers.Validator;
 
 // Convenience methods for common operations
-ContextHelpers.sync(source, target, operation, options)         // async
-ContextHelpers.syncSafe(source, target, operation, options)     // async
-ContextHelpers.autoSync(source, target, options)               // async
-ContextHelpers.merge(source, target, strategy, options)
-ContextHelpers.compare(source, target, options)
-ContextHelpers.wrap(value, options)
-ContextHelpers.resolveMixedPath(rootObject, path)
-ContextHelpers.pathExists(rootObject, path)
-ContextHelpers.getValueFromMixedPath(rootObject, path)
+ContextHelpers.sync(source, target, operation, options); // async
+ContextHelpers.syncSafe(source, target, operation, options); // async
+ContextHelpers.autoSync(source, target, options); // async
+ContextHelpers.merge(source, target, strategy, options);
+ContextHelpers.compare(source, target, options);
+ContextHelpers.wrap(value, options);
+ContextHelpers.resolveMixedPath(rootObject, path);
+ContextHelpers.pathExists(rootObject, path);
+ContextHelpers.getValueFromMixedPath(rootObject, path);
 
 // Constants and enums
-ContextHelpers.SYNC_OPERATIONS
-ContextHelpers.COMPARISON_RESULTS
-ContextHelpers.MERGE_STRATEGIES
-
-````
+ContextHelpers.SYNC_OPERATIONS;
+ContextHelpers.COMPARISON_RESULTS;
+ContextHelpers.MERGE_STRATEGIES;
+```
 
 #### Example Usage
 
-````javascript
+```javascript
 // Instead of multiple imports:
 // import { ContextItem } from './helpers/contextItem.mjs';
 // import ContextSync from './helpers/contextSync.mjs';
 // import ContextMerger from './helpers/contextMerger.mjs';
 
 // Use single import:
-import ContextHelpers from './helpers/contextHelpers.mjs';
+import ContextHelpers from "./helpers/contextHelpers.mjs";
 
 // Access classes
-const item = new ContextHelpers.Item('value');
-const result = await ContextHelpers.sync(source, target, 'mergeNewerWins');
+const item = new ContextHelpers.Item("value");
+const result = await ContextHelpers.sync(source, target, "mergeNewerWins");
 const merged = ContextHelpers.merge(source, target);
 
 // Use path utilities
-const pathValue = ContextHelpers.getValueFromMixedPath(container, 'player.stats.level');
-const pathExists = ContextHelpers.pathExists(container, 'player.name');
+const pathValue = ContextHelpers.getValueFromMixedPath(
+  container,
+  "player.stats.level",
+);
+const pathExists = ContextHelpers.pathExists(container, "player.name");
 
 // Use constants
 const operation = ContextHelpers.SYNC_OPERATIONS.MERGE_NEWER_WINS;
-````
+```
 
 **Note**: For usage within the helpers folder, continue to use direct imports for better dependency management and to avoid circular dependencies.
 
@@ -103,16 +105,16 @@ contextHelpers.unit.test.mjs
 Before ContextHelpers, context.mjs had multiple imports:
 
 ```javascript
-import { ContextContainer } from './helpers/contextContainer.mjs';
-import ContextMerger from './helpers/contextMerger.mjs';
-import ContextSync from './helpers/contextSync.mjs';
-import ContextOperations from './helpers/contextOperations.mjs';
+import { ContextContainer } from "./helpers/contextContainer.mjs";
+import ContextMerger from "./helpers/contextMerger.mjs";
+import ContextSync from "./helpers/contextSync.mjs";
+import ContextOperations from "./helpers/contextOperations.mjs";
 ```
 
 With ContextHelpers, this simplifies to:
 
 ```javascript
-import ContextHelpers from './helpers/contextHelpers.mjs';
+import ContextHelpers from "./helpers/contextHelpers.mjs";
 
 // Then use: ContextHelpers.Container, ContextHelpers.Merger, etc.
 ```
@@ -129,35 +131,30 @@ Represents a single data item with metadata, timestamps, and access tracking cap
 
 #### Public API
 
-````javascript
+```javascript
 // Constructor
-new ContextItem(initialValue, metadata = {}, options = {})
+new ContextItem(
+  initialValue,
+  (metadata = {}),
+  (options = {}),
+)// Properties (getters/setters)
+.value.metadata.createdAt.modifiedAt.lastAccessedAt.frozen.recordAccess.recordAccessForMetadata // The stored value // Associated metadata object // Creation timestamp (read-only) // Last modification timestamp (read-only) // Last access timestamp (read-only) // Frozen state (read-only) // Whether to record access // Whether to record metadata access
 
-// Properties (getters/setters)
-.value          // The stored value
-.metadata       // Associated metadata object
-.createdAt      // Creation timestamp (read-only)
-.modifiedAt     // Last modification timestamp (read-only)
-.lastAccessedAt // Last access timestamp (read-only)
-.frozen         // Frozen state (read-only)
-.recordAccess   // Whether to record access
-.recordAccessForMetadata // Whether to record metadata access
-
-// Methods
-.freeze()       // Freeze the item (prevents modifications)
-.setMetadata(newMetadata, recordAccess = true) // Update metadata
-.clone()        // Create a deep copy
-````
+  // Methods
+  .freeze() // Freeze the item (prevents modifications)
+  .setMetadata(newMetadata, (recordAccess = true)) // Update metadata
+  .clone(); // Create a deep copy
+```
 
 #### Example Usage
 
-````javascript
-const item = new ContextItem('hello', { type: 'greeting' });
+```javascript
+const item = new ContextItem("hello", { type: "greeting" });
 console.log(item.value); // 'hello'
 console.log(item.metadata); // { type: 'greeting' }
-item.value = 'goodbye';
+item.value = "goodbye";
 console.log(item.modifiedAt); // Updated timestamp
-````
+```
 
 ### ContextContainer
 
@@ -169,68 +166,64 @@ Manages collections of named ContextItems or nested ContextContainers with suppo
 
 #### Public API
 
-````javascript
+```javascript
 // Constructor
-new ContextContainer(initialValue = {}, metadata = {}, options = {})
-// Options:
+new ContextContainer(
+  (initialValue = {}),
+  (metadata = {}),
+  (options = {}),
+)// Options:
 // - enhancedNestedPathChecking: boolean (default: false) - Enable checking nested paths in plain objects
 
 // Properties (getters/setters)
-.value          // Plain object representation of all items
-.size           // Number of items in container
-.metadata       // Container metadata (delegated to internal ContextItem)
-.createdAt      // Creation timestamp (delegated)
-.modifiedAt     // Last modification timestamp (delegated)
-.lastAccessedAt // Last access timestamp (delegated)
-.recordAccess   // Whether to record access (delegated)
-.enhancedNestedPathChecking // Whether enhanced nested path checking is enabled (read-only)
+.value.size.metadata.createdAt.modifiedAt.lastAccessedAt.recordAccess.enhancedNestedPathChecking // Plain object representation of all items // Number of items in container // Container metadata (delegated to internal ContextItem) // Creation timestamp (delegated) // Last modification timestamp (delegated) // Last access timestamp (delegated) // Whether to record access (delegated) // Whether enhanced nested path checking is enabled (read-only)
 
-// Item Management
-.setItem(key, value, options = {}) // Set/update item (supports dot notation)
-.getItem(key)                      // Get item (supports dot notation)
-.hasItem(key)                      // Check if item exists (supports enhanced nested path checking)
-.deleteItem(key)                   // Remove item
-.clear()                           // Remove all items
+  // Item Management
+  .setItem(key, value, (options = {})) // Set/update item (supports dot notation)
+  .getItem(key) // Get item (supports dot notation)
+  .hasItem(key) // Check if item exists (supports enhanced nested path checking)
+  .deleteItem(key) // Remove item
+  .clear() // Remove all items
 
-// Bulk Operations
-.setItems(itemsObject, options = {}) // Set multiple items
-.getItems()                          // Get all items as plain object
-.getAllItems()                       // Get all managed items (ContextItem/ContextContainer instances)
+  // Bulk Operations
+  .setItems(itemsObject, (options = {})) // Set multiple items
+  .getItems() // Get all items as plain object
+  .getAllItems() // Get all managed items (ContextItem/ContextContainer instances)
 
-// Utility
-.clone()                // Create deep copy
-.freeze()               // Freeze container and all items
-.getItemPaths()         // Get array of all item paths
-````
+  // Utility
+  .clone() // Create deep copy
+  .freeze() // Freeze container and all items
+  .getItemPaths(); // Get array of all item paths
+```
 
 #### Example Usage
 
-````javascript
+```javascript
 const container = new ContextContainer({
-  player: { name: 'John', level: 5 },
-  settings: { volume: 0.8 }
+  player: { name: "John", level: 5 },
+  settings: { volume: 0.8 },
 });
 
-console.log(container.getItem('player.name')); // 'John'
-container.setItem('player.level', 6);
+console.log(container.getItem("player.name")); // 'John'
+container.setItem("player.level", 6);
 console.log(container.size); // 2
 
 // Enhanced nested path checking (optional)
 const enhancedContainer = new ContextContainer(
   { player: { stats: { level: 5 } } },
   {},
-  { enhancedNestedPathChecking: true }
+  { enhancedNestedPathChecking: true },
 );
 
 // Default behavior: only finds top-level items in plain objects
-console.log(container.hasItem('player')); // true
-console.log(container.hasItem('player.name')); // false (default)
+console.log(container.hasItem("player")); // true
+console.log(container.hasItem("player.name")); // false (default)
 
 // Enhanced behavior: finds nested paths in plain objects
-console.log(enhancedContainer.hasItem('player')); // true
-console.log(enhancedContainer.hasItem('player.stats')); // true (enhanced)
-console.log(enhancedContainer.hasItem('player.stats.level')); // true (enhanced)
-````
+console.log(enhancedContainer.hasItem("player")); // true
+console.log(enhancedContainer.hasItem("player.stats")); // true (enhanced)
+console.log(enhancedContainer.hasItem("player.stats.level")); // true (enhanced)
+```
 
 ### ContextValueWrapper
 
@@ -242,21 +235,21 @@ Static utility class for wrapping raw values into ContextItem or ContextContaine
 
 #### Public API
 
-````javascript
+```javascript
 // Static Methods
-ContextValueWrapper.wrap(value, options = {})
+ContextValueWrapper.wrap(value, (options = {}));
 // Options: wrapAs, wrapPrimitives, recordAccess, recordAccessForMetadata, frozen, metadata, containerOptions
-````
+```
 
 #### Example Usage
 
-````javascript
-const wrapped = ContextValueWrapper.wrap('hello', {
-  wrapAs: 'ContextItem',
-  metadata: { type: 'greeting' }
+```javascript
+const wrapped = ContextValueWrapper.wrap("hello", {
+  wrapAs: "ContextItem",
+  metadata: { type: "greeting" },
 });
 console.log(wrapped instanceof ContextItem); // true
-````
+```
 
 ## Path Utilities
 
@@ -270,35 +263,45 @@ Context-aware path utilities that handle mixed ContextContainer/plain object str
 
 #### Public API
 
-````javascript
+```javascript
 // Static Methods
-ContextPathUtils.resolveMixedPath(rootObject, path)
-ContextPathUtils.pathExistsInMixedStructure(rootObject, path)
-ContextPathUtils.getValueFromMixedPath(rootObject, path)
-````
+ContextPathUtils.resolveMixedPath(rootObject, path);
+ContextPathUtils.pathExistsInMixedStructure(rootObject, path);
+ContextPathUtils.getValueFromMixedPath(rootObject, path);
+```
 
 #### Example Usage
 
-````javascript
+```javascript
 // Navigate through mixed ContextContainer and plain object structures
 const container = new ContextContainer();
-container.setItem('player', { name: 'John', stats: { level: 5 } });
+container.setItem("player", { name: "John", stats: { level: 5 } });
 
 // Resolve path through ContextContainer -> plain object -> plain object
-const result = ContextPathUtils.resolveMixedPath(container, 'player.stats.level');
+const result = ContextPathUtils.resolveMixedPath(
+  container,
+  "player.stats.level",
+);
 console.log(result.exists); // true
-console.log(result.value);  // 5
+console.log(result.value); // 5
 
 // Check if path exists
-const exists = ContextPathUtils.pathExistsInMixedStructure(container, 'player.name');
+const exists = ContextPathUtils.pathExistsInMixedStructure(
+  container,
+  "player.name",
+);
 console.log(exists); // true
 
 // Get value directly
-const playerName = ContextPathUtils.getValueFromMixedPath(container, 'player.name');
+const playerName = ContextPathUtils.getValueFromMixedPath(
+  container,
+  "player.name",
+);
 console.log(playerName); // 'John'
-````
+```
 
 **Key Features**:
+
 - **Mixed Navigation**: Handles both ContextContainer (using `hasItem`/`getItem`) and plain objects (using property access)
 - **Strategy Pattern**: Uses the generic PathUtils with a context-aware navigation strategy
 - **SRP Compliance**: Separates context-specific logic from generic path utilities
@@ -313,30 +316,31 @@ console.log(playerName); // 'John'
 **Exports**: `ContextSync` (class)
 
 Facade class providing synchronization capabilities for all context types. Uses delegation pattern to route synchronization operations to specialized classes:
+
 - **Context instances**: Delegates to ContextMerger (dynamically imported) for sophisticated handling
 - **ContextContainer/ContextItem instances**: Delegates to ContextLegacySync for backward compatibility
 - **Type detection**: Uses `isContextObject` property for Context instances, `instanceof` for others
 
 #### Public API
 
-````javascript
+```javascript
 // Static Constants (delegated from specialized classes)
-ContextSync.SYNC_OPERATIONS = ContextLegacySync.SYNC_OPERATIONS
-ContextSync.COMPARISON_RESULTS = ContextComparison.COMPARISON_RESULTS
+ContextSync.SYNC_OPERATIONS = ContextLegacySync.SYNC_OPERATIONS;
+ContextSync.COMPARISON_RESULTS = ContextComparison.COMPARISON_RESULTS;
 
 // Static Methods
-ContextSync.compare(source, target, options = {})
-ContextSync.sync(source, target, operation, options = {})           // async
-ContextSync.syncSafe(source, target, operation, options = {})       // async
-ContextSync.autoSync(source, target, options = {})                  // async
-ContextSync.validateCompatibility(source, target)
+ContextSync.compare(source, target, (options = {}));
+ContextSync.sync(source, target, operation, (options = {})); // async
+ContextSync.syncSafe(source, target, operation, (options = {})); // async
+ContextSync.autoSync(source, target, (options = {})); // async
+ContextSync.validateCompatibility(source, target);
 
 // Sync Options:
 // - deepSync: boolean = true - Deep synchronization for nested structures
 // - compareBy: string = 'modifiedAt' - Timestamp field for comparison
 // - preserveMetadata: boolean = true - Whether to preserve metadata
 // - autoSync: boolean = false - Use automatic sync operation detection
-````
+```
 
 #### Key Features
 
@@ -348,12 +352,12 @@ ContextSync.validateCompatibility(source, target)
 
 #### Example Usage
 
-````javascript
+```javascript
 // Basic synchronization
 const result = await ContextSync.sync(
   sourceContext,
   targetContext,
-  ContextSync.SYNC_OPERATIONS.MERGE_NEWER_WINS
+  ContextSync.SYNC_OPERATIONS.MERGE_NEWER_WINS,
 );
 console.log(result.success); // true/false
 console.log(result.changes); // Array of changes made
@@ -362,8 +366,8 @@ console.log(result.changes); // Array of changes made
 const safeResult = await ContextSync.syncSafe(
   sourceContext,
   targetContext,
-  'mergeNewerWins',
-  { deepSync: true, preserveMetadata: false }
+  "mergeNewerWins",
+  { deepSync: true, preserveMetadata: false },
 );
 console.log(safeResult.success); // true/false
 console.log(safeResult.warnings); // Array of warnings
@@ -371,7 +375,7 @@ console.log(safeResult.error); // Error message if failed
 
 // Automatic sync detection
 const autoResult = await ContextSync.autoSync(sourceContext, targetContext, {
-  compareBy: 'modifiedAt'
+  compareBy: "modifiedAt",
 });
 
 // Compatibility validation
@@ -379,7 +383,7 @@ const isCompatible = ContextSync.validateCompatibility(source, target);
 if (isCompatible) {
   // Proceed with synchronization
 }
-````
+```
 
 ### ContextItemSync
 
@@ -391,13 +395,13 @@ Specialized synchronization for ContextItem instances.
 
 #### Public API
 
-````javascript
+```javascript
 // Static Methods
-ContextItemSync.updateTargetToMatchSource(source, target, options = {})
-ContextItemSync.updateSourceToMatchTarget(source, target, options = {})
-ContextItemSync.mergeNewerWins(source, target, options = {})
-ContextItemSync.mergeWithPriority(source, target, priority, options = {})
-````
+ContextItemSync.updateTargetToMatchSource(source, target, (options = {}));
+ContextItemSync.updateSourceToMatchTarget(source, target, (options = {}));
+ContextItemSync.mergeNewerWins(source, target, (options = {}));
+ContextItemSync.mergeWithPriority(source, target, priority, (options = {}));
+```
 
 ### ContextContainerSync
 
@@ -409,13 +413,18 @@ Synchronization capabilities for ContextContainer instances with deep sync suppo
 
 #### Public API
 
-````javascript
+```javascript
 // Static Methods
-ContextContainerSync.updateSourceToMatchTarget(source, target, options = {})
-ContextContainerSync.updateTargetToMatchSource(source, target, options = {})
-ContextContainerSync.mergeNewerWins(source, target, options = {})
-ContextContainerSync.mergeWithPriority(source, target, priority, options = {})
-````
+ContextContainerSync.updateSourceToMatchTarget(source, target, (options = {}));
+ContextContainerSync.updateTargetToMatchSource(source, target, (options = {}));
+ContextContainerSync.mergeNewerWins(source, target, (options = {}));
+ContextContainerSync.mergeWithPriority(
+  source,
+  target,
+  priority,
+  (options = {}),
+);
+```
 
 ### ContextContainerSyncEngine
 
@@ -427,13 +436,13 @@ Handles complex recursive synchronization operations between ContextContainer in
 
 #### Public API
 
-````javascript
+```javascript
 // Constructor
-new ContextContainerSyncEngine(options = {})
+new ContextContainerSyncEngine((options = {}))
 
-// Instance Methods
-.sync(container1, container2, direction)
-````
+  // Instance Methods
+  .sync(container1, container2, direction);
+```
 
 ### ContextLegacySync
 
@@ -445,33 +454,33 @@ Handles legacy synchronization operations for ContextContainer and ContextItem i
 
 #### Public API
 
-````javascript
+```javascript
 // Static Constants (sourced from centralized constants.yaml)
 ContextLegacySync.SYNC_OPERATIONS = {
-  UPDATE_SOURCE_TO_TARGET: 'updateSourceToTarget',
-  UPDATE_TARGET_TO_SOURCE: 'updateTargetToSource',
-  MERGE_NEWER_WINS: 'mergeNewerWins',
-  MERGE_SOURCE_PRIORITY: 'mergeSourcePriority',
-  MERGE_TARGET_PRIORITY: 'mergeTargetPriority',
-  NO_ACTION: 'noAction'
-}
+  UPDATE_SOURCE_TO_TARGET: "updateSourceToTarget",
+  UPDATE_TARGET_TO_SOURCE: "updateTargetToSource",
+  MERGE_NEWER_WINS: "mergeNewerWins",
+  MERGE_SOURCE_PRIORITY: "mergeSourcePriority",
+  MERGE_TARGET_PRIORITY: "mergeTargetPriority",
+  NO_ACTION: "noAction",
+};
 
 // Static Methods
-ContextLegacySync.performLegacySync(source, target, operation, options = {})
-ContextLegacySync.validateCompatibility(source, target)
-````
+ContextLegacySync.performLegacySync(source, target, operation, (options = {}));
+ContextLegacySync.validateCompatibility(source, target);
+```
 
 #### Example Usage
 
-````javascript
+```javascript
 const result = ContextLegacySync.performLegacySync(
   sourceContainer,
   targetContainer,
-  ContextLegacySync.SYNC_OPERATIONS.MERGE_NEWER_WINS
+  ContextLegacySync.SYNC_OPERATIONS.MERGE_NEWER_WINS,
 );
 console.log(result.success); // true/false
 console.log(result.changes); // Array of changes made
-````
+```
 
 ### ContextAutoSync
 
@@ -483,11 +492,11 @@ console.log(result.changes); // Array of changes made
 
 #### Public API
 
-````javascript
+```javascript
 // Static Methods (placeholder implementations)
-ContextAutoSync.autoSync(source, target, options = {})
-ContextAutoSync.determineStrategy(source, target, options = {})
-````
+ContextAutoSync.autoSync(source, target, (options = {}));
+ContextAutoSync.determineStrategy(source, target, (options = {}));
+```
 
 ## Merging & Operations
 
@@ -501,9 +510,14 @@ Sophisticated merging capabilities for Context instances with detailed change tr
 
 #### Public API
 
-````javascript
+```javascript
 // Static Methods
-ContextMerger.merge(source, target, strategy = 'mergeNewerWins', options = {})
+ContextMerger.merge(
+  source,
+  target,
+  (strategy = "mergeNewerWins"),
+  (options = {}),
+);
 
 // Available Strategies:
 // - 'mergeNewerWins': Newer items overwrite older ones
@@ -521,22 +535,22 @@ ContextMerger.merge(source, target, strategy = 'mergeNewerWins', options = {})
 // - customFilter: Custom ItemFilter function
 // - preserveMetadata: Whether to preserve metadata
 // - onConflict: Conflict resolution function
-````
+```
 
 #### Example Usage
 
-````javascript
+```javascript
 // Merge with path filtering
-const result = ContextMerger.merge(source, target, 'mergeNewerWins', {
-  allowOnly: ['data.inventory', 'settings.volume'],
-  preserveMetadata: true
+const result = ContextMerger.merge(source, target, "mergeNewerWins", {
+  allowOnly: ["data.inventory", "settings.volume"],
+  preserveMetadata: true,
 });
 
 // Merge single item
-const result = ContextMerger.merge(source, target, 'mergeSourcePriority', {
-  singleItem: 'data.playerStats.level'
+const result = ContextMerger.merge(source, target, "mergeSourcePriority", {
+  singleItem: "data.playerStats.level",
 });
-````
+```
 
 ### ContextOperations
 
@@ -548,16 +562,16 @@ Bulk operations and multi-source/target operations for context management.
 
 #### Public API
 
-````javascript
+```javascript
 // Static Methods
-ContextOperations.pushItems(source, target, itemPaths, strategy, options)
-ContextOperations.pullItems(source, target, itemPaths, strategy, options)
-ContextOperations.pushFromMultipleSources(sources, target, strategy, options)
-ContextOperations.pushToMultipleTargets(source, targets, strategy, options)
-ContextOperations.pushItemsBulk(sources, targets, itemPaths, strategy, options)
-ContextOperations.synchronizeBidirectional(context1, context2, options)
-ContextOperations.consolidateContexts(sources, target, options)
-````
+ContextOperations.pushItems(source, target, itemPaths, strategy, options);
+ContextOperations.pullItems(source, target, itemPaths, strategy, options);
+ContextOperations.pushFromMultipleSources(sources, target, strategy, options);
+ContextOperations.pushToMultipleTargets(source, targets, strategy, options);
+ContextOperations.pushItemsBulk(sources, targets, itemPaths, strategy, options);
+ContextOperations.synchronizeBidirectional(context1, context2, options);
+ContextOperations.consolidateContexts(sources, target, options);
+```
 
 **Key Changes**:
 
@@ -567,22 +581,22 @@ ContextOperations.consolidateContexts(sources, target, options)
 
 #### Example Usage
 
-````javascript
+```javascript
 // Push specific items from multiple sources
 const results = ContextOperations.pushFromMultipleSources(
   [context1, context2, context3],
   targetContext,
-  'mergeSourcePriority'
+  "mergeSourcePriority",
 );
 
 // Bidirectional sync with proper excludePaths handling
 const result = ContextOperations.synchronizeBidirectional(context1, context2, {
-  strategy: 'mergeSourcePriority',
-  context1Priority: ['data.playerStats'],
-  context2Priority: ['settings.ui'],
-  excludePaths: ['data.cache'] // Now properly passed to both directions
+  strategy: "mergeSourcePriority",
+  context1Priority: ["data.playerStats"],
+  context2Priority: ["settings.ui"],
+  excludePaths: ["data.cache"], // Now properly passed to both directions
 });
-````
+```
 
 ## Filtering & Utilities
 
@@ -596,33 +610,35 @@ Filtering capabilities for selective context merging operations. Provides both s
 
 #### Public API
 
-````javascript
+```javascript
 // Static Methods
-ItemFilter.allowOnly(paths)           // Include only specified paths
-ItemFilter.blockOnly(paths)           // Exclude specified paths
-ItemFilter.matchPattern(regex)        // Include paths matching regex
-ItemFilter.custom(conditionFunction)  // Custom filtering logic
-ItemFilter.and(...filters)            // Combine filters with AND logic
-ItemFilter.or(...filters)             // Combine filters with OR logic
-````
+ItemFilter.allowOnly(paths); // Include only specified paths
+ItemFilter.blockOnly(paths); // Exclude specified paths
+ItemFilter.matchPattern(regex); // Include paths matching regex
+ItemFilter.custom(conditionFunction); // Custom filtering logic
+ItemFilter.and(...filters); // Combine filters with AND logic
+ItemFilter.or(...filters); // Combine filters with OR logic
+```
 
 #### Example Usage
 
-````javascript
+```javascript
 // Allow only specific paths
-const filter = ItemFilter.allowOnly(['data.inventory', 'settings.volume']);
+const filter = ItemFilter.allowOnly(["data.inventory", "settings.volume"]);
 
 // Combine filters
 const combinedFilter = ItemFilter.and(
-  ItemFilter.allowOnly(['data.player']),
-  ItemFilter.custom((source, target, path) => source.priority > target.priority)
+  ItemFilter.allowOnly(["data.player"]),
+  ItemFilter.custom(
+    (source, target, path) => source.priority > target.priority,
+  ),
 );
 
 // Use with ContextMerger
-const result = ContextMerger.merge(source, target, 'mergeNewerWins', {
-  customFilter: filter
+const result = ContextMerger.merge(source, target, "mergeNewerWins", {
+  customFilter: filter,
 });
-````
+```
 
 ### ContextItemSetter
 
@@ -634,11 +650,16 @@ Static utility class for managing item setting operations in ContextContainer in
 
 #### Public API
 
-````javascript
+```javascript
 // Static Methods
-ContextItemSetter.setItem(key, rawValue, containerInstance, itemOptionsOverrides)
+ContextItemSetter.setItem(
+  key,
+  rawValue,
+  containerInstance,
+  itemOptionsOverrides,
+);
 // Supports dot-notation paths, validation, and wrapping logic
-````
+```
 
 ### ContextComparison
 
@@ -650,31 +671,31 @@ Comparison utilities for Context instances, ContextContainers, and ContextItems.
 
 #### Public API
 
-````javascript
+```javascript
 // Static Constants (sourced from centralized constants.yaml)
 ContextComparison.COMPARISON_RESULTS = {
-  SOURCE_NEWER: 'sourceNewer',
-  TARGET_NEWER: 'targetNewer',
-  EQUAL: 'equal',
-  SOURCE_MISSING: 'sourceMissing',
-  TARGET_MISSING: 'targetMissing',
-  BOTH_MISSING: 'bothMissing'
-}
+  SOURCE_NEWER: "sourceNewer",
+  TARGET_NEWER: "targetNewer",
+  EQUAL: "equal",
+  SOURCE_MISSING: "sourceMissing",
+  TARGET_MISSING: "targetMissing",
+  BOTH_MISSING: "bothMissing",
+};
 
 // Static Methods
-ContextComparison.compare(source, target, options = {})
+ContextComparison.compare(source, target, (options = {}));
 // Options: compareBy ('modifiedAt', 'createdAt', etc.)
-````
+```
 
 #### Example Usage
 
-````javascript
+```javascript
 const comparison = ContextComparison.compare(source, target, {
-  compareBy: 'modifiedAt'
+  compareBy: "modifiedAt",
 });
 console.log(comparison.result); // 'sourceNewer', 'targetNewer', etc.
 console.log(comparison.timeDifference); // Time difference in milliseconds
-````
+```
 
 ## Validation
 
@@ -688,10 +709,10 @@ Validates root map configurations and initialization parameters.
 
 #### Public API
 
-````javascript
+```javascript
 // Static Methods (private implementations for internal validation)
 // Used internally for validating ContextRootMap initialization
-````
+```
 
 ## Testing
 
@@ -723,7 +744,7 @@ The simplified smoke tests (`contextHelpers.smoke.int.test.mjs`) provide:
 
 ### Running Tests
 
-````bash
+```bash
 # Run all helper tests
 npm test helpers
 
@@ -735,7 +756,7 @@ npm test contextHelpers.int
 
 # Run smoke integration tests
 npm test contextHelpers.smoke
-````
+```
 
 ## Enhanced Nested Path Checking
 
@@ -745,32 +766,32 @@ ContextContainer now supports an optional `enhancedNestedPathChecking` feature t
 
 By default, `hasItem()` only finds top-level items when the value is a plain object:
 
-````javascript
+```javascript
 const container = new ContextContainer({
-  player: { stats: { level: 5, health: 100 } }
+  player: { stats: { level: 5, health: 100 } },
 });
 
-console.log(container.hasItem('player')); // true (top-level item)
-console.log(container.hasItem('player.stats')); // false (nested in plain object)
-console.log(container.hasItem('player.stats.level')); // false (nested in plain object)
-````
+console.log(container.hasItem("player")); // true (top-level item)
+console.log(container.hasItem("player.stats")); // false (nested in plain object)
+console.log(container.hasItem("player.stats.level")); // false (nested in plain object)
+```
 
 ### Enhanced Behavior (Enhanced Checking Enabled)
 
 When enabled, `hasItem()` can find nested paths within plain object values:
 
-````javascript
+```javascript
 const enhancedContainer = new ContextContainer(
   { player: { stats: { level: 5, health: 100 } } },
   {},
-  { enhancedNestedPathChecking: true }
+  { enhancedNestedPathChecking: true },
 );
 
-console.log(enhancedContainer.hasItem('player')); // true (top-level item)
-console.log(enhancedContainer.hasItem('player.stats')); // true (found in plain object)
-console.log(enhancedContainer.hasItem('player.stats.level')); // true (found in plain object)
-console.log(enhancedContainer.hasItem('player.stats.mana')); // false (doesn't exist)
-````
+console.log(enhancedContainer.hasItem("player")); // true (top-level item)
+console.log(enhancedContainer.hasItem("player.stats")); // true (found in plain object)
+console.log(enhancedContainer.hasItem("player.stats.level")); // true (found in plain object)
+console.log(enhancedContainer.hasItem("player.stats.mana")); // false (doesn't exist)
+```
 
 ### Key Points
 

@@ -1,18 +1,18 @@
+# Roof Occlusion Vision And Fade
+
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/gundancer)
 
-# Roof Occlusion Vision And Fade
 This Foundry Virtual Tabletop module allows for overhead tiles to have occlusion mode of "Vision" and "Fade".
 
 ## Installation
 
 Module JSON:
-```
-https://github.com/Gundancer/foundryvtt-token-color-marker/releases/latest/download/module.json
-```
+
+`https://github.com/Gundancer/foundryvtt-token-color-marker/releases/latest/download/module.json`
 
 ## Development
 
-This module uses Vite for bundling to resolve MIME type errors and improve performance. 
+This module uses Vite for bundling to resolve MIME type errors and improve performance.
 
 ### Build Commands
 
@@ -35,9 +35,10 @@ The module uses a centralized configuration system located in `src/config/`. Key
 - **Enhanced Manifest**: Manifest objects now include backwards-compatible `shortName` property
 
 **Migration Example**:
+
 ```javascript
 // Old pattern (deprecated)
-import OverMyHead from './overMyHead.mjs';
+import OverMyHead from "./overMyHead.mjs";
 class MyModule extends OverMyHead {
   async init() {
     this.exportConstants(); // Old method
@@ -46,7 +47,7 @@ class MyModule extends OverMyHead {
 
 // New pattern (recommended)
 
-import config from './config/config.mjs';
+import config from "./config/config.mjs";
 class MyModule {
   async init() {
     config.exportConstants(); // New centralized method
@@ -85,7 +86,7 @@ settings:
         hint: "..."
         scope: "world"
         config: true
-        type: boolean        # normalized to Boolean
+        type: boolean # normalized to Boolean
         default: true
 
     - key: "advancedFlag"
@@ -93,10 +94,9 @@ settings:
         name: "..."
         scope: "world"
         config: true
-        type: datafield:boolean  # normalized to foundry.data.fields.BooleanField (if available)
+        type: datafield:boolean # normalized to foundry.data.fields.BooleanField (if available)
         default: true
 ```
-
 
 ## Usage
 

@@ -1,15 +1,15 @@
 /**
  * @file moduleBuilder.unit.test.mjs
  * @description Unit tests for ModuleBuilder class
- * @path scripts/dev/moduleBuilder.unit.test.mjs
+ * @path .dev/scripts/build/moduleBuilder.unit.test.mjs
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import ModuleBuilder from './moduleBuilder.mjs';
-import ViteRunner from '../build/runViteWIthAction.mjs';
+import ViteRunner from './runViteWIthAction.mjs';
 
 // Mock dependencies
-vi.mock('../build/runViteWIthAction.mjs');
+vi.mock('./runViteWIthAction.mjs');
 
 describe('ModuleBuilder', () => {
   let mockViteRunner;
@@ -19,10 +19,10 @@ describe('ModuleBuilder', () => {
     mockViteRunnerInstance = {
       start: vi.fn().mockResolvedValue(undefined)
     };
-    
+
     mockViteRunner = ViteRunner;
     mockViteRunner.mockImplementation(() => mockViteRunnerInstance);
-    
+
     // Reset all mocks
     vi.clearAllMocks();
   });
@@ -30,7 +30,7 @@ describe('ModuleBuilder', () => {
   describe('constructor', () => {
     it('should create instance with default options', () => {
       const builder = new ModuleBuilder();
-      
+
       expect(builder).toBeInstanceOf(ModuleBuilder);
       expect(mockViteRunner).toHaveBeenCalledWith({
         watch: false,
@@ -47,9 +47,9 @@ describe('ModuleBuilder', () => {
         preBuildAction,
         postBuildAction
       };
-      
+
       const builder = new ModuleBuilder(options);
-      
+
       expect(builder).toBeInstanceOf(ModuleBuilder);
       expect(mockViteRunner).toHaveBeenCalledWith({
         watch: true,
@@ -60,9 +60,9 @@ describe('ModuleBuilder', () => {
 
     it('should handle partial options', () => {
       const options = { watch: true };
-      
+
       const builder = new ModuleBuilder(options);
-      
+
       expect(builder).toBeInstanceOf(ModuleBuilder);
       expect(mockViteRunner).toHaveBeenCalledWith({
         watch: true,
@@ -73,7 +73,7 @@ describe('ModuleBuilder', () => {
 
     it('should handle empty options object', () => {
       const builder = new ModuleBuilder({});
-      
+
       expect(builder).toBeInstanceOf(ModuleBuilder);
       expect(mockViteRunner).toHaveBeenCalledWith({
         watch: false,
@@ -84,9 +84,9 @@ describe('ModuleBuilder', () => {
 
     it('should handle falsy watch option', () => {
       const options = { watch: null };
-      
+
       const builder = new ModuleBuilder(options);
-      
+
       expect(mockViteRunner).toHaveBeenCalledWith({
         watch: false,
         preBuildAction: undefined,
@@ -108,9 +108,9 @@ describe('ModuleBuilder', () => {
 
     it('should start build process successfully', async () => {
       const builder = new ModuleBuilder();
-      
+
       await builder.build();
-      
+
       expect(consoleSpy).toHaveBeenCalledWith('Starting module build...');
       expect(mockViteRunnerInstance.start).toHaveBeenCalledWith({});
     });
@@ -118,18 +118,18 @@ describe('ModuleBuilder', () => {
     it('should handle build errors', async () => {
       const builder = new ModuleBuilder();
       const buildError = new Error('Build failed');
-      
+
       mockViteRunnerInstance.start.mockRejectedValue(buildError);
-      
+
       await expect(builder.build()).rejects.toThrow('Build failed');
       expect(consoleSpy).toHaveBeenCalledWith('Starting module build...');
     });
 
     it('should call start with empty object parameter', async () => {
       const builder = new ModuleBuilder();
-      
+
       await builder.build();
-      
+
       expect(mockViteRunnerInstance.start).toHaveBeenCalledWith({});
       expect(mockViteRunnerInstance.start).toHaveBeenCalledTimes(1);
     });
@@ -149,9 +149,9 @@ describe('ModuleBuilder', () => {
     it('should start build with watch mode successfully', async () => {
       const builder = new ModuleBuilder();
       const postBuildAction = vi.fn();
-      
+
       await builder.buildWithWatch(postBuildAction);
-      
+
       expect(consoleSpy).toHaveBeenCalledWith('Starting module build with watch mode...');
       expect(mockViteRunner).toHaveBeenCalledTimes(2); // Once in constructor, once in buildWithWatch
       expect(mockViteRunner).toHaveBeenLastCalledWith({
@@ -164,17 +164,17 @@ describe('ModuleBuilder', () => {
       const builder = new ModuleBuilder();
       const postBuildAction = vi.fn();
       const buildError = new Error('Watch build failed');
-      
+
       // The second ViteRunner instance (created in buildWithWatch) should fail
       const secondMockViteRunnerInstance = {
         start: vi.fn().mockRejectedValue(buildError)
       };
-      
+
       mockViteRunner.mockImplementationOnce(() => mockViteRunnerInstance) // constructor
                    .mockImplementationOnce(() => secondMockViteRunnerInstance); // buildWithWatch
-      
+
       const builder2 = new ModuleBuilder();
-      
+
       await expect(builder2.buildWithWatch(postBuildAction)).rejects.toThrow('Watch build failed');
       expect(consoleSpy).toHaveBeenCalledWith('Starting module build with watch mode...');
     });
@@ -182,9 +182,9 @@ describe('ModuleBuilder', () => {
     it('should create new ViteRunner instance for watch mode', async () => {
       const builder = new ModuleBuilder({ watch: false });
       const postBuildAction = vi.fn();
-      
+
       await builder.buildWithWatch(postBuildAction);
-      
+
       // Should be called twice: once in constructor, once in buildWithWatch
       expect(mockViteRunner).toHaveBeenCalledTimes(2);
       expect(mockViteRunner).toHaveBeenNthCalledWith(1, {
@@ -200,9 +200,9 @@ describe('ModuleBuilder', () => {
 
     it('should handle undefined postBuildAction', async () => {
       const builder = new ModuleBuilder();
-      
+
       await builder.buildWithWatch(undefined);
-      
+
       expect(mockViteRunner).toHaveBeenLastCalledWith({
         watch: true,
         postBuildAction: undefined
@@ -211,9 +211,9 @@ describe('ModuleBuilder', () => {
 
     it('should handle null postBuildAction', async () => {
       const builder = new ModuleBuilder();
-      
+
       await builder.buildWithWatch(null);
-      
+
       expect(mockViteRunner).toHaveBeenLastCalledWith({
         watch: true,
         postBuildAction: null
@@ -230,15 +230,15 @@ describe('ModuleBuilder', () => {
         preBuildAction,
         postBuildAction
       });
-      
+
       // First build
       await builder.build();
       expect(mockViteRunnerInstance.start).toHaveBeenCalledWith({});
-      
+
       // Then watch build
       mockViteRunnerInstance.start.mockClear();
       await builder.buildWithWatch(postBuildAction);
-      
+
       expect(mockViteRunner).toHaveBeenCalledTimes(2);
     });
 
@@ -248,21 +248,21 @@ describe('ModuleBuilder', () => {
         // Simulate async pre-build work
         await new Promise(resolve => setTimeout(resolve, 10));
       };
-      
+
       const complexPostBuild = async () => {
         console.log('Post-build cleanup');
         // Simulate async post-build work
         await new Promise(resolve => setTimeout(resolve, 10));
       };
-      
+
       const builder = new ModuleBuilder({
         watch: true,
         preBuildAction: complexPreBuild,
         postBuildAction: complexPostBuild
       });
-      
+
       await builder.build();
-      
+
       expect(mockViteRunner).toHaveBeenCalledWith({
         watch: true,
         preBuildAction: complexPreBuild,
@@ -276,33 +276,33 @@ describe('ModuleBuilder', () => {
       mockViteRunner.mockImplementation(() => {
         throw new Error('ViteRunner initialization failed');
       });
-      
+
       expect(() => new ModuleBuilder()).toThrow('ViteRunner initialization failed');
     });
 
     it('should propagate async errors from build', async () => {
       const builder = new ModuleBuilder();
       const asyncError = new Error('Async build error');
-      
+
       mockViteRunnerInstance.start.mockRejectedValue(asyncError);
-      
+
       await expect(builder.build()).rejects.toThrow('Async build error');
     });
 
     it('should propagate async errors from buildWithWatch', async () => {
       const builder = new ModuleBuilder();
       const asyncError = new Error('Async watch error');
-      
+
       // Second ViteRunner instance should fail
       const failingInstance = {
         start: vi.fn().mockRejectedValue(asyncError)
       };
-      
+
       mockViteRunner.mockImplementationOnce(() => mockViteRunnerInstance) // constructor
                    .mockImplementationOnce(() => failingInstance); // buildWithWatch
-      
+
       const builder2 = new ModuleBuilder();
-      
+
       await expect(builder2.buildWithWatch(vi.fn())).rejects.toThrow('Async watch error');
     });
   });

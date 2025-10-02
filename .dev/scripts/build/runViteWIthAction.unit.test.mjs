@@ -1,7 +1,7 @@
 /**
  * @file runViteWIthAction.unit.test.mjs
  * @description Unit tests for ViteRunner class
- * @path scripts/build/runViteWIthAction.unit.test.mjs
+ * @path .dev/scripts/build/runViteWIthAction.unit.test.mjs
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';

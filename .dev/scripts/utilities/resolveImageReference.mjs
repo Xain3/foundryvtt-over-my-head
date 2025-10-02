@@ -3,7 +3,7 @@
 /**
  * @file resolveImageReference.mjs
  * @description Utility to resolve user-provided values into a canonical Docker image reference for the community Foundry VTT image (`felddy/foundryvtt`).
- * @path scripts/dev/resolveImageReference.mjs
+ * @path .dev/scripts/utilities/resolveImageReference.mjs
  */
 
 import process from 'node:process';
@@ -50,7 +50,9 @@ const ALIAS_PATTERN = new RegExp(`^(?:${ALIAS_SEGMENT})$`);
 
 // Escape the base repo for use inside a regex and precompile the community image regex.
 const ESCAPED_BASE_REPO = BASE_REPO.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const COMMUNITY_IMAGE_REGEX = new RegExp(`^${ESCAPED_BASE_REPO}:(?:${VERSION_SEGMENT}|${ALIAS_SEGMENT})$`);
+const COMMUNITY_IMAGE_REGEX = new RegExp(
+  `^${ESCAPED_BASE_REPO}:(?:${VERSION_SEGMENT}|${ALIAS_SEGMENT})$`
+);
 
 /**
  * Resolve a provided value into a canonical Foundry VTT Docker image reference.
@@ -68,7 +70,9 @@ const COMMUNITY_IMAGE_REGEX = new RegExp(`^${ESCAPED_BASE_REPO}:(?:${VERSION_SEG
  */
 function resolveImageReference(arg, exportImageToEnv = false) {
   if (arg !== undefined && typeof arg !== 'string') {
-    throw new TypeError('resolveImageReference: argument must be a string when provided');
+    throw new TypeError(
+      'resolveImageReference: argument must be a string when provided'
+    );
   }
 
   const raw = typeof arg === 'string' ? arg : '';
@@ -112,7 +116,8 @@ export default resolveImageReference;
 export { BASE_REPO, DEFAULT_VERSION, VERSION_ALIASES, resolveImageReference };
 
 // CLI entry: allow running as a script to resolve and optionally export
-const isMain = process.argv[1] && process.argv[1].includes('resolveImageReference.mjs');
+const isMain =
+  process.argv[1] && process.argv[1].includes('resolveImageReference.mjs');
 
 if (isMain) {
   const printHelp = () => {
@@ -131,7 +136,7 @@ if (isMain) {
         '  -h, --help            Show this help message',
         '',
         'Resolution order:',
-        '  1) --value flag, 2) positional arg, 3) $FOUNDRY_IMAGE, 4) default (release)'
+        '  1) --value flag, 2) positional arg, 3) $FOUNDRY_IMAGE, 4) default (release)',
       ].join('\n')
     );
   };

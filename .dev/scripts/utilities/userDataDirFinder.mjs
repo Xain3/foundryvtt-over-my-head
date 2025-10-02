@@ -1,14 +1,16 @@
 /**
  * @file userDataDirFinder.mjs
  * @description Finds the FoundryVTT user data directory across platforms
- * @path scripts/dev/userDataDirFinder.mjs
+ * @path .dev/scripts/utilities/userDataDirFinder.mjs
  */
 
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-const PLATFORM = (typeof os.platform === 'function' ? os.platform() : process.platform) || process.platform;
+const PLATFORM =
+  (typeof os.platform === 'function' ? os.platform() : process.platform) ||
+  process.platform;
 const USER = (() => {
   try {
     if (typeof os.userInfo === 'function') {
@@ -25,18 +27,18 @@ const USER = (() => {
  * @class UserDataDirFinder
  * @description Finds the FoundryVTT user data directory across different platforms (Linux, macOS, Windows).
  * The class uses platform-specific default paths to locate the FoundryVTT installation directory.
- * 
+ *
  * @export UserDataDirFinder
- * 
+ *
  * Public API:
  * - constructor(platform?, user?) - Creates a new finder instance
  * - find() - Searches for and returns the FoundryVTT user data directory path
- * 
+ *
  * Platform-specific search paths:
  * - Linux: ~/.local/share/FoundryVTT, ~/FoundryVTT, /local/FoundryVTT
  * - macOS: ~/Library/Application Support/FoundryVTT
  * - Windows: %LOCALAPPDATA%/FoundryVTT
- * 
+ *
  * @example
  * ```javascript
  * const finder = new UserDataDirFinder();
@@ -100,10 +102,12 @@ class UserDataDirFinder {
         return [
           `/home/${user}/.local/share/FoundryVTT`,
           `/home/${user}/FoundryVTT`,
-          `/local/FoundryVTT`
+          `/local/FoundryVTT`,
         ];
       case 'darwin':
-        return [path.join(os.homedir(), 'Library/Application Support/FoundryVTT')];
+        return [
+          path.join(os.homedir(), 'Library/Application Support/FoundryVTT'),
+        ];
       case 'win32':
         return [path.join(process.env.LOCALAPPDATA || '', 'FoundryVTT')];
       default:

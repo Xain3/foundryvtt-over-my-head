@@ -9,4 +9,4 @@ for arg in "$@"; do
     break
   fi
 done
-npx eslint src/ tests/ --ext .js,.mjs,.cjs $dry_run_flag
+npx eslint src/ tests/ --ext .js,.mjs,.cjs "$dry_run_flag"

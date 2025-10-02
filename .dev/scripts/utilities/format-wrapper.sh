@@ -9,4 +9,4 @@ for arg in "$@"; do
   fi
 done
 
-npx prettier $write_or_check "**/*.{js,mjs,cjs,json,md}" --ignore-path .prettierignore
+npx prettier "$write_or_check" "**/*.{js,mjs,cjs,json,md}" --ignore-path .prettierignore

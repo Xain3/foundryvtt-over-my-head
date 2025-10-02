@@ -1,3 +1,9 @@
+/**
+ * @file eslint.config.mjs
+ * @description ESLint configuration file using ES modules syntax.
+ * @path eslint.config.mjs
+ */
+
 import js from '@eslint/js';
 import globals from 'globals';
 

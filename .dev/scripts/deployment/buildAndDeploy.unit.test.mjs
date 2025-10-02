@@ -24,6 +24,7 @@ vi.mock('fs', () => {
     mkdirSync: vi.fn(),
     readdirSync: vi.fn(),
     copyFileSync: vi.fn(),
+    unlinkSync: vi.fn(),
   };
 
   return {
@@ -47,7 +48,7 @@ fs.readFileSync.mockReturnValue(JSON.stringify(mockModuleJson));
 const mockViteRunner = {
   start: vi.fn().mockResolvedValue(),
 };
-vi.mock('../../.dev/scripts/build/runViteWIthAction.mjs', () => ({
+vi.mock('../build/runViteWIthAction.mjs', () => ({
   default: vi.fn().mockImplementation(() => mockViteRunner),
 }));
 

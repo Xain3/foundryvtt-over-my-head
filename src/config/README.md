@@ -34,6 +34,28 @@ The config system is built around a centralized architecture that provides unifi
 6. **Module APIs**: Specialized exports for different needs (`constants.mjs`, `manifest.mjs`)
 7. **Unified Interface**: Central access point for all configuration (`config.mjs`)
 
+## Differences from .dev/config
+
+This `src/config/` directory contains **runtime configurations** for the Foundry VTT Over My Head module itself, while `.dev/config/` contains **development-time configurations** for tooling and maintenance processes.
+
+### src/config/ (Module Runtime)
+
+- **Purpose**: Defines the module's behavior, constants, and manifest at runtime
+- **Examples**: Module constants from YAML, validated manifest from module.json
+- **Files**: JavaScript modules that parse and provide configuration to the module
+- **Usage**: Imported by module code during Foundry VTT execution
+- **Scope**: Affects how the Over My Head module functions in Foundry VTT
+
+### .dev/config/ (Development Tooling)
+
+- **Purpose**: Controls development workflows, CI/CD pipelines, and maintenance scripts
+- **Examples**: Version bumping rules, build configurations, deployment settings
+- **Files**: YAML/JSON configs for tools like bump-version, CI scripts, etc.
+- **Usage**: Read by development scripts during build, test, and release processes
+- **Scope**: Affects how the project is developed and maintained
+
+**Key Distinction**: `src/config/` configures the actual module functionality, while `.dev/config/` configures the development environment and processes.
+
 ## 📚 Core Modules
 
 ### config.mjs - **RECOMMENDED ENTRY POINT**
@@ -43,7 +65,7 @@ The config system is built around a centralized architecture that provides unifi
 **Usage**: `import config from './config/config.mjs'`
 
 ```javascript
-import config from "./config/config.mjs";
+import config from './config/config.mjs';
 
 // Access constants directly
 const moduleRef = config.constants.moduleManagement.referToModuleBy; // "title"
@@ -65,7 +87,7 @@ console.log(globalThis.OMHconstants.errors.pattern); // Access constants globall
 
 // Use in module initialization
 console.log(
-  `Initializing ${config.manifest.title} v${config.manifest.version}`,
+  `Initializing ${config.manifest.title} v${config.manifest.version}`
 );
 ```
 
@@ -86,7 +108,7 @@ console.log(
 The Config class includes a `buildManifestWithShortName()` method that returns an enhanced version of the manifest with a `shortName` property for backwards compatibility.
 
 ```javascript
-import config from "./config/config.mjs";
+import config from './config/config.mjs';
 
 // Get manifest with shortName added
 const manifestWithShortName = config.buildManifestWithShortName();
@@ -115,7 +137,7 @@ console.log(manifestWithShortName.title); // Original manifest properties preser
 The Config class includes an `exportConstants()` method that safely exports module constants to the global scope for external access.
 
 ```javascript
-import config from "./config/config.mjs";
+import config from './config/config.mjs';
 
 // Export constants to global scope
 config.exportConstants();
@@ -183,10 +205,10 @@ const errorPattern = constants.errors.pattern;         // "{{module}}{{caller}}{
 
 ```javascript
 // Direct access (not recommended for new code)
-import manifest from "./config/manifest.mjs";
+import manifest from './config/manifest.mjs';
 
 // Recommended access via Config
-import Config from "./config/config.mjs";
+import Config from './config/config.mjs';
 const config = new Config();
 const manifest = config.manifest;
 
@@ -231,18 +253,18 @@ The system reads configuration from `constants.yaml` in the project root. The YA
 
 ```yaml
 moduleManagement:
-  referToModuleBy: "title"
-  shortName: "OMH" # Optional: Custom short name for backwards compatibility
+  referToModuleBy: 'title'
+  shortName: 'OMH' # Optional: Custom short name for backwards compatibility
   defaults:
-    modulesLocation: "game.modules"
+    modulesLocation: 'game.modules'
 ```
 
 ### Error Management
 
 ```yaml
 errors:
-  separator: " || "
-  pattern: "{{module}}{{caller}}{{error}}{{stack}}"
+  separator: ' || '
+  pattern: '{{module}}{{caller}}{{error}}{{stack}}'
 ```
 
 ### Context System Configuration
@@ -252,16 +274,16 @@ context:
   sync:
     defaults:
       autoSync: true
-      syncStrategy: "mergeNewerWins"
+      syncStrategy: 'mergeNewerWins'
 
   external:
     defaults:
-      rootIdentifier: "module"
-      pathFromRoot: "context"
+      rootIdentifier: 'module'
+      pathFromRoot: 'context'
     rootMap:
-      window: "globalNamespace.window"
-      game: "globalNamespace.game"
-      module: "module"
+      window: 'globalNamespace.window'
+      game: 'globalNamespace.game'
+      module: 'module'
 
   operationsParams:
     defaults:
@@ -274,13 +296,13 @@ context:
 ```yaml
 contextHelpers:
   mergeStrategies:
-    MERGE_NEWER_WINS: "mergeNewerWins"
-    MERGE_SOURCE_WINS: "mergeSourceWins"
+    MERGE_NEWER_WINS: 'mergeNewerWins'
+    MERGE_SOURCE_WINS: 'mergeSourceWins'
 
   comparisonResults:
-    SOURCE_NEWER: "sourceNewer"
-    TARGET_NEWER: "targetNewer"
-    EQUAL: "equal"
+    SOURCE_NEWER: 'sourceNewer'
+    TARGET_NEWER: 'targetNewer'
+    EQUAL: 'equal'
 ```
 
 ### Settings Type Normalization (Foundry v13)
@@ -311,18 +333,18 @@ Example YAML:
 ```yaml
 settings:
   settingsList:
-    - key: "useModule"
+    - key: 'useModule'
       config:
-        name: "..."
-        scope: "world"
+        name: '...'
+        scope: 'world'
         config: true
         type: boolean # normalized to Boolean
         default: true
 
-    - key: "advancedFlag"
+    - key: 'advancedFlag'
       config:
-        name: "..."
-        scope: "world"
+        name: '...'
+        scope: 'world'
         config: true
         type: datafield:boolean # normalized to foundry.data.fields.BooleanField (if available)
         default: true
@@ -333,7 +355,7 @@ settings:
 ### Recommended Pattern: Config Instance (NEW)
 
 ```javascript
-import config from "./config/config.mjs";
+import config from './config/config.mjs';
 
 // Access both constants and manifest directly from the singleton
 const moduleInfo = {
@@ -363,7 +385,7 @@ const errorFormatter = new ErrorFormatter({
 
 // Use enhanced manifest in module initialization
 console.log(
-  `Initializing ${manifestWithShortName.title} (${manifestWithShortName.shortName})`,
+  `Initializing ${manifestWithShortName.title} (${manifestWithShortName.shortName})`
 );
 ```
 
@@ -371,8 +393,8 @@ console.log(
 
 ```javascript
 // Old pattern - still works but not recommended for new code
-import constants from "./config/constants.mjs";
-import manifest from "./config/manifest.mjs";
+import constants from './config/constants.mjs';
+import manifest from './config/manifest.mjs';
 
 // Use in module initialization
 const moduleConfig = {
@@ -386,8 +408,8 @@ const moduleConfig = {
 ### Advanced Helper Usage
 
 ```javascript
-import ConstantsBuilder from "./config/helpers/constantsBuilder.mjs";
-import ManifestParser from "./config/helpers/manifestParser.mjs";
+import ConstantsBuilder from './config/helpers/constantsBuilder.mjs';
+import ManifestParser from './config/helpers/manifestParser.mjs';
 
 // Custom configuration processing
 const builder = new ConstantsBuilder();
@@ -395,7 +417,7 @@ const rawYaml = builder.asString;
 const config = builder.asObject;
 
 // Custom manifest validation
-import customManifest from "./custom-manifest.json";
+import customManifest from './custom-manifest.json';
 const parser = new ManifestParser(customManifest);
 const validatedCustom = parser.getValidatedManifest();
 ```
@@ -403,12 +425,12 @@ const validatedCustom = parser.getValidatedManifest();
 ### Module Initialization Pattern
 
 ```javascript
-import config from "./config/config.mjs";
+import config from './config/config.mjs';
 
 // Use configuration directly in module lifecycle
-Hooks.once("init", () => {
+Hooks.once('init', () => {
   console.log(
-    `Initializing ${config.manifest.title} v${config.manifest.version}`,
+    `Initializing ${config.manifest.title} v${config.manifest.version}`
   );
 
   // Export constants for external access
@@ -583,8 +605,8 @@ const errorFormatter = new ErrorFormatter({
 **Old Pattern**:
 
 ```javascript
-import constants from "./config/constants.mjs";
-import manifest from "./config/manifest.mjs";
+import constants from './config/constants.mjs';
+import manifest from './config/manifest.mjs';
 
 const moduleSetup = {
   id: manifest.id,
@@ -595,7 +617,7 @@ const moduleSetup = {
 **New Pattern**:
 
 ```javascript
-import config from "./config/config.mjs";
+import config from './config/config.mjs';
 
 const moduleSetup = {
   id: config.manifest.id,
@@ -608,7 +630,7 @@ const moduleSetup = {
 **Old Pattern**:
 
 ```javascript
-import OverMyHead from "./overMyHead.mjs";
+import OverMyHead from './overMyHead.mjs';
 
 class MyModule extends OverMyHead {
   async init() {
@@ -621,7 +643,7 @@ class MyModule extends OverMyHead {
 **New Pattern**:
 
 ```javascript
-import config from "./config/config.mjs";
+import config from './config/config.mjs';
 
 class MyModule {
   async init() {
@@ -665,17 +687,17 @@ class MyModule {
 
 ```javascript
 // RECOMMENDED: Unified access
-import config from "./config/config.mjs"; // Central configuration instance
+import config from './config/config.mjs'; // Central configuration instance
 
 // LEGACY: Direct access (still supported)
-import constants from "./config/constants.mjs"; // Parsed YAML configuration
-import manifest from "./config/manifest.mjs"; // Validated manifest object
+import constants from './config/constants.mjs'; // Parsed YAML configuration
+import manifest from './config/manifest.mjs'; // Validated manifest object
 
 // Helper classes (advanced usage)
-import ConstantsBuilder from "./config/helpers/constantsBuilder.mjs";
-import ConstantsGetter from "./config/helpers/constantsGetter.mjs";
-import ConstantsParser from "./config/helpers/constantsParser.mjs";
-import ManifestParser from "./config/helpers/manifestParser.mjs";
+import ConstantsBuilder from './config/helpers/constantsBuilder.mjs';
+import ConstantsGetter from './config/helpers/constantsGetter.mjs';
+import ConstantsParser from './config/helpers/constantsParser.mjs';
+import ManifestParser from './config/helpers/manifestParser.mjs';
 ```
 
 ### Config Instance API

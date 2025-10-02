@@ -1,11 +1,7 @@
 /**
  * @file buildUtils.unit.test.mjs
  * @description Unit tests for build utility functions
-<<<<<<<< HEAD:.dev/scripts/build/buildUtils.unit.test.mjs
  * @path .dev/scripts/build/buildUtils.unit.test.mjs
-========
- * @path scripts/dev/buildUtils.unit.test.mjs
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildUtils.unit.test.mjs
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -77,15 +73,9 @@ describe('buildUtils', () => {
 
     it('should remove main.mjs when it exists', () => {
       mockFs.existsSync.mockImplementation((file) => file === '/project/root/main.mjs');
-<<<<<<<< HEAD:.dev/scripts/build/buildUtils.unit.test.mjs
 
       removeRootBuildArtifacts();
 
-========
-      
-      removeRootBuildArtifacts();
-      
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildUtils.unit.test.mjs
       expect(mockPath.resolve).toHaveBeenCalledWith('/project/root', 'main.mjs');
       expect(mockFs.unlinkSync).toHaveBeenCalledWith('/project/root/main.mjs');
       expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs');
@@ -93,15 +83,9 @@ describe('buildUtils', () => {
 
     it('should remove main.mjs.map when it exists', () => {
       mockFs.existsSync.mockImplementation((file) => file === '/project/root/main.mjs.map');
-<<<<<<<< HEAD:.dev/scripts/build/buildUtils.unit.test.mjs
 
       removeRootBuildArtifacts();
 
-========
-      
-      removeRootBuildArtifacts();
-      
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildUtils.unit.test.mjs
       expect(mockPath.resolve).toHaveBeenCalledWith('/project/root', 'main.mjs.map');
       expect(mockFs.unlinkSync).toHaveBeenCalledWith('/project/root/main.mjs.map');
       expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs.map');
@@ -111,11 +95,7 @@ describe('buildUtils', () => {
       mockFs.existsSync.mockReturnValue(true);
 
       removeRootBuildArtifacts();
-<<<<<<<< HEAD:.dev/scripts/build/buildUtils.unit.test.mjs
 
-========
-      
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildUtils.unit.test.mjs
       expect(mockFs.unlinkSync).toHaveBeenCalledWith('/project/root/main.mjs');
       expect(mockFs.unlinkSync).toHaveBeenCalledWith('/project/root/main.mjs.map');
       expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs, main.mjs.map');
@@ -176,11 +156,7 @@ describe('buildUtils', () => {
       mockFs.existsSync.mockReturnValue(true);
 
       removeRootBuildArtifacts();
-<<<<<<<< HEAD:.dev/scripts/build/buildUtils.unit.test.mjs
 
-========
-      
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildUtils.unit.test.mjs
       expect(mockPath.resolve).toHaveBeenCalledWith('/project/root', 'main.mjs');
       expect(mockPath.resolve).toHaveBeenCalledWith('/project/root', 'main.mjs.map');
       expect(mockPath.resolve).toHaveBeenCalledTimes(2);
@@ -191,11 +167,7 @@ describe('buildUtils', () => {
       mockFs.existsSync.mockReturnValue(true);
 
       removeRootBuildArtifacts();
-<<<<<<<< HEAD:.dev/scripts/build/buildUtils.unit.test.mjs
 
-========
-      
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildUtils.unit.test.mjs
       expect(mockPath.resolve).toHaveBeenCalledWith('/different/project/path', 'main.mjs');
       expect(mockPath.resolve).toHaveBeenCalledWith('/different/project/path', 'main.mjs.map');
     });
@@ -222,29 +194,17 @@ describe('buildUtils', () => {
 
     it('should log with correct file names when main.mjs is removed', () => {
       mockFs.existsSync.mockImplementation((file) => file === '/project/root/main.mjs');
-<<<<<<<< HEAD:.dev/scripts/build/buildUtils.unit.test.mjs
 
       removeRootBuildArtifacts();
 
-========
-      
-      removeRootBuildArtifacts();
-      
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildUtils.unit.test.mjs
       expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs');
     });
 
     it('should log with correct file names when main.mjs.map is removed', () => {
       mockFs.existsSync.mockImplementation((file) => file === '/project/root/main.mjs.map');
-<<<<<<<< HEAD:.dev/scripts/build/buildUtils.unit.test.mjs
 
       removeRootBuildArtifacts();
 
-========
-      
-      removeRootBuildArtifacts();
-      
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildUtils.unit.test.mjs
       expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs.map');
     });
 
@@ -252,11 +212,7 @@ describe('buildUtils', () => {
       mockFs.existsSync.mockReturnValue(true);
 
       removeRootBuildArtifacts();
-<<<<<<<< HEAD:.dev/scripts/build/buildUtils.unit.test.mjs
 
-========
-      
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildUtils.unit.test.mjs
       expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs, main.mjs.map');
     });
   });
@@ -310,49 +266,29 @@ describe('buildUtils', () => {
     it('should work in typical development scenario', () => {
       // Simulate typical scenario where main.mjs exists but main.mjs.map doesn't
       mockFs.existsSync.mockImplementation((file) => file === '/project/root/main.mjs');
-<<<<<<<< HEAD:.dev/scripts/build/buildUtils.unit.test.mjs
 
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation();
 
-========
-      
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation();
-      
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildUtils.unit.test.mjs
       removeRootBuildArtifacts();
 
       expect(mockFs.unlinkSync).toHaveBeenCalledTimes(1);
       expect(mockFs.unlinkSync).toHaveBeenCalledWith('/project/root/main.mjs');
       expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs');
-<<<<<<<< HEAD:.dev/scripts/build/buildUtils.unit.test.mjs
 
-========
-      
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildUtils.unit.test.mjs
       consoleSpy.mockRestore();
     });
 
     it('should work in build tool cleanup scenario', () => {
       // Simulate scenario where build tool leaves both artifacts
       mockFs.existsSync.mockReturnValue(true);
-<<<<<<<< HEAD:.dev/scripts/build/buildUtils.unit.test.mjs
 
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation();
 
-========
-      
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation();
-      
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildUtils.unit.test.mjs
       removeRootBuildArtifacts();
 
       expect(mockFs.unlinkSync).toHaveBeenCalledTimes(2);
       expect(consoleSpy).toHaveBeenCalledWith('Removed root artifacts: main.mjs, main.mjs.map');
-<<<<<<<< HEAD:.dev/scripts/build/buildUtils.unit.test.mjs
 
-========
-      
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildUtils.unit.test.mjs
       consoleSpy.mockRestore();
     });
 

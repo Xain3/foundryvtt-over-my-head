@@ -1,26 +1,15 @@
 /**
  * @file moduleBuilder.unit.test.mjs
  * @description Unit tests for ModuleBuilder class
-<<<<<<<< HEAD:.dev/scripts/build/moduleBuilder.unit.test.mjs
  * @path .dev/scripts/build/moduleBuilder.unit.test.mjs
-========
- * @path scripts/dev/moduleBuilder.unit.test.mjs
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/moduleBuilder.unit.test.mjs
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import ModuleBuilder from './moduleBuilder.mjs';
-<<<<<<<< HEAD:.dev/scripts/build/moduleBuilder.unit.test.mjs
 import ViteRunner from './runViteWIthAction.mjs';
 
 // Mock dependencies
 vi.mock('./runViteWIthAction.mjs');
-========
-import ViteRunner from '../build/runViteWIthAction.mjs';
-
-// Mock dependencies
-vi.mock('../build/runViteWIthAction.mjs');
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/moduleBuilder.unit.test.mjs
 
 describe('ModuleBuilder', () => {
   let mockViteRunner;
@@ -160,11 +149,7 @@ describe('ModuleBuilder', () => {
     it('should start build with watch mode successfully', async () => {
       const builder = new ModuleBuilder();
       const postBuildAction = vi.fn();
-<<<<<<<< HEAD:.dev/scripts/build/moduleBuilder.unit.test.mjs
 
-========
-      
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/moduleBuilder.unit.test.mjs
       await builder.buildWithWatch(postBuildAction);
 
       expect(consoleSpy).toHaveBeenCalledWith('Starting module build with watch mode...');
@@ -197,11 +182,7 @@ describe('ModuleBuilder', () => {
     it('should create new ViteRunner instance for watch mode', async () => {
       const builder = new ModuleBuilder({ watch: false });
       const postBuildAction = vi.fn();
-<<<<<<<< HEAD:.dev/scripts/build/moduleBuilder.unit.test.mjs
 
-========
-      
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/moduleBuilder.unit.test.mjs
       await builder.buildWithWatch(postBuildAction);
 
       // Should be called twice: once in constructor, once in buildWithWatch
@@ -321,11 +302,7 @@ describe('ModuleBuilder', () => {
                    .mockImplementationOnce(() => failingInstance); // buildWithWatch
 
       const builder2 = new ModuleBuilder();
-<<<<<<<< HEAD:.dev/scripts/build/moduleBuilder.unit.test.mjs
 
-========
-      
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/moduleBuilder.unit.test.mjs
       await expect(builder2.buildWithWatch(vi.fn())).rejects.toThrow('Async watch error');
     });
   });

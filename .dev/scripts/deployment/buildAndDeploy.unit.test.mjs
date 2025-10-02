@@ -1,7 +1,6 @@
 /**
  * @file buildAndDeploy.unit.test.mjs
  * @description Unit tests for buildAndDeploy classes
-<<<<<<<< HEAD:.dev/scripts/deployment/buildAndDeploy.unit.test.mjs
  * @path .dev/scripts/deployment/buildAndDeploy.unit.test.mjs
  */
 
@@ -15,12 +14,6 @@ import {
   beforeAll,
   afterAll,
 } from 'vitest';
-========
- * @path scripts/dev/buildAndDeploy.unit.test.mjs
- */
-
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildAndDeploy.unit.test.mjs
 
 // Mock dependencies first
 vi.mock('fs', () => {
@@ -30,21 +23,13 @@ vi.mock('fs', () => {
     statSync: vi.fn(),
     mkdirSync: vi.fn(),
     readdirSync: vi.fn(),
-<<<<<<<< HEAD:.dev/scripts/deployment/buildAndDeploy.unit.test.mjs
     copyFileSync: vi.fn(),
     unlinkSync: vi.fn(),
-========
-    copyFileSync: vi.fn()
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildAndDeploy.unit.test.mjs
   };
 
   return {
     ...fsMock,
-<<<<<<<< HEAD:.dev/scripts/deployment/buildAndDeploy.unit.test.mjs
     default: fsMock,
-========
-    default: fsMock
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildAndDeploy.unit.test.mjs
   };
 });
 vi.mock('os');
@@ -61,17 +46,10 @@ fs.readFileSync.mockReturnValue(JSON.stringify(mockModuleJson));
 
 // Mock ViteRunner
 const mockViteRunner = {
-<<<<<<<< HEAD:.dev/scripts/deployment/buildAndDeploy.unit.test.mjs
   start: vi.fn().mockResolvedValue(),
 };
 vi.mock('../build/runViteWIthAction.mjs', () => ({
   default: vi.fn().mockImplementation(() => mockViteRunner),
-========
-  start: vi.fn().mockResolvedValue()
-};
-vi.mock('../build/runViteWIthAction.mjs', () => ({
-  default: vi.fn().mockImplementation(() => mockViteRunner)
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildAndDeploy.unit.test.mjs
 }));
 
 // Import after mocking
@@ -80,11 +58,7 @@ import {
   ModuleDirManager,
   ModuleBuilder,
   ModuleDeployer,
-<<<<<<<< HEAD:.dev/scripts/deployment/buildAndDeploy.unit.test.mjs
   BuildAndDeploy,
-========
-  BuildAndDeploy
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildAndDeploy.unit.test.mjs
 } from './buildAndDeploy.mjs';
 
 describe('UserDataDirFinder', () => {
@@ -103,11 +77,7 @@ describe('UserDataDirFinder', () => {
     global.console = {
       log: vi.fn(),
       warn: vi.fn(),
-<<<<<<<< HEAD:.dev/scripts/deployment/buildAndDeploy.unit.test.mjs
       error: vi.fn(),
-========
-      error: vi.fn()
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildAndDeploy.unit.test.mjs
     };
   });
 
@@ -219,11 +189,7 @@ describe('ModuleDirManager', () => {
     global.console = {
       log: vi.fn(),
       warn: vi.fn(),
-<<<<<<<< HEAD:.dev/scripts/deployment/buildAndDeploy.unit.test.mjs
       error: vi.fn(),
-========
-      error: vi.fn()
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildAndDeploy.unit.test.mjs
     };
   });
 
@@ -329,11 +295,7 @@ describe('ModuleBuilder', () => {
     global.console = {
       log: vi.fn(),
       warn: vi.fn(),
-<<<<<<<< HEAD:.dev/scripts/deployment/buildAndDeploy.unit.test.mjs
       error: vi.fn(),
-========
-      error: vi.fn()
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildAndDeploy.unit.test.mjs
     };
   });
 
@@ -391,11 +353,7 @@ describe('ModuleDeployer', () => {
     global.console = {
       log: vi.fn(),
       warn: vi.fn(),
-<<<<<<<< HEAD:.dev/scripts/deployment/buildAndDeploy.unit.test.mjs
       error: vi.fn(),
-========
-      error: vi.fn()
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildAndDeploy.unit.test.mjs
     };
   });
 
@@ -448,13 +406,9 @@ describe('ModuleDeployer', () => {
       path.basename.mockImplementation((filePath) => filePath.split('/').pop());
 
       // Mock Date.prototype.toLocaleString to pass an arbitrary value
-<<<<<<<< HEAD:.dev/scripts/deployment/buildAndDeploy.unit.test.mjs
       const dateSpy = vi
         .spyOn(Date.prototype, 'toLocaleString')
         .mockReturnValue('TEST_TIME');
-========
-      const dateSpy = vi.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildAndDeploy.unit.test.mjs
 
       deployer.deploy();
 
@@ -517,11 +471,7 @@ describe('BuildAndDeploy', () => {
     global.console = {
       log: vi.fn(),
       warn: vi.fn(),
-<<<<<<<< HEAD:.dev/scripts/deployment/buildAndDeploy.unit.test.mjs
       error: vi.fn(),
-========
-      error: vi.fn()
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildAndDeploy.unit.test.mjs
     };
   });
 
@@ -575,15 +525,10 @@ describe('BuildAndDeploy', () => {
       os.platform.mockReturnValue('linux');
       os.userInfo.mockReturnValue({ username: 'testuser' });
 
-<<<<<<<< HEAD:.dev/scripts/deployment/buildAndDeploy.unit.test.mjs
       // Bypass import-time platform caching by stubbing the finder result directly
       const finderSpy = vi
         .spyOn(UserDataDirFinder.prototype, 'find')
         .mockReturnValue('/home/testuser/.local/share/FoundryVTT');
-========
-  // Bypass import-time platform caching by stubbing the finder result directly
-  const finderSpy = vi.spyOn(UserDataDirFinder.prototype, 'find').mockReturnValue('/home/testuser/.local/share/FoundryVTT');
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildAndDeploy.unit.test.mjs
 
       // Setup fs mocks to ensure directory finding works
       fs.existsSync.mockImplementation((filePath) => {
@@ -659,11 +604,7 @@ describe('Integration', () => {
     global.console = {
       log: vi.fn(),
       warn: vi.fn(),
-<<<<<<<< HEAD:.dev/scripts/deployment/buildAndDeploy.unit.test.mjs
       error: vi.fn(),
-========
-      error: vi.fn()
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildAndDeploy.unit.test.mjs
     };
   });
 

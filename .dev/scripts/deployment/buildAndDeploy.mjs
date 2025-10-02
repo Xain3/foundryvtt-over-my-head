@@ -1,7 +1,6 @@
 /**
  * @file buildAndDeploy.mjs
  * @description Orchestrates module directory finding, building, and deployment logic
-<<<<<<<< HEAD:.dev/scripts/deployment/buildAndDeploy.mjs
  * @path .dev/scripts/deployment/buildAndDeploy.mjs
  */
 
@@ -10,16 +9,6 @@ import ModuleDirManager from '../utilities/moduleDirManager.mjs';
 import ModuleBuilder from '../build/moduleBuilder.mjs';
 import ModuleDeployer from './deployer.mjs';
 import { removeRootBuildArtifacts } from '../build/buildUtils.mjs';
-========
- * @path scripts/dev/buildAndDeploy.mjs
- */
-
-import UserDataDirFinder from './userDataDirFinder.mjs';
-import ModuleDirManager from './moduleDirManager.mjs';
-import ModuleBuilder from './moduleBuilder.mjs';
-import ModuleDeployer from './deployer.mjs';
-import { removeRootBuildArtifacts } from './buildUtils.mjs';
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildAndDeploy.mjs
 
 /**
  * @class BuildAndDeploy
@@ -105,12 +94,8 @@ export {
 };
 
 // CLI usage if called as main
-<<<<<<<< HEAD:.dev/scripts/deployment/buildAndDeploy.mjs
 const isMain =
   process.argv[1] && process.argv[1].endsWith('buildAndDeploy.mjs');
-========
-const isMain = process.argv[1] && process.argv[1].endsWith('buildAndDeploy.mjs');
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/buildAndDeploy.mjs
 if (isMain) {
   (async () => {
     const args = process.argv.slice(2);

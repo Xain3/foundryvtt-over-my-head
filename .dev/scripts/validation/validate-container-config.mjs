@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-<<<<<<<< HEAD:.dev/scripts/validation/validate-container-config.mjs
 /**
  * @file validate-container-config.mjs
  * @description Validates container configuration against schema and cross-references
@@ -9,10 +8,6 @@
 import { readFileSync } from 'fs';
 import { resolve, join } from 'path';
 import { fileURLToPath } from 'url';
-========
-import { readFileSync } from 'fs';
-import { resolve, join } from 'path';
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:scripts/validate-container-config.mjs
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 
@@ -27,12 +22,8 @@ function readJSON(filePath) {
 }
 
 function main() {
-<<<<<<<< HEAD:.dev/scripts/validation/validate-container-config.mjs
   const __dirname = fileURLToPath(new URL('.', import.meta.url));
   const root = resolve(__dirname, '..', '..', '..');
-========
-  const root = resolve(__dirname, '..');
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:scripts/validate-container-config.mjs
   const configPath = join(root, 'docker', 'container-config.json');
   const schemaPath = join(root, 'docker', 'container-config.schema.json');
 

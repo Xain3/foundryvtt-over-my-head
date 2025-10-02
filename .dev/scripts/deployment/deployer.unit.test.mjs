@@ -1,7 +1,6 @@
 /**
  * @file deployer.unit.test.mjs
  * @description Unit tests for ModuleDeployer class
-<<<<<<<< HEAD:.dev/scripts/deployment/deployer.unit.test.mjs
  * @path .dev/scripts/deployment/deployer.unit.test.mjs
  */
 
@@ -15,12 +14,6 @@ import {
   beforeAll,
   afterAll,
 } from 'vitest';
-========
- * @path scripts/dev/deployer.unit.test.mjs
- */
-
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/deployer.unit.test.mjs
 import fs from 'fs';
 import path from 'path';
 import ModuleDeployer from './deployer.mjs';
@@ -33,21 +26,13 @@ vi.mock('fs', () => ({
     statSync: vi.fn(),
     copyFileSync: vi.fn(),
     readdirSync: vi.fn(),
-<<<<<<<< HEAD:.dev/scripts/deployment/deployer.unit.test.mjs
   },
-========
-  }
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/deployer.unit.test.mjs
 }));
 vi.mock('path', () => ({
   default: {
     join: vi.fn(),
     basename: vi.fn(),
-<<<<<<<< HEAD:.dev/scripts/deployment/deployer.unit.test.mjs
   },
-========
-  }
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/deployer.unit.test.mjs
 }));
 
 describe('ModuleDeployer', () => {
@@ -181,15 +166,10 @@ describe('ModuleDeployer', () => {
         };
       });
 
-<<<<<<<< HEAD:.dev/scripts/deployment/deployer.unit.test.mjs
       // Mock the date string to ensure deterministic assertion
       const dateSpy = vi
         .spyOn(Date.prototype, 'toLocaleString')
         .mockReturnValue('TEST_TIME');
-========
-  // Mock the date string to ensure deterministic assertion
-  const dateSpy = vi.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/deployer.unit.test.mjs
 
       deployer.deploy();
 
@@ -411,7 +391,6 @@ describe('ModuleDeployer', () => {
 
       deployer.deploy();
 
-<<<<<<<< HEAD:.dev/scripts/deployment/deployer.unit.test.mjs
       expect(mockFs.mkdirSync).toHaveBeenCalledWith('/target/dir/dist', {
         recursive: true,
       });
@@ -427,12 +406,6 @@ describe('ModuleDeployer', () => {
         './dist/subfolder/nested.mjs',
         '/target/dir/dist/subfolder/nested.mjs'
       );
-========
-      expect(mockFs.mkdirSync).toHaveBeenCalledWith('/target/dir/dist', { recursive: true });
-      expect(mockFs.mkdirSync).toHaveBeenCalledWith('/target/dir/dist/subfolder', { recursive: true });
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/main.mjs', '/target/dir/dist/main.mjs');
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/subfolder/nested.mjs', '/target/dir/dist/subfolder/nested.mjs');
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/deployer.unit.test.mjs
     });
   });
 
@@ -528,15 +501,10 @@ describe('ModuleDeployer', () => {
         return { isFile: () => false, isDirectory: () => true };
       });
 
-<<<<<<<< HEAD:.dev/scripts/deployment/deployer.unit.test.mjs
       // Mock the date string to ensure deterministic assertion
       const dateSpy2 = vi
         .spyOn(Date.prototype, 'toLocaleString')
         .mockReturnValue('TEST_TIME');
-========
-  // Mock the date string to ensure deterministic assertion
-  const dateSpy2 = vi.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/deployer.unit.test.mjs
 
       deployer.deploy();
 
@@ -630,7 +598,6 @@ describe('ModuleDeployer', () => {
         };
       });
 
-<<<<<<<< HEAD:.dev/scripts/deployment/deployer.unit.test.mjs
       mockFs.readdirSync.mockReturnValue([
         'file with spaces.mjs',
         'file-with-dashes.css',
@@ -651,15 +618,6 @@ describe('ModuleDeployer', () => {
         './dist/file_with_underscores.json',
         '/target/dist/file_with_underscores.json'
       );
-========
-      mockFs.readdirSync.mockReturnValue(['file with spaces.mjs', 'file-with-dashes.css', 'file_with_underscores.json']);
-
-      deployer.deploy();
-
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/file with spaces.mjs', '/target/dist/file with spaces.mjs');
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/file-with-dashes.css', '/target/dist/file-with-dashes.css');
-      expect(mockFs.copyFileSync).toHaveBeenCalledWith('./dist/file_with_underscores.json', '/target/dist/file_with_underscores.json');
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/deployer.unit.test.mjs
     });
 
     it('should handle empty directories', () => {

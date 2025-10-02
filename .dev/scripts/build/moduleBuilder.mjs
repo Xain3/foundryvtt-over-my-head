@@ -1,17 +1,10 @@
 /**
  * @file moduleBuilder.mjs
  * @description Handles the building process using ViteRunner
-<<<<<<<< HEAD:.dev/scripts/build/moduleBuilder.mjs
  * @path .dev/scripts/build/moduleBuilder.mjs
  */
 
 import ViteRunner from "./runViteWIthAction.mjs";
-========
- * @path scripts/dev/moduleBuilder.mjs
- */
-
-import ViteRunner from "../build/runViteWIthAction.mjs";
->>>>>>>> 22b2c9fb4cf111e7e2c4ab8000ed344556b332b7:.dev/scripts/utilities/moduleBuilder.mjs
 
 /**
  * @class ModuleBuilder

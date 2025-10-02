@@ -483,7 +483,7 @@ class ContextContainerSyncEngine {
 
     // Recursively merge source properties into the result
     for (const [key, sourceValue] of Object.entries(sourceObject)) {
-      if (result.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(result, key)) {
         if (this._isPlainObject(sourceValue) && this._isPlainObject(result[key])) {
           // Recursively merge nested objects
           result[key] = this._deepMergeObjects(sourceValue, result[key]);

@@ -11,7 +11,7 @@ export default [
   js.configs.recommended,
   {
     languageOptions: {
-      ecmaVersion: 'latest',
+      ecmaVersion: 2022,
       sourceType: 'module',
       globals: {
         ...globals.browser,
@@ -30,6 +30,8 @@ export default [
       'no-unused-vars': 'warn',
       'no-console': 'off',
     },
-    ignores: ['dist/', 'node_modules/', 'coverage/'],
+  },
+  {
+    ignores: ['dist/', 'node_modules/', 'coverage/', 'src/config/manifest.mjs'],
   },
 ];

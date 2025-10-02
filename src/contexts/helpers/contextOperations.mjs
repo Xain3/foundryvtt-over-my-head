@@ -164,7 +164,6 @@ class ContextOperations {
     const baseResult = {
       success: result.success || false,
       strategy: strategy,
-      operation: 'pushItems',
       ...result,
       // Override operation after spreading result to ensure it's correct
       operation: 'pushItems'
@@ -207,7 +206,6 @@ class ContextOperations {
     const baseResult = {
       success: result.success || false,
       strategy: strategy,
-      operation: 'pullItems',
       ...result,
       // Override operation after spreading result to ensure it's correct
       operation: 'pullItems'
@@ -249,7 +247,6 @@ class ContextOperations {
           sourceIndex: index,
           success: result.success || true,
           strategy: strategy,
-          operation: 'pushFromMultipleSources',
           ...result,
           // Override operation after spreading result to ensure it's correct
           operation: 'pushFromMultipleSources'
@@ -296,7 +293,6 @@ class ContextOperations {
           targetIndex: index,
           success: result.success || true,
           strategy: strategy,
-          operation: 'pushToMultipleTargets',
           ...result,
           // Override operation after spreading result to ensure it's correct
           operation: 'pushToMultipleTargets'
@@ -352,7 +348,6 @@ class ContextOperations {
             targetIndex,
             success: result.success || true,
             strategy: strategy,
-            operation: 'pushItemsBulk',
             ...result,
             // Override operation after spreading result to ensure it's correct
             operation: 'pushItemsBulk'
@@ -482,7 +477,6 @@ class ContextOperations {
           sourceIndex: index,
           success: result.success !== false,
           strategy: strategy,
-          operation: 'consolidateContexts',
           ...result,
           // Override operation after spreading result to ensure it's correct
           operation: 'consolidateContexts'

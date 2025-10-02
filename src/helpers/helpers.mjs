@@ -276,7 +276,7 @@ class Helpers {
           missingPaths.push(path);
           isValid = false;
         }
-      } catch (error) {
+      } catch (_error) {
         missingPaths.push(path);
         isValid = false;
       }

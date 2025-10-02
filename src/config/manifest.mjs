@@ -4,7 +4,9 @@
  * @path src/config/manifest.mjs
 */
 
+/* eslint-disable */
 import importedManifest from "../../module.json" assert { type: "json" };
+/* eslint-enable */
 import ManifestParser from "./helpers/manifestParser.mjs";
 
 /**

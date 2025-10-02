@@ -587,7 +587,7 @@ class ContextContainer {
           try {
             const nestedValue = PathUtils.getValueFromMixedPath(value, remainingPath);
             return nestedValue !== undefined;
-          } catch (error) {
+          } catch (_error) {
             return false;
           }
         }

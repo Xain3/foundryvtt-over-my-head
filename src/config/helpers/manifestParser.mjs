@@ -94,7 +94,7 @@ class ManifestParser {
    */
   validateManifestAttributesObject() {
     for (const key of Object.keys(this.requiredAttributes)) {
-      if (!this.manifest.hasOwnProperty(key)) {
+      if (!Object.prototype.hasOwnProperty.call(this.manifest, key)) {
         throw new Error(`Manifest is missing required attribute: ${key}`);
       }
     }
@@ -113,7 +113,7 @@ class ManifestParser {
       this.validateManifestAttributesArray();
       // Check if manifest has all required attributes from array
       for (const key of this.requiredAttributes) {
-        if (!this.manifest.hasOwnProperty(key)) {
+        if (!Object.prototype.hasOwnProperty.call(this.manifest, key)) {
           throw new Error(`Manifest is missing required attribute: ${key}`);
         }
       }

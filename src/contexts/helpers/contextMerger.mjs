@@ -879,7 +879,7 @@ class ContextMerger {
     const requiredMethods = ['schema', 'constants', 'manifest', 'flags', 'state', 'data', 'settings'];
 
     return requiredMethods.every(method =>
-      source.hasOwnProperty(method) && target.hasOwnProperty(method)
+      Object.prototype.hasOwnProperty.call(source, method) && Object.prototype.hasOwnProperty.call(target, method)
     );
   }
 

@@ -11,7 +11,7 @@ export default [
   js.configs.recommended,
   {
     languageOptions: {
-      ecmaVersion: 'latest',
+      ecmaVersion: 2022,
       sourceType: 'module',
       globals: {
         ...globals.browser,
@@ -27,9 +27,24 @@ export default [
       },
     },
     rules: {
-      'no-unused-vars': 'warn',
+      'no-unused-vars': ['warn', {
+        varsIgnorePattern: '^_',
+        argsIgnorePattern: '^_',
+      }],
       'no-console': 'off',
     },
-    ignores: ['dist/', 'node_modules/', 'coverage/'],
+  },
+  // Specific rules for test files
+  {
+    files: ['**/*.test.mjs', '**/*.unit.test.mjs', '**/*.int.test.mjs', '**/*.performance.test.mjs', '**/*.smoke.test.mjs', '**/*.setup.test.mjs'],
+    rules: {
+      'no-unused-vars': ['warn', {
+        varsIgnorePattern: '^(beforeEach|afterEach|beforeAll|afterAll|vi)$',
+        argsIgnorePattern: '^_',
+      }],
+    },
+  },
+  {
+    ignores: ['dist/', 'node_modules/', 'coverage/', 'src/config/manifest.mjs'],
   },
 ];

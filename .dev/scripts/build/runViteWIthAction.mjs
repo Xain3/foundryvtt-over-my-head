@@ -1,7 +1,7 @@
 /**
  * @file runViteWIthAction.mjs
  * @description Runs `vite build --watch` and triggers a custom action after each build.
- * @path scripts/build/runViteWIthAction.mjs
+ * @path .dev/scripts/build/runViteWIthAction.mjs
  */
 
 import { spawn } from 'child_process';

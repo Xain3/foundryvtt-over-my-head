@@ -4,7 +4,16 @@
  * @path tests/integration/buildAndDeploy.int.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -32,19 +41,25 @@ describe('BuildAndDeploy Integration Tests', () => {
     mockModuleDir = path.join(mockModulesDir, 'test-module');
     mockDistDir = path.join(tempDir, 'project', 'dist');
 
-  // Create directory structure
+    // Create directory structure
     fs.mkdirSync(mockModuleDir, { recursive: true });
     fs.mkdirSync(mockDistDir, { recursive: true });
 
     // Create test files in dist
-    fs.writeFileSync(path.join(mockDistDir, 'main.mjs'), 'console.log("test");');
-    fs.writeFileSync(path.join(mockDistDir, 'style.css'), 'body { color: red; }');
+    fs.writeFileSync(
+      path.join(mockDistDir, 'main.mjs'),
+      'console.log("test");'
+    );
+    fs.writeFileSync(
+      path.join(mockDistDir, 'style.css'),
+      'body { color: red; }'
+    );
 
     // Create mock module.json
     const moduleJson = {
       id: 'test-module',
       name: 'Test Module',
-      version: '1.0.0'
+      version: '1.0.0',
     };
     fs.writeFileSync(
       path.join(tempDir, 'project', 'module.json'),
@@ -72,21 +87,21 @@ describe('BuildAndDeploy Integration Tests', () => {
     const mockProcess = {
       stdout: {
         setEncoding: vi.fn(),
-        on: vi.fn()
+        on: vi.fn(),
       },
       stderr: {
         setEncoding: vi.fn(),
-        on: vi.fn()
+        on: vi.fn(),
       },
       on: vi.fn(),
-      kill: vi.fn()
+      kill: vi.fn(),
     };
     spawn.mockReturnValue(mockProcess);
 
     global.console = {
       log: vi.fn(),
       warn: vi.fn(),
-      error: vi.fn()
+      error: vi.fn(),
     };
 
     // Create mock module.json in the project root for testing
@@ -94,7 +109,7 @@ describe('BuildAndDeploy Integration Tests', () => {
       const moduleJson = {
         id: 'test-module',
         name: 'Test Module',
-        version: '1.0.0'
+        version: '1.0.0',
       };
       fs.writeFileSync('module.json', JSON.stringify(moduleJson, null, 2));
     }
@@ -102,38 +117,57 @@ describe('BuildAndDeploy Integration Tests', () => {
 
   describe('ModuleDeployer Integration', () => {
     it('should actually copy files from source to target', async () => {
-      const { ModuleDeployer } = await import('../../scripts/dev/buildAndDeploy.mjs');
+      const { ModuleDeployer } = await import(
+        '../../.dev/scripts/deployment/buildAndDeploy.mjs'
+      );
 
-  const deployer = new ModuleDeployer(mockModuleDir);
-  expect(() => deployer.deploy()).not.toThrow();
+      const deployer = new ModuleDeployer(mockModuleDir);
+      expect(() => deployer.deploy()).not.toThrow();
 
-  // Verify files were copied under preserved directory structure (dist)
-  expect(fs.existsSync(path.join(mockModuleDir, 'dist', 'main.mjs'))).toBe(true);
-  expect(fs.existsSync(path.join(mockModuleDir, 'dist', 'style.css'))).toBe(true);
+      // Verify files were copied under preserved directory structure (dist)
+      expect(fs.existsSync(path.join(mockModuleDir, 'dist', 'main.mjs'))).toBe(
+        true
+      );
+      expect(fs.existsSync(path.join(mockModuleDir, 'dist', 'style.css'))).toBe(
+        true
+      );
 
       // Verify file contents
-  const mainJs = fs.readFileSync(path.join(mockModuleDir, 'dist', 'main.mjs'), 'utf8');
-  const styleCss = fs.readFileSync(path.join(mockModuleDir, 'dist', 'style.css'), 'utf8');
+      const mainJs = fs.readFileSync(
+        path.join(mockModuleDir, 'dist', 'main.mjs'),
+        'utf8'
+      );
+      const styleCss = fs.readFileSync(
+        path.join(mockModuleDir, 'dist', 'style.css'),
+        'utf8'
+      );
 
       expect(mainJs).toBe('console.log("test");');
       expect(styleCss).toBe('body { color: red; }');
     });
 
     it('should handle non-existent source directory gracefully', async () => {
-      const { ModuleDeployer } = await import('../../scripts/dev/buildAndDeploy.mjs');
-  // Remove dist so it's missing from TO_DEPLOY
-  if (fs.existsSync('dist')) fs.rmSync('dist', { recursive: true, force: true });
+      const { ModuleDeployer } = await import(
+        '../../.dev/scripts/deployment/buildAndDeploy.mjs'
+      );
+      // Remove dist so it's missing from TO_DEPLOY
+      if (fs.existsSync('dist'))
+        fs.rmSync('dist', { recursive: true, force: true });
 
-  const deployer = new ModuleDeployer(mockModuleDir);
-  expect(() => deployer.deploy()).not.toThrow();
-  // New behavior logs skipping missing sources to console.log
-  expect(console.log).toHaveBeenCalledWith('Skipping ./dist - does not exist');
+      const deployer = new ModuleDeployer(mockModuleDir);
+      expect(() => deployer.deploy()).not.toThrow();
+      // New behavior logs skipping missing sources to console.log
+      expect(console.log).toHaveBeenCalledWith(
+        'Skipping ./dist - does not exist'
+      );
     });
   });
 
   describe('ModuleDirManager Integration', () => {
     it('should create real directories when they do not exist', async () => {
-      const { ModuleDirManager } = await import('../../scripts/dev/buildAndDeploy.mjs');
+      const { ModuleDirManager } = await import(
+        '../../.dev/scripts/deployment/buildAndDeploy.mjs'
+      );
 
       const newModuleDir = path.join(mockModulesDir, 'new-test-module');
 
@@ -153,7 +187,9 @@ describe('BuildAndDeploy Integration Tests', () => {
 
   describe('File System Integration', () => {
     it('should handle large files', async () => {
-      const { ModuleDeployer } = await import('../../scripts/dev/buildAndDeploy.mjs');
+      const { ModuleDeployer } = await import(
+        '../../.dev/scripts/deployment/buildAndDeploy.mjs'
+      );
 
       // Create a larger test file
       const largeContent = 'x'.repeat(1024 * 100); // 100KB file (reduced for faster tests)
@@ -164,11 +200,11 @@ describe('BuildAndDeploy Integration Tests', () => {
       }
       fs.writeFileSync(largeFilePath, largeContent);
 
-  const deployer = new ModuleDeployer(mockModuleDir);
-  expect(() => deployer.deploy()).not.toThrow();
+      const deployer = new ModuleDeployer(mockModuleDir);
+      expect(() => deployer.deploy()).not.toThrow();
 
       // Verify large file was copied correctly
-  const copiedFilePath = path.join(mockModuleDir, 'dist', 'large-file.mjs');
+      const copiedFilePath = path.join(mockModuleDir, 'dist', 'large-file.mjs');
       expect(fs.existsSync(copiedFilePath)).toBe(true);
 
       const copiedContent = fs.readFileSync(copiedFilePath, 'utf8');
@@ -177,24 +213,32 @@ describe('BuildAndDeploy Integration Tests', () => {
     });
 
     it('should handle empty directories', async () => {
-      const { ModuleDeployer } = await import('../../scripts/dev/buildAndDeploy.mjs');
+      const { ModuleDeployer } = await import(
+        '../../.dev/scripts/deployment/buildAndDeploy.mjs'
+      );
 
-  // Create empty source directory that is in TO_DEPLOY list, e.g., ./assets
-  const emptyAssetsDir = path.join(process.cwd(), 'assets');
-  if (!fs.existsSync(emptyAssetsDir)) fs.mkdirSync(emptyAssetsDir);
+      // Create empty source directory that is in TO_DEPLOY list, e.g., ./assets
+      const emptyAssetsDir = path.join(process.cwd(), 'assets');
+      if (!fs.existsSync(emptyAssetsDir)) fs.mkdirSync(emptyAssetsDir);
 
-  // Mock the date string to assert timestamp in log deterministically
-  const dateSpy = vi.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('TEST_TIME');
+      // Mock the date string to assert timestamp in log deterministically
+      const dateSpy = vi
+        .spyOn(Date.prototype, 'toLocaleString')
+        .mockReturnValue('TEST_TIME');
 
-  const deployer = new ModuleDeployer(mockModuleDir);
-  expect(() => deployer.deploy()).not.toThrow();
-  // Expect that the empty directory is created at target
-  expect(fs.existsSync(path.join(mockModuleDir, 'assets'))).toBe(true);
-  // And log mentions syncing
-  expect(console.log).toHaveBeenCalledWith(expect.stringContaining('Syncing TO_DEPLOY items to'));
-  expect(console.log).toHaveBeenCalledWith(expect.stringContaining(' at TEST_TIME'));
+      const deployer = new ModuleDeployer(mockModuleDir);
+      expect(() => deployer.deploy()).not.toThrow();
+      // Expect that the empty directory is created at target
+      expect(fs.existsSync(path.join(mockModuleDir, 'assets'))).toBe(true);
+      // And log mentions syncing
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Syncing TO_DEPLOY items to')
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining(' at TEST_TIME')
+      );
 
-  dateSpy.mockRestore();
+      dateSpy.mockRestore();
     });
   });
 });

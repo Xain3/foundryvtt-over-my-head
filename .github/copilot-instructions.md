@@ -27,7 +27,7 @@ Purpose: Enable AI coding agents to be productive quickly by capturing this repo
 ## Developer Workflows
 
 - Build (prod): `npm run build` → `dist/main.mjs`.
-- Dev watch + deploy: `npm run dev` (scripts/dev/buildAndDeploy.mjs locates Foundry data dir, watches build, deploys via ModuleDeployer; removes root artifacts between builds).
+- Dev watch + deploy: `npm run dev` (.dev/scripts/deployment/buildAndDeploy.mjs locates Foundry data dir, watches build, deploys via ModuleDeployer; removes root artifacts between builds).
 - Tests: `npm test` (coverage, Babel transform). Subsets: `npm run test:unit`, `npm run test:integration`.
 - Release: `npm run prerelease` then `npm run release` (commits `dist/`).
 - Dev containers: see `docker/README.md`. Start with `docker compose -f docker/compose.dev.yml up -d`. `dist/` mirrored by `10-sync-host-content.{sh,mjs}`; shared worlds under `docker/shared/v*/worlds/*`.
@@ -44,7 +44,7 @@ Purpose: Enable AI coding agents to be productive quickly by capturing this repo
 - Config: `src/config/config.mjs`, `src/config/constants.mjs`, `constants.yaml`, `src/config/helpers/constantsBuilder.mjs`
 - Utils: `src/utils/` (see `src/utils/README.md`)
 - Contexts: `src/contexts/` (see `src/contexts/README.md`)
-- Build/dev: `scripts/dev/*`, `scripts/build/runViteWIthAction.mjs`
+- Build/dev: `scripts/dev/*`, `.dev/scripts/build/runViteWIthAction.mjs`, `.dev/scripts/deployment/buildAndDeploy.mjs`
 - Docker: `docker/README.md`, `docker/compose.dev*.yml`, `docker/patches/common/*`
 
 ## Gotchas
@@ -59,16 +59,16 @@ Purpose: Enable AI coding agents to be productive quickly by capturing this repo
 - Init pattern:
 
 ```js
-import config from "@config";
-import Utilities from "@utils/utils.mjs";
+import config from '@config';
+import Utilities from '@utils/utils.mjs';
 
 const utils = new Utilities(config.constants, config.manifest);
 config.exportConstants();
-Hooks.once("i18nInit", () => {
+Hooks.once('i18nInit', () => {
   utils.initializer.initializeContext();
   const settingsHandler = utils.initializer.initializeHandlers?.(
     config,
-    utils,
+    utils
   )?.settings;
   utils.initializer.initializeSettings(settingsHandler, utils);
 });
@@ -77,7 +77,7 @@ Hooks.once("i18nInit", () => {
 - Handler skeleton:
 
 ```js
-import Handler from "@/baseClasses/handler.mjs";
+import Handler from '@/baseClasses/handler.mjs';
 export default class MyHandler extends Handler {
   register() {
     /* settings registration, etc. */

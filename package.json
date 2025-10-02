@@ -41,7 +41,7 @@
     "lodash": "^4.17.21"
   },
   "scripts": {
-    "dev": "node ./scripts/dev/buildAndDeploy.mjs",
+    "dev": "node ./.dev/scripts/deployment/buildAndDeploy.mjs",
     "build": "vite build",
     "build:prod": "NODE_ENV=production vite build",
     "prerelease": "npm run test && npm run build:prod",
@@ -68,7 +68,7 @@
     "spellcheck": "cspell '**/*.md' '**/*.txt' '!node_modules/**'",
     "prepare": "husky",
     "precommit": "lint-staged",
-    "validate:container-config": "node ./scripts/validate-container-config.mjs"
+    "validate:container-config": "node ./.dev/scripts/validation/validate-container-config.mjs"
   },
   "lint-staged": {
     "*.{js,mjs,cjs}": [

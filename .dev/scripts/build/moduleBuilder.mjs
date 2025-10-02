@@ -1,29 +1,29 @@
 /**
  * @file moduleBuilder.mjs
  * @description Handles the building process using ViteRunner
- * @path scripts/dev/moduleBuilder.mjs
+ * @path .dev/scripts/build/moduleBuilder.mjs
  */
 
-import ViteRunner from "../build/runViteWIthAction.mjs";
+import ViteRunner from "./runViteWIthAction.mjs";
 
 /**
  * @class ModuleBuilder
  * @description Handles the building process using ViteRunner with configurable options.
  * Supports both one-time builds and watch mode for development.
  * Allows custom pre-build and post-build actions to be executed.
- * 
+ *
  * @export ModuleBuilder
- * 
+ *
  * Public API:
  * - constructor(options?) - Creates a new builder instance
  * - build() - Performs a one-time build
  * - buildWithWatch(postBuildAction?) - Starts build in watch mode
- * 
+ *
  * Options:
  * - watch: boolean - Enable watch mode (default: false)
  * - preBuildAction: function - Action to run before build
  * - postBuildAction: function - Action to run after build
- * 
+ *
  * @example
  * ```javascript
  * const builder = new ModuleBuilder({

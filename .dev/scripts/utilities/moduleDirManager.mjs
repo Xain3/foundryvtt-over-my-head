@@ -1,7 +1,7 @@
 /**
  * @file moduleDirManager.mjs
  * @description Manages module directory creation and validation
- * @path scripts/dev/moduleDirManager.mjs
+ * @path .dev/scripts/utilities/moduleDirManager.mjs
  */
 
 import fs from 'fs';
@@ -126,7 +126,8 @@ class ModuleDirManager {
     if (fs.existsSync(dirPath)) {
       try {
         const stat = fs.statSync(dirPath);
-        const isDir = typeof stat?.isDirectory === 'function' ? stat.isDirectory() : true;
+        const isDir =
+          typeof stat?.isDirectory === 'function' ? stat.isDirectory() : true;
         if (isDir) {
           console.log(`Found FoundryVTT ${description} directory: ${dirPath}`);
           return dirPath;

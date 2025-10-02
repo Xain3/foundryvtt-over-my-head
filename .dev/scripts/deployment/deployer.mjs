@@ -1,13 +1,21 @@
 /**
  * @file deployer.mjs
  * @description Handles deployment of built files to the FoundryVTT module directory
- * @path scripts/dev/deployer.mjs
+ * @path .dev/scripts/deployment/deployer.mjs
  */
 
 import fs from 'fs';
 import path from 'path';
 
-const TO_DEPLOY = ['./dist', './assets', './public', './lang', './packs', './styles', './module.json'];
+const TO_DEPLOY = [
+  './dist',
+  './assets',
+  './public',
+  './lang',
+  './packs',
+  './styles',
+  './module.json',
+];
 
 /**
  * @class ModuleDeployer
@@ -55,8 +63,10 @@ class ModuleDeployer {
       throw new Error('Target directory not specified for deployment');
     }
 
-  const deployTime = new Date().toLocaleString();
-  console.log(`Syncing TO_DEPLOY items to ${this.#targetDir} at ${deployTime}`);
+    const deployTime = new Date().toLocaleString();
+    console.log(
+      `Syncing TO_DEPLOY items to ${this.#targetDir} at ${deployTime}`
+    );
     this.#ensureTargetDirectory();
     this.#syncDeployItems();
   }
@@ -154,8 +164,10 @@ class ModuleDeployer {
     const targetStats = fs.statSync(targetPath);
 
     // Copy if size differs or source is newer
-    return sourceStats.size !== targetStats.size ||
-           sourceStats.mtime > targetStats.mtime;
+    return (
+      sourceStats.size !== targetStats.size ||
+      sourceStats.mtime > targetStats.mtime
+    );
   }
 }
 

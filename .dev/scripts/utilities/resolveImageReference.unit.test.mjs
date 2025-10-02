@@ -1,11 +1,24 @@
 /**
  * @file resolveImageReference.unit.test.mjs
  * @description Unit tests for the resolveImageReference utility and CLI wrapper.
- * @path scripts/dev/resolveImageReference.unit.test.mjs
+ * @path .dev/scripts/utilities/resolveImageReference.unit.test.mjs
  */
 
-import { describe, it, test, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-import resolveImageReference, { BASE_REPO, DEFAULT_VERSION } from './resolveImageReference.mjs';
+import {
+  describe,
+  it,
+  test,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
+import resolveImageReference, {
+  BASE_REPO,
+  DEFAULT_VERSION,
+} from './resolveImageReference.mjs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 
@@ -28,7 +41,9 @@ describe('resolveImageReference', () => {
 
   test('accepts simple alias tags', () => {
     expect(resolveImageReference('beta')).toBe(`${BASE_REPO}:beta`);
-    expect(resolveImageReference('my-custom-tag')).toBe(`${BASE_REPO}:my-custom-tag`);
+    expect(resolveImageReference('my-custom-tag')).toBe(
+      `${BASE_REPO}:my-custom-tag`
+    );
   });
 
   test('defaults to DEFAULT_VERSION when empty', () => {
@@ -75,12 +90,18 @@ describe('resolveImageReference', () => {
   });
 
   describe('resolveImageReference CLI script', () => {
-    const scriptPath = path.resolve(process.cwd(), 'scripts/dev/resolveImageReference.mjs');
+    const scriptPath = path.resolve(
+      process.cwd(),
+      '.dev/scripts/utilities/resolveImageReference.mjs'
+    );
 
     function runCli(args = [], envOverrides = {}) {
       return new Promise((resolve) => {
         const env = { ...process.env, ...envOverrides };
-        const child = spawn(process.execPath, [scriptPath, ...args], { env, stdio: 'pipe' });
+        const child = spawn(process.execPath, [scriptPath, ...args], {
+          env,
+          stdio: 'pipe',
+        });
 
         let stdout = '';
         let stderr = '';
@@ -150,27 +171,35 @@ describe('resolveImageReference', () => {
     test('defaults to release when env is empty', async () => {
       const res = await runCli([], { FOUNDRY_IMAGE: '' });
       expect(res.code).toBe(0);
-      expect(res.stdout).toContain(`FOUNDRY_IMAGE=${BASE_REPO}:${DEFAULT_VERSION}`);
+      expect(res.stdout).toContain(
+        `FOUNDRY_IMAGE=${BASE_REPO}:${DEFAULT_VERSION}`
+      );
     });
 
     test('export flag sets env and prints confirmation', async () => {
       const res = await runCli(['-e', 'dev']);
       expect(res.code).toBe(0);
       expect(res.stdout).toContain(`FOUNDRY_IMAGE=${BASE_REPO}:develop`);
-      expect(res.stdout).toContain('# Exported to environment variable FOUNDRY_IMAGE');
+      expect(res.stdout).toContain(
+        '# Exported to environment variable FOUNDRY_IMAGE'
+      );
     });
 
     test('exports environment variable when set', async () => {
       const res = await runCli(['-e', '10.291']);
       expect(res.code).toBe(0);
       expect(res.stdout).toContain(`FOUNDRY_IMAGE=${BASE_REPO}:10.291`);
-      expect(res.stdout).toContain('# Exported to environment variable FOUNDRY_IMAGE');
+      expect(res.stdout).toContain(
+        '# Exported to environment variable FOUNDRY_IMAGE'
+      );
     });
 
     test('errors on invalid env value and exits 1', async () => {
       const res = await runCli([], { FOUNDRY_IMAGE: 'felddy/not-found:tag' });
       expect(res.code).toBe(1);
-      expect(res.stderr).toContain('Invalid FOUNDRY_IMAGE argument: "felddy/not-found:tag"');
+      expect(res.stderr).toContain(
+        'Invalid FOUNDRY_IMAGE argument: "felddy/not-found:tag"'
+      );
     });
 
     test('accepts full image reference unchanged', async () => {
@@ -181,4 +210,3 @@ describe('resolveImageReference', () => {
     });
   });
 });
-

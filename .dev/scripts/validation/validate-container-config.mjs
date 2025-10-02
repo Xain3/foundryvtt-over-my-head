@@ -5,9 +5,9 @@
  * @path .dev/scripts/validation/validate-container-config.mjs
  */
 
-import { readFileSync } from 'fs';
-import { resolve, join } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 
@@ -23,9 +23,9 @@ function readJSON(filePath) {
 
 function main() {
   const __dirname = fileURLToPath(new URL('.', import.meta.url));
-  const root = resolve(__dirname, '..', '..', '..');
-  const configPath = join(root, 'docker', 'container-config.json');
-  const schemaPath = join(root, 'docker', 'container-config.schema.json');
+  const root = path.resolve(__dirname, '..', '..', '..');
+  const configPath = path.join(root, 'docker', 'container-config.json');
+  const schemaPath = path.join(root, 'docker', 'container-config.schema.json');
 
   const config = readJSON(configPath);
   const schema = readJSON(schemaPath);

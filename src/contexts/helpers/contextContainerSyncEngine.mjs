@@ -192,7 +192,7 @@ class ContextContainerSyncEngine {
         if (this.syncMetadata) {
           try {
             targetItem.setMetadata(sourceItem.metadata, false);
-          } catch (error) {
+          } catch (_error) {
             try {
               targetItem.metadata = sourceItem.metadata;
             } catch (metadataError) {
@@ -223,7 +223,7 @@ class ContextContainerSyncEngine {
       if (this.syncMetadata) {
         try {
           targetItem.setMetadata(sourceItem.metadata, false);
-        } catch (error) {
+        } catch (_error) {
           try {
             targetItem.metadata = sourceItem.metadata;
           } catch (metadataError) {
@@ -389,7 +389,7 @@ class ContextContainerSyncEngine {
         console.warn('Failed to set metadata on target item:', error);
         try {
           targetObject.metadata = sourceItem.metadata;
-        } catch (metadataError) {
+        } catch (_metadataError) {
           // Additional fallback failed, but we already warned about the original error
         }
       }

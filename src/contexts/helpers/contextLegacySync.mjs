@@ -169,11 +169,13 @@ class ContextLegacySync {
 
       case ContextLegacySync.SYNC_OPERATIONS.MERGE_SOURCE_PRIORITY: {
         const sourcePriorityResult = ContextLegacySync.#mergeWithPriority(source, target, 'source', options);
+        sourcePriorityResult.operation = operation;
         return sourcePriorityResult;
       }
 
       case ContextLegacySync.SYNC_OPERATIONS.MERGE_TARGET_PRIORITY: {
         const targetPriorityResult = ContextLegacySync.#mergeWithPriority(source, target, 'target', options);
+        targetPriorityResult.operation = operation;
         return targetPriorityResult;
       }
 

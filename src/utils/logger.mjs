@@ -25,7 +25,7 @@ const getDebugModeValue = (moduleId, constants) => {
 
     // Fallback to constants default
     return constants?.debug?.enabled || false;
-  } catch (error) {
+  } catch (_error) {
     return constants?.debug?.enabled || false;
   }
 };
@@ -154,7 +154,7 @@ class Logger {
 
     try {
       console.log(formatLogMessage(this.manifest.shortName, message));
-    } catch (error) {
+    } catch (_error) {
       // Fallback logging if formatting fails
       console.log(`${this.manifest.shortName} | ${message}`);
     }
@@ -187,7 +187,7 @@ class Logger {
       }
 
       console.error(formattedMessage);
-    } catch (error) {
+    } catch (_error) {
       // Fallback logging if formatting fails
       console.error(formatLogMessage(this.manifest.shortName, String(message)));
     }
@@ -209,7 +209,7 @@ class Logger {
 
     try {
       console.warn(formatLogMessage(this.manifest.shortName, message));
-    } catch (error) {
+    } catch (_error) {
       // Fallback logging if formatting fails
       console.warn(`${this.manifest.shortName} | ${message}`);
     }
@@ -234,7 +234,7 @@ class Logger {
     if (this.isDebugEnabled()) {
       try {
         console.debug(formatLogMessage(this.manifest.shortName, message));
-      } catch (error) {
+      } catch (_error) {
         // Fallback logging if formatting fails
         console.debug(`${this.manifest.shortName} | ${message}`);
       }

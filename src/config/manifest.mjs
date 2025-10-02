@@ -2,10 +2,18 @@
  * @file manifest.mjs
  * @description This file exports a function that validates and returns the imported manifest object using the ManifestParser helper.
  * @path src/config/manifest.mjs
-*/
+ */
 
-import importedManifest from "../../module.json" assert { type: "json" };
-import ManifestParser from "./helpers/manifestParser.mjs";
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import ManifestParser from './helpers/manifestParser.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const importedManifest = JSON.parse(
+  readFileSync(join(__dirname, '../../module.json'), 'utf8')
+);
 
 /**
  * Validates and returns the manifest object using the ManifestParser helper.

@@ -4,7 +4,7 @@ This directory contains the complete configuration management system for the Fou
 
 ## 📁 Directory Structure
 
-```
+```text
 src/config/
 ├── config.mjs                # Central configuration class - unified access point
 ├── config.unit.test.mjs       # Tests for the Config class

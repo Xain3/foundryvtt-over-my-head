@@ -2,12 +2,11 @@
  * @file manifest.mjs
  * @description This file exports a function that validates and returns the imported manifest object using the ManifestParser helper.
  * @path src/config/manifest.mjs
-*/
+ */
 
-/* eslint-disable */
-import importedManifest from "../../module.json" assert { type: "json" };
-/* eslint-enable */
-import ManifestParser from "./helpers/manifestParser.mjs";
+/* eslint-disable-next-line import/no-unresolved */
+import importedManifest from '../../module.json' assert { type: 'json' };
+import ManifestParser from './helpers/manifestParser.mjs';
 
 /**
  * Validates and returns the manifest object using the ManifestParser helper.

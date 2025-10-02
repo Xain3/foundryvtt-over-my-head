@@ -1,0 +1,20 @@
+# Configuration file for CI checks
+# Defines which checks to run and their severity levels.
+
+# Check for license compliance in source files.
+# Possible values:
+# 0 = off
+# 1 = dry run (log missing licenses but do not fail)
+# 2 = fail silently if licenses are missing
+# 3 = warn if licenses are missing
+# 4 = error if licenses are missing
+checkLicenses: 0
+
+# Check for version consistency between VERSION file and package.json
+# Possible values:
+# 0 = off
+# 1 = dry run (log missing files or different versions but do not fail)
+# 2 = fail silently if one of the files is missing
+# 3 = warn if one of the files is missing or versions differ
+# 4 = error if one of the files is missing or versions differ
+checkVersionConsistency: 0

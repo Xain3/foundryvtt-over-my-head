@@ -273,10 +273,6 @@ function main() {
     console.log('\nℹ️ Version verification completed with warnings.');
     return;
   }
-
-  console.log(
-    '\nℹ️ Version verification completed with warnings; failing suppressed by configuration.'
-  );
 }
 
 export {

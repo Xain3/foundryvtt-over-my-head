@@ -3,16 +3,16 @@
 /**
  * @file test-runner.mjs
  * @description Test runner for build and deployment scripts
- * @path scripts/test-runner.mjs
+ * @path .dev/scripts/testing/test-runner.mjs
  */
 
 import { spawn } from 'child_process';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const projectRoot = path.resolve(__dirname, '..');
+const projectRoot = path.resolve(__dirname, '..', '..', '..');
 
 const colors = {
   reset: '\x1b[0m',
@@ -22,7 +22,7 @@ const colors = {
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
   magenta: '\x1b[35m',
-  cyan: '\x1b[36m'
+  cyan: '\x1b[36m',
 };
 
 function colorLog(color, message) {
@@ -34,7 +34,7 @@ function runCommand(command, args, options = {}) {
     const proc = spawn(command, args, {
       stdio: 'inherit',
       cwd: projectRoot,
-      ...options
+      ...options,
     });
 
     proc.on('close', (code) => {
@@ -53,10 +53,12 @@ async function runTests() {
   const args = process.argv.slice(2);
 
   if (args.includes('--help') || args.includes('-h')) {
-    colorLog('cyan', `
+    colorLog(
+      'cyan',
+      `
 Test Runner for Build and Deployment Scripts
 
-Usage: node test-runner.mjs [options]
+Usage: node .dev/scripts/testing/test-runner.mjs [options]
 
 Options:
   --unit              Run only unit tests
@@ -67,44 +69,53 @@ Options:
   --help, -h          Show this help message
 
 Examples:
-  node test-runner.mjs                    # Run all tests
-  node test-runner.mjs --unit             # Run only unit tests
-  node test-runner.mjs --coverage         # Run with coverage
-  node test-runner.mjs --unit --watch     # Run unit tests in watch mode
-`);
+  node .dev/scripts/testing/test-runner.mjs                    # Run all tests
+  node .dev/scripts/testing/test-runner.mjs --unit             # Run only unit tests
+  node .dev/scripts/testing/test-runner.mjs --coverage         # Run with coverage
+  node .dev/scripts/testing/test-runner.mjs --unit --watch     # Run unit tests in watch mode
+`
+    );
     return;
   }
 
   try {
-    colorLog('bright', '🧪 Starting Test Suite for Build and Deployment Scripts');
+    colorLog(
+      'bright',
+      '🧪 Starting Test Suite for Build and Deployment Scripts'
+    );
     console.log('');
 
     const vitestArgs = [];
 
-    // Determine which tests to run
     if (args.includes('--unit')) {
-      vitestArgs.push('--run', '--reporter=verbose', 'tests/**/*.unit.test.mjs');
+      vitestArgs.push(
+        '--run',
+        '--reporter=verbose',
+        'tests/**/*.unit.test.mjs'
+      );
       colorLog('blue', '📋 Running Unit Tests');
     } else if (args.includes('--integration')) {
       vitestArgs.push('--run', '--reporter=verbose', 'tests/**/*.int.test.mjs');
       colorLog('blue', '📋 Running Integration Tests');
     } else if (args.includes('--performance')) {
-      vitestArgs.push('--run', '--reporter=verbose', 'tests/**/*.performance.test.mjs');
+      vitestArgs.push(
+        '--run',
+        '--reporter=verbose',
+        'tests/**/*.performance.test.mjs'
+      );
       colorLog('blue', '📋 Running Performance Tests');
     } else {
       vitestArgs.push('--run', '--reporter=verbose');
       colorLog('blue', '📋 Running All Tests');
     }
 
-    // Add coverage if requested
     if (args.includes('--coverage')) {
       vitestArgs.push('--coverage');
       colorLog('yellow', '📊 Including Coverage Report');
     }
 
-    // Add watch mode if requested
     if (args.includes('--watch')) {
-      vitestArgs.splice(vitestArgs.indexOf('--run'), 1); // Remove --run for watch
+      vitestArgs.splice(vitestArgs.indexOf('--run'), 1);
       vitestArgs.push('--watch');
       colorLog('yellow', '👀 Running in Watch Mode');
     }
@@ -117,7 +128,6 @@ Examples:
 
     console.log('');
     colorLog('green', '✅ All tests completed successfully!');
-
   } catch (error) {
     console.log('');
     colorLog('red', '❌ Tests failed:');
@@ -126,7 +136,6 @@ Examples:
   }
 }
 
-// Additional utility functions for specific test scenarios
 async function runTestsForFile(filePath) {
   colorLog('blue', `🎯 Running tests for: ${filePath}`);
 
@@ -144,17 +153,19 @@ async function lintTests() {
   colorLog('blue', '🔍 Linting test files...');
 
   try {
-    await runCommand('npx', ['eslint', 'scripts/**/*.test.mjs', 'tests/**/*.test.mjs']);
+    await runCommand('npx', [
+      'eslint',
+      '.dev/scripts/**/*.test.mjs',
+      'tests/**/*.test.mjs',
+    ]);
     colorLog('green', '✅ Linting completed successfully!');
   } catch (error) {
     colorLog('yellow', '⚠️  Linting issues found (continuing anyway)');
   }
 }
 
-// Export functions for use in other scripts
 export { runTests, runTestsForFile, lintTests };
 
-// Run if called directly
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   runTests();
 }

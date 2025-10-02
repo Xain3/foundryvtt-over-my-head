@@ -1,0 +1,36 @@
+# Configuration for version bumping tool (e.g., bump2version).
+# Defines files to update and rules for different formats.
+# Compatible with semantic versioning (e.g., 1.2.3).
+
+filesToBump:
+  mandatory: # Critical fail if these files are not present
+    - 'package.json'
+  optional: # Only bump if these files are present
+    - 'VERSION'
+    - 'README.md'
+    - 'package-lock.json'
+
+# Specific rules for different file types and locations.
+# When not specified, regex replacement or string replacement is used.
+# Specific rules override generic rules.
+
+rules:
+  'README.md':
+    prefix_pattern: "#\\s*[Vv]ersion[:\\s]+" # Matches lines like "# Version: 1.0.0"
+    max_lines: 5 # Only check the first 5 lines for performance
+  '.json$':
+    key: 'version' # Updates {"version": "1.0.0"} in JSON files
+  'package.json':
+    root: true # Ensures version is at root level
+  'package-lock.json':
+    root: true # Same for lockfile
+  '.toml$':
+    key: 'version'
+    root: true
+    section: ['project', 'package', 'tool.poetry', 'tool.cargo'] # Checks these sections in TOML files
+  '.ini$':
+    key: 'version'
+    section: 'app' # Updates [app] version = 1.0.0 in INI files
+
+# process:
+#   "complex_config.toml": ".dev/scripts/ci/custom-bump.mjs" # Example for complex TOML processing

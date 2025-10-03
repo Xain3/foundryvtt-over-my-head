@@ -151,11 +151,14 @@ describe('PlaceableGetter', () => {
     });
 
     describe('getRectBounds', () => {
-        it('should return the top-right and bottom-left corners', () => {
+        it('should return the top-right and bottom-left corners in Cartesian naming', () => {
+            // mockPlaceable: x=100, y=100, width=200, height=150
+            // topLeft (screen) = { x: 100, y: 100 } = BottomLeft (Cartesian)
+            // bottomRight (screen) = { x: 300, y: 250 } = TopRight (Cartesian)
             const bounds = placeableGetter.getRectBounds(mockPlaceable);
             expect(bounds).toEqual({
-                TopRight: { x: 300, y: 100 },
-                BottomLeft: { x: 100, y: 250 }
+                BottomLeft: { x: 100, y: 100 },  // min x, min y (Cartesian/min screen coords)
+                TopRight: { x: 300, y: 250 }      // max x, max y (Cartesian/max screen coords)
             });
         });
     });
@@ -169,8 +172,8 @@ describe('PlaceableGetter', () => {
         it('should return the rectangle bounds when "use" is set to "rectangle"', () => {
             const position = placeableGetter.getPosition(mockPlaceable, placeableGetter, 'rectangle');
             expect(position).toEqual({
-                TopRight: { x: 300, y: 100 },
-                BottomLeft: { x: 100, y: 250 }
+                BottomLeft: { x: 100, y: 100 },  // min x, min y (Cartesian)
+                TopRight: { x: 300, y: 250 }      // max x, max y (Cartesian)
             });
         });
 

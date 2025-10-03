@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+FOUNDRY_DOWNLOAD_URL="https://foundryvtt.com/releases/download?build=350&platform=node"
+
 if [[ "${1:-}" == "--help" ]] || [[ "${1:-}" == "-h" ]]; then
     cat << EOF
 Devcontainer Post-Create Setup Script
@@ -146,6 +148,28 @@ else
     echo "🪝 Installing Git hooks..."
     npm run prepare
     pass "Git hooks installed"
+fi
+
+section "Install Foundry VTT (will be deprecated when the containerized app is available)"
+if [[ "$DRY_RUN" == true ]]; then
+    echo "📦 Would install Foundry VTT"
+    pass "Foundry VTT installed (dry-run)"
+else
+    echo "📦 Installing Foundry VTT..."
+    # Create application and user data directories
+    cd $HOME
+    mkdir foundryvtt
+    mkdir foundrydata
+
+    # Install the software
+    cd foundryvtt
+    wget -O foundryvtt.zip "$FOUNDRY_DOWNLOAD_URL"
+    unzip foundryvtt.zip
+    echo "Foundry VTT installed in $HOME/foundryvtt"
+    echo "User data directory is $HOME/foundrydata"
+    echo "You can run Foundry VTT with: npm run run-foundry"
+    echo "Make sure to set up your configuration on first run."
+    pass "Foundry VTT installed"
 fi
 
 if [[ "$DRY_RUN" == true ]]; then

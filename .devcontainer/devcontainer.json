@@ -25,6 +25,12 @@
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   "forwardPorts": [3000, 8080, 30000],
 
+  // Bind /foundrydata and /foundryvtt
+  "mounts": [
+    "source=${localEnv:HOME}/foundrydata,target=/home/node/foundrydata,type=bind",
+    "source=${localEnv:HOME}/FoundryVTT,target=/home/node/FoundryVTT,type=bind"
+  ],
+
   // Use 'postCreateCommand' to run commands after the container is created.
   "postCreateCommand": ".devcontainer/devcontainer-setup.sh",
 

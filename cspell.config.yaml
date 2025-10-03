@@ -1,4 +1,4 @@
-version: '0.2'
+version: "0.2"
 ignorePaths: []
 dictionaryDefinitions: []
 dictionaries:
@@ -21,6 +21,7 @@ words:
   - donjayamanne
   - eamodio
   - esbenp
+  - foundrydata
   - foundryvtt
   - geistmann
   - githistory
@@ -29,6 +30,7 @@ words:
   - maciejdems
   - mhutchie
   - perkovec
+  - Placeables
   - Schmalfeldt
   - stylelintcache
   - yzhang

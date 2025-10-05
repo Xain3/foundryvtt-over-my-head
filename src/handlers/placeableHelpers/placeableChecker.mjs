@@ -36,9 +36,7 @@ class PlaceableChecker extends Handler {
   getDebugMode() {
     if (this.debugEnabled != null) return !!this.debugEnabled;
     return (
-      this.config?.constants?.debugMode ||
-      this.context?.debugMode ||
-      false
+      this.config?.constants?.debugMode || this.context?.debugMode || false
     );
   }
 
@@ -79,8 +77,18 @@ class PlaceableChecker extends Handler {
    * @param {Object} placeable
    * @returns {boolean} True if selected, else false.
    */
-  isSelected(placeable) {
+  isControlled(placeable) {
     return placeable.controlled;
+  }
+
+  /**
+   * Determines if a placeable is selected.
+   * Delegates to isControlled for consistency.
+   * @param {Object} placeable
+   * @returns {boolean} True if selected, else false.
+   */
+  isSelected(placeable) {
+    return this.isControlled(placeable);
   }
 
   /**
@@ -104,12 +112,28 @@ class PlaceableChecker extends Handler {
     referenceUse = POSITION_USES.RECTANGLE,
     checkType = CHECK_TYPES.UNDER
   ) {
-    if (this.getDebugMode()) this.logger?.log(`Checking if target ${target} is under reference ${reference}`);
-    const targetPosition = this.getter.getPosition(target, targetManager, targetUse);
+    if (this.getDebugMode())
+      this.logger?.log(
+        `Checking if target ${target} is under reference ${reference}`
+      );
+    const targetPosition = this.getter.getPosition(
+      target,
+      targetManager,
+      targetUse
+    );
     const targetElevation = this.getter.getElevation(target);
-    const referencePosition = this.getter.getPosition(reference, referenceManager, referenceUse);
+    const referencePosition = this.getter.getPosition(
+      reference,
+      referenceManager,
+      referenceUse
+    );
     const referenceElevation = this.getter.getElevation(reference);
-    if (!targetPosition || targetElevation == null || !referencePosition || referenceElevation == null) {
+    if (
+      !targetPosition ||
+      targetElevation == null ||
+      !referencePosition ||
+      referenceElevation == null
+    ) {
       this.logger?.warn('Invalid target or reference');
       return false;
     }
@@ -152,6 +176,41 @@ class PlaceableChecker extends Handler {
       CHECK_TYPES.OVER
     );
   }
- }
+
+  // TOKEN ONLY METHODS
+
+  /**
+   * Determines if a token is fully owned by the user.
+   * @param {Object} token - The token to check.
+   * @returns {boolean} True if the token is owned, else false.
+   */
+  isOwned(token) {
+    try {
+      if ('isOwner' in token) return token.isOwner;
+      throw new Error('Token does not have isOwner property or method');
+    } catch (error) {
+      this.logger?.error(`Error checking if token is owned: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Determines if a token is both owned and selected by the user.
+   * @param {Object} token - The token to check.
+   * @returns {boolean} True if the token is owned and selected, else false.
+   */
+  isOwnedAndControlled(token) {
+    if (!this.isOwned(token)) return false;
+    return this.isControlled(token);
+  }
+
+  /**
+   * Determines if a token is both owned and selected by the user.
+   * Delegates to isOwnedAndControlled for consistency.
+   */
+  isOwnedAndSelected(token) {
+    return this.isOwnedAndControlled(token);
+  }
+}
 
 export default PlaceableChecker;

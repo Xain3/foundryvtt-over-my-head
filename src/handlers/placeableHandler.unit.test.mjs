@@ -120,6 +120,28 @@ describe('PlaceableHandler', () => {
       expect(placeableHandler.all).toEqual([]);
       expect(placeableHandler.current).toBeNull();
     });
+
+    it('should accept and set the placeableType parameter', () => {
+      const testPlaceableType = 'Token';
+      const handlerWithType = new PlaceableHandler(
+        mockConfig,
+        mockContext,
+        mockUtils,
+        testPlaceableType
+      );
+
+      expect(handlerWithType.placeableType).toBe(testPlaceableType);
+    });
+
+    it('should default placeableType to null when not provided', () => {
+      const handlerDefault = new PlaceableHandler(
+        mockConfig,
+        mockContext,
+        mockUtils
+      );
+
+      expect(handlerDefault.placeableType).toBeNull();
+    });
   });
 
   describe('setCurrent', () => {

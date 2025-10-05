@@ -38,9 +38,9 @@ class PlaceableHandler extends Handler {
    * @property {Object} game - The global game object.
    * @property {Object} context - The execution context.
    */
-  constructor(config, context, utils) {
+  constructor(config, context, utils, placeableType = null) {
     super(config, utils, context);
-    this.placeableType = null;
+    this.placeableType = placeableType;
     this.getter = new PlaceableGetter(config, context, utils);
     this.setter = new PlaceableSetter(config, context, utils);
     this.checker = new PlaceableChecker(config, context, utils, this.getter);

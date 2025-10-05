@@ -23,6 +23,7 @@ Purpose: Enable AI coding agents to be productive quickly by capturing this repo
 - Use context helpers for data ops (merge/sync/compare/filter) instead of ad‑hoc mutations.
 - Hook timing: initialize context/settings on Foundry hooks (`i18nInit` then `init`) using `Initializer` or `OverMyHead` flow.
 - Aliases (Babel/Vite): `@`, `@docker`, `@config`, `@constants`, `@manifest`, `@configFolder`, `@contexts`, `@data`, `@handlers`, `@utils`, `@listeners`, `@maps`, `@helpers`, `@configHelpers`, `@validator`, `@module`.
+- Commit messages: Conventional Commits style (type(scope): subject).
 
 ## Developer Workflows
 

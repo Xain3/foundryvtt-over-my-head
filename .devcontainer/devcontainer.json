@@ -23,7 +23,7 @@
   // "features": {},
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  "forwardPorts": [3000, 8080, 30000],
+  "forwardPorts": [3000, 8080],
 
   // Bind /foundrydata and /foundryvtt
   "mounts": [

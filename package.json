@@ -71,7 +71,7 @@
     "spellcheck": "cspell '**/*.md' '**/*.txt' '!node_modules/**'",
     "prepare": "husky",
     "precommit": "lint-staged",
-    "run-foundry": "node main.js --dataPath=$HOME/foundrydata",
+    "run-foundry": "$HOME/FoundryVTT/foundryvtt --data $HOME/FoundryVTTData --no-sandbox",
     "validate:container-config": "node ./.dev/scripts/validation/validate-container-config.mjs"
   },
   "lint-staged": {

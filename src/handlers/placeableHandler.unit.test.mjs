@@ -24,7 +24,7 @@ vi.mock('./placeableHelpers/placeableSetter.mjs', () => {
 
 vi.mock('../baseClasses/handler.mjs', () => ({
   default: class MockHandler {
-    constructor(config, utils, context) {
+    constructor({ config, utils, context }) {
       this.config = config;
       this.utils = utils;
       this.context = context;

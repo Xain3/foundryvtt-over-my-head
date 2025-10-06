@@ -176,11 +176,11 @@ describe('Handlers', () => {
 
   describe('Debug Mode convenience methods', () => {
     it('should delegate hasDebugModeSettingConfig to settings handler', () => {
-      const handlers = new Handlers(
-        fakeConfigWithDebug,
-        fakeUtils,
-        fakeContext
-      );
+      const handlers = new Handlers({
+        config: fakeConfigWithDebug,
+        utils: fakeUtils,
+        context: fakeContext
+      });
       vi.spyOn(handlers.settings, 'hasDebugModeSettingConfig').mockReturnValue(
         true
       );
@@ -192,11 +192,11 @@ describe('Handlers', () => {
     });
 
     it('should delegate getDebugModeSettingConfig to settings handler', () => {
-      const handlers = new Handlers(
-        fakeConfigWithDebug,
-        fakeUtils,
-        fakeContext
-      );
+      const handlers = new Handlers({
+        config: fakeConfigWithDebug,
+        utils: fakeUtils,
+        context: fakeContext
+      });
       const mockDebugSetting = {
         key: 'debugMode',
         config: { name: 'Debug Mode' },
@@ -212,11 +212,11 @@ describe('Handlers', () => {
     });
 
     it('should delegate registerDebugModeSetting to settings handler', () => {
-      const handlers = new Handlers(
-        fakeConfigWithDebug,
-        fakeUtils,
-        fakeContext
-      );
+      const handlers = new Handlers({
+        config: fakeConfigWithDebug,
+        utils: fakeUtils,
+        context: fakeContext
+      });
       const mockResult = { success: true, counter: 1, successCounter: 1 };
       vi.spyOn(handlers.settings, 'registerDebugModeSetting').mockReturnValue(
         mockResult

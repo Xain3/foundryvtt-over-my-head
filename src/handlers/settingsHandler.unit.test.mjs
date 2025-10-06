@@ -106,8 +106,8 @@ describe('SettingsHandler', () => {
 
       expect(handler.settingsConfig).toBe(mockConfig.constants.settings);
       expect(handler.parsedSettings).toBe(mockConfig.constants.settings.settingsList);
-      expect(SettingsParser).toHaveBeenCalledWith(mockConfig, mockUtils, mockContext);
-      expect(SettingsRegistrar).toHaveBeenCalledWith(mockConfig, mockUtils, mockContext);
+      expect(SettingsParser).toHaveBeenCalledWith({ config: mockConfig, utils: mockUtils, context: mockContext });
+      expect(SettingsRegistrar).toHaveBeenCalledWith({ config: mockConfig, utils: mockUtils, context: mockContext });
     });
   });
 

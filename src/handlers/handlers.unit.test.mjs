@@ -145,7 +145,7 @@ describe('Handlers', () => {
   const fakeContext = { some: 'context' };
 
   it('constructs and creates a settings handler instance', () => {
-    const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+    const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
 
     expect(handlers).toBeDefined();
     // Handlers should inherit from Handler
@@ -159,18 +159,18 @@ describe('Handlers', () => {
   });
 
   it('throws when missing parameters', () => {
-    expect(() => new Handlers(null, fakeUtils, fakeContext)).toThrow();
-    expect(() => new Handlers(fakeConfig, null, fakeContext)).toThrow();
-    expect(() => new Handlers(fakeConfig, fakeUtils, null)).toThrow();
+    expect(() => new Handlers({ config: null, utils: fakeUtils, context: fakeContext })).toThrow();
+    expect(() => new Handlers({ config: fakeConfig, utils: null, context: fakeContext })).toThrow();
+    expect(() => new Handlers({ config: fakeConfig, utils: fakeUtils, context: null })).toThrow();
   });
 
   it('should create a settings handler instance', () => {
-    const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+    const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
     expect(handlers.settings).toBeInstanceOf(SettingsHandler);
   });
 
   it('should create a placeable handler instance', () => {
-    const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+    const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
     expect(handlers.placeable).toBeInstanceOf(PlaceableHandler);
   });
 
@@ -229,7 +229,7 @@ describe('Handlers', () => {
     });
 
     it('should return false when no debug setting exists', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
 
       const hasDebug = handlers.hasDebugModeSettingConfig();
       const debugSetting = handlers.getDebugModeSettingConfig();
@@ -241,7 +241,7 @@ describe('Handlers', () => {
 
   describe('Generic setting convenience methods', () => {
     it('should delegate hasSettingConfigByKey to settings handler', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
       vi.spyOn(handlers.settings, 'hasSettingConfigByKey').mockReturnValue(
         true
       );
@@ -255,7 +255,7 @@ describe('Handlers', () => {
     });
 
     it('should delegate getSettingConfigByKey to settings handler', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
       const mockSetting = {
         key: 'testSetting',
         config: { name: 'Test Setting' },
@@ -273,7 +273,7 @@ describe('Handlers', () => {
     });
 
     it('should delegate registerSettingByKey to settings handler', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
       const mockResult = { success: true, counter: 1, successCounter: 1 };
       vi.spyOn(handlers.settings, 'registerSettingByKey').mockReturnValue(
         mockResult
@@ -288,7 +288,7 @@ describe('Handlers', () => {
     });
 
     it('should return false when setting does not exist', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
 
       const hasSetting = handlers.hasSettingConfigByKey('nonExistentSetting');
       const setting = handlers.getSettingConfigByKey('nonExistentSetting');
@@ -298,7 +298,7 @@ describe('Handlers', () => {
     });
 
     it('should return true for existing setting', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
 
       const hasSetting = handlers.hasSettingConfigByKey('testSetting');
       const setting = handlers.getSettingConfigByKey('testSetting');
@@ -327,7 +327,7 @@ describe('Handlers', () => {
     describe('hasSetting', () => {
       it('should delegate to settings handler hasSetting method', () => {
         global.game.settings.get.mockReturnValue(true);
-        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
 
         const result = handlers.hasSetting('testSetting');
 
@@ -340,7 +340,7 @@ describe('Handlers', () => {
 
       it('should return false when setting does not exist', () => {
         global.game.settings.get.mockReturnValue(undefined);
-        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
 
         const result = handlers.hasSetting('nonExistentSetting');
 
@@ -352,7 +352,7 @@ describe('Handlers', () => {
       it('should delegate to settings handler getSettingValue method', () => {
         const expectedValue = 'test value';
         global.game.settings.get.mockReturnValue(expectedValue);
-        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
 
         const result = handlers.getSettingValue('testSetting');
 
@@ -365,7 +365,7 @@ describe('Handlers', () => {
 
       it('should return undefined when setting does not exist', () => {
         global.game.settings.get.mockReturnValue(undefined);
-        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
 
         const result = handlers.getSettingValue('nonExistentSetting');
 
@@ -376,7 +376,7 @@ describe('Handlers', () => {
     describe('hasDebugModeSetting', () => {
       it('should delegate to settings handler hasDebugModeSetting method', () => {
         global.game.settings.get.mockReturnValue(false);
-        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
 
         const result = handlers.hasDebugModeSetting();
 
@@ -389,7 +389,7 @@ describe('Handlers', () => {
 
       it('should return false when debugMode setting does not exist', () => {
         global.game.settings.get.mockReturnValue(undefined);
-        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
 
         const result = handlers.hasDebugModeSetting();
 
@@ -400,7 +400,7 @@ describe('Handlers', () => {
     describe('getDebugModeSettingValue', () => {
       it('should delegate to settings handler getDebugModeSettingValue method', () => {
         global.game.settings.get.mockReturnValue(true);
-        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
 
         const result = handlers.getDebugModeSettingValue();
 
@@ -413,7 +413,7 @@ describe('Handlers', () => {
 
       it('should return false when debugMode is disabled', () => {
         global.game.settings.get.mockReturnValue(false);
-        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
 
         const result = handlers.getDebugModeSettingValue();
 
@@ -422,7 +422,7 @@ describe('Handlers', () => {
 
       it('should return undefined when debugMode setting does not exist', () => {
         global.game.settings.get.mockReturnValue(undefined);
-        const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+        const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
 
         const result = handlers.getDebugModeSettingValue();
 
@@ -433,7 +433,7 @@ describe('Handlers', () => {
 
   describe('Placeable Convenience Methods', () => {
     it('should delegate setCurrentPlaceable to placeable handler', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
       const mockPlaceable = { id: 'testPlaceable' };
       const mockResult = { id: 'currentPlaceable' };
       vi.spyOn(handlers.placeable, 'setCurrent').mockReturnValue(mockResult);
@@ -445,7 +445,7 @@ describe('Handlers', () => {
     });
 
     it('should delegate getCurrentPlaceable to placeable handler', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
       const mockCurrent = { id: 'currentPlaceable' };
       vi.spyOn(handlers.placeable, 'getCurrent').mockReturnValue(mockCurrent);
 
@@ -456,7 +456,7 @@ describe('Handlers', () => {
     });
 
     it('should delegate getAllPlaceables to placeable handler', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
       const mockPlaceables = [{ id: 'placeable1' }, { id: 'placeable2' }];
       vi.spyOn(handlers.placeable, 'getAll').mockReturnValue(mockPlaceables);
 
@@ -471,7 +471,7 @@ describe('Handlers', () => {
     });
 
     it('should delegate getPlaceableCorner to placeable handler', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
       const mockPlaceable = { id: 'testPlaceable' };
       const mockCorner = { x: 10, y: 20 };
       vi.spyOn(handlers.placeable, 'getCorner').mockReturnValue(mockCorner);
@@ -486,7 +486,7 @@ describe('Handlers', () => {
     });
 
     it('should delegate getPlaceableCenter to placeable handler', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
       const mockPlaceable = { id: 'testPlaceable' };
       const mockCenter = { x: 50, y: 50 };
       vi.spyOn(handlers.placeable, 'getCenter').mockReturnValue(mockCenter);
@@ -498,7 +498,7 @@ describe('Handlers', () => {
     });
 
     it('should delegate getPlaceableElevation to placeable handler', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
       const mockPlaceable = { id: 'testPlaceable' };
       const mockElevation = 5;
       vi.spyOn(handlers.placeable, 'getElevation').mockReturnValue(
@@ -514,7 +514,7 @@ describe('Handlers', () => {
     });
 
     it('should delegate getPlaceableRectBounds to placeable handler', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
       const mockPlaceable = { id: 'testPlaceable' };
       const mockBounds = { x: 0, y: 0, width: 100, height: 100 };
       vi.spyOn(handlers.placeable, 'getRectBounds').mockReturnValue(mockBounds);
@@ -528,7 +528,7 @@ describe('Handlers', () => {
     });
 
     it('should delegate getPlaceablePosition to placeable handler', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
       const mockPlaceable = { id: 'testPlaceable' };
       const mockManager = { some: 'manager' };
       const mockPosition = { x: 25, y: 25 };
@@ -549,7 +549,7 @@ describe('Handlers', () => {
     });
 
     it('should delegate isPlaceableSelected to placeable handler', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
       const mockPlaceable = { id: 'testPlaceable' };
       vi.spyOn(handlers.placeable, 'isSelected').mockReturnValue(true);
 
@@ -560,7 +560,7 @@ describe('Handlers', () => {
     });
 
     it('should delegate isPlaceableUnder to placeable handler', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
       const mockTarget = { id: 'target' };
       const mockReference = { id: 'reference' };
       const mockTargetManager = { type: 'target' };
@@ -590,7 +590,7 @@ describe('Handlers', () => {
     });
 
     it('should delegate isPlaceableOver to placeable handler', () => {
-      const handlers = new Handlers(fakeConfig, fakeUtils, fakeContext);
+      const handlers = new Handlers({ config: fakeConfig, utils: fakeUtils, context: fakeContext });
       const mockTarget = { id: 'target' };
       const mockReference = { id: 'reference' };
       const mockTargetManager = { type: 'target' };

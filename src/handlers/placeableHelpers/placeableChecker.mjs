@@ -16,14 +16,15 @@ import { CHECK_TYPES, POSITION_USES } from './config.mjs';
  */
 class PlaceableChecker extends Handler {
   /**
-   * @param {Object} config - Configuration settings.
-   * @param {Object} context - Execution context.
-   * @param {Object} utils - Utility functions.
-   * @param {PlaceableGetter} placeableGetter - Instance of PlaceableGetter.
+   * @param {Object} args - Arguments object
+   * @param {Object} args.config - Configuration settings.
+   * @param {Object} args.context - Execution context.
+   * @param {Object} args.utils - Utility functions.
+   * @param {PlaceableGetter} args.placeableGetter - Instance of PlaceableGetter.
    */
-  constructor(config, context, utils, placeableGetter) {
-    super(config, utils, context);
-    this.positionChecker = new PositionChecker(config, context, utils);
+  constructor({ config, context, utils, placeableGetter }) {
+    super({ config, utils, context });
+    this.positionChecker = new PositionChecker({ config, context, utils });
     this.getter = placeableGetter;
     this.logger = utils?.logger;
   }

@@ -12,12 +12,13 @@ import Handler from "../../baseClasses/handler.mjs";
  */
 class PlaceableGetter extends Handler {
     /**
-     * @param {Object} config - Configuration settings.
-     * @param {Object} context - Execution context.
-     * @param {Object} utils - Utility functions.
+     * @param {Object} args - Arguments object
+     * @param {Object} args.config - Configuration settings.
+     * @param {Object} args.context - Execution context.
+     * @param {Object} args.utils - Utility functions.
      */
-    constructor(config, context, utils) {
-        super(config, utils, context);
+    constructor({ config, context, utils }) {
+        super({ config, utils, context });
     }
 
     /**

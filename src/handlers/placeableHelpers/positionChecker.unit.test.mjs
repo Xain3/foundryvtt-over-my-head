@@ -19,7 +19,7 @@ describe('PositionChecker', () => {
     mockUtils = { logger: mockLogger };
     mockConfig = { constants: {} };
     mockContext = {};
-    positionChecker = new PositionChecker(mockConfig, mockContext, mockUtils);
+    positionChecker = new PositionChecker({ config: mockConfig, context: mockContext, utils: mockUtils });
         // Add logger for testing warning messages
         positionChecker.logger = mockLogger;
     });
@@ -209,7 +209,7 @@ describe('PositionChecker', () => {
                     }
                 }
             };
-            const pc = new PositionChecker(overrideConfig, {}, mockUtils);
+            const pc = new PositionChecker({ config: overrideConfig, context: {}, utils: mockUtils });
             expect(pc.POSITION_USES.CENTER).toBe('ctr');
             expect(pc.POSITION_USES.RECTANGLE).toBe('rect');
             const key = `${pc.POSITION_USES.CENTER}-${pc.POSITION_USES.RECTANGLE}`;
@@ -225,7 +225,7 @@ describe('PositionChecker', () => {
                     }
                 }
             };
-            const pc = new PositionChecker(overrideConfig, {}, mockUtils);
+            const pc = new PositionChecker({ config: overrideConfig, context: {}, utils: mockUtils });
             expect(pc.elevationCheck(1, 2, 'below')).toBe(true);
             expect(pc.elevationCheck(3, 2, 'below')).toBe(false);
             expect(pc.elevationCheck(3, 2, 'above')).toBe(true);

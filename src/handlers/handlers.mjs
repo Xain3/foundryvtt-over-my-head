@@ -45,25 +45,26 @@ class Handlers extends Handler {
   /**
    * Create a Handlers instance.
    *
-   * @param {Object} config - Module configuration object.
-   * @param {Object} utils - Utilities facade providing logging and error formatting.
-   * @param {Object} context - Execution context object.
+   * @param {Object} args - Arguments object
+   * @param {Object} args.config - Module configuration object.
+   * @param {Object} args.utils - Utilities facade providing logging and error formatting.
+   * @param {Object} args.context - Execution context object.
    * @throws {Error} If any required parameter is missing or invalid.
    */
-  constructor(config, utils, context) {
+  constructor({ config, utils, context }) {
     Handlers.#validateHandlerParameters(config, utils, context);
-    super(config, utils, context);
+    super({ config, utils, context });
     /**
      * The settings handler instance.
      * @type {SettingsHandler}
      * @public
      */
-    this.settings = new SettingsHandler(this.config, this.utils, this.context);
-    this.placeable = new PlaceableHandler(
-      this.config,
-      this.utils,
-      this.context
-    );
+    this.settings = new SettingsHandler({ config: this.config, utils: this.utils, context: this.context });
+    this.placeable = new PlaceableHandler({
+      config: this.config,
+      utils: this.utils,
+      context: this.context
+    });
   }
 
   /**

@@ -36,7 +36,7 @@ describe('SettingsParser type normalization', () => {
   const smallContext = {};
 
   beforeEach(() => {
-    parser = new SettingsParser(baseConfig, smallUtils, smallContext);
+    parser = new SettingsParser({ config: baseConfig, utils: smallUtils, context: smallContext });
     delete globalThis.foundry;
   // Ensure validation passes in this suite
   SettingsChecker.check.mockReturnValue(true);
@@ -142,7 +142,7 @@ describe('SettingsParser', () => {
   it('parses an array of valid settings successfully', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser(config, utils, context);
+    const parser = new SettingsParser({ config: config, utils: utils, context: context });
 
     // All valid
     SettingsChecker.check.mockReturnValue(true);
@@ -163,7 +163,7 @@ describe('SettingsParser', () => {
   it('parses an object map of valid settings successfully', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser(config, utils, context);
+    const parser = new SettingsParser({ config: config, utils: utils, context: context });
 
     SettingsChecker.check.mockReturnValue(true);
     const input = {
@@ -183,7 +183,7 @@ describe('SettingsParser', () => {
   it('logs a warning when only a subset of settings are valid (array input)', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser(config, utils, context);
+    const parser = new SettingsParser({ config: config, utils: utils, context: context });
 
     // First valid, second invalid
     SettingsChecker.check
@@ -208,7 +208,7 @@ describe('SettingsParser', () => {
   it('throws for invalid input types', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser(config, utils, context);
+    const parser = new SettingsParser({ config: config, utils: utils, context: context });
 
     expect(() => parser.parse(null)).toThrow('Settings cannot be parsed: invalid format');
     expect(() => parser.parse(undefined)).toThrow('Settings cannot be parsed: invalid format');
@@ -219,7 +219,7 @@ describe('SettingsParser', () => {
   it('throws when no valid settings are found (empty array/object)', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser(config, utils, context);
+    const parser = new SettingsParser({ config: config, utils: utils, context: context });
 
     SettingsChecker.check.mockReturnValue(false);
 
@@ -230,7 +230,7 @@ describe('SettingsParser', () => {
   it('throws when all processed settings are invalid', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser(config, utils, context);
+    const parser = new SettingsParser({ config: config, utils: utils, context: context });
 
     SettingsChecker.check.mockReturnValue(false);
 
@@ -276,7 +276,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       formatHookName: vi.fn((hookName) => `OMH${hookName}`)
     };
 
-    settingsParser = new SettingsParser(mockConfig, mockUtils, mockContext);
+    settingsParser = new SettingsParser({ config: mockConfig, utils: mockUtils, context: mockContext });
 
     // Mock SettingsChecker to return true by default
     SettingsChecker.check.mockReturnValue(true);
@@ -541,7 +541,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
     const mockContext = {};
 
     beforeEach(() => {
-      parser = new SettingsParser(mockConfig, mockUtils, mockContext);
+      parser = new SettingsParser({ config: mockConfig, utils: mockUtils, context: mockContext });
       SettingsChecker.check.mockReturnValue(true);
       FlagEvaluator.shouldShow = vi.fn();
     });
@@ -681,7 +681,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
     const mockContext = {};
 
     beforeEach(() => {
-      parser = new SettingsParser(mockConfig, mockUtils, mockContext);
+      parser = new SettingsParser({ config: mockConfig, utils: mockUtils, context: mockContext });
       vi.clearAllMocks();
     });
 

@@ -25,13 +25,14 @@ import FlagEvaluator from "./flagEvaluator.mjs";
 class SettingsRegistrar extends Handler {
   /**
    * Creates a new SettingsRegistrar instance
-   * @param {Object} config - Configuration object containing manifest information
-   * @param {Object} context - Context object for module state
-   * @param {Object} utils - Utilities object with helper methods
-   * @param {string|null} namespace - Optional namespace override, defaults to config.manifest.id
+   * @param {Object} args - Arguments object
+   * @param {Object} args.config - Configuration object containing manifest information
+   * @param {Object} args.context - Context object for module state
+   * @param {Object} args.utils - Utilities object with helper methods
+   * @param {string|null} [args.namespace=null] - Optional namespace override, defaults to config.manifest.id
    */
-  constructor(config, context, utils, namespace = null) {
-    super(config, utils, context);
+  constructor({ config, context, utils, namespace = null }) {
+    super({ config, utils, context });
     this.namespace = namespace || this.#getNamespace(config);
   }
 

@@ -19,14 +19,14 @@ describe('Handler', () => {
 
     describe('Initialization and setup', () => {
         it('should initialize with provided config, utils, and context', () => {
-            const handler = new Handler(config, utils, context);
+            const handler = new Handler({ config, utils, context });
             expect(handler.config).toBe(config);
             expect(handler.utils).toBe(utils);
             expect(handler.context).toBe(context);
         });
 
         it('should default context to empty object if not provided', () => {
-            const handler = new Handler(config, utils);
+            const handler = new Handler({ config, utils });
             expect(handler.context).toEqual({});
         });
     });
@@ -35,7 +35,7 @@ describe('Handler', () => {
         let handler;
 
         beforeEach(() => {
-            handler = new Handler(config, utils, context);
+            handler = new Handler({ config, utils, context });
         });
 
         it('should update config, utils, and context when all are provided', () => {

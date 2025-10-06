@@ -52,7 +52,7 @@ describe('PlaceableGetter', () => {
         };
         
         // Initialize PlaceableGetter
-        placeableGetter = new PlaceableGetter(mockConfig, mockContext, mockUtils);
+        placeableGetter = new PlaceableGetter({ config: mockConfig, context: mockContext, utils: mockUtils });
         placeableGetter.logger = mockUtils.logger; // Ensure logger is accessible
     });
 

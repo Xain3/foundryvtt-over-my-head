@@ -11,11 +11,12 @@
  */
 class Handler {
     /**
-     * @param {Object} config - Configuration object
-     * @param {Object} utils - Utilities object
-     * @param {Object} context - Context object. Defaults to an empty object.
+     * @param {Object} args - Arguments object
+     * @param {Object} args.config - Configuration object
+     * @param {Object} args.utils - Utilities object
+     * @param {Object} [args.context={}] - Context object. Defaults to an empty object.
      */
-    constructor(config, utils, context = {}) {
+    constructor({ config, utils, context = {} }) {
         this.config = config;
         this.utils = utils;
         this.context = context;

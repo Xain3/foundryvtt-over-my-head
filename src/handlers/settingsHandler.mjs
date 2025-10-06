@@ -91,31 +91,32 @@ class SettingsHandler extends Handler {
    * for registration. This ensures the handler is ready to register settings immediately
    * after construction.
    *
-   * @param {Object} config - Configuration object containing manifest and constants
-   * @param {Object} config.constants - Constants object containing settings definition
-   * @param {Object} config.constants.settings - Settings configuration with settingsList array
-   * @param {Array} config.constants.settings.settingsList - Array of setting definitions
-   * @param {string[]} config.constants.settings.requiredKeys - Required keys for validation
-   * @param {Object} config.manifest - Module manifest with id and other metadata
-   * @param {string} config.manifest.id - Module identifier for settings namespace
-   * @param {Object} context - Context object for module state management
-   * @param {Object} utils - Utilities object with helper methods
-   * @param {Function} utils.formatError - Error formatting utility
-   * @param {Function} utils.formatHookName - Hook name formatting utility
-   * @param {Function} utils.logWarning - Warning logging utility
-   * @param {Function} utils.logDebug - Debug logging utility
+   * @param {Object} args - Arguments object
+   * @param {Object} args.config - Configuration object containing manifest and constants
+   * @param {Object} args.config.constants - Constants object containing settings definition
+   * @param {Object} args.config.constants.settings - Settings configuration with settingsList array
+   * @param {Array} args.config.constants.settings.settingsList - Array of setting definitions
+   * @param {string[]} args.config.constants.settings.requiredKeys - Required keys for validation
+   * @param {Object} args.config.manifest - Module manifest with id and other metadata
+   * @param {string} args.config.manifest.id - Module identifier for settings namespace
+   * @param {Object} args.context - Context object for module state management
+   * @param {Object} args.utils - Utilities object with helper methods
+   * @param {Function} args.utils.formatError - Error formatting utility
+   * @param {Function} args.utils.formatHookName - Hook name formatting utility
+   * @param {Function} args.utils.logWarning - Warning logging utility
+   * @param {Function} args.utils.logDebug - Debug logging utility
    *
    * @example
    * ```javascript
-   * const handler = new SettingsHandler(config, utils, context);
+   * const handler = new SettingsHandler({ config, utils, context });
    * // Settings are automatically parsed and ready for registration
    * handler.register(); // Registers all parsed settings with Foundry VTT
    * ```
    */
-  constructor(config, utils, context) {
-    super(config, utils, context);
-    this.#parser = new SettingsParser(config, utils, context);
-    this.#registrar = new SettingsRegistrar(config, utils, context);
+  constructor({ config, utils, context }) {
+    super({ config, utils, context });
+    this.#parser = new SettingsParser({ config, utils, context });
+    this.#registrar = new SettingsRegistrar({ config, utils, context });
     this.#retriever = new SettingsRetriever(config.manifest.id);
 
     /**

@@ -233,7 +233,7 @@ class Initializer {
 
     initializeHandlers(config, utils, context) {
         // Initialize any necessary handlers here
-        this.handlers = new Handlers(config, utils, context);
+        this.handlers = new Handlers({ config, utils, context });
         return this.handlers;
     }
 

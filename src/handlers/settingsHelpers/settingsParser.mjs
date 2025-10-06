@@ -146,15 +146,16 @@ class SettingsParser extends Handler {
   /**
    * Create a SettingsParser.
    *
-   * @param {Object} config - Module configuration object.
-   * @param {Object} config.constants - Constants container.
-   * @param {Object} config.constants.settings - Settings-related constants.
-   * @param {Array<string>} config.constants.settings.requiredKeys - Keys required for a valid setting.
-   * @param {Object} context - Execution context object.
-   * @param {Object} utils - Utilities facade providing logging and error formatting.
+   * @param {Object} args - Arguments object
+   * @param {Object} args.config - Module configuration object.
+   * @param {Object} args.config.constants - Constants container.
+   * @param {Object} args.config.constants.settings - Settings-related constants.
+   * @param {Array<string>} args.config.constants.settings.requiredKeys - Keys required for a valid setting.
+   * @param {Object} args.context - Execution context object.
+   * @param {Object} args.utils - Utilities facade providing logging and error formatting.
    */
-  constructor(config, utils, context) {
-    super(config, utils, context);
+  constructor({ config, utils, context }) {
+    super({ config, utils, context });
     this.requiredKeys = config.constants.settings.requiredKeys;
   }
 

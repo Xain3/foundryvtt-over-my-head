@@ -12,7 +12,7 @@ vi.mock('@/baseClasses/handler', async () => {
   return {
     ...actual,
     default: class MockHandler {
-      constructor(config, utils, context) {
+      constructor({ config, utils, context }) {
         this.config = config;
         this.utils = utils;
         this.context = context;
@@ -138,7 +138,7 @@ describe('SettingsHandler Integration Tests', () => {
 
   describe('Full Integration Workflow', () => {
     beforeEach(() => {
-      settingsHandler = new SettingsHandler(config, utils, context);
+      settingsHandler = new SettingsHandler({ config: config, utils: utils, context: context });
     });
 
     it('should successfully parse and register all settings', () => {
@@ -249,7 +249,7 @@ describe('SettingsHandler Integration Tests', () => {
           // Succeed for other calls
         });
 
-      settingsHandler = new SettingsHandler(config, utils, context);
+      settingsHandler = new SettingsHandler({ config: config, utils: utils, context: context });
       const result = settingsHandler.register();
 
       expect(result.counter).toBe(3);
@@ -263,7 +263,7 @@ describe('SettingsHandler Integration Tests', () => {
         throw new Error('Hook formatting failed');
       });
 
-      settingsHandler = new SettingsHandler(config, utils, context);
+      settingsHandler = new SettingsHandler({ config: config, utils: utils, context: context });
       const result = settingsHandler.register();
 
       // Settings should still register, just without hooks
@@ -275,7 +275,7 @@ describe('SettingsHandler Integration Tests', () => {
 
   describe('Custom Settings Integration', () => {
     it('should parse and register custom settings provided at runtime', () => {
-      settingsHandler = new SettingsHandler(config, utils, context);
+      settingsHandler = new SettingsHandler({ config: config, utils: utils, context: context });
 
       const customSettings = [
         {
@@ -312,7 +312,7 @@ describe('SettingsHandler Integration Tests', () => {
 
   describe('Real-world Foundry VTT Compatibility', () => {
     it('should register settings that match Foundry VTT expected format', () => {
-      settingsHandler = new SettingsHandler(config, utils, context);
+      settingsHandler = new SettingsHandler({ config: config, utils: utils, context: context });
       settingsHandler.register();
 
       // Verify all registered settings follow Foundry patterns
@@ -370,7 +370,7 @@ describe('SettingsHandler Integration Tests', () => {
         }
       };
 
-      settingsHandler = new SettingsHandler(multiScopeConfig, utils, context);
+      settingsHandler = new SettingsHandler({ config: multiScopeConfig, utils: utils, context: context });
       settingsHandler.register();
 
       // Test hook calling behavior for different scopes
@@ -415,7 +415,7 @@ describe('SettingsHandler Integration Tests', () => {
       };
 
       const startTime = Date.now();
-      settingsHandler = new SettingsHandler(largeSettingsConfig, utils, context);
+      settingsHandler = new SettingsHandler({ config: largeSettingsConfig, utils: utils, context: context });
       const result = settingsHandler.register();
       const endTime = Date.now();
 
@@ -447,7 +447,7 @@ describe('SettingsHandler Integration Tests', () => {
         callAll: vi.fn()
       };
 
-      settingsHandler = new SettingsHandler(config, utils, context);
+      settingsHandler = new SettingsHandler({ config: config, utils: utils, context: context });
       
       // Mock settings values for retrieval testing
       global.game.settings.get.mockImplementation((namespace, key) => {

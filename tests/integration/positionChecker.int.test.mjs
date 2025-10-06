@@ -77,7 +77,7 @@ describe('PositionChecker Integration', () => {
 
   it('uses config overrides at runtime (elevation and keys)', () => {
     const utils = { logger: { warn: vi.fn() } };
-    const pc = new PositionChecker({ constants: config.constants }, {}, utils);
+    const pc = new PositionChecker({ config: { constants: config.constants }, context: {}, utils });
 
     // Elevation checks: YAML sets OVER to 'above'
     expect(pc.elevationCheck(1, 2, pc.CHECK_TYPES.UNDER)).toBe(true);
@@ -95,7 +95,7 @@ describe('PositionChecker Integration', () => {
 
   it('performs a real check with YAML-provided keys/uses', () => {
     const utils = { logger: { warn: vi.fn() } };
-    const pc = new PositionChecker({ constants: config.constants }, {}, utils);
+    const pc = new PositionChecker({ config: { constants: config.constants }, context: {}, utils });
 
     const center = { x: 5, y: 5 };
     const rect = { BottomLeft: { x: 0, y: 0 }, TopRight: { x: 10, y: 10 } };

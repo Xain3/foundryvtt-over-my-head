@@ -72,19 +72,19 @@ describe('SettingsRegistrar', () => {
 
   describe('Constructor', () => {
     it('should create registrar with provided namespace', () => {
-      registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils, 'custom-namespace');
+      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils, namespace: 'custom-namespace' });
 
       expect(registrar.namespace).toBe('custom-namespace');
     });
 
     it('should create registrar with namespace from config manifest id', () => {
-      registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils);
+      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
 
       expect(registrar.namespace).toBe('test-module');
     });
 
     it('should create registrar with namespace when no explicit namespace provided', () => {
-      registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils, null);
+      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils, namespace: null });
 
       expect(registrar.namespace).toBe('test-module');
     });
@@ -93,13 +93,13 @@ describe('SettingsRegistrar', () => {
       const invalidConfig = { manifest: {} };
 
       expect(() => {
-        new SettingsRegistrar(invalidConfig, mockContext, mockUtils);
+        new SettingsRegistrar({ config: invalidConfig, context: mockContext, utils: mockUtils });
       }).toThrow('Invalid configuration: missing manifest ID');
     });
 
     it('should throw error when config is missing', () => {
       expect(() => {
-        new SettingsRegistrar(null, mockContext, mockUtils);
+        new SettingsRegistrar({ config: null, context: mockContext, utils: mockUtils });
       }).toThrow('Invalid configuration: missing manifest ID');
     });
 
@@ -107,14 +107,14 @@ describe('SettingsRegistrar', () => {
       const invalidConfig = {};
 
       expect(() => {
-        new SettingsRegistrar(invalidConfig, mockContext, mockUtils);
+        new SettingsRegistrar({ config: invalidConfig, context: mockContext, utils: mockUtils });
       }).toThrow('Invalid configuration: missing manifest ID');
     });
   });
 
   describe('registerSetting', () => {
     beforeEach(() => {
-      registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils);
+      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
     });
 
     describe('Input Validation', () => {
@@ -222,7 +222,7 @@ describe('SettingsRegistrar', () => {
       });
 
       it('should register setting with custom namespace', () => {
-        registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils, 'custom-module');
+        registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils, namespace: 'custom-module' });
         const setting = {
           key: 'customSetting',
           config: { name: 'Custom Setting', default: 'customValue' }
@@ -312,7 +312,7 @@ describe('SettingsRegistrar', () => {
 
   describe('register', () => {
     beforeEach(() => {
-      registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils);
+      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
     });
 
     describe('Input Validation', () => {
@@ -586,7 +586,7 @@ describe('SettingsRegistrar', () => {
       it('should work with different namespace configurations', () => {
         // Test with different module ID
         const altConfig = { manifest: { id: 'different-module' } };
-        const altRegistrar = new SettingsRegistrar(altConfig, mockContext, mockUtils);
+        const altRegistrar = new SettingsRegistrar({ config: altConfig, context: mockContext, utils: mockUtils });
 
         const settings = [
           { key: 'altSetting', config: { name: 'Alt Setting', default: 'altValue' } }
@@ -599,7 +599,7 @@ describe('SettingsRegistrar', () => {
       });
 
       it('should work with custom namespace override', () => {
-        const customRegistrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils, 'override-namespace');
+        const customRegistrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils, namespace: 'override-namespace' });
 
         const settings = [
           { key: 'overrideSetting', config: { name: 'Override Setting', default: 'overrideValue' } }
@@ -724,7 +724,7 @@ describe('SettingsRegistrar', () => {
 
   describe('Integration Tests', () => {
     beforeEach(() => {
-      registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils);
+      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
     });
 
     it('should integrate with Handler base class', () => {
@@ -773,7 +773,7 @@ describe('SettingsRegistrar', () => {
 
   describe('Inheritance Tests', () => {
     it('should inherit from Handler correctly', () => {
-      registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils);
+      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
 
       // Check that the constructor was called with proper parameters
       expect(registrar.config).toBe(mockConfig);
@@ -782,7 +782,7 @@ describe('SettingsRegistrar', () => {
     });
 
     it('should use inherited properties', () => {
-      registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils);
+      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
 
       expect(registrar.config).toBe(mockConfig);
       expect(registrar.context).toBe(mockContext);
@@ -790,7 +790,7 @@ describe('SettingsRegistrar', () => {
     });
 
     it('should extend Handler functionality', () => {
-      registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils);
+      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
 
       // Should have Handler properties
       expect(registrar.config).toBeDefined();
@@ -806,7 +806,7 @@ describe('SettingsRegistrar', () => {
 
   describe('Flag conditional registration', () => {
     beforeEach(() => {
-      registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils);
+      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
       FlagEvaluator.shouldShow = vi.fn();
     });
 
@@ -946,7 +946,7 @@ describe('SettingsRegistrar', () => {
         }
       };
 
-      const registrarWithContext = new SettingsRegistrar(contextWithManifest, mockContext, mockUtils);
+      const registrarWithContext = new SettingsRegistrar({ config: contextWithManifest, context: mockContext, utils: mockUtils });
       FlagEvaluator.shouldShow.mockReturnValue(true);
 
       const setting = {
@@ -970,7 +970,7 @@ describe('SettingsRegistrar', () => {
 
   describe('Enhanced Failure Reporting', () => {
     beforeEach(() => {
-      registrar = new SettingsRegistrar(mockConfig, mockContext, mockUtils);
+      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
       FlagEvaluator.shouldShow = vi.fn();
     });
 

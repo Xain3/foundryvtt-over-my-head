@@ -37,12 +37,13 @@ import Handler from '../../baseClasses/handler.mjs';
 */
 class PositionChecker extends Handler {
   /**
-   * @param {Object} config - Configuration object containing constants (from constants.yaml)
-   * @param {Object} context - Optional execution context
-   * @param {Object} utils - Utility functions.
+   * @param {Object} args - Arguments object
+   * @param {Object} args.config - Configuration object containing constants (from constants.yaml)
+   * @param {Object} args.context - Optional execution context
+   * @param {Object} args.utils - Utility functions.
    */
-  constructor(config, context, utils) {
-    super(config, utils, context);
+  constructor({ config, context, utils }) {
+    super({ config, utils, context });
     this.utils = utils;
     this.context = context;
     this.logger = utils.logger;

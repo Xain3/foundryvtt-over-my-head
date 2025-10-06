@@ -14,9 +14,11 @@ import PlaceableSetter from './placeableHelpers/placeableSetter.mjs';
  */
 class PlaceableHandler extends Handler {
   /**
-   * @param {Object} config - Configuration settings.
-   * @param {Object} context - Execution context.
-   * @param {Object} utils - Utility functions.
+   * @param {Object} args - Arguments object
+   * @param {Object} args.config - Configuration settings.
+   * @param {Object} args.context - Execution context.
+   * @param {Object} args.utils - Utility functions.
+   * @param {string|null} [args.placeableType=null] - Type of placeable entity.
    *
    * @constructor
    * @extends Handler
@@ -38,12 +40,12 @@ class PlaceableHandler extends Handler {
    * @property {Object} game - The global game object.
    * @property {Object} context - The execution context.
    */
-  constructor(config, context, utils, placeableType = null) {
-    super(config, utils, context);
+  constructor({ config, context, utils, placeableType = null }) {
+    super({ config, utils, context });
     this.placeableType = placeableType;
-    this.getter = new PlaceableGetter(config, context, utils);
-    this.setter = new PlaceableSetter(config, context, utils);
-    this.checker = new PlaceableChecker(config, context, utils, this.getter);
+    this.getter = new PlaceableGetter({ config, context, utils });
+    this.setter = new PlaceableSetter({ config, context, utils });
+    this.checker = new PlaceableChecker({ config, context, utils, placeableGetter: this.getter });
     this.all = [];
     this.current = null;
   }

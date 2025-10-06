@@ -17,7 +17,7 @@ describe('PlaceableSetter', () => {
         mockConfig = {};
         mockContext = {};
         mockUtils = {};
-        placeableSetter = new PlaceableSetter(mockConfig, mockContext, mockUtils);
+        placeableSetter = new PlaceableSetter({ config: mockConfig, context: mockContext, utils: mockUtils });
     });
     
     describe('constructor', () => {

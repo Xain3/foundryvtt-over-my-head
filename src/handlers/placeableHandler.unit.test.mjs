@@ -24,7 +24,7 @@ vi.mock('./placeableHelpers/placeableSetter.mjs', () => {
 
 vi.mock('../baseClasses/handler.mjs', () => ({
   default: class MockHandler {
-    constructor(config, utils, context) {
+    constructor({ config, utils, context }) {
       this.config = config;
       this.utils = utils;
       this.context = context;
@@ -88,7 +88,7 @@ describe('PlaceableHandler', () => {
     // Factory mocks defined above replace the need for
     // runtime mockImplementation calls that were previously set up here.
 
-    placeableHandler = new PlaceableHandler(mockConfig, mockContext, mockUtils);
+    placeableHandler = new PlaceableHandler({ config: mockConfig, context: mockContext, utils: mockUtils });
     placeableHandler.getter = mockGetter;
     placeableHandler.setter = mockSetter;
     placeableHandler.checker = mockChecker;
@@ -100,22 +100,22 @@ describe('PlaceableHandler', () => {
       expect(placeableHandler.config).toBe(mockConfig);
       expect(placeableHandler.utils).toBe(mockUtils);
       expect(placeableHandler.context).toBe(mockContext);
-      expect(PlaceableGetter).toHaveBeenCalledWith(
-        mockConfig,
-        mockContext,
-        mockUtils
-      );
-      expect(PlaceableSetter).toHaveBeenCalledWith(
-        mockConfig,
-        mockContext,
-        mockUtils
-      );
-      expect(PlaceableChecker).toHaveBeenCalledWith(
-        mockConfig,
-        mockContext,
-        mockUtils,
-        expect.any(Object)
-      );
+      expect(PlaceableGetter).toHaveBeenCalledWith({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils
+      });
+      expect(PlaceableSetter).toHaveBeenCalledWith({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils
+      });
+      expect(PlaceableChecker).toHaveBeenCalledWith({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils,
+        placeableGetter: expect.any(Object)
+      });
       expect(placeableHandler.placeableType).toBeNull();
       expect(placeableHandler.all).toEqual([]);
       expect(placeableHandler.current).toBeNull();
@@ -123,22 +123,22 @@ describe('PlaceableHandler', () => {
 
     it('should accept and set the placeableType parameter', () => {
       const testPlaceableType = 'Token';
-      const handlerWithType = new PlaceableHandler(
-        mockConfig,
-        mockContext,
-        mockUtils,
-        testPlaceableType
-      );
+      const handlerWithType = new PlaceableHandler({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils,
+        placeableType: testPlaceableType
+      });
 
       expect(handlerWithType.placeableType).toBe(testPlaceableType);
     });
 
     it('should default placeableType to null when not provided', () => {
-      const handlerDefault = new PlaceableHandler(
-        mockConfig,
-        mockContext,
-        mockUtils
-      );
+      const handlerDefault = new PlaceableHandler({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils
+      });
 
       expect(handlerDefault.placeableType).toBeNull();
     });

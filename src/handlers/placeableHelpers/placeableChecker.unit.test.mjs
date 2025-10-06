@@ -102,12 +102,12 @@ describe('PlaceableChecker', () => {
 
     PositionChecker.mockImplementation(() => mockPositionChecker);
 
-    placeableChecker = new PlaceableChecker(
-      mockConfig,
-      mockContext,
-      mockUtils,
-      mockPlaceableGetter
-    );
+    placeableChecker = new PlaceableChecker({
+      config: mockConfig,
+      context: mockContext,
+      utils: mockUtils,
+      placeableGetter: mockPlaceableGetter
+    });
     placeableChecker.logger = mockLogger;
   });
 

@@ -62,8 +62,8 @@ class Handlers extends Handler {
     this.settings = new SettingsHandler({ config: this.config, utils: this.utils, context: this.context });
     this.placeable = new PlaceableHandler({
       config: this.config,
-      utils: this.utils,
-      context: this.context
+      context: this.context,
+      utils: this.utils
     });
   }
 

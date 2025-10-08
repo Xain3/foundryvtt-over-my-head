@@ -33,7 +33,7 @@ vi.mock('../baseClasses/handler.mjs', () => ({
 }));
 
 // Mock config-related imports that might cause problems
-vi.mock('@config', () => ({
+vi.mock('#config', () => ({
   default: {
     constants: { mockConstants: true },
     manifest: { id: 'test-module' },

@@ -9,7 +9,7 @@ import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } 
 import ErrorFormatter, { formatError } from './errorFormatter.mjs';
 
 // Mock manifest
-vi.mock('@manifest', () => ({
+vi.mock('#manifest', () => ({
   title: 'OverMyHead',
   name: 'foundryvtt-over-my-head',
   id: 'foundryvtt-over-my-head',
@@ -17,7 +17,7 @@ vi.mock('@manifest', () => ({
 }), { virtual: true });
 
 // Mock constants
-vi.mock('@constants', () => ({
+vi.mock('#constants', () => ({
   default: {
     moduleManagement: {
       referToModuleBy: 'title',

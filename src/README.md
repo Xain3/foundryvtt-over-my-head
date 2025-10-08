@@ -22,5 +22,5 @@ The source code is bundled using Vite into `dist/main.mjs`, which is referenced 
 ## Conventions
 
 - All files use ES modules syntax.
-- Imports leverage configured aliases (e.g., `@config`, `@utils`).
+- Imports leverage configured aliases (e.g., `#config`, `#utils`).
 - Follow the project's style guide for naming, documentation, and structure.

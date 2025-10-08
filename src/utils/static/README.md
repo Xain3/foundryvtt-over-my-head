@@ -32,7 +32,7 @@ src/utils/static/
 The `StaticUtils` class provides a unified interface to all static utilities:
 
 ```javascript
-import StaticUtils from "@/utils/static/static.mjs";
+import StaticUtils from "#/utils/static/static.mjs";
 
 // Validation
 const isValid = StaticUtils.validate("isString", { value: "hello" }); // true
@@ -87,11 +87,11 @@ console.log(info.utilities); // ['Validator', 'Unpacker', 'GameManager', 'ErrorF
 You can also import and use individual utility classes directly:
 
 ```javascript
-import { Validator } from "@/utils/static/validator.mjs";
-import Unpacker from "@/utils/static/unpacker.mjs";
-import GameManager from "@/utils/static/gameManager.mjs";
-import { formatError } from "@/utils/static/errorFormatter.mjs";
-import Localizer from "@/utils/static/localizer.mjs";
+import { Validator } from "#/utils/static/validator.mjs";
+import Unpacker from "#/utils/static/unpacker.mjs";
+import GameManager from "#/utils/static/gameManager.mjs";
+import { formatError } from "#/utils/static/errorFormatter.mjs";
+import Localizer from "#/utils/static/localizer.mjs";
 
 // Direct validation
 const isString = Validator.isString("hello"); // true
@@ -326,7 +326,7 @@ if (GameManager.moduleExists(manifest)) {
 #### Usage Examples
 
 ```javascript
-import HooksLogger from "@/utils/static/hooksLogger.mjs";
+import HooksLogger from "#/utils/static/hooksLogger.mjs";
 
 // Basic in-place hook proxy for debugging
 HooksLogger.createHookProxy(Hooks, "call", {
@@ -402,7 +402,7 @@ if (HooksLogger.isHooksAvailable()) {
 #### Usage Examples:
 
 ```javascript
-import { formatError } from "@/utils/static/errorFormatter.mjs";
+import { formatError } from "#/utils/static/errorFormatter.mjs";
 
 // Basic error formatting
 try {
@@ -446,7 +446,7 @@ const formatted = formatError(error, {
 #### Usage Examples:
 
 ```javascript
-import Localizer from "@/utils/static/localizer.mjs";
+import Localizer from "#/utils/static/localizer.mjs";
 
 // Instance usage
 const localizer = new Localizer();
@@ -505,14 +505,14 @@ npm test -- src/utils/static/ --coverage
 **Recommended**: Use StaticUtils for convenience
 
 ```javascript
-import StaticUtils from "@/utils/static/static.mjs";
+import StaticUtils from "#/utils/static/static.mjs";
 StaticUtils.validate("isString", { value: input });
 ```
 
 **Alternative**: Direct imports for specific use cases
 
 ```javascript
-import { Validator } from "@/utils/static/validator.mjs";
+import { Validator } from "#/utils/static/validator.mjs";
 Validator.isString(input);
 ```
 

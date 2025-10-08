@@ -87,7 +87,7 @@ describe('Alias Configuration Validation', () => {
       const seenAliases = new Set();
       viteConfig.resolve.alias.forEach((alias) => {
         expect(typeof alias.find).toBe('string');
-        expect(alias.find.startsWith('@')).toBe(true);
+        expect(alias.find.startsWith('#')).toBe(true);
         expect(typeof alias.replacement).toBe('string');
         expect(alias.replacement.startsWith(projectRoot)).toBe(true);
         expect(seenAliases.has(alias.find)).toBe(false);
@@ -109,7 +109,7 @@ describe('Alias Configuration Validation', () => {
       const jsconfigPaths = jsconfigJson.compilerOptions.paths;
 
       Object.keys(jsconfigPaths).forEach((pathKey) => {
-        expect(pathKey).toMatch(/^@/);
+        expect(pathKey).toMatch(/^#/);
 
         const pathValue = jsconfigPaths[pathKey];
         expect(Array.isArray(pathValue)).toBe(true);
@@ -139,14 +139,14 @@ describe('Alias Configuration Validation', () => {
   describe('Required Project Aliases', () => {
     it('should have all required aliases in both configurations', () => {
       const requiredAliases = [
-        '@',
-        '@config',
-        '@contexts',
-        '@handlers',
-        '@utils',
-        '@listeners',
-        '@manifest',
-        '@constants'
+        '#',
+        '#config',
+        '#contexts',
+        '#handlers',
+        '#utils',
+        '#listeners',
+        '#manifest',
+        '#constants'
       ];
 
       requiredAliases.forEach((alias) => {
@@ -161,7 +161,7 @@ describe('Alias Configuration Validation', () => {
       viteAliasMap.forEach((relativePath, aliasKey) => {
         expect(relativePath).not.toMatch(/^\.\./);
 
-        if (['@manifest', '@constants', '@validator', '@module'].includes(aliasKey)) {
+        if (['#manifest', '#constants', '#validator', '#module'].includes(aliasKey)) {
           expect(relativePath).toMatch(/\.(mjs|json)$/);
         }
       });
@@ -191,11 +191,11 @@ describe('Alias Configuration Validation', () => {
 
     it('should validate new aliases follow naming conventions', () => {
       viteAliasMap.forEach((_, alias) => {
-        expect(alias).toMatch(/^@([a-zA-Z]|$)/);
+        expect(alias).toMatch(/^#([a-zA-Z]|$)/);
       });
 
       jsconfigAliasMap.forEach((_, alias) => {
-        expect(alias).toMatch(/^@([a-zA-Z]|$)/);
+        expect(alias).toMatch(/^#([a-zA-Z]|$)/);
       });
     });
   });

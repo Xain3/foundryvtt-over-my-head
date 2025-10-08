@@ -6,7 +6,7 @@ Purpose: Enable AI coding agents to be productive quickly by capturing this repo
 
 - Entry: `src/main.mjs` instantiates `OverMyHead` and calls `enableDevFeatures()` + `init()`.
 - Core: `src/overMyHead.mjs` centralizes startup. Uses the config singleton, exports constants globally, and after `i18nInit` initializes context and handlers via `utils.initializer`.
-- Config hub: `@config` (`src/config/config.mjs`) exposes:
+- Config hub: `#config` (`src/config/config.mjs`) exposes:
   - `constants` (parsed from YAML, frozen), `manifest` (validated)
   - `buildManifestWithShortName()` → adds `shortName` (e.g., OMH)
   - `exportConstants()` → `globalThis.{shortName}Constants` (e.g., `OMHConstants`)
@@ -17,12 +17,12 @@ Purpose: Enable AI coding agents to be productive quickly by capturing this repo
 
 ## Conventions & Patterns
 
-- Import config via `import config from '@config'`; avoid importing constants/manifest directly unless necessary.
+- Import config via `import config from '#config'`; avoid importing constants/manifest directly unless necessary.
 - Export constants only with `config.exportConstants()`; don’t re-export from `OverMyHead`.
 - Prefer `Utils` facade for logging, initialization, hook names, and static helpers.
 - Use context helpers for data ops (merge/sync/compare/filter) instead of ad‑hoc mutations.
 - Hook timing: initialize context/settings on Foundry hooks (`i18nInit` then `init`) using `Initializer` or `OverMyHead` flow.
-- Aliases (Babel/Vite): `@`, `@docker`, `@config`, `@constants`, `@manifest`, `@configFolder`, `@contexts`, `@data`, `@handlers`, `@utils`, `@listeners`, `@maps`, `@helpers`, `@configHelpers`, `@validator`, `@module`.
+- Aliases (Babel/Vite): `#`, `#docker`, `#config`, `#constants`, `#manifest`, `#configFolder`, `#contexts`, `#data`, `#handlers`, `#utils`, `#listeners`, `#maps`, `#helpers`, `#configHelpers`, `#validator`, `#module`.
 - Commit messages: Conventional Commits style (type(scope): subject).
 
 ## Developer Workflows
@@ -60,8 +60,8 @@ Purpose: Enable AI coding agents to be productive quickly by capturing this repo
 - Init pattern:
 
 ```js
-import config from '@config';
-import Utilities from '@utils/utils.mjs';
+import config from '#config';
+import Utilities from '#utils/utils.mjs';
 
 const utils = new Utilities(config.constants, config.manifest);
 config.exportConstants();
@@ -78,7 +78,7 @@ Hooks.once('i18nInit', () => {
 - Handler skeleton:
 
 ```js
-import Handler from '@/baseClasses/handler.mjs';
+import Handler from '#/baseClasses/handler.mjs';
 export default class MyHandler extends Handler {
   register() {
     /* settings registration, etc. */

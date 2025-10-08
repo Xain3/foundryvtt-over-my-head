@@ -39,7 +39,7 @@ vi.mock('../../src/config/helpers/constantsParser.mjs', () => ({
 }));
 
 // Mock @config alias for moduleGetter.mjs
-vi.mock('@config', async () => {
+vi.mock('#config', async () => {
   const actual = await vi.importActual('../../src/config/config.mjs');
   return {
     ...actual,

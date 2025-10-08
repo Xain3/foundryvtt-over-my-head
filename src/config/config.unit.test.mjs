@@ -4,7 +4,7 @@ function loadAlias(relativePath) {
   return async () => import(new URL(relativePath, import.meta.url).href);
 }
 
-vi.mock('@helpers/pathUtils.mjs', loadAlias('../helpers/pathUtils.mjs'));
+vi.mock('#helpers/pathUtils.mjs', loadAlias('../helpers/pathUtils.mjs'));
 
 import config from './config.mjs';
 

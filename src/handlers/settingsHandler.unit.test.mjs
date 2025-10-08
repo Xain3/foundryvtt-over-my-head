@@ -38,7 +38,7 @@ vi.mock('./settingsHelpers/settingLocalizer.mjs', () => {
   return { default: MockSettingLocalizer };
 });
 
-vi.mock('@helpers/settingsRetriever.mjs', () => {
+vi.mock('#helpers/settingsRetriever.mjs', () => {
   const MockSettingsRetriever = vi.fn().mockImplementation(function() {});
   return { default: MockSettingsRetriever };
 });

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 // Mock config before importing anything else
-vi.mock('@config', () => ({
+vi.mock('#config', () => ({
   default: {
     constants: {
       moduleManagement: {
@@ -16,7 +16,7 @@ vi.mock('@config', () => ({
   }
 }));
 
-vi.mock('@utils/static/validator.mjs', () => ({
+vi.mock('#utils/static/validator.mjs', () => ({
   default: {
     validateObject: vi.fn(),
     validateString: vi.fn()
@@ -38,7 +38,7 @@ vi.mock('./moduleGetter.mjs', () => ({
 import RootMapParser from './rootMapParser.mjs';
 import PathUtils from './pathUtils.mjs';
 import { getModule } from './moduleGetter.mjs';
-import Validator from '@utils/static/validator.mjs';
+import Validator from '#utils/static/validator.mjs';
 
 // Create a local config object for test assertions
 const config = {

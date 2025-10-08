@@ -38,7 +38,7 @@ vi.mock('./settingsHelpers/settingLocalizer.mjs', () => ({
   },
 }));
 
-vi.mock('@helpers/settingsRetriever.mjs', () => ({
+vi.mock('#helpers/settingsRetriever.mjs', () => ({
   default: class MockSettingsRetriever {
     constructor() {}
   },

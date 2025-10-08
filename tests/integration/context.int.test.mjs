@@ -140,14 +140,14 @@ const { constantsMock, manifestMock, configMock } = vi.hoisted(() => {
 });
 
 // Mock dependencies to prevent raw import issues
-vi.mock('@helpers/pathUtils.mjs', loadAlias('../../src/helpers/pathUtils.mjs'));
-vi.mock('@utils/static/validator.mjs', loadAlias('../../src/utils/static/validator.mjs'));
+vi.mock('#helpers/pathUtils.mjs', loadAlias('../../src/helpers/pathUtils.mjs'));
+vi.mock('#utils/static/validator.mjs', loadAlias('../../src/utils/static/validator.mjs'));
 vi.mock('../../src/config/constants.mjs', () => ({ default: constantsMock }));
-vi.mock('@constants', () => ({ default: constantsMock }));
+vi.mock('#constants', () => ({ default: constantsMock }));
 vi.mock('../../src/config/manifest.mjs', () => ({ default: manifestMock }));
-vi.mock('@manifest', () => ({ default: manifestMock }));
+vi.mock('#manifest', () => ({ default: manifestMock }));
 vi.mock('../../src/config/config.mjs', () => ({ default: configMock }));
-vi.mock('@config', () => ({ default: configMock }));
+vi.mock('#config', () => ({ default: configMock }));
 
 import Context from '../../src/contexts/context.mjs';
 import { ContextContainer } from '../../src/contexts/helpers/contextContainer.mjs';

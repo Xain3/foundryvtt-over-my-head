@@ -7,7 +7,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 // Mock all alias imports that could be imported by the chain of dependencies
-vi.mock('@utils/static/validator.mjs', () => ({
+vi.mock('#utils/static/validator.mjs', () => ({
   default: {
     validateObject: vi.fn(),
     validateString: vi.fn(),
@@ -26,7 +26,7 @@ vi.mock('@utils/static/validator.mjs', () => ({
   }
 }));
 
-vi.mock('@helpers/pathUtils.mjs', () => ({
+vi.mock('#helpers/pathUtils.mjs', () => ({
   default: {
     resolvePath: vi.fn(),
     extractKeyComponents: vi.fn(),
@@ -36,7 +36,7 @@ vi.mock('@helpers/pathUtils.mjs', () => ({
   }
 }));
 
-vi.mock('@config', () => ({
+vi.mock('#config', () => ({
   default: {
     constants: {
       moduleManagement: {

@@ -7,7 +7,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 // Mock config-related imports that might cause problems
-vi.mock('@config', () => ({
+vi.mock('#config', () => ({
   default: {
     constants: { 
       positionChecker: {

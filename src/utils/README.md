@@ -670,7 +670,7 @@ npm test -- src/utils/ --coverage
 Use `Utils` as the single entry point when importing from outside the utils folder:
 
 ```javascript
-import Utils from '@/utils/utils.mjs';
+import Utils from '#/utils/utils.mjs';
 
 // Create instances
 const logger = Utils.createLogger(constants, manifest, formatError);

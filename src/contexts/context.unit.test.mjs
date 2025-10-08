@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Context from './context.mjs';
 import { ContextContainer } from './helpers/contextContainer.mjs';
 import { ContextItem } from './helpers/contextItem.mjs';
-import Validator from '@utils/static/validator.mjs';
+import Validator from '#utils/static/validator.mjs';
 
 // Mock config to avoid pulling real constants/manifest and transitive deps in unit tests
 vi.mock('../config/config.mjs', () => ({
@@ -71,7 +71,7 @@ const constants = {
 };
 
 // Mock the validator import (use importActual to avoid circular self-mock and preserve export shape)
-vi.mock('@utils/static/validator.mjs', async () => {
+vi.mock('#utils/static/validator.mjs', async () => {
   const actual = await vi.importActual('../utils/static/validator.mjs');
   const ActualValidator = actual.default ?? actual.Validator;
 

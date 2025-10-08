@@ -12,7 +12,7 @@ import FlagEvaluator from './flagEvaluator.mjs';
 // Vitest Mocks
 vi.mock('./settingsChecker.mjs');
 vi.mock('./flagEvaluator.mjs');
-vi.mock('@/baseClasses/handler', () => ({
+vi.mock('#/baseClasses/handler', () => ({
   default: class MockHandler {
     constructor(config, utils, context) {
       this.config = config;

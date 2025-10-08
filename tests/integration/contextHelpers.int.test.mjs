@@ -7,7 +7,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 // Mock dependencies to prevent raw import issues  
-vi.mock('@utils/static/validator.mjs', async () => {
+vi.mock('#utils/static/validator.mjs', async () => {
   const actual = await vi.importActual('../../src/utils/static/validator.mjs');
   return {
     ...actual,
@@ -21,7 +21,7 @@ vi.mock('@utils/static/validator.mjs', async () => {
   };
 });
 
-vi.mock('@helpers/pathUtils.mjs', async () => {
+vi.mock('#helpers/pathUtils.mjs', async () => {
   const actual = await vi.importActual('../../src/helpers/pathUtils.mjs');
   return {
     ...actual,

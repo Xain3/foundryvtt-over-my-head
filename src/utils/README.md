@@ -42,7 +42,7 @@ src/utils/
 ### Using Utils Entry Point (Recommended)
 
 ```javascript
-import Utils from "@/utils/utils.mjs";
+import Utils from "#/utils/utils.mjs";
 
 // Access all utilities through unified interface
 const logger = Utils.createLogger(constants, manifest, formatError);
@@ -63,7 +63,7 @@ const module = Utils.getModuleObject("my-module");
 ### Utilities Facade (formatHookName, initializeContext, logging)
 
 ```javascript
-import Utilities from "@/utils/utils.mjs";
+import Utilities from "#/utils/utils.mjs";
 
 // Create a Utilities instance (facade over logger/initializer/hookFormatter)
 const utils = new Utilities(constants, manifest);
@@ -89,10 +89,10 @@ utils.logDebug("Detailed debug info");
 ### Direct Imports for Specific Use Cases
 
 ```javascript
-import Initializer from "@/utils/initializer.mjs";
-import Logger from "@/utils/logger.mjs";
-import { formatHook } from "@/utils/hookFormatter.mjs";
-import StaticUtils from "@/utils/static/static.mjs";
+import Initializer from "#/utils/initializer.mjs";
+import Logger from "#/utils/logger.mjs";
+import { formatHook } from "#/utils/hookFormatter.mjs";
+import StaticUtils from "#/utils/static/static.mjs";
 
 // Module initialization
 const initializer = new Initializer(
@@ -144,9 +144,9 @@ _registerSettings(SettingsHandlerOrInstance, utils?)
 #### Initializer Example Usage
 
 ```javascript
-import Initializer from "@/utils/initializer.mjs";
-import Context from "@/contexts/context.mjs";
-import SettingsHandler from "@/handlers/settingsHandler.mjs";
+import Initializer from "#/utils/initializer.mjs";
+import Context from "#/contexts/context.mjs";
+import SettingsHandler from "#/handlers/settingsHandler.mjs";
 
 // Create initializer
 const initializer = new Initializer(
@@ -231,7 +231,7 @@ isDebugEnabled(); // Check current debug mode status
 #### Logger Example Usage
 
 ```javascript
-import Logger from "@/utils/logger.mjs";
+import Logger from "#/utils/logger.mjs";
 
 // Create logger
 const logger = new Logger(constants, manifest, formatError);
@@ -305,7 +305,7 @@ formatHook(hookBase, hookType, context?)
 #### HookFormatter Example Usage
 
 ```javascript
-import { formatHook } from "@/utils/hookFormatter.mjs";
+import { formatHook } from "#/utils/hookFormatter.mjs";
 
 // Basic hook formatting
 const initHook = formatHook("myModule", "init");
@@ -387,7 +387,7 @@ static getUtilityInfo()
 #### Utils Example Usage
 
 ```javascript
-import Utils from "@/utils/utils.mjs";
+import Utils from "#/utils/utils.mjs";
 
 // Create utility instances
 const logger = Utils.createLogger(constants, manifest, formatError);
@@ -441,7 +441,7 @@ Collection of static utility classes for data validation, object manipulation, e
 #### Quick Access via Utils
 
 ```javascript
-import Utils from "@/utils/utils.mjs";
+import Utils from "#/utils/utils.mjs";
 
 // All static utility functionality is available through Utils
 const validated = Utils.validate("isObject", { value: config });
@@ -454,9 +454,9 @@ const localized = Utils.localize("MYMODULE.title");
 ### Complete Module Initialization Workflow
 
 ```javascript
-import Utils from "@/utils/utils.mjs";
-import Context from "@/contexts/context.mjs";
-import SettingsHandler from "@/handlers/settingsHandler.mjs";
+import Utils from "#/utils/utils.mjs";
+import Context from "#/contexts/context.mjs";
+import SettingsHandler from "#/handlers/settingsHandler.mjs";
 
 // Setup utilities
 const logger = Utils.createLogger(constants, manifest, formatError);

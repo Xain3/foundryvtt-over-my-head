@@ -7,7 +7,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 // Mock modules with problematic imports first
-vi.mock('@/baseClasses/handler', () => ({
+vi.mock('#/baseClasses/handler', () => ({
   default: class MockHandler {
     constructor(config, utils, context = {}) {
       this.config = config;

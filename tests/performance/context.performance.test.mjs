@@ -7,7 +7,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 // Mock the Validator to avoid import resolution issues in test environment
-vi.mock('@utils/static/validator.mjs', () => ({
+vi.mock('#utils/static/validator.mjs', () => ({
   Validator: {
     validateDate: vi.fn((value, name = 'Date') => {
       const date = new Date(value);
@@ -20,10 +20,10 @@ vi.mock('@utils/static/validator.mjs', () => ({
 }));
 
 // Mock other aliases that might be needed
-vi.mock('@helpers/pathUtils.mjs', () => ({}));
-vi.mock('@config', () => ({}));
-vi.mock('@constants', () => ({}));
-vi.mock('@manifest', () => ({}));
+vi.mock('#helpers/pathUtils.mjs', () => ({}));
+vi.mock('#config', () => ({}));
+vi.mock('#constants', () => ({}));
+vi.mock('#manifest', () => ({}));
 
 let Context;
 

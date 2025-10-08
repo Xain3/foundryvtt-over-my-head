@@ -11,8 +11,8 @@ function loadModule(relativePath) {
 	return async () => await import(moduleUrl.href);
 }
 
-vi.mock('@utils/static/validator.mjs', loadModule('../../src/utils/static/validator.mjs'));
-vi.mock('@helpers/pathUtils.mjs', loadModule('../../src/helpers/pathUtils.mjs'));
-vi.mock('@config', loadModule('../../src/config/config.mjs'));
-vi.mock('@constants', loadModule('../../src/config/constants.mjs'));
-vi.mock('@manifest', loadModule('../../src/config/manifest.mjs'));
+vi.mock('#utils/static/validator.mjs', loadModule('../../src/utils/static/validator.mjs'));
+vi.mock('#helpers/pathUtils.mjs', loadModule('../../src/helpers/pathUtils.mjs'));
+vi.mock('#config', loadModule('../../src/config/config.mjs'));
+vi.mock('#constants', loadModule('../../src/config/constants.mjs'));
+vi.mock('#manifest', loadModule('../../src/config/manifest.mjs'));

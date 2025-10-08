@@ -8,7 +8,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 // Mock the validator alias first
-vi.mock('@utils/static/validator.mjs', () => ({
+vi.mock('#utils/static/validator.mjs', () => ({
   default: {
     validateObject: vi.fn(),
     validateString: vi.fn()

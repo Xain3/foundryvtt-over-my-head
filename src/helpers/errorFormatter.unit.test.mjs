@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 // Mock potential dependencies before importing
-vi.mock('@helpers/pathUtils.mjs', () => ({
+vi.mock('#helpers/pathUtils.mjs', () => ({
   default: {
     resolvePath: vi.fn(),
     extractKeyComponents: vi.fn(),
@@ -11,7 +11,7 @@ vi.mock('@helpers/pathUtils.mjs', () => ({
   }
 }));
 
-vi.mock('@config', () => ({
+vi.mock('#config', () => ({
   default: {
     constants: {
       moduleManagement: {

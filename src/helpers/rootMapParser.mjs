@@ -4,8 +4,8 @@
  * @path src/helpers/rootMapParser.mjs
  */
 
-import config from '@config';
-import Validator from '@utils/static/validator.mjs';
+import config from '#config';
+import Validator from '#utils/static/validator.mjs';
 import PathUtils from './pathUtils.mjs';
 import { getModule } from './moduleGetter.mjs';
 

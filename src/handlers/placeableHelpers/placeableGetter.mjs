@@ -107,21 +107,26 @@ class PlaceableGetter extends Handler {
     /**
      * Retrieves the rectangular bounds of a placeable.
      * @param {Object} placeable
-     * @returns {Object} Coordinates of the top-right and bottom-left corners.
+     * @returns {Object} Coordinates using Cartesian naming (BottomLeft = min x/y, TopRight = max x/y).
+     * Note: In screen coordinates (y increases downward), this means:
+     * - BottomLeft (Cartesian) = TopLeft (screen) = { x: min, y: min }
+     * - TopRight (Cartesian) = BottomRight (screen) = { x: max, y: max }
      */
     getRectBounds ( placeable ) {
         // Use Foundry's bounds API if available for consistent pixel rectangles
+        // Convert screen coordinates to Cartesian naming expected by PositionChecker
         if (placeable.bounds) {
             const bounds = placeable.bounds;
             return {
-                TopRight: { x: bounds.x + bounds.width, y: bounds.y },
-                BottomLeft: { x: bounds.x, y: bounds.y + bounds.height }
+                BottomLeft: { x: bounds.x, y: bounds.y },  // Top-left in screen = Bottom-left in Cartesian
+                TopRight: { x: bounds.x + bounds.width, y: bounds.y + bounds.height }  // Bottom-right in screen = Top-right in Cartesian
             };
         }
         
         // Fallback to manual calculation
-        let TopRight = this.getCorner('topRight', placeable);
-        let BottomLeft = this.getCorner('bottomLeft', placeable);
+        // Use topLeft and bottomRight corners to match Cartesian naming expected by PositionChecker
+        let BottomLeft = this.getCorner('topLeft', placeable);  // Top-left in screen = Bottom-left in Cartesian
+        let TopRight = this.getCorner('bottomRight', placeable);  // Bottom-right in screen = Top-right in Cartesian
         return {TopRight, BottomLeft};
     }
 

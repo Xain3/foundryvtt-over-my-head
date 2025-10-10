@@ -4,9 +4,9 @@
  * @path src/handlers/settingsHelpers/settingsParser.mjs
  */
 
-import Handler from "../../baseClasses/handler.mjs";
-import SettingsChecker from "./settingsChecker";
-import FlagEvaluator from "./flagEvaluator.mjs";
+import Handler from '#baseClasses/handler.mjs';
+import SettingsChecker from './settingsChecker';
+import FlagEvaluator from './flagEvaluator.mjs';
 
 /**
  * Factory for creating onChange callbacks that trigger hooks when settings change.
@@ -26,10 +26,13 @@ const onChangeActions = {
         // without interruption. Setting changes should notify all registered handlers.
         Hooks.callAll(hookName, value);
       } catch (error) {
-        console.error(`Failed to trigger hook ${hookName} for setting change:`, error);
+        console.error(
+          `Failed to trigger hook ${hookName} for setting change:`,
+          error
+        );
       }
     };
-  }
+  },
 };
 
 /**
@@ -73,7 +76,7 @@ class SettingsParser extends Handler {
         int: Number,
         integer: Number,
         float: Number,
-        double: Number
+        double: Number,
       };
       if (primitiveMap[lc]) {
         setting.config.type = primitiveMap[lc];
@@ -96,7 +99,9 @@ class SettingsParser extends Handler {
       };
 
       // Direct dotted path
-      let resolved = trimmed.includes('.') ? resolveFromGlobal(trimmed) : undefined;
+      let resolved = trimmed.includes('.')
+        ? resolveFromGlobal(trimmed)
+        : undefined;
 
       // Aliases for DataField classes when only class name is provided
       if (!resolved && /field$/i.test(trimmed)) {
@@ -113,10 +118,11 @@ class SettingsParser extends Handler {
             numberfield: fieldsRoot.NumberField,
             arrayfield: fieldsRoot.ArrayField,
             objectfield: fieldsRoot.ObjectField,
-            schemafield: fieldsRoot.SchemaField
+            schemafield: fieldsRoot.SchemaField,
           };
           const lk = className.toLowerCase();
-          if (typeof canonicalMap[lk] === 'function') resolved = canonicalMap[lk];
+          if (typeof canonicalMap[lk] === 'function')
+            resolved = canonicalMap[lk];
         }
       }
 
@@ -132,7 +138,8 @@ class SettingsParser extends Handler {
       if (!resolved && /^datamodel:/i.test(trimmed)) {
         const mm = trimmed.split(':')[1];
         if (mm) {
-          resolved = resolveFromGlobal(mm) || globalThis?.foundry?.abstract?.DataModel;
+          resolved =
+            resolveFromGlobal(mm) || globalThis?.foundry?.abstract?.DataModel;
         } else {
           resolved = globalThis?.foundry?.abstract?.DataModel;
         }
@@ -163,22 +170,30 @@ class SettingsParser extends Handler {
     let hookName;
     if (setting.config && setting.config.onChange) {
       hookName = setting.config.onChange.hookName;
-      if (hookName === undefined || hookName === "") {
+      if (hookName === undefined || hookName === '') {
         if (setting.key) {
           hookName = setting.key;
         } else {
-          this.utils.logWarning && this.utils.logWarning(`Unknown hook name for setting ${setting.key}`);
+          this.utils.logWarning &&
+            this.utils.logWarning(
+              `Unknown hook name for setting ${setting.key}`
+            );
           return null;
         }
       }
     }
 
     try {
-      const settingHook = this.config.constants.hooks?.setting || ".setting";
-      const formattedHookName = this.utils.formatHookName(`${settingHook}${hookName}`);
+      const settingHook = this.config.constants.hooks?.setting || '.setting';
+      const formattedHookName = this.utils.formatHookName(
+        `${settingHook}${hookName}`
+      );
       return formattedHookName;
     } catch (error) {
-      this.utils.logWarning && this.utils.logWarning(`Failed to format hook name for setting ${setting.key}: ${error.message}`);
+      this.utils.logWarning &&
+        this.utils.logWarning(
+          `Failed to format hook name for setting ${setting.key}: ${error.message}`
+        );
       return null;
     }
   }
@@ -194,10 +209,10 @@ class SettingsParser extends Handler {
       processed: 0,
       successful: 0,
       parsed: [],
-  failed: [],
-  // planned exclusions (e.g., hidden by flags) vs unplanned failures (errors)
-  plannedExcluded: [],
-  unplannedFailed: []
+      failed: [],
+      // planned exclusions (e.g., hidden by flags) vs unplanned failures (errors)
+      plannedExcluded: [],
+      unplannedFailed: [],
     };
   }
 
@@ -210,13 +225,21 @@ class SettingsParser extends Handler {
    */
   #parseSingleSetting(setting) {
     if (!SettingsChecker.check(setting, this.requiredKeys)) {
-  return { success: false, key: (setting && setting.key) || "Unknown", data: null, planned: false, reason: 'invalid-format', message: `Failed to parse setting: invalid format` };
+      return {
+        success: false,
+        key: (setting && setting.key) || 'Unknown',
+        data: null,
+        planned: false,
+        reason: 'invalid-format',
+        message: `Failed to parse setting: invalid format`,
+      };
     }
 
-    const settingKey = setting.key || "Unknown";
+    const settingKey = setting.key || 'Unknown';
 
     // Check flag conditions to determine if setting should be shown
-    const flagEvaluatorConfig = this.config?.constants?.flagEvaluator?.contextMapping;
+    const flagEvaluatorConfig =
+      this.config?.constants?.flagEvaluator?.contextMapping;
     const shouldShow = FlagEvaluator.shouldShow(
       setting.showOnlyIfFlag,
       setting.dontShowIfFlag,
@@ -231,19 +254,26 @@ class SettingsParser extends Handler {
         data: null,
         planned: true,
         reason: 'flag-hidden',
-        message: `Setting ${settingKey} hidden due to flag conditions`
+        message: `Setting ${settingKey} hidden due to flag conditions`,
       };
     }
 
-  // Ensure the type is in a Foundry-acceptable format (constructor/function/DataField)
-  this.#normalizeType(setting);
+    // Ensure the type is in a Foundry-acceptable format (constructor/function/DataField)
+    this.#normalizeType(setting);
 
     // Check if setting should trigger hooks on change
-    if (setting.config && setting.config.onChange && setting.config.onChange.sendHook) {
+    if (
+      setting.config &&
+      setting.config.onChange &&
+      setting.config.onChange.sendHook
+    ) {
       const hookName = this.#formatHookName(setting);
       if (!hookName) {
         // Skip hook setup if hook name formatting failed
-        this.utils.logWarning && this.utils.logWarning(`Skipping hook setup for setting ${settingKey} due to invalid hook name`);
+        this.utils.logWarning &&
+          this.utils.logWarning(
+            `Skipping hook setup for setting ${settingKey} due to invalid hook name`
+          );
       } else {
         const scope = setting.config.scope || 'world'; // Default to 'world' if not specified
 
@@ -254,15 +284,27 @@ class SettingsParser extends Handler {
         setting.config.onChange = onChangeActions.onChangeSendHook(hookName);
 
         // Log successful hook setup for debugging
-        this.utils.logDebug && this.utils.logDebug(`Set up hook "${hookName}" for setting "${settingKey}" with scope "${scope}"`);
+        this.utils.logDebug &&
+          this.utils.logDebug(
+            `Set up hook "${hookName}" for setting "${settingKey}" with scope "${scope}"`
+          );
       }
     } else if (setting.config && setting.config.onChange) {
       // Remove the onChange object if sendHook is false or not specified
       delete setting.config.onChange;
-      this.utils.logDebug && this.utils.logDebug(`Removed onChange config for setting "${settingKey}" (sendHook is false)`);
+      this.utils.logDebug &&
+        this.utils.logDebug(
+          `Removed onChange config for setting "${settingKey}" (sendHook is false)`
+        );
     }
 
-  return { success: true, key: settingKey, data: setting, reason: 'ok', message: `Successfully parsed setting ${settingKey}` };
+    return {
+      success: true,
+      key: settingKey,
+      data: setting,
+      reason: 'ok',
+      message: `Successfully parsed setting ${settingKey}`,
+    };
   }
 
   /**
@@ -277,13 +319,13 @@ class SettingsParser extends Handler {
     if (!Array.isArray(settings)) return output;
 
     output.processed += settings.length;
-    settings.forEach(element => {
+    settings.forEach((element) => {
       const parsedSetting = this.#parseSingleSetting(element);
       if (parsedSetting.success) {
         output.successful++;
-        output.parsed.push(parsedSetting.key || "Unknown");
+        output.parsed.push(parsedSetting.key || 'Unknown');
       } else {
-        const key = parsedSetting.key || "Unknown";
+        const key = parsedSetting.key || 'Unknown';
         output.failed.push(key);
         if (parsedSetting.planned) {
           output.plannedExcluded.push(key);
@@ -311,9 +353,9 @@ class SettingsParser extends Handler {
       const parsedSetting = this.#parseSingleSetting(value);
       if (parsedSetting.success) {
         output.successful++;
-        output.parsed.push(parsedSetting.key || "Unknown");
+        output.parsed.push(parsedSetting.key || 'Unknown');
       } else {
-        const k = parsedSetting.key || "Unknown";
+        const k = parsedSetting.key || 'Unknown';
         output.failed.push(k);
         if (parsedSetting.planned) {
           output.plannedExcluded.push(k);
@@ -351,7 +393,9 @@ class SettingsParser extends Handler {
     const planned = parsedSettings.plannedExcluded || [];
     const unplanned = parsedSettings.unplannedFailed || [];
     const header = `SettingsParser: ${parsedSettings.successful} out of ${parsedSettings.processed} settings were successfully parsed.`;
-    const parsedList = parsedSettings.parsed.length ? `Successfully parsed settings:\n- ${parsedSettings.parsed.join("\n- ")}` : "";
+    const parsedList = parsedSettings.parsed.length
+      ? `Successfully parsed settings:\n- ${parsedSettings.parsed.join('\n- ')}`
+      : '';
     return { unplanned, header, parsedList, planned };
   }
 
@@ -363,8 +407,10 @@ class SettingsParser extends Handler {
   #logParsingExclusions(report) {
     const sections = [report.header];
     if (report.parsedList) sections.push(report.parsedList);
-    sections.push(`Intentionally excluded (flag conditions):\n- ${report.planned.join("\n- ")}`);
-    const debugMessage = sections.join("\n        ");
+    sections.push(
+      `Intentionally excluded (flag conditions):\n- ${report.planned.join('\n- ')}`
+    );
+    const debugMessage = sections.join('\n        ');
     if (this.utils.logDebug) this.utils.logDebug(debugMessage);
   }
 
@@ -376,9 +422,14 @@ class SettingsParser extends Handler {
   #warnAboutParsingIssues(report) {
     const sections = [report.header];
     if (report.parsedList) sections.push(report.parsedList);
-    if (report.planned.length > 0) sections.push(`Intentionally excluded (flag conditions):\n- ${report.planned.join("\n- ")}`);
-    sections.push(`Failed to parse (errors):\n- ${report.unplanned.join("\n- ")}`);
-    const warningMessage = sections.join("\n        ");
+    if (report.planned.length > 0)
+      sections.push(
+        `Intentionally excluded (flag conditions):\n- ${report.planned.join('\n- ')}`
+      );
+    sections.push(
+      `Failed to parse (errors):\n- ${report.unplanned.join('\n- ')}`
+    );
+    const warningMessage = sections.join('\n        ');
     this.utils.logWarning && this.utils.logWarning(warningMessage);
   }
 
@@ -397,7 +448,9 @@ class SettingsParser extends Handler {
    */
   parse(settings) {
     if (!settings || typeof settings !== 'object') {
-      throw new Error(this.utils.formatError("Settings cannot be parsed: invalid format"));
+      throw new Error(
+        this.utils.formatError('Settings cannot be parsed: invalid format')
+      );
     }
 
     let parsedSettings;
@@ -409,10 +462,18 @@ class SettingsParser extends Handler {
     }
 
     if (parsedSettings.processed === 0) {
-      throw new Error(this.utils.formatError("Settings cannot be parsed: no valid settings found"));
+      throw new Error(
+        this.utils.formatError(
+          'Settings cannot be parsed: no valid settings found'
+        )
+      );
     }
     if (parsedSettings.successful === 0) {
-      throw new Error(this.utils.formatError("Settings cannot be parsed: all settings are invalid"));
+      throw new Error(
+        this.utils.formatError(
+          'Settings cannot be parsed: all settings are invalid'
+        )
+      );
     }
     if (parsedSettings.successful < parsedSettings.processed) {
       this.#analyzeParsedSettings(parsedSettings);

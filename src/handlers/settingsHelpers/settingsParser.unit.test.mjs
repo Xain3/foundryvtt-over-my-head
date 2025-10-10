@@ -4,7 +4,16 @@
  * @path src/handlers/settingsHelpers/settingsParser.unit.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 import SettingsParser from './settingsParser.mjs';
 import SettingsChecker from './settingsChecker.mjs';
 import FlagEvaluator from './flagEvaluator.mjs';
@@ -12,41 +21,54 @@ import FlagEvaluator from './flagEvaluator.mjs';
 // Vitest Mocks
 vi.mock('./settingsChecker.mjs');
 vi.mock('./flagEvaluator.mjs');
-vi.mock('#/baseClasses/handler', () => ({
+vi.mock('#baseClasses/handler.mjs', () => ({
   default: class MockHandler {
-    constructor(config, utils, context) {
+    constructor({ config, utils, context = {} } = {}) {
       this.config = config;
       this.context = context;
       this.utils = utils;
     }
-  }
+  },
 }));
 
 // Mock global Hooks early for all tests
 global.Hooks = {
   call: vi.fn(),
-  callAll: vi.fn()
+  callAll: vi.fn(),
 };
 
 // --- Type Normalization Tests (merged) ---
 describe('SettingsParser type normalization', () => {
   let parser;
-  const baseConfig = { constants: { settings: { requiredKeys: ['key', 'config.name', 'config.type'] } } };
-  const smallUtils = { formatError: (e) => String(e), logWarning: vi.fn(), logDebug: vi.fn(), formatHookName: (x) => x };
+  const baseConfig = {
+    constants: {
+      settings: { requiredKeys: ['key', 'config.name', 'config.type'] },
+    },
+  };
+  const smallUtils = {
+    formatError: (e) => String(e),
+    logWarning: vi.fn(),
+    logDebug: vi.fn(),
+    formatHookName: (x) => x,
+  };
   const smallContext = {};
 
   beforeEach(() => {
-    parser = new SettingsParser({ config: baseConfig, utils: smallUtils, context: smallContext });
+    parser = new SettingsParser({
+      config: baseConfig,
+      utils: smallUtils,
+      context: smallContext,
+    });
     delete globalThis.foundry;
-  // Ensure validation passes in this suite
-  SettingsChecker.check.mockReturnValue(true);
-  // Ensure flag evaluation passes in this suite
-  FlagEvaluator.shouldShow = vi.fn().mockReturnValue(true);
+    // Ensure validation passes in this suite
+    SettingsChecker.check.mockReturnValue(true);
+    // Ensure flag evaluation passes in this suite
+    FlagEvaluator.shouldShow = vi.fn().mockReturnValue(true);
   });
 
   const makeSetting = (typeVal) => ({
     key: 't',
-    config: { name: 'T', type: typeVal }
+    config: { name: 'T', type: typeVal },
   });
 
   it('normalizes case-insensitive primitives', () => {
@@ -58,7 +80,7 @@ describe('SettingsParser type normalization', () => {
       { in: 'float', out: Number },
       { in: 'string', out: String },
       { in: 'object', out: Object },
-      { in: 'array', out: Array }
+      { in: 'array', out: Array },
     ];
 
     for (const c of cases) {
@@ -70,7 +92,9 @@ describe('SettingsParser type normalization', () => {
   });
 
   it('resolves DataField by dotted path', () => {
-    globalThis.foundry = { data: { fields: { BooleanField: function BooleanField() {} } } };
+    globalThis.foundry = {
+      data: { fields: { BooleanField: function BooleanField() {} } },
+    };
     const s = makeSetting('foundry.data.fields.BooleanField');
     parser.parse([s]);
     expect(typeof s.config.type).toBe('function');
@@ -78,7 +102,9 @@ describe('SettingsParser type normalization', () => {
   });
 
   it('resolves DataField by class name', () => {
-    globalThis.foundry = { data: { fields: { NumberField: function NumberField() {} } } };
+    globalThis.foundry = {
+      data: { fields: { NumberField: function NumberField() {} } },
+    };
     const s = makeSetting('NumberField');
     parser.parse([s]);
     expect(typeof s.config.type).toBe('function');
@@ -86,7 +112,9 @@ describe('SettingsParser type normalization', () => {
   });
 
   it('resolves DataField by prefix form datafield:boolean', () => {
-    globalThis.foundry = { data: { fields: { BooleanField: function BooleanField() {} } } };
+    globalThis.foundry = {
+      data: { fields: { BooleanField: function BooleanField() {} } },
+    };
     const s = makeSetting('datafield:boolean');
     parser.parse([s]);
     expect(typeof s.config.type).toBe('function');
@@ -142,7 +170,11 @@ describe('SettingsParser', () => {
   it('parses an array of valid settings successfully', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser({ config: config, utils: utils, context: context });
+    const parser = new SettingsParser({
+      config: config,
+      utils: utils,
+      context: context,
+    });
 
     // All valid
     SettingsChecker.check.mockReturnValue(true);
@@ -163,7 +195,11 @@ describe('SettingsParser', () => {
   it('parses an object map of valid settings successfully', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser({ config: config, utils: utils, context: context });
+    const parser = new SettingsParser({
+      config: config,
+      utils: utils,
+      context: context,
+    });
 
     SettingsChecker.check.mockReturnValue(true);
     const input = {
@@ -183,17 +219,16 @@ describe('SettingsParser', () => {
   it('logs a warning when only a subset of settings are valid (array input)', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser({ config: config, utils: utils, context: context });
+    const parser = new SettingsParser({
+      config: config,
+      utils: utils,
+      context: context,
+    });
 
     // First valid, second invalid
-    SettingsChecker.check
-      .mockReturnValueOnce(true)
-      .mockReturnValueOnce(false);
+    SettingsChecker.check.mockReturnValueOnce(true).mockReturnValueOnce(false);
 
-    const input = [
-      { key: 'a', name: 'A', scope: 'client' },
-      { name: 'B' },
-    ];
+    const input = [{ key: 'a', name: 'A', scope: 'client' }, { name: 'B' }];
 
     const result = parser.parse(input);
 
@@ -202,44 +237,69 @@ describe('SettingsParser', () => {
     expect(result.parsed).toEqual(['a']);
     expect(result.failed).toEqual(['Unknown']);
     expect(utils.logWarning).toHaveBeenCalledTimes(1);
-    expect(utils.logWarning.mock.calls[0][0]).toMatch('SettingsParser: 1 out of 2 settings were successfully parsed');
+    expect(utils.logWarning.mock.calls[0][0]).toMatch(
+      'SettingsParser: 1 out of 2 settings were successfully parsed'
+    );
   });
 
   it('throws for invalid input types', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser({ config: config, utils: utils, context: context });
+    const parser = new SettingsParser({
+      config: config,
+      utils: utils,
+      context: context,
+    });
 
-    expect(() => parser.parse(null)).toThrow('Settings cannot be parsed: invalid format');
-    expect(() => parser.parse(undefined)).toThrow('Settings cannot be parsed: invalid format');
-    expect(() => parser.parse('str')).toThrow('Settings cannot be parsed: invalid format');
-    expect(() => parser.parse(42)).toThrow('Settings cannot be parsed: invalid format');
+    expect(() => parser.parse(null)).toThrow(
+      'Settings cannot be parsed: invalid format'
+    );
+    expect(() => parser.parse(undefined)).toThrow(
+      'Settings cannot be parsed: invalid format'
+    );
+    expect(() => parser.parse('str')).toThrow(
+      'Settings cannot be parsed: invalid format'
+    );
+    expect(() => parser.parse(42)).toThrow(
+      'Settings cannot be parsed: invalid format'
+    );
   });
 
   it('throws when no valid settings are found (empty array/object)', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser({ config: config, utils: utils, context: context });
+    const parser = new SettingsParser({
+      config: config,
+      utils: utils,
+      context: context,
+    });
 
     SettingsChecker.check.mockReturnValue(false);
 
-    expect(() => parser.parse([])).toThrow('Settings cannot be parsed: no valid settings found');
-    expect(() => parser.parse({})).toThrow('Settings cannot be parsed: no valid settings found');
+    expect(() => parser.parse([])).toThrow(
+      'Settings cannot be parsed: no valid settings found'
+    );
+    expect(() => parser.parse({})).toThrow(
+      'Settings cannot be parsed: no valid settings found'
+    );
   });
 
   it('throws when all processed settings are invalid', () => {
     const config = makeConfig();
     const utils = makeUtils();
-    const parser = new SettingsParser({ config: config, utils: utils, context: context });
+    const parser = new SettingsParser({
+      config: config,
+      utils: utils,
+      context: context,
+    });
 
     SettingsChecker.check.mockReturnValue(false);
 
-    const input = [
-      { key: 'a' },
-      { key: 'b' },
-    ];
+    const input = [{ key: 'a' }, { key: 'b' }];
 
-    expect(() => parser.parse(input)).toThrow('Settings cannot be parsed: all settings are invalid');
+    expect(() => parser.parse(input)).toThrow(
+      'Settings cannot be parsed: all settings are invalid'
+    );
   });
 });
 
@@ -259,12 +319,18 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
     mockConfig = {
       constants: {
         settings: {
-          requiredKeys: ['key', 'config.name', 'config.hint', 'config.scope', 'config.type']
+          requiredKeys: [
+            'key',
+            'config.name',
+            'config.hint',
+            'config.scope',
+            'config.type',
+          ],
         },
         hooks: {
-          setting: '.setting'
-        }
-      }
+          setting: '.setting',
+        },
+      },
     };
 
     mockContext = {};
@@ -273,10 +339,14 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       formatError: vi.fn((message) => `ERROR: ${message}`),
       logWarning: vi.fn(),
       logDebug: vi.fn(),
-      formatHookName: vi.fn((hookName) => `OMH${hookName}`)
+      formatHookName: vi.fn((hookName) => `OMH${hookName}`),
     };
 
-    settingsParser = new SettingsParser({ config: mockConfig, utils: mockUtils, context: mockContext });
+    settingsParser = new SettingsParser({
+      config: mockConfig,
+      utils: mockUtils,
+      context: mockContext,
+    });
 
     // Mock SettingsChecker to return true by default
     SettingsChecker.check.mockReturnValue(true);
@@ -295,9 +365,9 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
           type: Boolean,
           onChange: {
             sendHook: true,
-            hookName: 'testHook'
-          }
-        }
+            hookName: 'testHook',
+          },
+        },
       };
 
       const result = settingsParser.parse([setting]);
@@ -310,7 +380,10 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       const onChangeCallback = setting.config.onChange;
       onChangeCallback(true);
 
-      expect(global.Hooks.callAll).toHaveBeenCalledWith('OMH.settingtestHook', true);
+      expect(global.Hooks.callAll).toHaveBeenCalledWith(
+        'OMH.settingtestHook',
+        true
+      );
       expect(global.Hooks.call).not.toHaveBeenCalled();
     });
 
@@ -324,9 +397,9 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
           type: String,
           onChange: {
             sendHook: true,
-            hookName: 'worldHook'
-          }
-        }
+            hookName: 'worldHook',
+          },
+        },
       };
 
       const result = settingsParser.parse([setting]);
@@ -336,7 +409,10 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       const onChangeCallback = setting.config.onChange;
       onChangeCallback('newValue');
 
-      expect(global.Hooks.callAll).toHaveBeenCalledWith('OMH.settingworldHook', 'newValue');
+      expect(global.Hooks.callAll).toHaveBeenCalledWith(
+        'OMH.settingworldHook',
+        'newValue'
+      );
       expect(global.Hooks.call).not.toHaveBeenCalled();
     });
 
@@ -350,15 +426,17 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
           type: Boolean,
           onChange: {
             sendHook: true,
-            hookName: ''
-          }
-        }
+            hookName: '',
+          },
+        },
       };
 
       const result = settingsParser.parse([setting]);
 
       expect(result.successful).toBe(1);
-      expect(mockUtils.formatHookName).toHaveBeenCalledWith('.settingautoNamedSetting');
+      expect(mockUtils.formatHookName).toHaveBeenCalledWith(
+        '.settingautoNamedSetting'
+      );
     });
 
     it('should handle formatHookName failure gracefully', () => {
@@ -375,24 +453,28 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
           type: Boolean,
           onChange: {
             sendHook: true,
-            hookName: 'failingHook'
-          }
-        }
+            hookName: 'failingHook',
+          },
+        },
       };
 
       const result = settingsParser.parse([setting]);
 
       expect(result.successful).toBe(1);
       expect(mockUtils.logWarning).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to format hook name for setting failingSetting')
+        expect.stringContaining(
+          'Failed to format hook name for setting failingSetting'
+        )
       );
       expect(mockUtils.logWarning).toHaveBeenCalledWith(
-        expect.stringContaining('Skipping hook setup for setting failingSetting')
+        expect.stringContaining(
+          'Skipping hook setup for setting failingSetting'
+        )
       );
       // onChange should not be modified when hook formatting fails
       expect(setting.config.onChange).toEqual({
         sendHook: true,
-        hookName: 'failingHook'
+        hookName: 'failingHook',
       });
     });
 
@@ -404,9 +486,9 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
           scope: 'world',
           type: Boolean,
           onChange: {
-            sendHook: true
-          }
-        }
+            sendHook: true,
+          },
+        },
       };
 
       const result = settingsParser.parse([setting]);
@@ -432,9 +514,9 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
           type: Boolean,
           onChange: {
             sendHook: true,
-            hookName: 'errorHook'
-          }
-        }
+            hookName: 'errorHook',
+          },
+        },
       };
 
       const result = settingsParser.parse([setting]);
@@ -462,9 +544,9 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
           type: Boolean,
           onChange: {
             sendHook: true,
-            hookName: 'userHook'
-          }
-        }
+            hookName: 'userHook',
+          },
+        },
       };
 
       const result = settingsParser.parse([setting]);
@@ -474,7 +556,10 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       const onChangeCallback = setting.config.onChange;
       onChangeCallback(false);
 
-      expect(global.Hooks.callAll).toHaveBeenCalledWith('OMH.settinguserHook', false);
+      expect(global.Hooks.callAll).toHaveBeenCalledWith(
+        'OMH.settinguserHook',
+        false
+      );
       expect(global.Hooks.call).not.toHaveBeenCalled();
     });
 
@@ -487,9 +572,9 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
           type: Boolean,
           onChange: {
             sendHook: true,
-            hookName: 'defaultHook'
-          }
-        }
+            hookName: 'defaultHook',
+          },
+        },
       };
 
       const result = settingsParser.parse([setting]);
@@ -499,7 +584,10 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       const onChangeCallback = setting.config.onChange;
       onChangeCallback('test');
 
-      expect(global.Hooks.callAll).toHaveBeenCalledWith('OMH.settingdefaultHook', 'test');
+      expect(global.Hooks.callAll).toHaveBeenCalledWith(
+        'OMH.settingdefaultHook',
+        'test'
+      );
       expect(global.Hooks.call).not.toHaveBeenCalled();
     });
 
@@ -512,10 +600,10 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
           scope: 'world',
           type: Boolean,
           onChange: {
-            hookName: 'normalHook'
+            hookName: 'normalHook',
             // Note: no sendHook flag
-          }
-        }
+          },
+        },
       };
 
       const originalOnChange = { ...setting.config.onChange };
@@ -530,18 +618,24 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
   describe('Flag conditional parsing', () => {
     let parser;
     const mockConfig = {
-      constants: { settings: { requiredKeys: ['key', 'config.name', 'config.type'] } },
-      manifest: { debugMode: true, dev: false }
+      constants: {
+        settings: { requiredKeys: ['key', 'config.name', 'config.type'] },
+      },
+      manifest: { debugMode: true, dev: false },
     };
     const mockUtils = {
       formatError: (e) => String(e),
       logWarning: vi.fn(),
-      logDebug: vi.fn()
+      logDebug: vi.fn(),
     };
     const mockContext = {};
 
     beforeEach(() => {
-      parser = new SettingsParser({ config: mockConfig, utils: mockUtils, context: mockContext });
+      parser = new SettingsParser({
+        config: mockConfig,
+        utils: mockUtils,
+        context: mockContext,
+      });
       SettingsChecker.check.mockReturnValue(true);
       FlagEvaluator.shouldShow = vi.fn();
     });
@@ -557,7 +651,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
         key: 'testSetting',
         showOnlyIfFlag: 'manifest.debugMode',
         dontShowIfFlag: null,
-        config: { name: 'Test', type: Boolean }
+        config: { name: 'Test', type: Boolean },
       };
 
       const result = parser.parse([setting]);
@@ -579,7 +673,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
         key: 'hiddenSetting',
         showOnlyIfFlag: 'manifest.dev',
         dontShowIfFlag: null,
-        config: { name: 'Hidden', type: Boolean }
+        config: { name: 'Hidden', type: Boolean },
       };
 
       expect(() => parser.parse([setting])).toThrow('all settings are invalid');
@@ -599,7 +693,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
         key: 'complexSetting',
         showOnlyIfFlag: { or: ['manifest.debugMode', 'manifest.dev'] },
         dontShowIfFlag: { and: ['someFlag', 'anotherFlag'] },
-        config: { name: 'Complex', type: Boolean }
+        config: { name: 'Complex', type: Boolean },
       };
 
       const result = parser.parse([setting]);
@@ -620,7 +714,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
         key: 'normalSetting',
         showOnlyIfFlag: null,
         dontShowIfFlag: null,
-        config: { name: 'Normal', type: Boolean }
+        config: { name: 'Normal', type: Boolean },
       };
 
       const result = parser.parse([setting]);
@@ -636,7 +730,7 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
 
     it('should handle mixed settings with different flag results', () => {
       FlagEvaluator.shouldShow
-        .mockReturnValueOnce(true)  // First setting should show
+        .mockReturnValueOnce(true) // First setting should show
         .mockReturnValueOnce(false) // Second setting should hide
         .mockReturnValueOnce(true); // Third setting should show
 
@@ -644,25 +738,28 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
         {
           key: 'visibleSetting',
           showOnlyIfFlag: 'manifest.debugMode',
-          config: { name: 'Visible', type: Boolean }
+          config: { name: 'Visible', type: Boolean },
         },
         {
           key: 'hiddenSetting',
           showOnlyIfFlag: 'manifest.dev',
-          config: { name: 'Hidden', type: Boolean }
+          config: { name: 'Hidden', type: Boolean },
         },
         {
           key: 'anotherVisibleSetting',
           showOnlyIfFlag: null,
-          config: { name: 'Another Visible', type: Boolean }
-        }
+          config: { name: 'Another Visible', type: Boolean },
+        },
       ];
 
       const result = parser.parse(settings);
 
       expect(result.processed).toBe(3);
       expect(result.successful).toBe(2);
-      expect(result.parsed).toEqual(['visibleSetting', 'anotherVisibleSetting']);
+      expect(result.parsed).toEqual([
+        'visibleSetting',
+        'anotherVisibleSetting',
+      ]);
       expect(result.failed).toEqual(['hiddenSetting']);
     });
   });
@@ -670,18 +767,24 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
   describe('Planned vs Unplanned failure reporting', () => {
     let parser;
     const mockConfig = {
-      constants: { settings: { requiredKeys: ['key', 'config.name', 'config.type'] } },
-      manifest: { debugMode: true, dev: false }
+      constants: {
+        settings: { requiredKeys: ['key', 'config.name', 'config.type'] },
+      },
+      manifest: { debugMode: true, dev: false },
     };
     const mockUtils = {
       formatError: (e) => String(e),
       logWarning: vi.fn(),
-      logDebug: vi.fn()
+      logDebug: vi.fn(),
     };
     const mockContext = {};
 
     beforeEach(() => {
-      parser = new SettingsParser({ config: mockConfig, utils: mockUtils, context: mockContext });
+      parser = new SettingsParser({
+        config: mockConfig,
+        utils: mockUtils,
+        context: mockContext,
+      });
       vi.clearAllMocks();
     });
 
@@ -706,17 +809,17 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
         {
           key: 'validSetting',
           showOnlyIfFlag: 'manifest.debugMode',
-          config: { name: 'Valid', type: Boolean }
+          config: { name: 'Valid', type: Boolean },
         },
         {
           key: 'plannedExcluded',
           showOnlyIfFlag: 'manifest.dev',
-          config: { name: 'Planned', type: Boolean }
+          config: { name: 'Planned', type: Boolean },
         },
         {
           key: 'unplannedFailed',
-          config: { name: 'Invalid' } // Missing type - invalid
-        }
+          config: { name: 'Invalid' }, // Missing type - invalid
+        },
       ];
 
       const result = parser.parse(settings);
@@ -746,13 +849,13 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
         {
           key: 'validSetting',
           showOnlyIfFlag: 'manifest.debugMode',
-          config: { name: 'Valid', type: Boolean }
+          config: { name: 'Valid', type: Boolean },
         },
         {
           key: 'plannedExcluded',
           showOnlyIfFlag: 'manifest.dev',
-          config: { name: 'Planned', type: Boolean }
-        }
+          config: { name: 'Planned', type: Boolean },
+        },
       ];
 
       const result = parser.parse(settings);
@@ -776,12 +879,12 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       const settings = [
         {
           key: 'validSetting1',
-          config: { name: 'Valid1', type: Boolean }
+          config: { name: 'Valid1', type: Boolean },
         },
         {
           key: 'validSetting2',
-          config: { name: 'Valid2', type: String }
-        }
+          config: { name: 'Valid2', type: String },
+        },
       ];
 
       const result = parser.parse(settings);
@@ -810,12 +913,12 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       const settings = [
         {
           key: 'validSetting',
-          config: { name: 'Valid', type: Boolean }
+          config: { name: 'Valid', type: Boolean },
         },
         {
           key: 'unplannedFailed',
-          config: { name: 'Invalid' } // Missing type - invalid
-        }
+          config: { name: 'Invalid' }, // Missing type - invalid
+        },
       ];
 
       const result = parser.parse(settings);
@@ -839,8 +942,8 @@ describe('SettingsParser - Enhanced onChange Hook Tests', () => {
       const settings = [
         {
           key: 'validSetting',
-          config: { name: 'Valid', type: Boolean }
-        }
+          config: { name: 'Valid', type: Boolean },
+        },
       ];
 
       const result = parser.parse(settings);

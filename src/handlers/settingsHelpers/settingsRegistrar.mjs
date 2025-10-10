@@ -1,11 +1,11 @@
 /**
-* @file settingsRegistrar.mjs
-* @description This file contains the SettingsRegistrar class for registering Foundry VTT settings.
-* @path src/handlers/settingsHelpers/settingsRegistrar.mjs
-*/
+ * @file settingsRegistrar.mjs
+ * @description This file contains the SettingsRegistrar class for registering Foundry VTT settings.
+ * @path src/handlers/settingsHelpers/settingsRegistrar.mjs
+ */
 
-import Handler from "../../baseClasses/handler.mjs";
-import FlagEvaluator from "./flagEvaluator.mjs";
+import Handler from '#baseClasses/handler.mjs';
+import FlagEvaluator from './flagEvaluator.mjs';
 
 /**
  * SettingsRegistrar class for registering Foundry VTT settings
@@ -47,7 +47,7 @@ class SettingsRegistrar extends Handler {
     if (config && config.manifest && config.manifest.id) {
       return config.manifest.id;
     }
-    throw new Error("Invalid configuration: missing manifest ID");
+    throw new Error('Invalid configuration: missing manifest ID');
   }
 
   /**
@@ -57,15 +57,15 @@ class SettingsRegistrar extends Handler {
    */
   #runChecks(setting) {
     if (!setting || typeof setting !== 'object') {
-      return { success: false, message: "Invalid setting format" };
+      return { success: false, message: 'Invalid setting format' };
     }
 
     if (!setting.key || setting.key === '' || !setting.config) {
-      return { success: false, message: "Missing key or config" };
+      return { success: false, message: 'Missing key or config' };
     }
 
     if (!globalThis.game || !globalThis.game.settings) {
-      return { success: false, message: "Game settings not ready" };
+      return { success: false, message: 'Game settings not ready' };
     }
 
     return { success: true };
@@ -80,7 +80,7 @@ class SettingsRegistrar extends Handler {
    */
   registerSetting(setting) {
     let success = true;
-    let message = "";
+    let message = '';
     let planned = false;
     let reason = 'ok';
     let settingName = this.#getSettingName(setting);
@@ -95,7 +95,8 @@ class SettingsRegistrar extends Handler {
     }
 
     // Check flag conditions to determine if setting should be registered
-    const flagEvaluatorConfig = this.config?.constants?.flagEvaluator?.contextMapping;
+    const flagEvaluatorConfig =
+      this.config?.constants?.flagEvaluator?.contextMapping;
     const shouldShow = FlagEvaluator.shouldShow(
       setting.showOnlyIfFlag,
       setting.dontShowIfFlag,
@@ -112,7 +113,11 @@ class SettingsRegistrar extends Handler {
     }
 
     try {
-      globalThis.game.settings.register(this.namespace, setting.key, setting.config);
+      globalThis.game.settings.register(
+        this.namespace,
+        setting.key,
+        setting.config
+      );
       message = `Setting ${settingName} registered successfully.`;
     } catch (error) {
       success = false;
@@ -131,13 +136,16 @@ class SettingsRegistrar extends Handler {
    */
   #getSettingName(setting) {
     if (!setting || typeof setting !== 'object' || !setting.key) {
-  this.utils.logWarning && this.utils.logWarning("Invalid setting object provided, using default name.");
-      return "Unknown Setting";
+      this.utils.logWarning &&
+        this.utils.logWarning(
+          'Invalid setting object provided, using default name.'
+        );
+      return 'Unknown Setting';
     }
     if (setting && setting.key !== undefined && setting.key !== null) {
       return setting.key;
     }
-    return "Unknown Setting";
+    return 'Unknown Setting';
   }
 
   /**
@@ -155,7 +163,7 @@ class SettingsRegistrar extends Handler {
       // planned exclusions (e.g., hidden by flags) vs unplanned failures (errors)
       plannedExcluded: [],
       unplannedFailed: [],
-      errorMessages: []
+      errorMessages: [],
     };
   }
 
@@ -172,12 +180,12 @@ class SettingsRegistrar extends Handler {
       const setting = getSetting(element);
       const result = this.registerSetting(setting);
       output.processed++;
-      
+
       if (result.success) {
         output.successful++;
-        output.registered.push(result.key || "Unknown");
+        output.registered.push(result.key || 'Unknown');
       } else {
-        const key = result.key || "Unknown";
+        const key = result.key || 'Unknown';
         output.failed.push(key);
         output.errorMessages.push(result.message);
         if (result.planned) {
@@ -191,7 +199,6 @@ class SettingsRegistrar extends Handler {
     return output;
   }
 
-
   /**
    * Processes the provided settings for registration
    * @param {Array|Object} settings - The settings to process
@@ -199,9 +206,12 @@ class SettingsRegistrar extends Handler {
    */
   #processSettings(settings) {
     if (Array.isArray(settings)) {
-      return this.#registerMultipleSettings(settings, element => element);
+      return this.#registerMultipleSettings(settings, (element) => element);
     } else if (typeof settings === 'object') {
-      return this.#registerMultipleSettings(Object.entries(settings), ([, value]) => value);
+      return this.#registerMultipleSettings(
+        Object.entries(settings),
+        ([, value]) => value
+      );
     }
     return this.#initializeRegistrationResult();
   }
@@ -232,7 +242,9 @@ class SettingsRegistrar extends Handler {
     const planned = registrationResults.plannedExcluded || [];
     const unplanned = registrationResults.unplannedFailed || [];
     const header = `SettingsRegistrar: ${registrationResults.successful} out of ${registrationResults.processed} settings were successfully registered.`;
-    const registeredList = registrationResults.registered.length ? `Successfully registered settings:\n- ${registrationResults.registered.join("\n- ")}` : "";
+    const registeredList = registrationResults.registered.length
+      ? `Successfully registered settings:\n- ${registrationResults.registered.join('\n- ')}`
+      : '';
     return { unplanned, header, registeredList, planned };
   }
 
@@ -244,8 +256,10 @@ class SettingsRegistrar extends Handler {
   #logRegistrationExclusions(report) {
     const sections = [report.header];
     if (report.registeredList) sections.push(report.registeredList);
-    sections.push(`Intentionally excluded (flag conditions):\n- ${report.planned.join("\n- ")}`);
-    const debugMessage = sections.join("\n        ");
+    sections.push(
+      `Intentionally excluded (flag conditions):\n- ${report.planned.join('\n- ')}`
+    );
+    const debugMessage = sections.join('\n        ');
     if (this.utils.logDebug) this.utils.logDebug(debugMessage);
   }
 
@@ -257,9 +271,14 @@ class SettingsRegistrar extends Handler {
   #warnAboutRegistrationIssues(report) {
     const sections = [report.header];
     if (report.registeredList) sections.push(report.registeredList);
-    if (report.planned.length > 0) sections.push(`Intentionally excluded (flag conditions):\n- ${report.planned.join("\n- ")}`);
-    sections.push(`Failed to register (errors):\n- ${report.unplanned.join("\n- ")}`);
-    const warningMessage = sections.join("\n        ");
+    if (report.planned.length > 0)
+      sections.push(
+        `Intentionally excluded (flag conditions):\n- ${report.planned.join('\n- ')}`
+      );
+    sections.push(
+      `Failed to register (errors):\n- ${report.unplanned.join('\n- ')}`
+    );
+    const warningMessage = sections.join('\n        ');
     this.utils.logWarning && this.utils.logWarning(warningMessage);
   }
 
@@ -270,11 +289,13 @@ class SettingsRegistrar extends Handler {
    */
   register(settings) {
     if (!settings || typeof settings !== 'object') {
-      throw new Error(this.utils.formatError("Settings cannot be registered: invalid format"));
+      throw new Error(
+        this.utils.formatError('Settings cannot be registered: invalid format')
+      );
     }
 
     const registrationResults = this.#processSettings(settings);
-    
+
     // Unlike SettingsParser, SettingsRegistrar doesn't throw on empty/failed cases
     // It returns failure results for backward compatibility
     if (registrationResults.successful < registrationResults.processed) {
@@ -282,8 +303,10 @@ class SettingsRegistrar extends Handler {
     }
 
     // Ensure callers receive the detailed breakdown
-    registrationResults.plannedExcluded = registrationResults.plannedExcluded || [];
-    registrationResults.unplannedFailed = registrationResults.unplannedFailed || [];
+    registrationResults.plannedExcluded =
+      registrationResults.plannedExcluded || [];
+    registrationResults.unplannedFailed =
+      registrationResults.unplannedFailed || [];
 
     // For backward compatibility, also include legacy format
     const success = registrationResults.successful > 0;
@@ -306,7 +329,7 @@ class SettingsRegistrar extends Handler {
       registered: registrationResults.registered,
       failed: registrationResults.failed,
       plannedExcluded: registrationResults.plannedExcluded,
-      unplannedFailed: registrationResults.unplannedFailed
+      unplannedFailed: registrationResults.unplannedFailed,
     };
   }
 }

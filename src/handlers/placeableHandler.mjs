@@ -4,7 +4,7 @@
  * @path src/handlers/placeableHandler.mjs
  */
 
-import Handler from '../baseClasses/handler.mjs';
+import Handler from '#baseClasses/handler.mjs';
 import PlaceableGetter from './placeableHelpers/placeableGetter.mjs';
 import PlaceableChecker from './placeableHelpers/placeableChecker.mjs';
 import PlaceableSetter from './placeableHelpers/placeableSetter.mjs';
@@ -45,7 +45,12 @@ class PlaceableHandler extends Handler {
     this.placeableType = placeableType;
     this.getter = new PlaceableGetter({ config, context, utils });
     this.setter = new PlaceableSetter({ config, context, utils });
-    this.checker = new PlaceableChecker({ config, context, utils, placeableGetter: this.getter });
+    this.checker = new PlaceableChecker({
+      config,
+      context,
+      utils,
+      placeableGetter: this.getter,
+    });
     this.all = [];
     this.current = null;
   }

@@ -4,11 +4,11 @@
  * @path src/handlers/settingsHandler.mjs
  */
 
-import Handler from "../baseClasses/handler.mjs";
-import SettingsParser from "./settingsHelpers/settingsParser.mjs";
-import SettingsRegistrar from "./settingsHelpers/settingsRegistrar.mjs";
-import SettingLocalizer from "./settingsHelpers/settingLocalizer.mjs";
-import SettingsRetriever from "../helpers/settingsRetriever.mjs";
+import Handler from '#baseClasses/handler.mjs';
+import SettingsParser from '#handlers/settingsHelpers/settingsParser.mjs';
+import SettingsRegistrar from '#handlers/settingsHelpers/settingsRegistrar.mjs';
+import SettingLocalizer from '#handlers/settingsHelpers/settingLocalizer.mjs';
+import SettingsRetriever from '#helpers/settingsRetriever.mjs';
 
 /**
  * SettingsHandler orchestrates the complete settings management workflow for Foundry VTT modules.
@@ -231,7 +231,10 @@ class SettingsHandler extends Handler {
    */
   register(settings = this.parsedSettings) {
     // Localize settings before registering them
-  const localizedSettings = SettingLocalizer.localizeSettings(settings, this.utils); // Pass utils instead of localizer instance
+    const localizedSettings = SettingLocalizer.localizeSettings(
+      settings,
+      this.utils
+    ); // Pass utils instead of localizer instance
     return this.#registrar.register(localizedSettings);
   }
 
@@ -261,20 +264,25 @@ class SettingsHandler extends Handler {
    * ```
    */
   registerDebugModeSetting() {
-    const debugSetting = this.parsedSettings.find(setting => setting.key === 'debugMode');
-    
+    const debugSetting = this.parsedSettings.find(
+      (setting) => setting.key === 'debugMode'
+    );
+
     if (!debugSetting) {
       return {
         success: false,
         counter: 0,
         successCounter: 0,
         errorMessages: ['Debug mode setting not found in parsed settings'],
-        message: 'Debug mode setting not found in parsed settings'
+        message: 'Debug mode setting not found in parsed settings',
       };
     }
 
     // Localize the debug setting before registering
-    const localizedSetting = SettingLocalizer.localizeSettings([debugSetting], this.utils);
+    const localizedSetting = SettingLocalizer.localizeSettings(
+      [debugSetting],
+      this.utils
+    );
     return this.#registrar.register(localizedSetting);
   }
 
@@ -292,7 +300,7 @@ class SettingsHandler extends Handler {
    * ```
    */
   hasDebugModeSettingConfig() {
-    return this.parsedSettings.some(setting => setting.key === 'debugMode');
+    return this.parsedSettings.some((setting) => setting.key === 'debugMode');
   }
 
   /**
@@ -310,7 +318,9 @@ class SettingsHandler extends Handler {
    * ```
    */
   getDebugModeSettingConfig() {
-    return this.parsedSettings.find(setting => setting.key === 'debugMode') || null;
+    return (
+      this.parsedSettings.find((setting) => setting.key === 'debugMode') || null
+    );
   }
 
   /**
@@ -340,20 +350,25 @@ class SettingsHandler extends Handler {
    * ```
    */
   registerSettingByKey(key) {
-    const setting = this.parsedSettings.find(setting => setting.key === key);
-    
+    const setting = this.parsedSettings.find((setting) => setting.key === key);
+
     if (!setting) {
       return {
         success: false,
         counter: 0,
         successCounter: 0,
-        errorMessages: [`Setting with key '${key}' not found in parsed settings`],
-        message: `Setting with key '${key}' not found in parsed settings`
+        errorMessages: [
+          `Setting with key '${key}' not found in parsed settings`,
+        ],
+        message: `Setting with key '${key}' not found in parsed settings`,
       };
     }
 
     // Localize the setting before registering
-    const localizedSetting = SettingLocalizer.localizeSettings([setting], this.utils);
+    const localizedSetting = SettingLocalizer.localizeSettings(
+      [setting],
+      this.utils
+    );
     return this.#registrar.register(localizedSetting);
   }
 
@@ -372,7 +387,7 @@ class SettingsHandler extends Handler {
    * ```
    */
   hasSettingConfigByKey(key) {
-    return this.parsedSettings.some(setting => setting.key === key);
+    return this.parsedSettings.some((setting) => setting.key === key);
   }
 
   /**
@@ -391,7 +406,7 @@ class SettingsHandler extends Handler {
    * ```
    */
   getSettingConfigByKey(key) {
-    return this.parsedSettings.find(setting => setting.key === key) || null;
+    return this.parsedSettings.find((setting) => setting.key === key) || null;
   }
 
   /**

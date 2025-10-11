@@ -4,27 +4,25 @@
  * @path src/contexts/helpers/contextHelpers.unit.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 
 // Mock all alias imports that could be imported by the chain of dependencies
-vi.mock('#utils/static/validator.mjs', () => ({
-  default: {
-    validateObject: vi.fn(),
-    validateString: vi.fn(),
-    validateArray: vi.fn(),
-    validateFunction: vi.fn(),
-    validateNumber: vi.fn(),
-    validateBoolean: vi.fn()
-  },
-  Validator: {
-    validateObject: vi.fn(),
-    validateString: vi.fn(),
-    validateArray: vi.fn(),
-    validateFunction: vi.fn(),
-    validateNumber: vi.fn(),
-    validateBoolean: vi.fn()
-  }
-}));
+vi.mock('#utils/static/validator.mjs', async () => {
+  const actualModule = await vi.importActual('#utils/static/validator.mjs');
+  return {
+    default: actualModule.default,
+    Validator: actualModule.Validator,
+  };
+});
 
 vi.mock('#helpers/pathUtils.mjs', () => ({
   default: {
@@ -32,8 +30,8 @@ vi.mock('#helpers/pathUtils.mjs', () => ({
     extractKeyComponents: vi.fn(),
     resolveMixedPath: vi.fn(),
     pathExistsInMixedStructure: vi.fn(),
-    getValueFromMixedPath: vi.fn()
-  }
+    getValueFromMixedPath: vi.fn(),
+  },
 }));
 
 vi.mock('#config', () => ({
@@ -41,16 +39,44 @@ vi.mock('#config', () => ({
     constants: {
       moduleManagement: {
         defaults: {
-          modulesLocation: 'game.modules'
-        }
-      }
+          modulesLocation: 'game.modules',
+        },
+      },
+      errors: {
+        separator: ' :: ',
+        pattern: '{{module}}{{caller}}{{error}}{{stack}}',
+      },
+      context: {
+        helpers: {
+          comparisonResults: {
+            CONTAINER_A_NEWER: 'container-a-newer',
+            CONTAINER_B_NEWER: 'container-b-newer',
+            EQUAL: 'equal',
+            CONTAINER_A_MISSING: 'container-a-missing',
+            CONTAINER_B_MISSING: 'container-b-missing',
+            BOTH_MISSING: 'both-missing',
+          },
+          mergeStrategies: {
+            UPDATE_SOURCE_TO_TARGET: 'update-source-to-target',
+            UPDATE_TARGET_TO_SOURCE: 'update-target-to-source',
+            MERGE_NEWER_WINS: 'merge-newer-wins',
+            MERGE_OLDER_WINS: 'merge-older-wins',
+            MERGE_SOURCE_PRIORITY: 'merge-source-priority',
+            MERGE_TARGET_PRIORITY: 'merge-target-priority',
+            NO_ACTION: 'no-action',
+          },
+          errorMessages: {
+            unsupportedObjectType: 'Unsupported object type',
+          },
+        },
+      },
     },
     manifest: {
-      id: 'test-module-id'
+      id: 'test-module-id',
     },
     buildManifestWithShortName: vi.fn(() => ({ shortName: 'OMH' })),
-    exportConstants: vi.fn()
-  }
+    exportConstants: vi.fn(),
+  },
 }));
 import ContextHelpers from './contextHelpers.mjs';
 import { ContextItem } from './contextItem.mjs';
@@ -68,23 +94,23 @@ describe('ContextHelpers', () => {
     });
 
     it('should export all synchronization classes', () => {
-  expect(ContextHelpers.Sync).toBe(ContextSync);
-  expect(ContextHelpers.ItemSync).toBeDefined();
-  expect(ContextHelpers.ContainerSync).toBeDefined();
-  expect(ContextHelpers.ContainerSyncEngine).toBeDefined();
-  expect(ContextHelpers.AutoSync).toBeDefined();
-  expect(ContextHelpers.LegacySync).toBeDefined();
+      expect(ContextHelpers.Sync).toBe(ContextSync);
+      expect(ContextHelpers.ItemSync).toBeDefined();
+      expect(ContextHelpers.ContainerSync).toBeDefined();
+      expect(ContextHelpers.ContainerSyncEngine).toBeDefined();
+      expect(ContextHelpers.AutoSync).toBeDefined();
+      expect(ContextHelpers.LegacySync).toBeDefined();
     });
 
     it('should export all merging and operations classes', () => {
-  expect(ContextHelpers.Merger).toBe(ContextMerger);
-  expect(ContextHelpers.Operations).toBeDefined();
-  expect(ContextHelpers.Filter).toBeDefined();
+      expect(ContextHelpers.Merger).toBe(ContextMerger);
+      expect(ContextHelpers.Operations).toBeDefined();
+      expect(ContextHelpers.Filter).toBeDefined();
     });
 
     it('should export all utility classes', () => {
-  expect(ContextHelpers.Comparison).toBeDefined();
-  expect(ContextHelpers.Validator).toBeDefined();
+      expect(ContextHelpers.Comparison).toBeDefined();
+      expect(ContextHelpers.Validator).toBeDefined();
     });
   });
 
@@ -98,23 +124,46 @@ describe('ContextHelpers', () => {
 
     describe('sync()', () => {
       it('should delegate to ContextSync.sync', () => {
-        const syncSpy = vi.spyOn(ContextSync, 'sync').mockReturnValue({ success: true });
+        const syncSpy = vi
+          .spyOn(ContextSync, 'sync')
+          .mockReturnValue({ success: true });
 
-        const result = ContextHelpers.sync(sourceItem, targetItem, 'mergeNewerWins');
+        const result = ContextHelpers.sync(
+          sourceItem,
+          targetItem,
+          'mergeNewerWins'
+        );
 
-        expect(syncSpy).toHaveBeenCalledWith(sourceItem, targetItem, 'mergeNewerWins', {});
+        expect(syncSpy).toHaveBeenCalledWith(
+          sourceItem,
+          targetItem,
+          'mergeNewerWins',
+          {}
+        );
         expect(result).toEqual({ success: true });
 
         syncSpy.mockRestore();
       });
 
       it('should pass options to ContextSync.sync', () => {
-        const syncSpy = vi.spyOn(ContextSync, 'sync').mockReturnValue({ success: true });
+        const syncSpy = vi
+          .spyOn(ContextSync, 'sync')
+          .mockReturnValue({ success: true });
         const options = { preserveMetadata: true };
 
-        ContextHelpers.sync(sourceItem, targetItem, 'mergeSourcePriority', options);
+        ContextHelpers.sync(
+          sourceItem,
+          targetItem,
+          'mergeSourcePriority',
+          options
+        );
 
-        expect(syncSpy).toHaveBeenCalledWith(sourceItem, targetItem, 'mergeSourcePriority', options);
+        expect(syncSpy).toHaveBeenCalledWith(
+          sourceItem,
+          targetItem,
+          'mergeSourcePriority',
+          options
+        );
 
         syncSpy.mockRestore();
       });
@@ -122,11 +171,22 @@ describe('ContextHelpers', () => {
 
     describe('syncSafe()', () => {
       it('should delegate to ContextSync.syncSafe', () => {
-        const syncSafeSpy = vi.spyOn(ContextSync, 'syncSafe').mockReturnValue({ success: true });
+        const syncSafeSpy = vi
+          .spyOn(ContextSync, 'syncSafe')
+          .mockReturnValue({ success: true });
 
-        const result = ContextHelpers.syncSafe(sourceItem, targetItem, 'mergeNewerWins');
+        const result = ContextHelpers.syncSafe(
+          sourceItem,
+          targetItem,
+          'mergeNewerWins'
+        );
 
-        expect(syncSafeSpy).toHaveBeenCalledWith(sourceItem, targetItem, 'mergeNewerWins', {});
+        expect(syncSafeSpy).toHaveBeenCalledWith(
+          sourceItem,
+          targetItem,
+          'mergeNewerWins',
+          {}
+        );
         expect(result).toEqual({ success: true });
 
         syncSafeSpy.mockRestore();
@@ -135,7 +195,9 @@ describe('ContextHelpers', () => {
 
     describe('autoSync()', () => {
       it('should delegate to ContextSync.autoSync', () => {
-        const autoSyncSpy = vi.spyOn(ContextSync, 'autoSync').mockReturnValue({ success: true });
+        const autoSyncSpy = vi
+          .spyOn(ContextSync, 'autoSync')
+          .mockReturnValue({ success: true });
 
         const result = ContextHelpers.autoSync(sourceItem, targetItem);
 
@@ -148,7 +210,8 @@ describe('ContextHelpers', () => {
 
     describe('compare()', () => {
       it('should delegate to ContextComparison.compare', () => {
-        const compareSpy = vi.spyOn(ContextHelpers.Comparison, 'compare')
+        const compareSpy = vi
+          .spyOn(ContextHelpers.Comparison, 'compare')
           .mockReturnValue({ result: 'equal' });
 
         const result = ContextHelpers.compare(sourceItem, targetItem);
@@ -160,9 +223,10 @@ describe('ContextHelpers', () => {
       });
     });
 
-  describe('wrap()', () => {
+    describe('wrap()', () => {
       it('should delegate to ContextValueWrapper.wrap', () => {
-        const wrapSpy = vi.spyOn(ContextHelpers.ValueWrapper, 'wrap')
+        const wrapSpy = vi
+          .spyOn(ContextHelpers.ValueWrapper, 'wrap')
           .mockReturnValue(new ContextItem('wrapped'));
 
         const result = ContextHelpers.wrap('test value');
@@ -176,24 +240,41 @@ describe('ContextHelpers', () => {
 
     describe('merge()', () => {
       it('should delegate to ContextMerger.merge', () => {
-        const mergeSpy = vi.spyOn(ContextHelpers.Merger, 'merge')
+        const mergeSpy = vi
+          .spyOn(ContextHelpers.Merger, 'merge')
           .mockReturnValue({ success: true });
 
-        const result = ContextHelpers.merge(sourceItem, targetItem, 'mergeNewerWins', { test: true });
+        const result = ContextHelpers.merge(
+          sourceItem,
+          targetItem,
+          'mergeNewerWins',
+          { test: true }
+        );
 
-        expect(mergeSpy).toHaveBeenCalledWith(sourceItem, targetItem, 'mergeNewerWins', { test: true });
+        expect(mergeSpy).toHaveBeenCalledWith(
+          sourceItem,
+          targetItem,
+          'mergeNewerWins',
+          { test: true }
+        );
         expect(result).toEqual({ success: true });
 
         mergeSpy.mockRestore();
       });
 
       it('should use default parameters when not provided', () => {
-        const mergeSpy = vi.spyOn(ContextHelpers.Merger, 'merge')
+        const mergeSpy = vi
+          .spyOn(ContextHelpers.Merger, 'merge')
           .mockReturnValue({ success: true });
 
         const result = ContextHelpers.merge(sourceItem, targetItem);
 
-        expect(mergeSpy).toHaveBeenCalledWith(sourceItem, targetItem, 'mergeNewerWins', {});
+        expect(mergeSpy).toHaveBeenCalledWith(
+          sourceItem,
+          targetItem,
+          'mergeNewerWins',
+          {}
+        );
         expect(result).toEqual({ success: true });
 
         mergeSpy.mockRestore();
@@ -202,10 +283,14 @@ describe('ContextHelpers', () => {
 
     describe('resolveMixedPath()', () => {
       it('should delegate to ContextPathUtils.resolveMixedPath', () => {
-        const resolveSpy = vi.spyOn(ContextHelpers.PathUtils, 'resolveMixedPath')
+        const resolveSpy = vi
+          .spyOn(ContextHelpers.PathUtils, 'resolveMixedPath')
           .mockReturnValue({ success: true, value: 'resolved' });
 
-        const result = ContextHelpers.resolveMixedPath({ test: 'value' }, 'test');
+        const result = ContextHelpers.resolveMixedPath(
+          { test: 'value' },
+          'test'
+        );
 
         expect(resolveSpy).toHaveBeenCalledWith({ test: 'value' }, 'test');
         expect(result).toEqual({ success: true, value: 'resolved' });
@@ -216,7 +301,8 @@ describe('ContextHelpers', () => {
 
     describe('pathExists()', () => {
       it('should delegate to ContextPathUtils.pathExistsInMixedStructure', () => {
-        const pathExistsSpy = vi.spyOn(ContextHelpers.PathUtils, 'pathExistsInMixedStructure')
+        const pathExistsSpy = vi
+          .spyOn(ContextHelpers.PathUtils, 'pathExistsInMixedStructure')
           .mockReturnValue(true);
 
         const result = ContextHelpers.pathExists({ test: 'value' }, 'test');
@@ -230,10 +316,14 @@ describe('ContextHelpers', () => {
 
     describe('getValueFromMixedPath()', () => {
       it('should delegate to ContextPathUtils.getValueFromMixedPath', () => {
-        const getValueSpy = vi.spyOn(ContextHelpers.PathUtils, 'getValueFromMixedPath')
+        const getValueSpy = vi
+          .spyOn(ContextHelpers.PathUtils, 'getValueFromMixedPath')
           .mockReturnValue('resolved value');
 
-        const result = ContextHelpers.getValueFromMixedPath({ test: 'value' }, 'test');
+        const result = ContextHelpers.getValueFromMixedPath(
+          { test: 'value' },
+          'test'
+        );
 
         expect(getValueSpy).toHaveBeenCalledWith({ test: 'value' }, 'test');
         expect(result).toBe('resolved value');
@@ -244,7 +334,7 @@ describe('ContextHelpers', () => {
   });
 
   describe('Context Creation Convenience', () => {
-  describe('Item creation', () => {
+    describe('Item creation', () => {
       it('should create ContextItem instances through the helper', () => {
         const item = new ContextHelpers.Item('test value', { type: 'test' });
 
@@ -254,7 +344,7 @@ describe('ContextHelpers', () => {
       });
     });
 
-  describe('Container creation', () => {
+    describe('Container creation', () => {
       it('should create ContextContainer instances through the helper', () => {
         const container = new ContextHelpers.Container({ test: 'value' });
 
@@ -267,17 +357,23 @@ describe('ContextHelpers', () => {
   describe('Constants and Enums', () => {
     it('should expose SYNC_OPERATIONS from Sync', () => {
       expect(ContextHelpers.SYNC_OPERATIONS).toBeDefined();
-      expect(ContextHelpers.SYNC_OPERATIONS).toBe(ContextHelpers.Sync.SYNC_OPERATIONS);
+      expect(ContextHelpers.SYNC_OPERATIONS).toBe(
+        ContextHelpers.Sync.SYNC_OPERATIONS
+      );
     });
 
     it('should expose COMPARISON_RESULTS from Comparison', () => {
       expect(ContextHelpers.COMPARISON_RESULTS).toBeDefined();
-      expect(ContextHelpers.COMPARISON_RESULTS).toBe(ContextHelpers.Comparison.COMPARISON_RESULTS);
+      expect(ContextHelpers.COMPARISON_RESULTS).toBe(
+        ContextHelpers.Comparison.COMPARISON_RESULTS
+      );
     });
 
     it('should expose MERGE_STRATEGIES from Merger', () => {
       expect(ContextHelpers.MERGE_STRATEGIES).toBeDefined();
-      expect(ContextHelpers.MERGE_STRATEGIES).toBe(ContextHelpers.Merger.MERGE_STRATEGIES);
+      expect(ContextHelpers.MERGE_STRATEGIES).toBe(
+        ContextHelpers.Merger.MERGE_STRATEGIES
+      );
     });
   });
 
@@ -292,7 +388,11 @@ describe('ContextHelpers', () => {
       expect(comparison).toBeDefined();
 
       // Use synchronization
-      const syncResult = ContextHelpers.sync(item1, item2, ContextHelpers.SYNC_OPERATIONS.MERGE_NEWER_WINS);
+      const syncResult = ContextHelpers.sync(
+        item1,
+        item2,
+        ContextHelpers.SYNC_OPERATIONS.MERGE_NEWER_WINS
+      );
       expect(syncResult).toBeDefined();
 
       // Use wrapping
@@ -316,10 +416,16 @@ describe('ContextHelpers', () => {
   describe('Error Handling', () => {
     it('should handle errors in convenience methods gracefully when using syncSafe', async () => {
       // Test with invalid parameters using syncSafe - should not throw and return a result
-      const result = await ContextHelpers.syncSafe(null, null, 'invalidOperation');
+      const result = await ContextHelpers.syncSafe(
+        null,
+        null,
+        'invalidOperation'
+      );
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
-      expect(result.warnings).toContain('Both source and target are null/undefined');
+      expect(result.warnings).toContain(
+        'Both source and target are null/undefined'
+      );
     });
   });
 });

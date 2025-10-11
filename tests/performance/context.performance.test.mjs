@@ -4,26 +4,37 @@
  * @path src/contexts/context.performance.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 
-// Mock the Validator to avoid import resolution issues in test environment
-vi.mock('#utils/static/validator.mjs', () => ({
-  Validator: {
-    validateDate: vi.fn((value, name = 'Date') => {
-      const date = new Date(value);
-      if (isNaN(date.getTime())) {
-        throw new Error(`${name} must be a valid date. Received: ${value}`);
-      }
-      return date;
-    })
-  }
-}));
+// Partially mock the Validator to override heavy date validation while preserving the full API needed by Context internals.
+vi.mock('#utils/static/validator.mjs', async () => {
+  const actual = await vi.importActual('#utils/static/validator.mjs');
 
-// Mock other aliases that might be needed
-vi.mock('#helpers/pathUtils.mjs', () => ({}));
-vi.mock('#config', () => ({}));
-vi.mock('#constants', () => ({}));
-vi.mock('#manifest', () => ({}));
+  actual.Validator.validateDate = vi.fn((value, name = 'Date') => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      throw new Error(`${name} must be a valid date. Received: ${value}`);
+    }
+    return date;
+  });
+
+  return {
+    ...actual,
+    Validator: actual.Validator,
+    default: actual.default,
+  };
+});
+
+// Use real implementations for other aliases to ensure path utilities and config values behave correctly during performance checks.
 
 let Context;
 
@@ -40,22 +51,24 @@ describe('Context Performance Tests', () => {
     simpleSet: 1 * SCALE,
     nestedGet: 2 * SCALE,
     nestedSet: 2 * SCALE,
-  bulkOperations: 1000 * SCALE,
+    bulkOperations: 1000 * SCALE,
     largeObjectGet: 5 * SCALE,
     largeObjectSet: 10 * SCALE,
     complexMerge: 50 * SCALE,
-    multiContextSync: 200 * SCALE
+    multiContextSync: 200 * SCALE,
   };
 
   beforeAll(async () => {
-    ({ default: Context } = await vi.importActual('../../src/contexts/context.mjs'));
+    ({ default: Context } = await vi.importActual(
+      '../../src/contexts/context.mjs'
+    ));
 
     // Create large dataset for stress testing
     largeDataSet = {
       players: {},
       inventory: {},
       gameState: {},
-      statistics: {}
+      statistics: {},
     };
 
     // Generate large nested data structures
@@ -67,13 +80,16 @@ describe('Context Performance Tests', () => {
           level: Math.floor(Math.random() * 100),
           health: Math.floor(Math.random() * 1000),
           mana: Math.floor(Math.random() * 500),
-          experience: Math.floor(Math.random() * 100000)
+          experience: Math.floor(Math.random() * 100000),
         },
         inventory: {
           weapons: Array.from({ length: 10 }, (_, j) => `weapon_${i}_${j}`),
           armor: Array.from({ length: 5 }, (_, j) => `armor_${i}_${j}`),
-          items: Array.from({ length: 50 }, (_, j) => ({ id: j, count: Math.floor(Math.random() * 99) }))
-        }
+          items: Array.from({ length: 50 }, (_, j) => ({
+            id: j,
+            count: Math.floor(Math.random() * 99),
+          })),
+        },
       };
     }
 
@@ -84,8 +100,8 @@ describe('Context Performance Tests', () => {
         info: {
           source: `source_${i}`,
           accuracy: Math.random(),
-          tags: Array.from({ length: 10 }, (_, j) => `tag_${i}_${j}`)
-        }
+          tags: Array.from({ length: 10 }, (_, j) => `tag_${i}_${j}`),
+        },
       };
     }
   });
@@ -96,31 +112,31 @@ describe('Context Performance Tests', () => {
       initializationParams: {
         data: {
           player: { name: 'TestPlayer', level: 5 },
-          settings: { theme: 'dark', quality: 'high' }
+          settings: { theme: 'dark', quality: 'high' },
         },
         settings: {
           ui: { theme: 'dark' },
-          graphics: { quality: 'high', shadows: true }
-        }
+          graphics: { quality: 'high', shadows: true },
+        },
       },
       operationsParams: {
         alwaysPullBeforeGetting: false,
         alwaysPullBeforeSetting: false,
         alwaysPushAfterSetting: false,
         pullFrom: [],
-        pushTo: []
-      }
+        pushTo: [],
+      },
     });
 
     sourceContext = new Context({
       initializationParams: {
-        data: largeDataSet
+        data: largeDataSet,
       },
       operationsParams: {
         alwaysPullBeforeGetting: false,
         alwaysPullBeforeSetting: false,
-        alwaysPushAfterSetting: false
-      }
+        alwaysPushAfterSetting: false,
+      },
     });
   });
 
@@ -144,11 +160,16 @@ describe('Context Performance Tests', () => {
         expect(result).toBe('TestPlayer');
       }
 
-      const averageTime = measurements.reduce((a, b) => a + b, 0) / measurements.length;
-      const medianTime = measurements.sort((a, b) => a - b)[Math.floor(measurements.length / 2)];
+      const averageTime =
+        measurements.reduce((a, b) => a + b, 0) / measurements.length;
+      const medianTime = measurements.sort((a, b) => a - b)[
+        Math.floor(measurements.length / 2)
+      ];
       const maxTime = Math.max(...measurements);
 
-      console.log(`Simple getItem - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms, Max: ${maxTime.toFixed(3)}ms`);
+      console.log(
+        `Simple getItem - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms, Max: ${maxTime.toFixed(3)}ms`
+      );
 
       expect(averageTime).toBeLessThan(PERFORMANCE_THRESHOLDS.simpleGet);
       expect(medianTime).toBeLessThan(PERFORMANCE_THRESHOLDS.simpleGet);
@@ -172,10 +193,15 @@ describe('Context Performance Tests', () => {
         measurements.push(endTime - startTime);
       }
 
-      const averageTime = measurements.reduce((a, b) => a + b, 0) / measurements.length;
-      const medianTime = measurements.sort((a, b) => a - b)[Math.floor(measurements.length / 2)];
+      const averageTime =
+        measurements.reduce((a, b) => a + b, 0) / measurements.length;
+      const medianTime = measurements.sort((a, b) => a - b)[
+        Math.floor(measurements.length / 2)
+      ];
 
-      console.log(`Simple setItem - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`);
+      console.log(
+        `Simple setItem - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`
+      );
 
       expect(averageTime).toBeLessThan(PERFORMANCE_THRESHOLDS.simpleSet);
       expect(medianTime).toBeLessThan(PERFORMANCE_THRESHOLDS.simpleSet);
@@ -190,7 +216,7 @@ describe('Context Performance Tests', () => {
         'data.player.name',
         'settings.ui.theme',
         'settings.graphics.quality',
-        'data.player.level'
+        'data.player.level',
       ];
 
       // Warm up
@@ -209,10 +235,15 @@ describe('Context Performance Tests', () => {
         expect(result).toBeDefined();
       }
 
-      const averageTime = measurements.reduce((a, b) => a + b, 0) / measurements.length;
-      const medianTime = measurements.sort((a, b) => a - b)[Math.floor(measurements.length / 2)];
+      const averageTime =
+        measurements.reduce((a, b) => a + b, 0) / measurements.length;
+      const medianTime = measurements.sort((a, b) => a - b)[
+        Math.floor(measurements.length / 2)
+      ];
 
-      console.log(`Nested getItem - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`);
+      console.log(
+        `Nested getItem - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`
+      );
 
       expect(averageTime).toBeLessThan(PERFORMANCE_THRESHOLDS.nestedGet);
       expect(medianTime).toBeLessThan(PERFORMANCE_THRESHOLDS.nestedGet);
@@ -225,7 +256,7 @@ describe('Context Performance Tests', () => {
         'data.performance.test',
         'settings.performance.config',
         'state.performance.metrics',
-        'flags.performance.enabled'
+        'flags.performance.enabled',
       ];
 
       // Warm up
@@ -243,10 +274,15 @@ describe('Context Performance Tests', () => {
         measurements.push(endTime - startTime);
       }
 
-      const averageTime = measurements.reduce((a, b) => a + b, 0) / measurements.length;
-      const medianTime = measurements.sort((a, b) => a - b)[Math.floor(measurements.length / 2)];
+      const averageTime =
+        measurements.reduce((a, b) => a + b, 0) / measurements.length;
+      const medianTime = measurements.sort((a, b) => a - b)[
+        Math.floor(measurements.length / 2)
+      ];
 
-      console.log(`Nested setItem - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`);
+      console.log(
+        `Nested setItem - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`
+      );
 
       expect(averageTime).toBeLessThan(PERFORMANCE_THRESHOLDS.nestedSet);
       expect(medianTime).toBeLessThan(PERFORMANCE_THRESHOLDS.nestedSet);
@@ -264,7 +300,7 @@ describe('Context Performance Tests', () => {
           id: i,
           content: `bulk_content_${i}`,
           timestamp: Date.now(),
-          info: { index: i, type: 'bulk' }
+          info: { index: i, type: 'bulk' },
         });
       }
 
@@ -277,18 +313,21 @@ describe('Context Performance Tests', () => {
       const endTime = performance.now();
       const totalTime = endTime - startTime;
 
-      console.log(`Bulk operations (${iterations * 2} ops) - Total: ${totalTime.toFixed(3)}ms, Average: ${(totalTime / (iterations * 2)).toFixed(3)}ms per op`);
+      console.log(
+        `Bulk operations (${iterations * 2} ops) - Total: ${totalTime.toFixed(3)}ms, Average: ${(totalTime / (iterations * 2)).toFixed(3)}ms per op`
+      );
 
       // Note: Bulk operations can vary significantly due to GC pressure and system factors
       // This threshold allows for reasonable variance while catching major performance regressions
       expect(totalTime).toBeLessThan(PERFORMANCE_THRESHOLDS.bulkOperations);
-    });    it('should handle bulk mixed operations efficiently', () => {
+    });
+    it('should handle bulk mixed operations efficiently', () => {
       const iterations = 500;
       const measurements = {
         set: [],
         get: [],
         has: [],
-        component: []
+        component: [],
       };
 
       const startTime = performance.now();
@@ -349,10 +388,15 @@ describe('Context Performance Tests', () => {
         expect(Object.keys(result.players)).toHaveLength(1000);
       }
 
-      const averageTime = measurements.reduce((a, b) => a + b, 0) / measurements.length;
-      const medianTime = measurements.sort((a, b) => a - b)[Math.floor(measurements.length / 2)];
+      const averageTime =
+        measurements.reduce((a, b) => a + b, 0) / measurements.length;
+      const medianTime = measurements.sort((a, b) => a - b)[
+        Math.floor(measurements.length / 2)
+      ];
 
-      console.log(`Large object get - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`);
+      console.log(
+        `Large object get - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`
+      );
 
       expect(averageTime).toBeLessThan(PERFORMANCE_THRESHOLDS.largeObjectGet);
       expect(medianTime).toBeLessThan(PERFORMANCE_THRESHOLDS.largeObjectGet);
@@ -366,7 +410,7 @@ describe('Context Performance Tests', () => {
       const variants = Array.from({ length: iterations }, (_, i) => ({
         ...largeDataSet,
         variant: i,
-        timestamp: Date.now() + i
+        timestamp: Date.now() + i,
       }));
 
       // Measure performance
@@ -378,10 +422,15 @@ describe('Context Performance Tests', () => {
         measurements.push(endTime - startTime);
       }
 
-      const averageTime = measurements.reduce((a, b) => a + b, 0) / measurements.length;
-      const medianTime = measurements.sort((a, b) => a - b)[Math.floor(measurements.length / 2)];
+      const averageTime =
+        measurements.reduce((a, b) => a + b, 0) / measurements.length;
+      const medianTime = measurements.sort((a, b) => a - b)[
+        Math.floor(measurements.length / 2)
+      ];
 
-      console.log(`Large object set - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`);
+      console.log(
+        `Large object set - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`
+      );
 
       expect(averageTime).toBeLessThan(PERFORMANCE_THRESHOLDS.largeObjectSet);
       expect(medianTime).toBeLessThan(PERFORMANCE_THRESHOLDS.largeObjectSet);
@@ -395,14 +444,16 @@ describe('Context Performance Tests', () => {
 
       // Warm up
       for (let i = 0; i < 3; i++) {
-        context.merge(sourceContext, 'mergeNewerWins', { allowOnly: ['data.players'] });
+        context.merge(sourceContext, 'mergeNewerWins', {
+          allowOnly: ['data.players'],
+        });
       }
 
       // Measure performance
       for (let i = 0; i < iterations; i++) {
         const startTime = performance.now();
         const result = context.merge(sourceContext, 'mergeNewerWins', {
-          allowOnly: [`data.players.player_${i}`]
+          allowOnly: [`data.players.player_${i}`],
         });
         const endTime = performance.now();
 
@@ -410,10 +461,15 @@ describe('Context Performance Tests', () => {
         expect(result.success).toBe(true);
       }
 
-      const averageTime = measurements.reduce((a, b) => a + b, 0) / measurements.length;
-      const medianTime = measurements.sort((a, b) => a - b)[Math.floor(measurements.length / 2)];
+      const averageTime =
+        measurements.reduce((a, b) => a + b, 0) / measurements.length;
+      const medianTime = measurements.sort((a, b) => a - b)[
+        Math.floor(measurements.length / 2)
+      ];
 
-      console.log(`Merge operations - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`);
+      console.log(
+        `Merge operations - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`
+      );
 
       expect(averageTime).toBeLessThan(PERFORMANCE_THRESHOLDS.complexMerge);
     });
@@ -425,8 +481,8 @@ describe('Context Performance Tests', () => {
       // Create target context for comparison
       const targetContext = new Context({
         initializationParams: {
-          data: { player: { name: 'TargetPlayer', level: 10 } }
-        }
+          data: { player: { name: 'TargetPlayer', level: 10 } },
+        },
       });
 
       // Warm up
@@ -437,17 +493,24 @@ describe('Context Performance Tests', () => {
       // Measure performance
       for (let i = 0; i < iterations; i++) {
         const startTime = performance.now();
-        const result = context.compare(targetContext, { compareBy: 'modifiedAt' });
+        const result = context.compare(targetContext, {
+          compareBy: 'modifiedAt',
+        });
         const endTime = performance.now();
 
         measurements.push(endTime - startTime);
         expect(result.result).toBeDefined();
       }
 
-      const averageTime = measurements.reduce((a, b) => a + b, 0) / measurements.length;
-      const medianTime = measurements.sort((a, b) => a - b)[Math.floor(measurements.length / 2)];
+      const averageTime =
+        measurements.reduce((a, b) => a + b, 0) / measurements.length;
+      const medianTime = measurements.sort((a, b) => a - b)[
+        Math.floor(measurements.length / 2)
+      ];
 
-      console.log(`Comparison operations - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`);
+      console.log(
+        `Comparison operations - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`
+      );
 
       expect(averageTime).toBeLessThan(1); // Should be very fast
     });
@@ -462,7 +525,7 @@ describe('Context Performance Tests', () => {
       for (let i = 0; i < 10000; i++) {
         context.setItem(`data.memory.test${i}`, {
           id: i,
-          data: Array.from({ length: 100 }, (_, j) => `item_${j}`)
+          data: Array.from({ length: 100 }, (_, j) => `item_${j}`),
         });
 
         if (i % 100 === 0) {
@@ -489,7 +552,9 @@ describe('Context Performance Tests', () => {
 
     it('should handle deep path resolution efficiently', () => {
       // Create deeply nested structure
-      const deepPath = Array.from({ length: 20 }, (_, i) => `level${i}`).join('.');
+      const deepPath = Array.from({ length: 20 }, (_, i) => `level${i}`).join(
+        '.'
+      );
       const deepValue = 'deep_value';
 
       context.setItem(`data.${deepPath}`, deepValue);
@@ -512,10 +577,15 @@ describe('Context Performance Tests', () => {
         expect(result).toBe(deepValue);
       }
 
-      const averageTime = measurements.reduce((a, b) => a + b, 0) / measurements.length;
-      const medianTime = measurements.sort((a, b) => a - b)[Math.floor(measurements.length / 2)];
+      const averageTime =
+        measurements.reduce((a, b) => a + b, 0) / measurements.length;
+      const medianTime = measurements.sort((a, b) => a - b)[
+        Math.floor(measurements.length / 2)
+      ];
 
-      console.log(`Deep path resolution - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`);
+      console.log(
+        `Deep path resolution - Average: ${averageTime.toFixed(3)}ms, Median: ${medianTime.toFixed(3)}ms`
+      );
 
       expect(averageTime).toBeLessThan(5); // Should still be reasonably fast
     });
@@ -526,13 +596,13 @@ describe('Context Performance Tests', () => {
       const sizeTests = [100, 500, 1000, 5000];
       const results = {};
 
-      sizeTests.forEach(size => {
+      sizeTests.forEach((size) => {
         // Populate context with items
         for (let i = 0; i < size; i++) {
           context.setItem(`data.scale.item${i}`, {
             id: i,
             content: `content_${i}`,
-            info: { created: Date.now() }
+            info: { created: Date.now() },
           });
         }
 
@@ -546,10 +616,14 @@ describe('Context Performance Tests', () => {
           context.getItem(`data.scale.item${randomIndex}`);
           const endTime = performance.now();
           measurements.push(endTime - startTime);
-        }        const averageTime = measurements.reduce((a, b) => a + b, 0) / measurements.length;
+        }
+        const averageTime =
+          measurements.reduce((a, b) => a + b, 0) / measurements.length;
         results[size] = averageTime;
 
-        console.log(`Scale ${size} - Average access time: ${averageTime.toFixed(3)}ms`);
+        console.log(
+          `Scale ${size} - Average access time: ${averageTime.toFixed(3)}ms`
+        );
       });
 
       // Performance should not degrade significantly with size
@@ -558,7 +632,9 @@ describe('Context Performance Tests', () => {
       const performance5000 = results[5000];
       const degradationRatio = performance5000 / performance100;
 
-      console.log(`Performance degradation ratio (5000/100): ${degradationRatio.toFixed(2)}x`);
+      console.log(
+        `Performance degradation ratio (5000/100): ${degradationRatio.toFixed(2)}x`
+      );
       expect(degradationRatio).toBeLessThan(5); // Should not be more than 5x slower
     });
 
@@ -567,7 +643,7 @@ describe('Context Performance Tests', () => {
       const operationsPerTask = 50;
 
       const tasks = Array.from({ length: concurrentOperations }, (_, i) => {
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           setTimeout(() => {
             const measurements = [];
 
@@ -576,7 +652,10 @@ describe('Context Performance Tests', () => {
 
               // Mix of operations
               if (j % 3 === 0) {
-                context.setItem(`data.concurrent.task${i}.op${j}`, { taskId: i, opId: j });
+                context.setItem(`data.concurrent.task${i}.op${j}`, {
+                  taskId: i,
+                  opId: j,
+                });
               } else if (j % 3 === 1) {
                 context.getItem(`data.concurrent.task${i}.op${j - 1}`);
               } else {
@@ -587,17 +666,22 @@ describe('Context Performance Tests', () => {
               measurements.push(endTime - startTime);
             }
 
-            const avgTime = measurements.reduce((a, b) => a + b, 0) / measurements.length;
+            const avgTime =
+              measurements.reduce((a, b) => a + b, 0) / measurements.length;
             resolve({ taskId: i, averageTime: avgTime });
           }, Math.random() * 10); // Random delay to simulate concurrent access
         });
       });
 
       const results = await Promise.all(tasks);
-      const overallAverage = results.reduce((sum, result) => sum + result.averageTime, 0) / results.length;
-      const maxTime = Math.max(...results.map(r => r.averageTime));
+      const overallAverage =
+        results.reduce((sum, result) => sum + result.averageTime, 0) /
+        results.length;
+      const maxTime = Math.max(...results.map((r) => r.averageTime));
 
-      console.log(`Concurrent operations - Overall average: ${overallAverage.toFixed(3)}ms, Max: ${maxTime.toFixed(3)}ms`);
+      console.log(
+        `Concurrent operations - Overall average: ${overallAverage.toFixed(3)}ms, Max: ${maxTime.toFixed(3)}ms`
+      );
 
       expect(overallAverage).toBeLessThan(5); // Should maintain reasonable performance
       expect(maxTime).toBeLessThan(20); // No single task should be extremely slow

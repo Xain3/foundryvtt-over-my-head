@@ -4,6 +4,10 @@
  * @path vitest.config.mjs
  */
 
+import { defineConfig } from 'vitest/config';
+
+import aliasEntries from './alias.config.mjs';
+
 const defaultExcludePatterns = [
   '**/node_modules/**',
   '**/dist/**',
@@ -31,10 +35,6 @@ const smokeTestsPatterns = [
   '**/*.smoke.test.{mjs,cjs,js}',
   '**/tests/smoke/*.test.{mjs,cjs,js}',
 ];
-
-import { defineConfig } from 'vitest/config';
-
-import aliasEntries from './alias.config.mjs';
 
 export default defineConfig({
   test: {

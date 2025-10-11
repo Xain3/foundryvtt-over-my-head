@@ -4,38 +4,58 @@
  * @path tests/integration/contextHelpers.int.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 
-// Mock dependencies to prevent raw import issues  
+// Mock dependencies to prevent raw import issues
 vi.mock('#utils/static/validator.mjs', async () => {
   const actual = await vi.importActual('../../src/utils/static/validator.mjs');
+  actual.Validator.isValidContext = vi.fn(() => true);
+  actual.Validator.isValidContextComponent = vi.fn(() => true);
+  actual.Validator.validateAndThrow = vi.fn();
+  actual.Validator.validateDate = vi.fn();
   return {
     ...actual,
-    Validator: {
-      isValidContext: vi.fn(() => true),
-      isValidContextComponent: vi.fn(() => true),
-      validateAndThrow: vi.fn(),
-      validateDate: vi.fn(),
-      ...actual.Validator
-    }
+    Validator: actual.Validator,
+    default: actual.default,
   };
 });
 
 vi.mock('#helpers/pathUtils.mjs', async () => {
   const actual = await vi.importActual('../../src/helpers/pathUtils.mjs');
+  class MockedPathUtils extends actual.default {}
+
+  MockedPathUtils.resolvePath = vi.fn((...args) =>
+    actual.default.resolvePath(...args)
+  );
+  MockedPathUtils.extractKeyComponents = vi.fn((...args) =>
+    actual.default.extractKeyComponents(...args)
+  );
+  MockedPathUtils.getNestedObjectValue = vi.fn((...args) =>
+    actual.default.getNestedObjectValue(...args)
+  );
+  MockedPathUtils.resolveMixedPath = vi.fn((...args) =>
+    actual.default.resolveMixedPath(...args)
+  );
+  MockedPathUtils.pathExistsInMixedStructure = vi.fn((...args) =>
+    actual.default.pathExistsInMixedStructure(...args)
+  );
+  MockedPathUtils.getValueFromMixedPath = vi.fn((...args) =>
+    actual.default.getValueFromMixedPath(...args)
+  );
+
   return {
     ...actual,
-    default: {
-      resolvePath: vi.fn(),
-      extractKeyComponents: vi.fn((key) => {
-        const parts = key.split('.');
-        return {
-          firstKey: parts[0],
-          remainingPath: parts.slice(1).join('.')
-        };
-      }),
-      ...actual.default
-    }
+    default: MockedPathUtils,
+    PathUtils: MockedPathUtils,
   };
 });
 
@@ -48,7 +68,9 @@ import ContextContainerSync from '../../src/contexts/helpers/contextContainerSyn
 import ContextComparison from '../../src/contexts/helpers/contextComparison.mjs';
 import ContextContainerSyncEngine from '../../src/contexts/helpers/contextContainerSyncEngine.mjs';
 import ContextOperations from '../../src/contexts/helpers/contextOperations.mjs';
-import ContextMerger, { ItemFilter } from '../../src/contexts/helpers/contextMerger.mjs';
+import ContextMerger, {
+  ItemFilter,
+} from '../../src/contexts/helpers/contextMerger.mjs';
 import ContextItemSync from '../../src/contexts/helpers/contextItemSync.mjs';
 
 describe('Context Helpers Integration Tests', () => {
@@ -58,7 +80,7 @@ describe('Context Helpers Integration Tests', () => {
     beforeEach(() => {
       container = new ContextContainer({
         player: { name: 'John', level: 5 },
-        settings: { volume: 0.8, theme: 'dark' }
+        settings: { volume: 0.8, theme: 'dark' },
       });
     });
 
@@ -100,7 +122,7 @@ describe('Context Helpers Integration Tests', () => {
 
       // Create item with metadata
       container.setItem('itemWithMetadata', 'value', {
-        metadata: { type: 'test', priority: 1 }
+        metadata: { type: 'test', priority: 1 },
       });
 
       // Verify the container's internal item management
@@ -122,28 +144,30 @@ describe('Context Helpers Integration Tests', () => {
       sourceContainer = new ContextContainer({
         shared: 'sourceValue',
         sourceOnly: 'sourceData',
-        conflicted: 'sourceConflict'
+        conflicted: 'sourceConflict',
       });
 
       // Create target container with older timestamps
       targetContainer = new ContextContainer({
         shared: 'targetValue',
         targetOnly: 'targetData',
-        conflicted: 'targetConflict'
+        conflicted: 'targetConflict',
       });
 
       // Make source newer
       sourceContainer.value = {
         shared: 'updatedSourceValue',
         sourceOnly: 'updatedSourceData',
-        conflicted: 'updatedSourceConflict'
-    };
-  });
+        conflicted: 'updatedSourceConflict',
+      };
+    });
 
-  it('should manage the cases where both containers are missing', () => {
+    it('should manage the cases where both containers are missing', () => {
       const comparison = ContextComparison.compare(null, null);
 
-      expect(comparison.result).toBe(ContextComparison.COMPARISON_RESULTS.BOTH_MISSING);
+      expect(comparison.result).toBe(
+        ContextComparison.COMPARISON_RESULTS.BOTH_MISSING
+      );
       expect(comparison.containerATimestamp).toBeNull();
       expect(comparison.containerBTimestamp).toBeNull();
       expect(comparison.timeDifference).toBe(0);
@@ -154,13 +178,17 @@ describe('Context Helpers Integration Tests', () => {
       const comparisonB = ContextComparison.compare(sourceContainer, null); // Container B is missing
 
       // Container A missing
-      expect(comparisonA.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_A_MISSING);
+      expect(comparisonA.result).toBe(
+        ContextComparison.COMPARISON_RESULTS.CONTAINER_A_MISSING
+      );
       expect(comparisonA.containerATimestamp).toBeNull();
       expect(comparisonA.containerBTimestamp).toBeInstanceOf(Date);
       expect(comparisonA.timeDifference).toBeNull();
 
       // Container B missing
-      expect(comparisonB.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_B_MISSING);
+      expect(comparisonB.result).toBe(
+        ContextComparison.COMPARISON_RESULTS.CONTAINER_B_MISSING
+      );
       expect(comparisonB.containerATimestamp).toBeInstanceOf(Date);
       expect(comparisonB.containerBTimestamp).toBeNull();
       expect(comparisonB.timeDifference).toBeNull();
@@ -170,9 +198,14 @@ describe('Context Helpers Integration Tests', () => {
       //wait .5 second to ensure timestamps are different
       setTimeout(() => {
         sourceContainer._updateModificationTimestamps();
-        const comparison = ContextComparison.compare(sourceContainer, targetContainer);
+        const comparison = ContextComparison.compare(
+          sourceContainer,
+          targetContainer
+        );
 
-        expect(comparison.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER);
+        expect(comparison.result).toBe(
+          ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER
+        );
         expect(comparison.timeDifference).toBeGreaterThan(0);
         expect(comparison.containerATimestamp).toBeInstanceOf(Date);
       }, 500);
@@ -203,25 +236,27 @@ describe('Context Helpers Integration Tests', () => {
       const nestedSource = new ContextContainer({
         level1: {
           level2: {
-            data: 'deep source value'
-          }
-        }
+            data: 'deep source value',
+          },
+        },
       });
 
       const nestedTarget = new ContextContainer({
         level1: {
           level2: {
-            data: 'deep target value'
+            data: 'deep target value',
           },
-          additional: 'target extra'
-        }
+          additional: 'target extra',
+        },
       });
 
       const syncEngine = new ContextContainerSyncEngine({ syncMetadata: true });
       syncEngine.sync(nestedSource, nestedTarget, 'sourceToTarget');
 
       // Verify deep sync occurred
-      expect(nestedTarget.getItem('level1.level2.data')).toBe('deep source value');
+      expect(nestedTarget.getItem('level1.level2.data')).toBe(
+        'deep source value'
+      );
       expect(nestedTarget.getItem('level1.additional')).toBe('target extra');
     });
   });
@@ -235,33 +270,33 @@ describe('Context Helpers Integration Tests', () => {
       sourceContainer = new ContextContainer({
         data: {
           inventory: ['sword', 'potion'],
-          stats: { level: 10, xp: 1500 }
+          stats: { level: 10, xp: 1500 },
         },
         settings: {
           volume: 0.8,
-          graphics: 'high'
-        }
+          graphics: 'high',
+        },
       });
 
       targetContainer = new ContextContainer({
         data: {
           inventory: ['bow', 'scroll'],
           stats: { level: 8, xp: 1200 },
-          location: 'village'
+          location: 'village',
         },
         settings: {
           volume: 0.6,
-          language: 'en'
-        }
+          language: 'en',
+        },
       });
 
       anotherContainer = new ContextContainer({
         data: {
-          stats: { level: 12, xp: 2000 }
+          stats: { level: 12, xp: 2000 },
         },
         settings: {
-          theme: 'dark'
-        }
+          theme: 'dark',
+        },
       });
     });
 
@@ -297,7 +332,7 @@ describe('Context Helpers Integration Tests', () => {
       );
 
       expect(results).toHaveLength(2);
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.success).toBe(true);
         expect(result.strategy).toBe('mergeSourcePriority');
       });
@@ -305,7 +340,10 @@ describe('Context Helpers Integration Tests', () => {
 
     it('should use ContextMerger for sophisticated merge operations with ItemFilter', () => {
       // Test merge with allowOnly filter
-      const allowFilter = ItemFilter.allowOnly(['data.stats', 'settings.volume']);
+      const allowFilter = ItemFilter.allowOnly([
+        'data.stats',
+        'settings.volume',
+      ]);
       const mergeResult = ContextMerger.merge(
         sourceContainer,
         targetContainer,
@@ -353,11 +391,16 @@ describe('Context Helpers Integration Tests', () => {
       const newerContainer = new ContextContainer({ data: 'new' });
 
       // Mock timestamps
-      olderContainer._updateModificationTimestamps(new Date('2025-01-01'))  ;
+      olderContainer._updateModificationTimestamps(new Date('2025-01-01'));
       newerContainer._updateModificationTimestamps(new Date('2025-01-02'));
 
-      const comparison = ContextComparison.compare(olderContainer, newerContainer);
-      expect(comparison.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_B_NEWER);
+      const comparison = ContextComparison.compare(
+        olderContainer,
+        newerContainer
+      );
+      expect(comparison.result).toBe(
+        ContextComparison.COMPARISON_RESULTS.CONTAINER_B_NEWER
+      );
 
       // Use comparison result in merge
       const mergeResult = ContextMerger.merge(
@@ -397,12 +440,17 @@ describe('Context Helpers Integration Tests', () => {
     it('should compare individual items using ContextComparison', () => {
       const comparison = ContextComparison.compare(sourceItem, targetItem);
 
-      expect(comparison.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER);
+      expect(comparison.result).toBe(
+        ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER
+      );
       expect(comparison.timeDifference).toBeGreaterThan(0);
     });
 
     it('should use mergeNewerWins strategy with ContextItemSync', () => {
-        const mergeResult = ContextItemSync.mergeNewerWins(sourceItem, targetItem);
+      const mergeResult = ContextItemSync.mergeNewerWins(
+        sourceItem,
+        targetItem
+      );
 
       expect(mergeResult.success).toBe(true);
       expect(mergeResult.operation).toBe('mergeNewerWins');
@@ -422,14 +470,14 @@ describe('Context Helpers Integration Tests', () => {
           stats: { level: 15, hp: 100, mp: 50 },
           inventory: {
             weapons: ['Sword of Power', 'Shield of Defense'],
-            consumables: ['Health Potion', 'Mana Potion']
-          }
+            consumables: ['Health Potion', 'Mana Potion'],
+          },
         },
         gameSettings: {
           difficulty: 'hard',
           autoSave: true,
-          notifications: { sound: true, popup: false }
-        }
+          notifications: { sound: true, popup: false },
+        },
       });
 
       complexTarget = new ContextContainer({
@@ -439,18 +487,18 @@ describe('Context Helpers Integration Tests', () => {
           inventory: {
             weapons: ['Basic Sword'],
             armor: ['Leather Armor'],
-            consumables: ['Basic Potion']
-          }
+            consumables: ['Basic Potion'],
+          },
         },
         gameSettings: {
           difficulty: 'normal',
           graphics: 'high',
-          notifications: { sound: false, popup: true, email: true }
+          notifications: { sound: false, popup: true, email: true },
         },
         systemData: {
           lastLogin: '2025-01-01',
-          preferences: { theme: 'dark' }
-        }
+          preferences: { theme: 'dark' },
+        },
       });
     });
 
@@ -464,8 +512,11 @@ describe('Context Helpers Integration Tests', () => {
 
       expect(result.success).toBe(true);
       // For ContextContainer sync, itemsProcessed might be an array of changed paths
-      const itemsProcessed = Array.isArray(result.itemsProcessed) ? result.itemsProcessed :
-                            result.changes ? result.changes.map(c => c.path || c.key) : [];
+      const itemsProcessed = Array.isArray(result.itemsProcessed)
+        ? result.itemsProcessed
+        : result.changes
+          ? result.changes.map((c) => c.path || c.key)
+          : [];
       expect(itemsProcessed.length).toBeGreaterThan(0);
     });
 
@@ -476,7 +527,7 @@ describe('Context Helpers Integration Tests', () => {
         'mergeTargetPriority',
         {
           createMissing: true,
-          preserveMetadata: true
+          preserveMetadata: true,
         }
       );
 
@@ -507,16 +558,16 @@ describe('Context Helpers Integration Tests', () => {
       containers = [
         new ContextContainer({
           id: 'container1',
-          data: { value: 100, shared: 'from1' }
+          data: { value: 100, shared: 'from1' },
         }),
         new ContextContainer({
           id: 'container2',
-          data: { value: 200, shared: 'from2' }
+          data: { value: 200, shared: 'from2' },
         }),
         new ContextContainer({
           id: 'container3',
-          data: { value: 300, shared: 'from3' }
-        })
+          data: { value: 300, shared: 'from3' },
+        }),
       ];
     });
 
@@ -531,7 +582,7 @@ describe('Context Helpers Integration Tests', () => {
       );
 
       expect(results).toHaveLength(2);
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.success).toBe(true);
         expect(result.strategy).toBe('mergeSourcePriority');
       });
@@ -548,7 +599,7 @@ describe('Context Helpers Integration Tests', () => {
       );
 
       expect(results).toHaveLength(2);
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.success).toBe(true);
         expect(result.strategy).toBe('mergeNewerWins');
       });
@@ -563,7 +614,7 @@ describe('Context Helpers Integration Tests', () => {
         container2,
         {
           strategy: 'mergeNewerWins',
-          excludePaths: ['id']
+          excludePaths: ['id'],
         }
       );
 
@@ -586,8 +637,8 @@ describe('Context Helpers Integration Tests', () => {
       expect(results).toHaveLength(2); // 2 sources
       expect(results[0]).toHaveLength(1); // 1 target per source
 
-      results.forEach(sourceResults => {
-        sourceResults.forEach(result => {
+      results.forEach((sourceResults) => {
+        sourceResults.forEach((result) => {
           expect(result.success).toBe(true);
           expect(result.itemsProcessed).toContain('data.value');
         });
@@ -631,19 +682,24 @@ describe('Context Helpers Integration Tests', () => {
     });
 
     it('should provide comparison operations through unified interface', () => {
-  // Ensure both pairs share the exact same timestamp to expect EQUAL
-  const equalDate = new Date('2025-01-01T00:00:00Z');
-  sourceContainer._updateModificationTimestamps(equalDate);
-  targetContainer._updateModificationTimestamps(equalDate);
-  sourceItem._updateModificationTimestamps(equalDate);
-  targetItem._updateModificationTimestamps(equalDate);
+      // Ensure both pairs share the exact same timestamp to expect EQUAL
+      const equalDate = new Date('2025-01-01T00:00:00Z');
+      sourceContainer._updateModificationTimestamps(equalDate);
+      targetContainer._updateModificationTimestamps(equalDate);
+      sourceItem._updateModificationTimestamps(equalDate);
+      targetItem._updateModificationTimestamps(equalDate);
 
-      const containerComparison = ContextSync.compare(sourceContainer, targetContainer);
+      const containerComparison = ContextSync.compare(
+        sourceContainer,
+        targetContainer
+      );
       const itemComparison = ContextSync.compare(sourceItem, targetItem);
 
       expect(containerComparison.result).toBeDefined();
       expect(itemComparison.result).toBeDefined();
-      expect(containerComparison.result).toBe(ContextSync.COMPARISON_RESULTS.EQUAL);
+      expect(containerComparison.result).toBe(
+        ContextSync.COMPARISON_RESULTS.EQUAL
+      );
       expect(itemComparison.result).toBe(ContextSync.COMPARISON_RESULTS.EQUAL);
     });
 
@@ -653,12 +709,20 @@ describe('Context Helpers Integration Tests', () => {
         ContextSync.SYNC_OPERATIONS.UPDATE_TARGET_TO_SOURCE,
         ContextSync.SYNC_OPERATIONS.MERGE_NEWER_WINS,
         ContextSync.SYNC_OPERATIONS.MERGE_SOURCE_PRIORITY,
-        ContextSync.SYNC_OPERATIONS.MERGE_TARGET_PRIORITY
+        ContextSync.SYNC_OPERATIONS.MERGE_TARGET_PRIORITY,
       ];
 
       for (const operation of operations) {
-        const containerResult = await ContextSync.sync(sourceContainer, targetContainer, operation);
-        const itemResult = await ContextSync.sync(sourceItem, targetItem, operation);
+        const containerResult = await ContextSync.sync(
+          sourceContainer,
+          targetContainer,
+          operation
+        );
+        const itemResult = await ContextSync.sync(
+          sourceItem,
+          targetItem,
+          operation
+        );
 
         expect(containerResult.success).toBe(true);
         expect(itemResult.success).toBe(true);
@@ -669,7 +733,11 @@ describe('Context Helpers Integration Tests', () => {
 
     it('should provide safe sync operations with error handling', async () => {
       // Test with null inputs
-      const safeResult = await ContextSync.syncSafe(null, targetContainer, 'mergeNewerWins');
+      const safeResult = await ContextSync.syncSafe(
+        null,
+        targetContainer,
+        'mergeNewerWins'
+      );
 
       expect(safeResult.success).toBe(true);
       expect(safeResult.warnings).toBeDefined();
@@ -678,8 +746,16 @@ describe('Context Helpers Integration Tests', () => {
 
     it('should maintain consistent API across all object types', async () => {
       // Test that the same methods work for all types
-      const containerSync = await ContextSync.sync(sourceContainer, targetContainer, 'mergeNewerWins');
-      const itemSync = await ContextSync.sync(sourceItem, targetItem, 'mergeNewerWins');
+      const containerSync = await ContextSync.sync(
+        sourceContainer,
+        targetContainer,
+        'mergeNewerWins'
+      );
+      const itemSync = await ContextSync.sync(
+        sourceItem,
+        targetItem,
+        'mergeNewerWins'
+      );
 
       // Both should have the same result structure
       expect(containerSync).toHaveProperty('success');
@@ -688,7 +764,10 @@ describe('Context Helpers Integration Tests', () => {
       expect(itemSync).toHaveProperty('operation');
 
       // Both should support comparison
-      const containerComparison = ContextSync.compare(sourceContainer, targetContainer);
+      const containerComparison = ContextSync.compare(
+        sourceContainer,
+        targetContainer
+      );
       const itemComparison = ContextSync.compare(sourceItem, targetItem);
 
       expect(containerComparison).toHaveProperty('result');
@@ -713,12 +792,12 @@ describe('Context Helpers Integration Tests', () => {
           profile: {
             name: 'Alice',
             class: 'Warrior',
-            guild: 'Dragons'
+            guild: 'Dragons',
           },
           stats: {
             health: 100,
             mana: 50,
-            experience: 1500
+            experience: 1500,
           },
           inventory: {
             weapons: ['sword', 'shield'],
@@ -726,9 +805,9 @@ describe('Context Helpers Integration Tests', () => {
             armor: {
               helmet: 'Iron Helmet',
               chest: 'Leather Armor',
-              boots: 'Steel Boots'
-            }
-          }
+              boots: 'Steel Boots',
+            },
+          },
         },
 
         // Game settings with deep nesting
@@ -739,27 +818,27 @@ describe('Context Helpers Integration Tests', () => {
             effects: {
               shadows: true,
               particles: true,
-              lighting: 'advanced'
-            }
+              lighting: 'advanced',
+            },
           },
           audio: {
             master: 0.8,
             music: 0.6,
-            effects: 0.9
+            effects: 0.9,
           },
           controls: {
             keyboard: {
               forward: 'w',
               backward: 's',
               left: 'a',
-              right: 'd'
+              right: 'd',
             },
             mouse: {
               sensitivity: 1.5,
-              invertY: false
-            }
-          }
-        }
+              invertY: false,
+            },
+          },
+        },
       });
 
       targetContainer = new ContextContainer({
@@ -774,18 +853,18 @@ describe('Context Helpers Integration Tests', () => {
           profile: {
             name: 'Bob',
             class: 'Mage',
-            race: 'Elf' // Target-only field
+            race: 'Elf', // Target-only field
           },
           stats: {
             health: 80,
             mana: 100,
-            stamina: 60 // Target-only field
+            stamina: 60, // Target-only field
           },
           inventory: {
             weapons: ['staff'],
             consumables: ['elixir'],
-            accessories: ['ring', 'amulet'] // Target-only field
-          }
+            accessories: ['ring', 'amulet'], // Target-only field
+          },
         },
 
         // Settings with different structure
@@ -793,17 +872,18 @@ describe('Context Helpers Integration Tests', () => {
           graphics: {
             resolution: '1280x720',
             quality: 'medium',
-            vsync: true // Target-only field
+            vsync: true, // Target-only field
           },
           audio: {
             master: 0.5,
-            music: 0.7
+            music: 0.7,
           },
-          network: { // Target-only section
+          network: {
+            // Target-only section
             server: 'us-east',
-            port: 8080
-          }
-        }
+            port: 8080,
+          },
+        },
       });
     });
 
@@ -832,7 +912,13 @@ describe('Context Helpers Integration Tests', () => {
           [sourceContainer],
           targetContainer,
           'mergeSourcePriority',
-          { allowOnly: ['player.profile.name', 'player.stats.health', 'settings.audio.master'] }
+          {
+            allowOnly: [
+              'player.profile.name',
+              'player.stats.health',
+              'settings.audio.master',
+            ],
+          }
         );
 
         expect(result[0].success).toBe(true);
@@ -859,9 +945,16 @@ describe('Context Helpers Integration Tests', () => {
         expect(result[0].success).toBe(true);
 
         // The entire inventory section should be updated
-        expect(targetContainer.getItem('player.inventory.weapons')).toEqual(['sword', 'shield']);
-        expect(targetContainer.getItem('player.inventory.consumables')).toEqual(['potion', 'scroll']);
-        expect(targetContainer.getItem('player.inventory.armor.helmet')).toBe('Iron Helmet');
+        expect(targetContainer.getItem('player.inventory.weapons')).toEqual([
+          'sword',
+          'shield',
+        ]);
+        expect(targetContainer.getItem('player.inventory.consumables')).toEqual(
+          ['potion', 'scroll']
+        );
+        expect(targetContainer.getItem('player.inventory.armor.helmet')).toBe(
+          'Iron Helmet'
+        );
 
         // Other sections should remain unchanged
         expect(targetContainer.getItem('player.profile.name')).toBe('Bob');
@@ -900,11 +993,15 @@ describe('Context Helpers Integration Tests', () => {
 
         // Blocked nested paths should remain unchanged
         expect(targetContainer.getItem('player.profile.class')).toBe('Mage');
-        expect(targetContainer.getItem('settings.graphics.quality')).toBe('medium');
+        expect(targetContainer.getItem('settings.graphics.quality')).toBe(
+          'medium'
+        );
 
         // Non-blocked nested paths should be updated
         expect(targetContainer.getItem('player.profile.name')).toBe('Alice');
-        expect(targetContainer.getItem('settings.graphics.resolution')).toBe('1920x1080');
+        expect(targetContainer.getItem('settings.graphics.resolution')).toBe(
+          '1920x1080'
+        );
       });
 
       it('should block entire object sections', () => {
@@ -918,13 +1015,19 @@ describe('Context Helpers Integration Tests', () => {
         expect(result[0].success).toBe(true);
 
         // Blocked sections should remain unchanged
-        expect(targetContainer.getItem('player.inventory.weapons')).toEqual(['staff']);
-        expect(targetContainer.getItem('player.inventory.consumables')).toEqual(['elixir']);
+        expect(targetContainer.getItem('player.inventory.weapons')).toEqual([
+          'staff',
+        ]);
+        expect(targetContainer.getItem('player.inventory.consumables')).toEqual(
+          ['elixir']
+        );
         expect(targetContainer.hasItem('settings.controls')).toBe(false); // Should not be added
 
         // Non-blocked sections should be updated
         expect(targetContainer.getItem('player.profile.name')).toBe('Alice');
-        expect(targetContainer.getItem('settings.graphics.resolution')).toBe('1920x1080');
+        expect(targetContainer.getItem('settings.graphics.resolution')).toBe(
+          '1920x1080'
+        );
       });
     });
 
@@ -952,18 +1055,31 @@ describe('Context Helpers Integration Tests', () => {
           [sourceContainer],
           targetContainer,
           'mergeSourcePriority',
-          { excludePaths: ['settings.graphics.effects.shadows', 'player.inventory.armor.boots'] }
+          {
+            excludePaths: [
+              'settings.graphics.effects.shadows',
+              'player.inventory.armor.boots',
+            ],
+          }
         );
 
         expect(result[0].success).toBe(true);
 
         // Deep paths should be excluded
-        expect(targetContainer.hasItem('settings.graphics.effects.shadows')).toBe(false);
-        expect(targetContainer.hasItem('player.inventory.armor.boots')).toBe(false);
+        expect(
+          targetContainer.hasItem('settings.graphics.effects.shadows')
+        ).toBe(false);
+        expect(targetContainer.hasItem('player.inventory.armor.boots')).toBe(
+          false
+        );
 
         // Other deep paths should be included
-        expect(targetContainer.getItem('settings.graphics.effects.particles')).toBe(true);
-        expect(targetContainer.getItem('player.inventory.armor.helmet')).toBe('Iron Helmet');
+        expect(
+          targetContainer.getItem('settings.graphics.effects.particles')
+        ).toBe(true);
+        expect(targetContainer.getItem('player.inventory.armor.helmet')).toBe(
+          'Iron Helmet'
+        );
       });
     });
 
@@ -975,7 +1091,7 @@ describe('Context Helpers Integration Tests', () => {
           'mergeSourcePriority',
           {
             allowOnly: ['player.profile', 'settings.audio'],
-            createMissing: true
+            createMissing: true,
           }
         );
 
@@ -988,15 +1104,17 @@ describe('Context Helpers Integration Tests', () => {
 
         // Non-allowed sections should remain unchanged
         expect(targetContainer.getItem('player.stats.health')).toBe(80); // Original target value
-        expect(targetContainer.getItem('settings.graphics.resolution')).toBe('1280x720'); // Original target value
+        expect(targetContainer.getItem('settings.graphics.resolution')).toBe(
+          '1280x720'
+        ); // Original target value
       });
 
       it('should work with blockOnly in consolidation operations', () => {
         const anotherSource = new ContextContainer({
           username: 'thirdUser',
           player: {
-            profile: { name: 'Charlie', class: 'Rogue' }
-          }
+            profile: { name: 'Charlie', class: 'Rogue' },
+          },
         });
 
         const result = ContextOperations.consolidateContexts(
@@ -1004,7 +1122,7 @@ describe('Context Helpers Integration Tests', () => {
           targetContainer,
           {
             strategy: 'mergeSourcePriority',
-            blockOnly: ['player.profile.class']
+            blockOnly: ['player.profile.class'],
           }
         );
 
@@ -1024,15 +1142,20 @@ describe('Context Helpers Integration Tests', () => {
           targetContainer,
           {
             strategy: 'mergeNewerWins',
-            excludePaths: ['player.inventory', 'settings.controls']
+            excludePaths: ['player.inventory', 'settings.controls'],
           }
         );
 
         expect(result.success).toBe(true);
 
         // Excluded paths should not be synchronized in either direction
-        expect(sourceContainer.getItem('player.inventory.weapons')).toEqual(['sword', 'shield']); // Original source
-        expect(targetContainer.getItem('player.inventory.weapons')).toEqual(['staff']); // Original target
+        expect(sourceContainer.getItem('player.inventory.weapons')).toEqual([
+          'sword',
+          'shield',
+        ]); // Original source
+        expect(targetContainer.getItem('player.inventory.weapons')).toEqual([
+          'staff',
+        ]); // Original target
 
         // Non-excluded paths should be synchronized
         expect(result.direction1to2).toBeDefined();
@@ -1046,17 +1169,29 @@ describe('Context Helpers Integration Tests', () => {
           [sourceContainer],
           targetContainer,
           'mergeSourcePriority',
-          { allowOnly: ['player.inventory.weapons', 'player.inventory.consumables'] }
+          {
+            allowOnly: [
+              'player.inventory.weapons',
+              'player.inventory.consumables',
+            ],
+          }
         );
 
         expect(result[0].success).toBe(true);
 
         // Array values should be completely replaced when allowed
-        expect(targetContainer.getItem('player.inventory.weapons')).toEqual(['sword', 'shield']);
-        expect(targetContainer.getItem('player.inventory.consumables')).toEqual(['potion', 'scroll']);
+        expect(targetContainer.getItem('player.inventory.weapons')).toEqual([
+          'sword',
+          'shield',
+        ]);
+        expect(targetContainer.getItem('player.inventory.consumables')).toEqual(
+          ['potion', 'scroll']
+        );
 
         // Other inventory items should remain unchanged
-        expect(targetContainer.getItem('player.inventory.accessories')).toEqual(['ring', 'amulet']);
+        expect(targetContainer.getItem('player.inventory.accessories')).toEqual(
+          ['ring', 'amulet']
+        );
       });
 
       it('should handle filtering of complex nested objects', () => {
@@ -1066,20 +1201,30 @@ describe('Context Helpers Integration Tests', () => {
           'mergeSourcePriority',
           {
             allowOnly: ['settings.graphics.effects'],
-            blockOnly: []
+            blockOnly: [],
           }
         );
 
         expect(result[0].success).toBe(true);
 
         // Complex nested object should be merged when allowed
-        expect(targetContainer.getItem('settings.graphics.effects.shadows')).toBe(true);
-        expect(targetContainer.getItem('settings.graphics.effects.particles')).toBe(true);
-        expect(targetContainer.getItem('settings.graphics.effects.lighting')).toBe('advanced');
+        expect(
+          targetContainer.getItem('settings.graphics.effects.shadows')
+        ).toBe(true);
+        expect(
+          targetContainer.getItem('settings.graphics.effects.particles')
+        ).toBe(true);
+        expect(
+          targetContainer.getItem('settings.graphics.effects.lighting')
+        ).toBe('advanced');
 
         // Other graphics settings should remain unchanged
-        expect(targetContainer.getItem('settings.graphics.resolution')).toBe('1280x720');
-        expect(targetContainer.getItem('settings.graphics.quality')).toBe('medium');
+        expect(targetContainer.getItem('settings.graphics.resolution')).toBe(
+          '1280x720'
+        );
+        expect(targetContainer.getItem('settings.graphics.quality')).toBe(
+          'medium'
+        );
       });
     });
 
@@ -1089,7 +1234,13 @@ describe('Context Helpers Integration Tests', () => {
           [sourceContainer],
           targetContainer,
           'mergeSourcePriority',
-          { allowOnly: ['nonexistent.path', 'player.profile.name', 'also.missing'] }
+          {
+            allowOnly: [
+              'nonexistent.path',
+              'player.profile.name',
+              'also.missing',
+            ],
+          }
         );
 
         expect(result[0].success).toBe(true);
@@ -1110,7 +1261,7 @@ describe('Context Helpers Integration Tests', () => {
           {
             allowOnly: [],
             blockOnly: [],
-            excludePaths: []
+            excludePaths: [],
           }
         );
 
@@ -1129,7 +1280,7 @@ describe('Context Helpers Integration Tests', () => {
           'mergeSourcePriority',
           {
             allowOnly: ['username', 'level'],
-            blockOnly: ['username'] // Conflict: username is both allowed and blocked
+            blockOnly: ['username'], // Conflict: username is both allowed and blocked
           }
         );
 
@@ -1150,13 +1301,13 @@ describe('Context Helpers Integration Tests', () => {
             stats: { level: 10, health: 100 },
             inventory: {
               weapons: ['sword', 'shield'],
-              armor: { helmet: 'Iron Helmet', chest: 'Leather Armor' }
-            }
+              armor: { helmet: 'Iron Helmet', chest: 'Leather Armor' },
+            },
           },
           settings: {
             graphics: { resolution: '1920x1080', quality: 'high' },
-            audio: { master: 0.8, music: 0.6 }
-          }
+            audio: { master: 0.8, music: 0.6 },
+          },
         });
       });
 
@@ -1177,8 +1328,8 @@ describe('Context Helpers Integration Tests', () => {
         const sourceContainer = new ContextContainer({
           player: {
             profile: { name: 'Bob', class: 'Mage' },
-            stats: { level: 15, health: 120 }
-          }
+            stats: { level: 15, health: 120 },
+          },
         });
 
         // Test merge with excludePaths - this should work correctly with default behavior
@@ -1187,15 +1338,15 @@ describe('Context Helpers Integration Tests', () => {
           container,
           'mergeSourcePriority',
           {
-            excludePaths: ['player.stats.level']
+            excludePaths: ['player.stats.level'],
           }
         );
 
         expect(result.success).toBe(true);
-        
+
         // The excluded path should not be overridden
         expect(container.getItem('player.stats.level')).toBe(10); // Original value preserved
-        
+
         // Other values should be merged
         expect(container.getItem('player.profile.name')).toBe('Bob');
         expect(container.getItem('player.stats.health')).toBe(120);
@@ -1206,20 +1357,24 @@ describe('Context Helpers Integration Tests', () => {
       let container;
 
       beforeEach(() => {
-        container = new ContextContainer({
-          player: {
-            profile: { name: 'Alice', class: 'Warrior' },
-            stats: { level: 10, health: 100 },
-            inventory: {
-              weapons: ['sword', 'shield'],
-              armor: { helmet: 'Iron Helmet', chest: 'Leather Armor' }
-            }
+        container = new ContextContainer(
+          {
+            player: {
+              profile: { name: 'Alice', class: 'Warrior' },
+              stats: { level: 10, health: 100 },
+              inventory: {
+                weapons: ['sword', 'shield'],
+                armor: { helmet: 'Iron Helmet', chest: 'Leather Armor' },
+              },
+            },
+            settings: {
+              graphics: { resolution: '1920x1080', quality: 'high' },
+              audio: { master: 0.8, music: 0.6 },
+            },
           },
-          settings: {
-            graphics: { resolution: '1920x1080', quality: 'high' },
-            audio: { master: 0.8, music: 0.6 }
-          }
-        }, {}, { enhancedNestedPathChecking: true });
+          {},
+          { enhancedNestedPathChecking: true }
+        );
       });
 
       it('should find nested paths in plain objects with enhanced behavior', () => {
@@ -1256,10 +1411,14 @@ describe('Context Helpers Integration Tests', () => {
 
       it('should still work correctly with ContextContainer nesting', () => {
         // Add a nested ContextContainer with enhanced path checking enabled to match parent
-        const nestedContainer = new ContextContainer({ 
-          nestedData: 'from nested container',
-          deepValue: { very: { deep: 'value' } }
-        }, {}, { enhancedNestedPathChecking: true });
+        const nestedContainer = new ContextContainer(
+          {
+            nestedData: 'from nested container',
+            deepValue: { very: { deep: 'value' } },
+          },
+          {},
+          { enhancedNestedPathChecking: true }
+        );
         container.setItem('nestedContainer', nestedContainer);
 
         // Should work with ContextContainer nesting regardless of enhanced option
@@ -1267,16 +1426,22 @@ describe('Context Helpers Integration Tests', () => {
         expect(container.hasItem('nestedContainer.nestedData')).toBe(true);
         expect(container.hasItem('nestedContainer.deepValue')).toBe(true);
         expect(container.hasItem('nestedContainer.deepValue.very')).toBe(true);
-        expect(container.hasItem('nestedContainer.deepValue.very.deep')).toBe(true);
+        expect(container.hasItem('nestedContainer.deepValue.very.deep')).toBe(
+          true
+        );
       });
 
       it('should maintain correct filtering behavior in operations', () => {
-        const sourceContainer = new ContextContainer({
-          player: {
-            profile: { name: 'Bob', class: 'Mage', race: 'Elf' },
-            stats: { level: 15, health: 120, mana: 150 }
-          }
-        }, {}, { enhancedNestedPathChecking: true });
+        const sourceContainer = new ContextContainer(
+          {
+            player: {
+              profile: { name: 'Bob', class: 'Mage', race: 'Elf' },
+              stats: { level: 15, health: 120, mana: 150 },
+            },
+          },
+          {},
+          { enhancedNestedPathChecking: true }
+        );
 
         // Test that filtering still works correctly even with enhanced checking
         const result = ContextMerger.merge(
@@ -1284,16 +1449,16 @@ describe('Context Helpers Integration Tests', () => {
           container,
           'mergeSourcePriority',
           {
-            excludePaths: ['player.stats.level', 'player.profile.class']
+            excludePaths: ['player.stats.level', 'player.profile.class'],
           }
         );
 
         expect(result.success).toBe(true);
-        
+
         // Excluded paths should not be overridden
         expect(container.getItem('player.stats.level')).toBe(10); // Original value preserved
         expect(container.getItem('player.profile.class')).toBe('Warrior'); // Original value preserved
-        
+
         // Non-excluded values should be merged
         expect(container.getItem('player.profile.name')).toBe('Bob');
         expect(container.getItem('player.stats.health')).toBe(120);
@@ -1305,12 +1470,16 @@ describe('Context Helpers Integration Tests', () => {
     describe('Behavior consistency across integration scenarios', () => {
       it('should maintain consistent hasItem behavior in ContextOperations', () => {
         const defaultContainer = new ContextContainer({
-          data: { player: { name: 'Alice', stats: { level: 5 } } }
+          data: { player: { name: 'Alice', stats: { level: 5 } } },
         });
 
-        const enhancedContainer = new ContextContainer({
-          data: { player: { name: 'Bob', stats: { level: 10 } } }
-        }, {}, { enhancedNestedPathChecking: true });
+        const enhancedContainer = new ContextContainer(
+          {
+            data: { player: { name: 'Bob', stats: { level: 10 } } },
+          },
+          {},
+          { enhancedNestedPathChecking: true }
+        );
 
         // Default behavior: should not find nested paths in plain objects
         expect(defaultContainer.hasItem('data.player.stats')).toBe(false);
@@ -1326,12 +1495,20 @@ describe('Context Helpers Integration Tests', () => {
       });
 
       it('should not affect ContextContainer-to-ContextContainer operations', () => {
-        const sourceWithEnhanced = new ContextContainer({
-          nested: new ContextContainer({ testValue: 'test' }, {}, { enhancedNestedPathChecking: true })
-        }, {}, { enhancedNestedPathChecking: true });
+        const sourceWithEnhanced = new ContextContainer(
+          {
+            nested: new ContextContainer(
+              { testValue: 'test' },
+              {},
+              { enhancedNestedPathChecking: true }
+            ),
+          },
+          {},
+          { enhancedNestedPathChecking: true }
+        );
 
         const targetWithDefault = new ContextContainer({
-          other: 'data'
+          other: 'data',
         }); // Default behavior
 
         // Both should handle ContextContainer nesting the same way
@@ -1362,13 +1539,13 @@ describe('Context Helpers Integration Tests', () => {
         nestedData: 'from nested container',
         deepSettings: {
           option1: true,
-          option2: 'value'
-        }
+          option2: 'value',
+        },
       });
 
       // Create a nested ContextItem
       nestedItem = new ContextItem('from nested item', {
-        metadata: { type: 'nested', level: 2 }
+        metadata: { type: 'nested', level: 2 },
       });
 
       // Create a parent container with nested containers and items
@@ -1376,8 +1553,8 @@ describe('Context Helpers Integration Tests', () => {
         // Plain object nesting
         plainObject: {
           level1: {
-            level2: 'plain nested value'
-          }
+            level2: 'plain nested value',
+          },
         },
         // ContextContainer nesting
         nestedContainer: nestedContainer,
@@ -1387,10 +1564,10 @@ describe('Context Helpers Integration Tests', () => {
         hybridSection: {
           plainData: 'plain value',
           containerData: new ContextContainer({
-            innerValue: 'inner container value'
+            innerValue: 'inner container value',
           }),
-          itemData: new ContextItem('inner item value')
-        }
+          itemData: new ContextItem('inner item value'),
+        },
       });
     });
 
@@ -1402,14 +1579,25 @@ describe('Context Helpers Integration Tests', () => {
       expect(retrievedContainer.nestedData).toBe('from nested container');
 
       // Test deep path access through nested container
-      expect(parentContainer.getItem('nestedContainer.nestedData')).toBe('from nested container');
-      expect(parentContainer.getItem('nestedContainer.deepSettings.option1')).toBe(true);
-      expect(parentContainer.getItem('nestedContainer.deepSettings.option2')).toBe('value');
+      expect(parentContainer.getItem('nestedContainer.nestedData')).toBe(
+        'from nested container'
+      );
+      expect(
+        parentContainer.getItem('nestedContainer.deepSettings.option1')
+      ).toBe(true);
+      expect(
+        parentContainer.getItem('nestedContainer.deepSettings.option2')
+      ).toBe('value');
 
       // Test modification of nested container through parent
-      parentContainer.setItem('nestedContainer.newValue', 'added through parent');
+      parentContainer.setItem(
+        'nestedContainer.newValue',
+        'added through parent'
+      );
       expect(nestedContainer.getItem('newValue')).toBe('added through parent');
-      expect(parentContainer.getItem('nestedContainer.newValue')).toBe('added through parent');
+      expect(parentContainer.getItem('nestedContainer.newValue')).toBe(
+        'added through parent'
+      );
     });
 
     it('should handle ContextItem nested within ContextContainer', () => {
@@ -1425,12 +1613,16 @@ describe('Context Helpers Integration Tests', () => {
 
       // Test modification of nested item through parent
       parentContainer.setItem('nestedItem', 'modified through parent');
-      expect(parentContainer.getItem('nestedItem')).toBe('modified through parent');
+      expect(parentContainer.getItem('nestedItem')).toBe(
+        'modified through parent'
+      );
     });
 
     it('should handle hybrid nesting with mixed types', () => {
       // Test access to plain data in hybrid section
-      expect(parentContainer.getItem('hybridSection.plainData')).toBe('plain value');
+      expect(parentContainer.getItem('hybridSection.plainData')).toBe(
+        'plain value'
+      );
 
       // Test accessing the hybrid section itself to see the structure
       const hybridSection = parentContainer.getItem('hybridSection');
@@ -1442,12 +1634,17 @@ describe('Context Helpers Integration Tests', () => {
       expect(hybridSection.itemData).toBeInstanceOf(ContextItem);
 
       // Access values through the actual instances
-      expect(hybridSection.containerData.getItem('innerValue')).toBe('inner container value');
+      expect(hybridSection.containerData.getItem('innerValue')).toBe(
+        'inner container value'
+      );
       expect(hybridSection.itemData.value).toBe('inner item value');
 
       // Test modification of each type
       // For plain data within the hybrid section, we need to modify the whole object
-      const updatedHybridSection = { ...hybridSection, plainData: 'modified plain' };
+      const updatedHybridSection = {
+        ...hybridSection,
+        plainData: 'modified plain',
+      };
       parentContainer.setItem('hybridSection', updatedHybridSection);
 
       // Modify the nested container through its reference
@@ -1455,46 +1652,62 @@ describe('Context Helpers Integration Tests', () => {
       // Modify the nested item through its reference
       hybridSection.itemData.value = 'modified inner item';
 
-      expect(parentContainer.getItem('hybridSection.plainData')).toBe('modified plain');
-      expect(hybridSection.containerData.getItem('newInnerValue')).toBe('new inner value');
+      expect(parentContainer.getItem('hybridSection.plainData')).toBe(
+        'modified plain'
+      );
+      expect(hybridSection.containerData.getItem('newInnerValue')).toBe(
+        'new inner value'
+      );
       expect(hybridSection.itemData.value).toBe('modified inner item');
-    });    it('should synchronize nested containers correctly', () => {
+    });
+    it('should synchronize nested containers correctly', () => {
       // Create another container with nested structure
       const sourceNestedContainer = new ContextContainer({
         nestedData: 'updated from source',
-        newNestedField: 'source only field'
+        newNestedField: 'source only field',
       });
 
       const sourceContainer = new ContextContainer({
         nestedContainer: sourceNestedContainer,
-        newTopLevel: 'source top level'
+        newTopLevel: 'source top level',
       });
 
       // Make source container newer to ensure mergeNewerWins picks the source
-      sourceContainer._updateModificationTimestamps(new Date(Date.now() + 1000));
+      sourceContainer._updateModificationTimestamps(
+        new Date(Date.now() + 1000)
+      );
 
       // Perform synchronization
-      const result = ContextContainerSync.mergeNewerWins(sourceContainer, parentContainer);
+      const result = ContextContainerSync.mergeNewerWins(
+        sourceContainer,
+        parentContainer
+      );
 
       expect(result.success).toBe(true);
 
       // Check that nested container was properly synchronized
-      expect(parentContainer.getItem('nestedContainer.nestedData')).toBe('updated from source');
-      expect(parentContainer.getItem('nestedContainer.newNestedField')).toBe('source only field');
+      expect(parentContainer.getItem('nestedContainer.nestedData')).toBe(
+        'updated from source'
+      );
+      expect(parentContainer.getItem('nestedContainer.newNestedField')).toBe(
+        'source only field'
+      );
       expect(parentContainer.getItem('newTopLevel')).toBe('source top level');
 
       // Original nested container data should be preserved if not overwritten
-      expect(parentContainer.getItem('nestedContainer.deepSettings.option1')).toBe(true);
+      expect(
+        parentContainer.getItem('nestedContainer.deepSettings.option1')
+      ).toBe(true);
     });
 
     it('should handle filtering with nested containers', () => {
       const sourceContainer = new ContextContainer({
         nestedContainer: new ContextContainer({
           allowedField: 'should be copied',
-          blockedField: 'should not be copied'
+          blockedField: 'should not be copied',
         }),
         topLevelAllowed: 'top level allowed',
-        topLevelBlocked: 'top level blocked'
+        topLevelBlocked: 'top level blocked',
       });
 
       // Test allowOnly filtering with nested paths
@@ -1503,16 +1716,22 @@ describe('Context Helpers Integration Tests', () => {
         parentContainer,
         'mergeSourcePriority',
         {
-          allowOnly: ['nestedContainer.allowedField', 'topLevelAllowed']
+          allowOnly: ['nestedContainer.allowedField', 'topLevelAllowed'],
         }
       );
 
       expect(allowResult.success).toBe(true);
-      expect(parentContainer.getItem('nestedContainer.allowedField')).toBe('should be copied');
-      expect(parentContainer.getItem('topLevelAllowed')).toBe('top level allowed');
+      expect(parentContainer.getItem('nestedContainer.allowedField')).toBe(
+        'should be copied'
+      );
+      expect(parentContainer.getItem('topLevelAllowed')).toBe(
+        'top level allowed'
+      );
 
       // Blocked fields should not be copied
-      expect(parentContainer.getItem('nestedContainer.blockedField')).toBeUndefined();
+      expect(
+        parentContainer.getItem('nestedContainer.blockedField')
+      ).toBeUndefined();
       expect(parentContainer.getItem('topLevelBlocked')).toBeUndefined();
     });
 
@@ -1520,17 +1739,17 @@ describe('Context Helpers Integration Tests', () => {
       const sourceContainer = new ContextContainer({
         nestedContainer: new ContextContainer({
           allowedField: 'should be copied',
-          blockedField: 'should not be copied'
+          blockedField: 'should not be copied',
         }),
         topLevelAllowed: 'top level allowed',
-        topLevelBlocked: 'top level blocked'
+        topLevelBlocked: 'top level blocked',
       });
 
       const targetContainer = new ContextContainer({
         nestedContainer: new ContextContainer({
-          existingField: 'existing nested'
+          existingField: 'existing nested',
         }),
-        existingTopLevel: 'existing top'
+        existingTopLevel: 'existing top',
       });
 
       // Test blockOnly filtering with nested paths
@@ -1539,20 +1758,28 @@ describe('Context Helpers Integration Tests', () => {
         targetContainer,
         'mergeSourcePriority',
         {
-          blockOnly: ['nestedContainer.blockedField', 'topLevelBlocked']
+          blockOnly: ['nestedContainer.blockedField', 'topLevelBlocked'],
         }
       );
 
       expect(blockResult.success).toBe(true);
-      expect(targetContainer.getItem('nestedContainer.allowedField')).toBe('should be copied');
-      expect(targetContainer.getItem('topLevelAllowed')).toBe('top level allowed');
+      expect(targetContainer.getItem('nestedContainer.allowedField')).toBe(
+        'should be copied'
+      );
+      expect(targetContainer.getItem('topLevelAllowed')).toBe(
+        'top level allowed'
+      );
 
       // Blocked fields should not be copied
-      expect(targetContainer.getItem('nestedContainer.blockedField')).toBeUndefined();
+      expect(
+        targetContainer.getItem('nestedContainer.blockedField')
+      ).toBeUndefined();
       expect(targetContainer.getItem('topLevelBlocked')).toBeUndefined();
 
       // Existing data should be preserved
-      expect(targetContainer.getItem('nestedContainer.existingField')).toBe('existing nested');
+      expect(targetContainer.getItem('nestedContainer.existingField')).toBe(
+        'existing nested'
+      );
       expect(targetContainer.getItem('existingTopLevel')).toBe('existing top');
     });
 
@@ -1560,12 +1787,12 @@ describe('Context Helpers Integration Tests', () => {
       const sourceContainer = new ContextContainer({
         nestedContainer: new ContextContainer({
           playerStats: { level: 10, xp: 1000 },
-          inventory: ['sword', 'potion']
+          inventory: ['sword', 'potion'],
         }),
         gameSettings: {
           difficulty: 'hard',
-          volume: 0.8
-        }
+          volume: 0.8,
+        },
       });
 
       // Test pushItems with nested container paths
@@ -1576,26 +1803,33 @@ describe('Context Helpers Integration Tests', () => {
       );
 
       expect(pushResult.success).toBe(true);
-      expect(pushResult.itemsProcessed).toContain('nestedContainer.playerStats');
+      expect(pushResult.itemsProcessed).toContain(
+        'nestedContainer.playerStats'
+      );
       expect(pushResult.itemsProcessed).toContain('gameSettings.difficulty');
 
       // Verify the nested data was copied
-      expect(parentContainer.getItem('nestedContainer.playerStats.level')).toBe(10);
-      expect(parentContainer.getItem('nestedContainer.playerStats.xp')).toBe(1000);
+      expect(parentContainer.getItem('nestedContainer.playerStats.level')).toBe(
+        10
+      );
+      expect(parentContainer.getItem('nestedContainer.playerStats.xp')).toBe(
+        1000
+      );
       expect(parentContainer.getItem('gameSettings.difficulty')).toBe('hard');
     });
 
     it('should handle deeply nested containers in bulk operations', () => {
-      const createDeepContainer = (id) => new ContextContainer({
-        level1: new ContextContainer({
-          level2: new ContextContainer({
-            level3: {
-              data: `deep data from ${id}`,
-              value: id * 100
-            }
-          })
-        })
-      });
+      const createDeepContainer = (id) =>
+        new ContextContainer({
+          level1: new ContextContainer({
+            level2: new ContextContainer({
+              level3: {
+                data: `deep data from ${id}`,
+                value: id * 100,
+              },
+            }),
+          }),
+        });
 
       const sources = [createDeepContainer(1), createDeepContainer(2)];
       const targets = [createDeepContainer(3), createDeepContainer(4)];
@@ -1614,8 +1848,12 @@ describe('Context Helpers Integration Tests', () => {
       // Verify the deep nested data was copied
       // Since pushItemsBulk applies each source to each target, and sources are processed in order,
       // the final values should be from the last source (source 2)
-      expect(targets[0].getItem('level1.level2.level3.data')).toBe('deep data from 2');
-      expect(targets[1].getItem('level1.level2.level3.data')).toBe('deep data from 2');
+      expect(targets[0].getItem('level1.level2.level3.data')).toBe(
+        'deep data from 2'
+      );
+      expect(targets[1].getItem('level1.level2.level3.data')).toBe(
+        'deep data from 2'
+      );
     });
 
     it('should handle circular references in nested containers', () => {
@@ -1630,18 +1868,23 @@ describe('Context Helpers Integration Tests', () => {
 
       const parentWithCircular = new ContextContainer({
         circularChain: containerA,
-        normalData: 'normal'
+        normalData: 'normal',
       });
 
       // Make the source newer to ensure mergeNewerWins picks the source
-      parentWithCircular._updateModificationTimestamps(new Date(Date.now() + 1000));
+      parentWithCircular._updateModificationTimestamps(
+        new Date(Date.now() + 1000)
+      );
 
       // Test that operations handle circular references gracefully
       const targetContainer = new ContextContainer({
-        existing: 'data'
+        existing: 'data',
       });
 
-      const result = ContextContainerSync.mergeNewerWins(parentWithCircular, targetContainer);
+      const result = ContextContainerSync.mergeNewerWins(
+        parentWithCircular,
+        targetContainer
+      );
 
       expect(result.success).toBe(true);
       expect(targetContainer.getItem('normalData')).toBe('normal');
@@ -1651,7 +1894,8 @@ describe('Context Helpers Integration Tests', () => {
 
     it('should preserve type integrity in nested scenarios', () => {
       // Test that nested ContextContainers are preserved as items (not their raw values)
-      const actualNestedContainer = parentContainer._getManagedItem('nestedContainer');
+      const actualNestedContainer =
+        parentContainer._getManagedItem('nestedContainer');
       expect(actualNestedContainer).toBeInstanceOf(ContextContainer);
       expect(actualNestedContainer.constructor.name).toBe('ContextContainer');
 
@@ -1672,20 +1916,29 @@ describe('Context Helpers Integration Tests', () => {
 
     it('should handle comparison operations with nested containers', () => {
       const containerWithNested1 = new ContextContainer({
-        nested: new ContextContainer({ value: 'test1' })
+        nested: new ContextContainer({ value: 'test1' }),
       });
 
       const containerWithNested2 = new ContextContainer({
-        nested: new ContextContainer({ value: 'test2' })
+        nested: new ContextContainer({ value: 'test2' }),
       });
 
       // Update timestamps to ensure one is newer (reverse the order to make B newer)
-      containerWithNested1._updateModificationTimestamps(new Date('2025-01-02'));
-      containerWithNested2._updateModificationTimestamps(new Date('2025-01-01'));
+      containerWithNested1._updateModificationTimestamps(
+        new Date('2025-01-02')
+      );
+      containerWithNested2._updateModificationTimestamps(
+        new Date('2025-01-01')
+      );
 
-      const comparison = ContextComparison.compare(containerWithNested1, containerWithNested2);
+      const comparison = ContextComparison.compare(
+        containerWithNested1,
+        containerWithNested2
+      );
 
-      expect(comparison.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER);
+      expect(comparison.result).toBe(
+        ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER
+      );
       expect(comparison.timeDifference).toBeGreaterThan(0);
     });
   });
@@ -1695,8 +1948,16 @@ describe('Context Helpers Integration Tests', () => {
       const container = new ContextContainer({ data: 'test' });
 
       // Test with undefined objects
-      const result1 = await ContextSync.syncSafe(undefined, container, 'mergeNewerWins');
-      const result2 = await ContextSync.syncSafe(container, undefined, 'mergeNewerWins');
+      const result1 = await ContextSync.syncSafe(
+        undefined,
+        container,
+        'mergeNewerWins'
+      );
+      const result2 = await ContextSync.syncSafe(
+        container,
+        undefined,
+        'mergeNewerWins'
+      );
 
       expect(result1.success).toBe(true);
       expect(result2.success).toBe(true);
@@ -1709,7 +1970,11 @@ describe('Context Helpers Integration Tests', () => {
       const item = new ContextItem('test');
 
       // Attempting to sync different types should fail gracefully
-      const result = await ContextSync.syncSafe(container, item, 'mergeNewerWins');
+      const result = await ContextSync.syncSafe(
+        container,
+        item,
+        'mergeNewerWins'
+      );
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
@@ -1720,7 +1985,11 @@ describe('Context Helpers Integration Tests', () => {
       const container = new ContextContainer({ data: 'test' });
 
       // Test with invalid operation
-      const result = await ContextSync.syncSafe(container, container, 'invalidOperation');
+      const result = await ContextSync.syncSafe(
+        container,
+        container,
+        'invalidOperation'
+      );
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
@@ -1736,7 +2005,11 @@ describe('Context Helpers Integration Tests', () => {
       container2.setItem('reference', container1);
 
       // Sync should handle this gracefully without infinite recursion
-      const result = await ContextSync.syncSafe(container1, container2, 'mergeNewerWins');
+      const result = await ContextSync.syncSafe(
+        container1,
+        container2,
+        'mergeNewerWins'
+      );
 
       expect(result.success).toBe(true);
       // Should not hang or throw stack overflow

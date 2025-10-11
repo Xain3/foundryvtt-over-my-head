@@ -4,24 +4,33 @@
  * @path src/handlers/settingsHelpers/settingsRegistrar.unit.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 
 // Mock modules with problematic imports first
-vi.mock('#/baseClasses/handler', () => ({
+vi.mock('#baseClasses/handler.mjs', () => ({
   default: class MockHandler {
-    constructor(config, utils, context = {}) {
+    constructor({ config, utils, context = {} } = {}) {
       this.config = config;
       this.utils = utils;
       this.context = context;
     }
-  }
+  },
 }));
 
 vi.mock('./flagEvaluator.mjs', () => ({
   default: {
     evaluate: vi.fn(),
-    checkConditions: vi.fn()
-  }
+    checkConditions: vi.fn(),
+  },
 }));
 
 import SettingsRegistrar from './settingsRegistrar.mjs';
@@ -39,8 +48,8 @@ describe('SettingsRegistrar', () => {
     // Setup mock config
     mockConfig = {
       manifest: {
-        id: 'test-module'
-      }
+        id: 'test-module',
+      },
     };
 
     // Setup mock context
@@ -49,7 +58,7 @@ describe('SettingsRegistrar', () => {
     // Setup mock utils
     mockUtils = {
       formatError: vi.fn((message) => `Formatted: ${message}`),
-      logWarning: vi.fn()
+      logWarning: vi.fn(),
     };
 
     // Setup mock game settings
@@ -57,7 +66,7 @@ describe('SettingsRegistrar', () => {
 
     // Mock globalThis.game
     globalThis.game = {
-      settings: mockGameSettings
+      settings: mockGameSettings,
     };
 
     // Setup FlagEvaluator mock to return true by default (existing tests expect settings to register)
@@ -72,19 +81,33 @@ describe('SettingsRegistrar', () => {
 
   describe('Constructor', () => {
     it('should create registrar with provided namespace', () => {
-      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils, namespace: 'custom-namespace' });
+      registrar = new SettingsRegistrar({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils,
+        namespace: 'custom-namespace',
+      });
 
       expect(registrar.namespace).toBe('custom-namespace');
     });
 
     it('should create registrar with namespace from config manifest id', () => {
-      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
+      registrar = new SettingsRegistrar({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils,
+      });
 
       expect(registrar.namespace).toBe('test-module');
     });
 
     it('should create registrar with namespace when no explicit namespace provided', () => {
-      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils, namespace: null });
+      registrar = new SettingsRegistrar({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils,
+        namespace: null,
+      });
 
       expect(registrar.namespace).toBe('test-module');
     });
@@ -93,13 +116,21 @@ describe('SettingsRegistrar', () => {
       const invalidConfig = { manifest: {} };
 
       expect(() => {
-        new SettingsRegistrar({ config: invalidConfig, context: mockContext, utils: mockUtils });
+        new SettingsRegistrar({
+          config: invalidConfig,
+          context: mockContext,
+          utils: mockUtils,
+        });
       }).toThrow('Invalid configuration: missing manifest ID');
     });
 
     it('should throw error when config is missing', () => {
       expect(() => {
-        new SettingsRegistrar({ config: null, context: mockContext, utils: mockUtils });
+        new SettingsRegistrar({
+          config: null,
+          context: mockContext,
+          utils: mockUtils,
+        });
       }).toThrow('Invalid configuration: missing manifest ID');
     });
 
@@ -107,14 +138,22 @@ describe('SettingsRegistrar', () => {
       const invalidConfig = {};
 
       expect(() => {
-        new SettingsRegistrar({ config: invalidConfig, context: mockContext, utils: mockUtils });
+        new SettingsRegistrar({
+          config: invalidConfig,
+          context: mockContext,
+          utils: mockUtils,
+        });
       }).toThrow('Invalid configuration: missing manifest ID');
     });
   });
 
   describe('registerSetting', () => {
     beforeEach(() => {
-      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
+      registrar = new SettingsRegistrar({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils,
+      });
     });
 
     describe('Input Validation', () => {
@@ -122,21 +161,27 @@ describe('SettingsRegistrar', () => {
         const result = registrar.registerSetting(null);
 
         expect(result.success).toBe(false);
-        expect(result.message).toContain('Failed to register Unknown Setting: Invalid setting format');
+        expect(result.message).toContain(
+          'Failed to register Unknown Setting: Invalid setting format'
+        );
       });
 
       it('should fail when setting is undefined', () => {
         const result = registrar.registerSetting(undefined);
 
         expect(result.success).toBe(false);
-        expect(result.message).toContain('Failed to register Unknown Setting: Invalid setting format');
+        expect(result.message).toContain(
+          'Failed to register Unknown Setting: Invalid setting format'
+        );
       });
 
       it('should fail when setting is not an object', () => {
         const result = registrar.registerSetting('invalid');
 
         expect(result.success).toBe(false);
-        expect(result.message).toContain('Failed to register Unknown Setting: Invalid setting format');
+        expect(result.message).toContain(
+          'Failed to register Unknown Setting: Invalid setting format'
+        );
       });
 
       it('should fail when setting is missing key', () => {
@@ -144,7 +189,9 @@ describe('SettingsRegistrar', () => {
         const result = registrar.registerSetting(setting);
 
         expect(result.success).toBe(false);
-        expect(result.message).toContain('Failed to register Unknown Setting: Missing key or config');
+        expect(result.message).toContain(
+          'Failed to register Unknown Setting: Missing key or config'
+        );
       });
 
       it('should fail when setting is missing config', () => {
@@ -152,7 +199,9 @@ describe('SettingsRegistrar', () => {
         const result = registrar.registerSetting(setting);
 
         expect(result.success).toBe(false);
-        expect(result.message).toContain('Failed to register testKey: Missing key or config');
+        expect(result.message).toContain(
+          'Failed to register testKey: Missing key or config'
+        );
       });
 
       it('should fail when game is not available', () => {
@@ -161,7 +210,9 @@ describe('SettingsRegistrar', () => {
         const result = registrar.registerSetting(setting);
 
         expect(result.success).toBe(false);
-        expect(result.message).toContain('Failed to register testKey: Game settings not ready');
+        expect(result.message).toContain(
+          'Failed to register testKey: Game settings not ready'
+        );
       });
 
       it('should fail when game.settings is not available', () => {
@@ -170,7 +221,9 @@ describe('SettingsRegistrar', () => {
         const result = registrar.registerSetting(setting);
 
         expect(result.success).toBe(false);
-        expect(result.message).toContain('Failed to register testKey: Game settings not ready');
+        expect(result.message).toContain(
+          'Failed to register testKey: Game settings not ready'
+        );
       });
     });
 
@@ -183,29 +236,33 @@ describe('SettingsRegistrar', () => {
             scope: 'world',
             config: true,
             type: String,
-            default: 'defaultValue'
-          }
+            default: 'defaultValue',
+          },
         };
 
         const result = registrar.registerSetting(setting);
 
         expect(result.success).toBe(true);
-        expect(result.message).toBe('Setting testSetting registered successfully.');
-        expect(mockGameSettings.get('test-module', 'testSetting')).toBe('defaultValue');
+        expect(result.message).toBe(
+          'Setting testSetting registered successfully.'
+        );
+        expect(mockGameSettings.get('test-module', 'testSetting')).toBe(
+          'defaultValue'
+        );
       });
 
       it('should register setting with different data types', () => {
         const booleanSetting = {
           key: 'booleanSetting',
-          config: { type: Boolean, default: true }
+          config: { type: Boolean, default: true },
         };
         const numberSetting = {
           key: 'numberSetting',
-          config: { type: Number, default: 42 }
+          config: { type: Number, default: 42 },
         };
         const objectSetting = {
           key: 'objectSetting',
-          config: { type: Object, default: { key: 'value' } }
+          config: { type: Object, default: { key: 'value' } },
         };
 
         const boolResult = registrar.registerSetting(booleanSetting);
@@ -216,22 +273,33 @@ describe('SettingsRegistrar', () => {
         expect(numberResult.success).toBe(true);
         expect(objectResult.success).toBe(true);
 
-        expect(mockGameSettings.get('test-module', 'booleanSetting')).toBe(true);
+        expect(mockGameSettings.get('test-module', 'booleanSetting')).toBe(
+          true
+        );
         expect(mockGameSettings.get('test-module', 'numberSetting')).toBe(42);
-        expect(mockGameSettings.get('test-module', 'objectSetting')).toEqual({ key: 'value' });
+        expect(mockGameSettings.get('test-module', 'objectSetting')).toEqual({
+          key: 'value',
+        });
       });
 
       it('should register setting with custom namespace', () => {
-        registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils, namespace: 'custom-module' });
+        registrar = new SettingsRegistrar({
+          config: mockConfig,
+          context: mockContext,
+          utils: mockUtils,
+          namespace: 'custom-module',
+        });
         const setting = {
           key: 'customSetting',
-          config: { name: 'Custom Setting', default: 'customValue' }
+          config: { name: 'Custom Setting', default: 'customValue' },
         };
 
         const result = registrar.registerSetting(setting);
 
         expect(result.success).toBe(true);
-        expect(mockGameSettings.get('custom-module', 'customSetting')).toBe('customValue');
+        expect(mockGameSettings.get('custom-module', 'customSetting')).toBe(
+          'customValue'
+        );
       });
     });
 
@@ -244,13 +312,15 @@ describe('SettingsRegistrar', () => {
 
         const setting = {
           key: 'failingSetting',
-          config: { name: 'Failing Setting' }
+          config: { name: 'Failing Setting' },
         };
 
         const result = registrar.registerSetting(setting);
 
         expect(result.success).toBe(false);
-        expect(result.message).toBe('Failed to register failingSetting: Registration failed');
+        expect(result.message).toBe(
+          'Failed to register failingSetting: Registration failed'
+        );
       });
 
       it('should handle complex registration errors', () => {
@@ -260,13 +330,15 @@ describe('SettingsRegistrar', () => {
 
         const setting = {
           key: 'duplicateSetting',
-          config: { name: 'Duplicate Setting' }
+          config: { name: 'Duplicate Setting' },
         };
 
         const result = registrar.registerSetting(setting);
 
         expect(result.success).toBe(false);
-        expect(result.message).toContain('Failed to register duplicateSetting: Duplicate setting key');
+        expect(result.message).toContain(
+          'Failed to register duplicateSetting: Duplicate setting key'
+        );
       });
     });
 
@@ -274,45 +346,57 @@ describe('SettingsRegistrar', () => {
       it('should handle empty string key', () => {
         const setting = {
           key: '',
-          config: { name: 'Empty Key Setting' }
+          config: { name: 'Empty Key Setting' },
         };
 
         const result = registrar.registerSetting(setting);
 
         expect(result.success).toBe(false);
-        expect(result.message).toContain('Failed to register Unknown Setting: Missing key or config');
-        expect(mockUtils.logWarning).toHaveBeenCalledWith('Invalid setting object provided, using default name.');
+        expect(result.message).toContain(
+          'Failed to register Unknown Setting: Missing key or config'
+        );
+        expect(mockUtils.logWarning).toHaveBeenCalledWith(
+          'Invalid setting object provided, using default name.'
+        );
       });
 
       it('should handle empty config object', () => {
         const setting = {
           key: 'emptySetting',
-          config: {}
+          config: {},
         };
 
         const result = registrar.registerSetting(setting);
 
         expect(result.success).toBe(true);
-        expect(mockGameSettings.get('test-module', 'emptySetting')).toBeUndefined();
+        expect(
+          mockGameSettings.get('test-module', 'emptySetting')
+        ).toBeUndefined();
       });
 
       it('should handle setting with special characters in key', () => {
         const setting = {
           key: 'special-setting_123',
-          config: { name: 'Special Setting', default: 'value' }
+          config: { name: 'Special Setting', default: 'value' },
         };
 
         const result = registrar.registerSetting(setting);
 
         expect(result.success).toBe(true);
-        expect(mockGameSettings.get('test-module', 'special-setting_123')).toBe('value');
+        expect(mockGameSettings.get('test-module', 'special-setting_123')).toBe(
+          'value'
+        );
       });
     });
   });
 
   describe('register', () => {
     beforeEach(() => {
-      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
+      registrar = new SettingsRegistrar({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils,
+      });
     });
 
     describe('Input Validation', () => {
@@ -320,7 +404,9 @@ describe('SettingsRegistrar', () => {
         expect(() => {
           registrar.register(null);
         }).toThrow('Formatted: Settings cannot be registered: invalid format');
-        expect(mockUtils.formatError).toHaveBeenCalledWith('Settings cannot be registered: invalid format');
+        expect(mockUtils.formatError).toHaveBeenCalledWith(
+          'Settings cannot be registered: invalid format'
+        );
       });
 
       it('should throw error for undefined settings', () => {
@@ -351,7 +437,7 @@ describe('SettingsRegistrar', () => {
         const settings = [
           { key: 'setting1', config: { name: 'Setting 1', default: 'value1' } },
           { key: 'setting2', config: { name: 'Setting 2', default: 'value2' } },
-          { key: 'setting3', config: { name: 'Setting 3', default: 'value3' } }
+          { key: 'setting3', config: { name: 'Setting 3', default: 'value3' } },
         ];
 
         const result = registrar.register(settings);
@@ -360,7 +446,9 @@ describe('SettingsRegistrar', () => {
         expect(result.counter).toBe(3);
         expect(result.successCounter).toBe(3);
         expect(result.errorMessages).toHaveLength(0);
-        expect(result.message).toBe('Registered 3 out of 3 settings successfully.');
+        expect(result.message).toBe(
+          'Registered 3 out of 3 settings successfully.'
+        );
 
         expect(mockGameSettings.get('test-module', 'setting1')).toBe('value1');
         expect(mockGameSettings.get('test-module', 'setting2')).toBe('value2');
@@ -369,10 +457,16 @@ describe('SettingsRegistrar', () => {
 
       it('should handle mixed valid and invalid settings in array', () => {
         const settings = [
-          { key: 'validSetting', config: { name: 'Valid Setting', default: 'valid' } },
+          {
+            key: 'validSetting',
+            config: { name: 'Valid Setting', default: 'valid' },
+          },
           { key: 'invalidSetting' }, // missing config
           { config: { name: 'Missing Key' } }, // missing key
-          { key: 'anotherValid', config: { name: 'Another Valid', default: 'valid2' } }
+          {
+            key: 'anotherValid',
+            config: { name: 'Another Valid', default: 'valid2' },
+          },
         ];
 
         const result = registrar.register(settings);
@@ -381,11 +475,17 @@ describe('SettingsRegistrar', () => {
         expect(result.counter).toBe(4);
         expect(result.successCounter).toBe(2);
         expect(result.errorMessages).toHaveLength(2);
-        expect(result.message).toContain('Registered 2 out of 4 settings successfully.');
+        expect(result.message).toContain(
+          'Registered 2 out of 4 settings successfully.'
+        );
         expect(result.message).toContain('Errors:');
 
-        expect(mockGameSettings.get('test-module', 'validSetting')).toBe('valid');
-        expect(mockGameSettings.get('test-module', 'anotherValid')).toBe('valid2');
+        expect(mockGameSettings.get('test-module', 'validSetting')).toBe(
+          'valid'
+        );
+        expect(mockGameSettings.get('test-module', 'anotherValid')).toBe(
+          'valid2'
+        );
       });
 
       it('should handle empty array', () => {
@@ -395,7 +495,9 @@ describe('SettingsRegistrar', () => {
         expect(result.counter).toBe(0);
         expect(result.successCounter).toBe(0);
         expect(result.errorMessages).toHaveLength(0);
-        expect(result.message).toBe('Registered 0 out of 0 settings successfully.');
+        expect(result.message).toBe(
+          'Registered 0 out of 0 settings successfully.'
+        );
       });
 
       it('should handle array with all invalid settings', () => {
@@ -403,7 +505,7 @@ describe('SettingsRegistrar', () => {
           { key: 'invalid1' }, // missing config
           { config: { name: 'Invalid 2' } }, // missing key
           null, // invalid format
-          'invalid' // invalid format
+          'invalid', // invalid format
         ];
 
         const result = registrar.register(settings);
@@ -412,16 +514,27 @@ describe('SettingsRegistrar', () => {
         expect(result.counter).toBe(4);
         expect(result.successCounter).toBe(0);
         expect(result.errorMessages).toHaveLength(4);
-        expect(result.message).toContain('Registered 0 out of 4 settings successfully.');
+        expect(result.message).toContain(
+          'Registered 0 out of 4 settings successfully.'
+        );
       });
     });
 
     describe('Object Input', () => {
       it('should register object with valid settings', () => {
         const settings = {
-          setting1: { key: 'setting1', config: { name: 'Setting 1', default: 'value1' } },
-          setting2: { key: 'setting2', config: { name: 'Setting 2', default: 'value2' } },
-          setting3: { key: 'setting3', config: { name: 'Setting 3', default: 'value3' } }
+          setting1: {
+            key: 'setting1',
+            config: { name: 'Setting 1', default: 'value1' },
+          },
+          setting2: {
+            key: 'setting2',
+            config: { name: 'Setting 2', default: 'value2' },
+          },
+          setting3: {
+            key: 'setting3',
+            config: { name: 'Setting 3', default: 'value3' },
+          },
         };
 
         const result = registrar.register(settings);
@@ -430,7 +543,9 @@ describe('SettingsRegistrar', () => {
         expect(result.counter).toBe(3);
         expect(result.successCounter).toBe(3);
         expect(result.errorMessages).toHaveLength(0);
-        expect(result.message).toBe('Registered 3 out of 3 settings successfully.');
+        expect(result.message).toBe(
+          'Registered 3 out of 3 settings successfully.'
+        );
 
         expect(mockGameSettings.get('test-module', 'setting1')).toBe('value1');
         expect(mockGameSettings.get('test-module', 'setting2')).toBe('value2');
@@ -439,10 +554,16 @@ describe('SettingsRegistrar', () => {
 
       it('should handle mixed valid and invalid settings in object', () => {
         const settings = {
-          valid1: { key: 'validSetting', config: { name: 'Valid Setting', default: 'valid' } },
+          valid1: {
+            key: 'validSetting',
+            config: { name: 'Valid Setting', default: 'valid' },
+          },
           invalid1: { key: 'invalidSetting' }, // missing config
           invalid2: { config: { name: 'Missing Key' } }, // missing key
-          valid2: { key: 'anotherValid', config: { name: 'Another Valid', default: 'valid2' } }
+          valid2: {
+            key: 'anotherValid',
+            config: { name: 'Another Valid', default: 'valid2' },
+          },
         };
 
         const result = registrar.register(settings);
@@ -451,11 +572,17 @@ describe('SettingsRegistrar', () => {
         expect(result.counter).toBe(4);
         expect(result.successCounter).toBe(2);
         expect(result.errorMessages).toHaveLength(2);
-        expect(result.message).toContain('Registered 2 out of 4 settings successfully.');
+        expect(result.message).toContain(
+          'Registered 2 out of 4 settings successfully.'
+        );
         expect(result.message).toContain('Errors:');
 
-        expect(mockGameSettings.get('test-module', 'validSetting')).toBe('valid');
-        expect(mockGameSettings.get('test-module', 'anotherValid')).toBe('valid2');
+        expect(mockGameSettings.get('test-module', 'validSetting')).toBe(
+          'valid'
+        );
+        expect(mockGameSettings.get('test-module', 'anotherValid')).toBe(
+          'valid2'
+        );
       });
 
       it('should handle empty object', () => {
@@ -465,7 +592,9 @@ describe('SettingsRegistrar', () => {
         expect(result.counter).toBe(0);
         expect(result.successCounter).toBe(0);
         expect(result.errorMessages).toHaveLength(0);
-        expect(result.message).toBe('Registered 0 out of 0 settings successfully.');
+        expect(result.message).toBe(
+          'Registered 0 out of 0 settings successfully.'
+        );
       });
 
       it('should handle object with all invalid settings', () => {
@@ -473,7 +602,7 @@ describe('SettingsRegistrar', () => {
           invalid1: { key: 'invalid1' }, // missing config
           invalid2: { config: { name: 'Invalid 2' } }, // missing key
           invalid3: null, // invalid format
-          invalid4: 'invalid' // invalid format
+          invalid4: 'invalid', // invalid format
         };
 
         const result = registrar.register(settings);
@@ -482,7 +611,9 @@ describe('SettingsRegistrar', () => {
         expect(result.counter).toBe(4);
         expect(result.successCounter).toBe(0);
         expect(result.errorMessages).toHaveLength(4);
-        expect(result.message).toContain('Registered 0 out of 4 settings successfully.');
+        expect(result.message).toContain(
+          'Registered 0 out of 4 settings successfully.'
+        );
       });
     });
 
@@ -499,7 +630,7 @@ describe('SettingsRegistrar', () => {
         const settings = [
           { key: 'setting1', config: { name: 'Setting 1' } },
           { key: 'setting2', config: { name: 'Setting 2' } },
-          { key: 'setting3', config: { name: 'Setting 3' } }
+          { key: 'setting3', config: { name: 'Setting 3' } },
         ];
 
         const result = registrar.register(settings);
@@ -508,7 +639,9 @@ describe('SettingsRegistrar', () => {
         expect(result.counter).toBe(3);
         expect(result.successCounter).toBe(2);
         expect(result.errorMessages).toHaveLength(1);
-        expect(result.errorMessages[0]).toContain('Failed to register setting2: Second registration failed');
+        expect(result.errorMessages[0]).toContain(
+          'Failed to register setting2: Second registration failed'
+        );
       });
 
       it('should handle game not ready during batch registration', () => {
@@ -516,7 +649,7 @@ describe('SettingsRegistrar', () => {
 
         const settings = [
           { key: 'setting1', config: { name: 'Setting 1' } },
-          { key: 'setting2', config: { name: 'Setting 2' } }
+          { key: 'setting2', config: { name: 'Setting 2' } },
         ];
 
         const result = registrar.register(settings);
@@ -541,8 +674,8 @@ describe('SettingsRegistrar', () => {
               scope: 'world',
               config: true,
               type: Boolean,
-              default: true
-            }
+              default: true,
+            },
           },
           displayMode: {
             key: 'displayMode',
@@ -553,8 +686,8 @@ describe('SettingsRegistrar', () => {
               config: true,
               type: String,
               choices: { tooltip: 'Tooltip', panel: 'Side Panel' },
-              default: 'tooltip'
-            }
+              default: 'tooltip',
+            },
           },
           debug: {
             key: 'debug',
@@ -564,9 +697,9 @@ describe('SettingsRegistrar', () => {
               scope: 'world',
               config: false,
               type: Boolean,
-              default: false
-            }
-          }
+              default: false,
+            },
+          },
         };
 
         const result = registrar.register(moduleSettings);
@@ -577,7 +710,9 @@ describe('SettingsRegistrar', () => {
         expect(result.errorMessages).toHaveLength(0);
 
         expect(mockGameSettings.get('test-module', 'enabled')).toBe(true);
-        expect(mockGameSettings.get('test-module', 'displayMode')).toBe('tooltip');
+        expect(mockGameSettings.get('test-module', 'displayMode')).toBe(
+          'tooltip'
+        );
         expect(mockGameSettings.get('test-module', 'debug')).toBe(false);
       });
     });
@@ -586,29 +721,48 @@ describe('SettingsRegistrar', () => {
       it('should work with different namespace configurations', () => {
         // Test with different module ID
         const altConfig = { manifest: { id: 'different-module' } };
-        const altRegistrar = new SettingsRegistrar({ config: altConfig, context: mockContext, utils: mockUtils });
+        const altRegistrar = new SettingsRegistrar({
+          config: altConfig,
+          context: mockContext,
+          utils: mockUtils,
+        });
 
         const settings = [
-          { key: 'altSetting', config: { name: 'Alt Setting', default: 'altValue' } }
+          {
+            key: 'altSetting',
+            config: { name: 'Alt Setting', default: 'altValue' },
+          },
         ];
 
         const result = altRegistrar.register(settings);
 
         expect(result.success).toBe(true);
-        expect(mockGameSettings.get('different-module', 'altSetting')).toBe('altValue');
+        expect(mockGameSettings.get('different-module', 'altSetting')).toBe(
+          'altValue'
+        );
       });
 
       it('should work with custom namespace override', () => {
-        const customRegistrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils, namespace: 'override-namespace' });
+        const customRegistrar = new SettingsRegistrar({
+          config: mockConfig,
+          context: mockContext,
+          utils: mockUtils,
+          namespace: 'override-namespace',
+        });
 
         const settings = [
-          { key: 'overrideSetting', config: { name: 'Override Setting', default: 'overrideValue' } }
+          {
+            key: 'overrideSetting',
+            config: { name: 'Override Setting', default: 'overrideValue' },
+          },
         ];
 
         const result = customRegistrar.register(settings);
 
         expect(result.success).toBe(true);
-        expect(mockGameSettings.get('override-namespace', 'overrideSetting')).toBe('overrideValue');
+        expect(
+          mockGameSettings.get('override-namespace', 'overrideSetting')
+        ).toBe('overrideValue');
       });
     });
 
@@ -623,8 +777,8 @@ describe('SettingsRegistrar', () => {
               scope: 'world',
               config: true,
               type: Boolean,
-              default: true
-            }
+              default: true,
+            },
           },
           occlusionMode: {
             key: 'occlusionMode',
@@ -637,10 +791,10 @@ describe('SettingsRegistrar', () => {
               choices: {
                 none: 'No Occlusion',
                 partial: 'Partial Occlusion',
-                full: 'Full Occlusion'
+                full: 'Full Occlusion',
               },
-              default: 'partial'
-            }
+              default: 'partial',
+            },
           },
           debugLevel: {
             key: 'debugLevel',
@@ -651,9 +805,9 @@ describe('SettingsRegistrar', () => {
               config: false,
               type: Number,
               range: { min: 0, max: 3, step: 1 },
-              default: 0
-            }
-          }
+              default: 0,
+            },
+          },
         };
 
         const result = registrar.register(overMyHeadSettings);
@@ -661,18 +815,22 @@ describe('SettingsRegistrar', () => {
         expect(result.success).toBe(true);
         expect(result.counter).toBe(3);
         expect(result.successCounter).toBe(3);
-        expect(result.message).toBe('Registered 3 out of 3 settings successfully.');
+        expect(result.message).toBe(
+          'Registered 3 out of 3 settings successfully.'
+        );
 
         // Verify all settings are registered correctly
         expect(mockGameSettings.get('test-module', 'enabled')).toBe(true);
-        expect(mockGameSettings.get('test-module', 'occlusionMode')).toBe('partial');
+        expect(mockGameSettings.get('test-module', 'occlusionMode')).toBe(
+          'partial'
+        );
         expect(mockGameSettings.get('test-module', 'debugLevel')).toBe(0);
       });
 
       it('should handle progressive settings registration', () => {
         // Register core settings first
         const coreSettings = [
-          { key: 'enabled', config: { name: 'Enable Module', default: true } }
+          { key: 'enabled', config: { name: 'Enable Module', default: true } },
         ];
 
         const coreResult = registrar.register(coreSettings);
@@ -681,8 +839,11 @@ describe('SettingsRegistrar', () => {
 
         // Register additional settings
         const additionalSettings = [
-          { key: 'advanced', config: { name: 'Advanced Mode', default: false } },
-          { key: 'theme', config: { name: 'Theme', default: 'default' } }
+          {
+            key: 'advanced',
+            config: { name: 'Advanced Mode', default: false },
+          },
+          { key: 'theme', config: { name: 'Theme', default: 'default' } },
         ];
 
         const additionalResult = registrar.register(additionalSettings);
@@ -702,8 +863,8 @@ describe('SettingsRegistrar', () => {
             key: `setting${i}`,
             config: {
               name: `Setting ${i}`,
-              default: `value${i}`
-            }
+              default: `value${i}`,
+            },
           });
         }
 
@@ -716,15 +877,23 @@ describe('SettingsRegistrar', () => {
 
         // Spot check a few settings
         expect(mockGameSettings.get('test-module', 'setting0')).toBe('value0');
-        expect(mockGameSettings.get('test-module', 'setting25')).toBe('value25');
-        expect(mockGameSettings.get('test-module', 'setting49')).toBe('value49');
+        expect(mockGameSettings.get('test-module', 'setting25')).toBe(
+          'value25'
+        );
+        expect(mockGameSettings.get('test-module', 'setting49')).toBe(
+          'value49'
+        );
       });
     });
   });
 
   describe('Integration Tests', () => {
     beforeEach(() => {
-      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
+      registrar = new SettingsRegistrar({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils,
+      });
     });
 
     it('should integrate with Handler base class', () => {
@@ -736,44 +905,60 @@ describe('SettingsRegistrar', () => {
     it('should handle complete settings lifecycle', () => {
       // Initial registration
       const settings = [
-        { key: 'lifecycleSetting', config: { name: 'Lifecycle Setting', default: 'initial' } }
+        {
+          key: 'lifecycleSetting',
+          config: { name: 'Lifecycle Setting', default: 'initial' },
+        },
       ];
 
       const registerResult = registrar.register(settings);
       expect(registerResult.success).toBe(true);
-      expect(mockGameSettings.get('test-module', 'lifecycleSetting')).toBe('initial');
+      expect(mockGameSettings.get('test-module', 'lifecycleSetting')).toBe(
+        'initial'
+      );
 
       // Re-registration should work (overwrite)
       const updatedSettings = [
-        { key: 'lifecycleSetting', config: { name: 'Updated Lifecycle Setting', default: 'updated' } }
+        {
+          key: 'lifecycleSetting',
+          config: { name: 'Updated Lifecycle Setting', default: 'updated' },
+        },
       ];
 
       const updateResult = registrar.register(updatedSettings);
       expect(updateResult.success).toBe(true);
-      expect(mockGameSettings.get('test-module', 'lifecycleSetting')).toBe('updated');
+      expect(mockGameSettings.get('test-module', 'lifecycleSetting')).toBe(
+        'updated'
+      );
     });
 
     it('should work with various input formats', () => {
       // Array format
       const arrayResult = registrar.register([
-        { key: 'arraySetting', config: { default: 'array' } }
+        { key: 'arraySetting', config: { default: 'array' } },
       ]);
       expect(arrayResult.success).toBe(true);
 
       // Object format
       const objectResult = registrar.register({
-        objectSetting: { key: 'objectSetting', config: { default: 'object' } }
+        objectSetting: { key: 'objectSetting', config: { default: 'object' } },
       });
       expect(objectResult.success).toBe(true);
 
       expect(mockGameSettings.get('test-module', 'arraySetting')).toBe('array');
-      expect(mockGameSettings.get('test-module', 'objectSetting')).toBe('object');
+      expect(mockGameSettings.get('test-module', 'objectSetting')).toBe(
+        'object'
+      );
     });
   });
 
   describe('Inheritance Tests', () => {
     it('should inherit from Handler correctly', () => {
-      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
+      registrar = new SettingsRegistrar({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils,
+      });
 
       // Check that the constructor was called with proper parameters
       expect(registrar.config).toBe(mockConfig);
@@ -782,7 +967,11 @@ describe('SettingsRegistrar', () => {
     });
 
     it('should use inherited properties', () => {
-      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
+      registrar = new SettingsRegistrar({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils,
+      });
 
       expect(registrar.config).toBe(mockConfig);
       expect(registrar.context).toBe(mockContext);
@@ -790,7 +979,11 @@ describe('SettingsRegistrar', () => {
     });
 
     it('should extend Handler functionality', () => {
-      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
+      registrar = new SettingsRegistrar({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils,
+      });
 
       // Should have Handler properties
       expect(registrar.config).toBeDefined();
@@ -806,7 +999,11 @@ describe('SettingsRegistrar', () => {
 
   describe('Flag conditional registration', () => {
     beforeEach(() => {
-      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
+      registrar = new SettingsRegistrar({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils,
+      });
       FlagEvaluator.shouldShow = vi.fn();
     });
 
@@ -821,7 +1018,7 @@ describe('SettingsRegistrar', () => {
         key: 'testSetting',
         showOnlyIfFlag: 'manifest.debugMode',
         dontShowIfFlag: null,
-        config: { name: 'Test', default: 'test' }
+        config: { name: 'Test', default: 'test' },
       };
 
       const result = registrar.registerSetting(setting);
@@ -843,7 +1040,7 @@ describe('SettingsRegistrar', () => {
         key: 'hiddenSetting',
         showOnlyIfFlag: 'manifest.dev',
         dontShowIfFlag: null,
-        config: { name: 'Hidden', default: 'hidden' }
+        config: { name: 'Hidden', default: 'hidden' },
       };
 
       const result = registrar.registerSetting(setting);
@@ -865,7 +1062,7 @@ describe('SettingsRegistrar', () => {
         key: 'complexSetting',
         showOnlyIfFlag: { or: ['manifest.debugMode', 'manifest.dev'] },
         dontShowIfFlag: { and: ['someFlag', 'anotherFlag'] },
-        config: { name: 'Complex', default: 'complex' }
+        config: { name: 'Complex', default: 'complex' },
       };
 
       const result = registrar.registerSetting(setting);
@@ -886,7 +1083,7 @@ describe('SettingsRegistrar', () => {
         key: 'normalSetting',
         showOnlyIfFlag: null,
         dontShowIfFlag: null,
-        config: { name: 'Normal', default: 'normal' }
+        config: { name: 'Normal', default: 'normal' },
       };
 
       const result = registrar.registerSetting(setting);
@@ -902,7 +1099,7 @@ describe('SettingsRegistrar', () => {
 
     it('should handle mixed settings with different flag results in batch registration', () => {
       FlagEvaluator.shouldShow
-        .mockReturnValueOnce(true)  // First setting should register
+        .mockReturnValueOnce(true) // First setting should register
         .mockReturnValueOnce(false) // Second setting should not register
         .mockReturnValueOnce(true); // Third setting should register
 
@@ -910,18 +1107,18 @@ describe('SettingsRegistrar', () => {
         {
           key: 'visibleSetting',
           showOnlyIfFlag: 'manifest.debugMode',
-          config: { name: 'Visible', default: 'visible' }
+          config: { name: 'Visible', default: 'visible' },
         },
         {
           key: 'hiddenSetting',
           showOnlyIfFlag: 'manifest.dev',
-          config: { name: 'Hidden', default: 'hidden' }
+          config: { name: 'Hidden', default: 'hidden' },
         },
         {
           key: 'anotherVisibleSetting',
           showOnlyIfFlag: null,
-          config: { name: 'Another Visible', default: 'anotherVisible' }
-        }
+          config: { name: 'Another Visible', default: 'anotherVisible' },
+        },
       ];
 
       const result = registrar.register(settings);
@@ -929,12 +1126,20 @@ describe('SettingsRegistrar', () => {
       expect(result.counter).toBe(3);
       expect(result.successCounter).toBe(2);
       expect(result.errorMessages).toHaveLength(1);
-      expect(result.errorMessages[0]).toContain('not registered due to flag conditions');
+      expect(result.errorMessages[0]).toContain(
+        'not registered due to flag conditions'
+      );
 
       // Verify only the allowed settings were registered
-      expect(mockGameSettings.get('test-module', 'visibleSetting')).toBe('visible');
-      expect(mockGameSettings.get('test-module', 'anotherVisibleSetting')).toBe('anotherVisible');
-      expect(mockGameSettings.get('test-module', 'hiddenSetting')).toBeUndefined();
+      expect(mockGameSettings.get('test-module', 'visibleSetting')).toBe(
+        'visible'
+      );
+      expect(mockGameSettings.get('test-module', 'anotherVisibleSetting')).toBe(
+        'anotherVisible'
+      );
+      expect(
+        mockGameSettings.get('test-module', 'hiddenSetting')
+      ).toBeUndefined();
     });
 
     it('should handle flag evaluation with real context structure', () => {
@@ -942,18 +1147,22 @@ describe('SettingsRegistrar', () => {
         manifest: {
           debugMode: true,
           dev: false,
-          id: 'test-module'
-        }
+          id: 'test-module',
+        },
       };
 
-      const registrarWithContext = new SettingsRegistrar({ config: contextWithManifest, context: mockContext, utils: mockUtils });
+      const registrarWithContext = new SettingsRegistrar({
+        config: contextWithManifest,
+        context: mockContext,
+        utils: mockUtils,
+      });
       FlagEvaluator.shouldShow.mockReturnValue(true);
 
       const setting = {
         key: 'debugSetting',
         showOnlyIfFlag: { or: ['manifest.debugMode', 'manifest.dev'] },
         dontShowIfFlag: null,
-        config: { name: 'Debug Setting', default: false }
+        config: { name: 'Debug Setting', default: false },
       };
 
       const result = registrarWithContext.registerSetting(setting);
@@ -970,7 +1179,11 @@ describe('SettingsRegistrar', () => {
 
   describe('Enhanced Failure Reporting', () => {
     beforeEach(() => {
-      registrar = new SettingsRegistrar({ config: mockConfig, context: mockContext, utils: mockUtils });
+      registrar = new SettingsRegistrar({
+        config: mockConfig,
+        context: mockContext,
+        utils: mockUtils,
+      });
       FlagEvaluator.shouldShow = vi.fn();
     });
 
@@ -980,7 +1193,8 @@ describe('SettingsRegistrar', () => {
 
     it('should differentiate between planned exclusions and unplanned failures', () => {
       // Set up mixed scenario: one setting hidden by flags, one with validation error
-      FlagEvaluator.shouldShow = vi.fn()
+      FlagEvaluator.shouldShow = vi
+        .fn()
         .mockReturnValueOnce(false) // first setting hidden by flags (planned)
         .mockReturnValueOnce(true); // second setting passes flags but fails validation (unplanned)
 
@@ -988,12 +1202,12 @@ describe('SettingsRegistrar', () => {
         {
           key: 'hiddenSetting',
           showOnlyIfFlag: 'manifest.dev',
-          config: { name: 'Hidden Setting', default: false }
+          config: { name: 'Hidden Setting', default: false },
         },
         {
           key: 'invalidSetting',
           // missing config causes validation failure
-        }
+        },
       ];
 
       const result = registrar.register(settings);
@@ -1014,13 +1228,13 @@ describe('SettingsRegistrar', () => {
         {
           key: 'hiddenSetting1',
           showOnlyIfFlag: 'manifest.dev',
-          config: { name: 'Hidden Setting 1', default: false }
+          config: { name: 'Hidden Setting 1', default: false },
         },
         {
           key: 'hiddenSetting2',
           dontShowIfFlag: 'manifest.production',
-          config: { name: 'Hidden Setting 2', default: true }
-        }
+          config: { name: 'Hidden Setting 2', default: true },
+        },
       ];
 
       const result = registrar.register(settings);
@@ -1029,7 +1243,10 @@ describe('SettingsRegistrar', () => {
       expect(result.processed).toBe(2);
       expect(result.successful).toBe(0);
       expect(result.failed).toEqual(['hiddenSetting1', 'hiddenSetting2']);
-      expect(result.plannedExcluded).toEqual(['hiddenSetting1', 'hiddenSetting2']);
+      expect(result.plannedExcluded).toEqual([
+        'hiddenSetting1',
+        'hiddenSetting2',
+      ]);
       expect(result.unplannedFailed).toEqual([]);
       expect(result.registered).toEqual([]);
     });
@@ -1040,12 +1257,12 @@ describe('SettingsRegistrar', () => {
       const settings = [
         {
           key: 'setting1',
-          config: { name: 'Setting 1', default: 'value1' }
+          config: { name: 'Setting 1', default: 'value1' },
         },
         {
           key: 'setting2',
-          config: { name: 'Setting 2', default: 'value2' }
-        }
+          config: { name: 'Setting 2', default: 'value2' },
+        },
       ];
 
       const result = registrar.register(settings);
@@ -1064,13 +1281,13 @@ describe('SettingsRegistrar', () => {
 
       const settings = [
         {
-          key: 'invalidSetting1'
+          key: 'invalidSetting1',
           // missing config
         },
         {
           // missing key
-          config: { name: 'Invalid Setting 2', default: 'value' }
-        }
+          config: { name: 'Invalid Setting 2', default: 'value' },
+        },
       ];
 
       const result = registrar.register(settings);
@@ -1080,30 +1297,34 @@ describe('SettingsRegistrar', () => {
       expect(result.successful).toBe(0);
       expect(result.failed).toEqual(['invalidSetting1', 'Unknown Setting']);
       expect(result.plannedExcluded).toEqual([]);
-      expect(result.unplannedFailed).toEqual(['invalidSetting1', 'Unknown Setting']);
+      expect(result.unplannedFailed).toEqual([
+        'invalidSetting1',
+        'Unknown Setting',
+      ]);
       expect(result.registered).toEqual([]);
     });
 
     it('should handle mixed scenarios with both success and failures', () => {
-      FlagEvaluator.shouldShow = vi.fn()
-        .mockReturnValueOnce(true)  // setting1: success
+      FlagEvaluator.shouldShow = vi
+        .fn()
+        .mockReturnValueOnce(true) // setting1: success
         .mockReturnValueOnce(false) // setting2: planned exclusion
         .mockReturnValueOnce(true); // setting3: unplanned failure
 
       const settings = [
         {
           key: 'setting1',
-          config: { name: 'Setting 1', default: 'value1' }
+          config: { name: 'Setting 1', default: 'value1' },
         },
         {
           key: 'setting2',
           showOnlyIfFlag: 'manifest.dev',
-          config: { name: 'Setting 2', default: 'value2' }
+          config: { name: 'Setting 2', default: 'value2' },
         },
         {
-          key: 'setting3'
+          key: 'setting3',
           // missing config causes unplanned failure
-        }
+        },
       ];
 
       const result = registrar.register(settings);

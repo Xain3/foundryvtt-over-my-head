@@ -4,7 +4,7 @@
  * @path src/handlers/placeableHelpers/placeableChecker.mjs
  */
 
-import Handler from '../../baseClasses/handler.mjs';
+import Handler from '#baseClasses/handler.mjs';
 import PositionChecker from './positionChecker.mjs';
 import { CHECK_TYPES, POSITION_USES } from './config.mjs';
 

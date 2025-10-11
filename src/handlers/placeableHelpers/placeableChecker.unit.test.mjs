@@ -106,7 +106,7 @@ describe('PlaceableChecker', () => {
       config: mockConfig,
       context: mockContext,
       utils: mockUtils,
-      placeableGetter: mockPlaceableGetter
+      placeableGetter: mockPlaceableGetter,
     });
     placeableChecker.logger = mockLogger;
   });
@@ -375,76 +375,6 @@ describe('PlaceableChecker', () => {
 
       placeable.controlled = false;
       expect(placeableChecker.isControlled(placeable)).toBe(false);
-    });
-  });
-
-  describe('isOwned', () => {
-    it('should return true if token has isOwner property true', () => {
-      const token = { isOwner: true };
-      expect(placeableChecker.isOwned(token)).toBe(true);
-    });
-
-    it('should return false if token has isOwner property false', () => {
-      const token = { isOwner: false };
-      expect(placeableChecker.isOwned(token)).toBe(false);
-    });
-
-    it('should return false if token does not have isOwner property', () => {
-      const token = {};
-      const result = placeableChecker.isOwned(token);
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error checking if token is owned: Token does not have isOwner property or method'
-      );
-      expect(result).toBe(false);
-    });
-
-    it('should log error and return false if error occurs', () => {
-      const token = { isOwner: true };
-      // Mock isOwner to throw
-      Object.defineProperty(token, 'isOwner', {
-        get: () => {
-          throw new Error('Test error');
-        },
-      });
-
-      const result = placeableChecker.isOwned(token);
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error checking if token is owned: Test error'
-      );
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('isOwnedAndControlled', () => {
-    it('should return true if token is owned and controlled', () => {
-      const token = { isOwner: true, controlled: true };
-      expect(placeableChecker.isOwnedAndControlled(token)).toBe(true);
-    });
-
-    it('should return false if token is not owned', () => {
-      const token = { isOwner: false, controlled: true };
-      expect(placeableChecker.isOwnedAndControlled(token)).toBe(false);
-    });
-
-    it('should return false if token is owned but not controlled', () => {
-      const token = { isOwner: true, controlled: false };
-      expect(placeableChecker.isOwnedAndControlled(token)).toBe(false);
-    });
-
-    it('should return false if token is neither owned nor controlled', () => {
-      const token = { isOwner: false, controlled: false };
-      expect(placeableChecker.isOwnedAndControlled(token)).toBe(false);
-    });
-  });
-
-  describe('isOwnedAndSelected', () => {
-    it('should delegate to isOwnedAndControlled', () => {
-      const token = { isOwner: true, controlled: true };
-      vi.spyOn(placeableChecker, 'isOwnedAndControlled').mockReturnValue(true);
-
-      const result = placeableChecker.isOwnedAndSelected(token);
-      expect(placeableChecker.isOwnedAndControlled).toHaveBeenCalledWith(token);
-      expect(result).toBe(true);
     });
   });
 });

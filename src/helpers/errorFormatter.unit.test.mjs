@@ -1,4 +1,13 @@
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 
 // Mock potential dependencies before importing
 vi.mock('#helpers/pathUtils.mjs', () => ({
@@ -7,8 +16,8 @@ vi.mock('#helpers/pathUtils.mjs', () => ({
     extractKeyComponents: vi.fn(),
     resolveMixedPath: vi.fn(),
     pathExistsInMixedStructure: vi.fn(),
-    getValueFromMixedPath: vi.fn()
-  }
+    getValueFromMixedPath: vi.fn(),
+  },
 }));
 
 vi.mock('#config', () => ({
@@ -17,18 +26,23 @@ vi.mock('#config', () => ({
       moduleManagement: {
         referToModuleBy: 'title',
         defaults: {
-          modulesLocation: 'game.modules'
-        }
-      }
+          modulesLocation: 'game.modules',
+        },
+      },
+      errors: {
+        separator: ' :: ',
+        pattern: '{{module}}{{caller}}{{error}}{{stack}}',
+      },
     },
     manifest: {
       id: 'test-module-id',
       title: 'Test Module',
-      name: 'test-module'
+      name: 'test-module',
+      shortName: 'OMH',
     },
     buildManifestWithShortName: vi.fn(() => ({ shortName: 'OMH' })),
-    exportConstants: vi.fn()
-  }
+    exportConstants: vi.fn(),
+  },
 }));
 
 import { formatError } from './errorFormatter.mjs';
@@ -38,7 +52,6 @@ import { formatError } from './errorFormatter.mjs';
  * @description Unit tests for the errorFormatter helper re-export.
  * @path src/helpers/errorFormatter.test.mjs
  */
-
 
 describe('formatError (re-export)', () => {
   it('should be defined and be a function', () => {

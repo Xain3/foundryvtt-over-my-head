@@ -5,36 +5,56 @@
  * @date 25 May 2025
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 import ErrorFormatter, { formatError } from './errorFormatter.mjs';
 
 // Mock manifest
-vi.mock('#manifest', () => ({
-  title: 'OverMyHead',
-  name: 'foundryvtt-over-my-head',
-  id: 'foundryvtt-over-my-head',
-  shortName: 'OMH'
-}), { virtual: true });
+vi.mock(
+  '#manifest',
+  () => ({
+    default: {
+      title: 'OverMyHead',
+      name: 'foundryvtt-over-my-head',
+      id: 'foundryvtt-over-my-head',
+      shortName: 'OMH',
+    },
+  }),
+  { virtual: true }
+);
 
 // Mock constants
-vi.mock('#constants', () => ({
-  default: {
-    moduleManagement: {
-      referToModuleBy: 'title',
+vi.mock(
+  '#constants',
+  () => ({
+    default: {
+      moduleManagement: {
+        referToModuleBy: 'title',
+      },
+      errors: {
+        separator: ' || ',
+        pattern: '{{module}}{{caller}}{{error}}{{stack}}',
+      },
     },
-    errors: {
-      separator: ' || ',
-      pattern: '{{module}}{{caller}}{{error}}{{stack}}'
-    }
-  }
-}), { virtual: true });
+  }),
+  { virtual: true }
+);
 
 describe('ErrorFormatter', () => {
   let testError;
 
   beforeEach(() => {
     testError = new Error('Test error message');
-    testError.stack = 'Error: Test error message\n    at Object.<anonymous> (/path/to/file.mjs:10:15)';
+    testError.stack =
+      'Error: Test error message\n    at Object.<anonymous> (/path/to/file.mjs:10:15)';
   });
 
   describe('formatError static method', () => {
@@ -63,7 +83,9 @@ describe('ErrorFormatter', () => {
 
     describe('includeStack option', () => {
       it('should include stack trace when includeStack is true', () => {
-        const result = ErrorFormatter.formatError(testError, { includeStack: true });
+        const result = ErrorFormatter.formatError(testError, {
+          includeStack: true,
+        });
 
         expect(result).toContain('Call Stack:');
         expect(result).toContain('at Object.<anonymous>');
@@ -71,7 +93,9 @@ describe('ErrorFormatter', () => {
       });
 
       it('should not include stack trace when includeStack is false', () => {
-        const result = ErrorFormatter.formatError(testError, { includeStack: false });
+        const result = ErrorFormatter.formatError(testError, {
+          includeStack: false,
+        });
 
         expect(result).not.toContain('Call Stack:');
         expect(result).not.toContain('at Object.<anonymous>');
@@ -88,7 +112,7 @@ describe('ErrorFormatter', () => {
       it('should include caller when includeCaller is true and caller is provided', () => {
         const result = ErrorFormatter.formatError(testError, {
           includeCaller: true,
-          caller: 'TestClass.testMethod'
+          caller: 'TestClass.testMethod',
         });
 
         expect(result).toContain('TestClass.testMethod || ');
@@ -97,7 +121,7 @@ describe('ErrorFormatter', () => {
       it('should not include caller when includeCaller is false', () => {
         const result = ErrorFormatter.formatError(testError, {
           includeCaller: false,
-          caller: 'TestClass.testMethod'
+          caller: 'TestClass.testMethod',
         });
 
         expect(result).not.toContain('TestClass.testMethod');
@@ -106,7 +130,7 @@ describe('ErrorFormatter', () => {
 
       it('should not include caller by default', () => {
         const result = ErrorFormatter.formatError(testError, {
-          caller: 'TestClass.testMethod'
+          caller: 'TestClass.testMethod',
         });
 
         expect(result).not.toContain('TestClass.testMethod');
@@ -115,7 +139,7 @@ describe('ErrorFormatter', () => {
       it('should handle empty caller string', () => {
         const result = ErrorFormatter.formatError(testError, {
           includeCaller: true,
-          caller: ''
+          caller: '',
         });
 
         expect(result).toContain(' || ');
@@ -127,10 +151,12 @@ describe('ErrorFormatter', () => {
         const result = ErrorFormatter.formatError(testError, {
           includeStack: true,
           includeCaller: true,
-          caller: 'TestCaller'
+          caller: 'TestCaller',
         });
 
-        expect(result).toMatch(/OverMyHead \|\| TestCaller \|\| Test error message[\s\S]*Call Stack:/);
+        expect(result).toMatch(
+          /OverMyHead \|\| TestCaller \|\| Test error message[\s\S]*Call Stack:/
+        );
       });
 
       it('should handle missing optional placeholders', () => {
@@ -149,7 +175,7 @@ describe('ErrorFormatter', () => {
         const result = ErrorFormatter.formatError(testError, {
           includeStack: true,
           includeCaller: true,
-          caller: 'CompleteTest.method'
+          caller: 'CompleteTest.method',
         });
 
         expect(result).toContain('OverMyHead');
@@ -163,7 +189,7 @@ describe('ErrorFormatter', () => {
         const result = ErrorFormatter.formatError(testError, {
           includeStack: false,
           includeCaller: true,
-          caller: 'PartialTest'
+          caller: 'PartialTest',
         });
 
         expect(result).toContain('OverMyHead');
@@ -176,53 +202,70 @@ describe('ErrorFormatter', () => {
 
   describe('input validation', () => {
     describe('error parameter validation', () => {
-  it('should throw TypeError if error is not an object or string', () => {
+      it('should throw TypeError if error is not an object or string', () => {
         expect(() => ErrorFormatter.formatError(null, {})).toThrow(TypeError);
-        expect(() => ErrorFormatter.formatError(undefined, {})).toThrow(TypeError);
+        expect(() => ErrorFormatter.formatError(undefined, {})).toThrow(
+          TypeError
+        );
         expect(() => ErrorFormatter.formatError(123, {})).toThrow(TypeError);
         expect(() => ErrorFormatter.formatError(true, {})).toThrow(TypeError);
       });
 
       it('should provide meaningful error message for invalid error parameter', () => {
-        expect(() => ErrorFormatter.formatError(null, {})).toThrow('Error must be an object');
+        expect(() => ErrorFormatter.formatError(null, {})).toThrow(
+          'Error must be an object'
+        );
       });
 
       it('should throw TypeError if error.message is not a string', () => {
         const invalidError = { message: null };
-        expect(() => ErrorFormatter.formatError(invalidError, {})).toThrow(TypeError);
+        expect(() => ErrorFormatter.formatError(invalidError, {})).toThrow(
+          TypeError
+        );
 
         const invalidError2 = { message: 123 };
-        expect(() => ErrorFormatter.formatError(invalidError2, {})).toThrow(TypeError);
+        expect(() => ErrorFormatter.formatError(invalidError2, {})).toThrow(
+          TypeError
+        );
 
         const invalidError3 = {};
-        expect(() => ErrorFormatter.formatError(invalidError3, {})).toThrow(TypeError);
+        expect(() => ErrorFormatter.formatError(invalidError3, {})).toThrow(
+          TypeError
+        );
       });
 
       it('should provide meaningful error message for invalid message property', () => {
         const invalidError = { message: null };
-        expect(() => ErrorFormatter.formatError(invalidError, {})).toThrow('Error message must be a string');
+        expect(() => ErrorFormatter.formatError(invalidError, {})).toThrow(
+          'Error message must be a string'
+        );
       });
 
       it('should throw TypeError if error.stack is not a string when includeStack is true', () => {
         const invalidError = {
           message: 'Valid message',
-          stack: null
+          stack: null,
         };
 
-        expect(() => ErrorFormatter.formatError(invalidError, { includeStack: true }))
-          .toThrow(TypeError);
-        expect(() => ErrorFormatter.formatError(invalidError, { includeStack: true }))
-          .toThrow('Error stack must be a string');
+        expect(() =>
+          ErrorFormatter.formatError(invalidError, { includeStack: true })
+        ).toThrow(TypeError);
+        expect(() =>
+          ErrorFormatter.formatError(invalidError, { includeStack: true })
+        ).toThrow('Error stack must be a string');
       });
 
       it('should not validate stack when includeStack is false', () => {
         const errorWithInvalidStack = {
           message: 'Valid message',
-          stack: null
+          stack: null,
         };
 
-        expect(() => ErrorFormatter.formatError(errorWithInvalidStack, { includeStack: false }))
-          .not.toThrow();
+        expect(() =>
+          ErrorFormatter.formatError(errorWithInvalidStack, {
+            includeStack: false,
+          })
+        ).not.toThrow();
       });
     });
 
@@ -237,10 +280,12 @@ describe('ErrorFormatter', () => {
       it('should handle custom error objects', () => {
         const customError = {
           message: 'Custom error message',
-          stack: 'Custom stack trace'
+          stack: 'Custom stack trace',
         };
 
-        const result = ErrorFormatter.formatError(customError, { includeStack: true });
+        const result = ErrorFormatter.formatError(customError, {
+          includeStack: true,
+        });
 
         expect(result).toContain('Custom error message');
         expect(result).toContain('Custom stack trace');
@@ -251,7 +296,7 @@ describe('ErrorFormatter', () => {
           message: 'Error with extras',
           stack: 'Stack trace',
           code: 'E001',
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
 
         const result = ErrorFormatter.formatError(errorWithExtras, {});
@@ -276,7 +321,10 @@ describe('ErrorFormatter', () => {
     });
 
     it('should include caller when requested with string input', () => {
-      const result = ErrorFormatter.formatError('Oops', { includeCaller: true, caller: 'myFunc' });
+      const result = ErrorFormatter.formatError('Oops', {
+        includeCaller: true,
+        caller: 'myFunc',
+      });
       expect(result).toMatch(/Oops/);
       expect(result).toMatch(/myFunc/);
     });
@@ -297,7 +345,7 @@ describe('ErrorFormatter', () => {
       const options = {
         includeStack: true,
         includeCaller: true,
-        caller: 'StandaloneTest'
+        caller: 'StandaloneTest',
       };
 
       const classResult = ErrorFormatter.formatError(testError, options);
@@ -322,7 +370,7 @@ describe('ErrorFormatter', () => {
     it('should use separator from constants', () => {
       const result = ErrorFormatter.formatError(testError, {
         includeCaller: true,
-        caller: 'TestCaller'
+        caller: 'TestCaller',
       });
 
       expect(result).toContain(' || '); // The separator from mocked constants
@@ -332,7 +380,7 @@ describe('ErrorFormatter', () => {
       // The pattern {{module}}{{caller}}{{error}}{{stack}} should be used
       const result = ErrorFormatter.formatError(testError, {
         includeCaller: true,
-        caller: 'TestCaller'
+        caller: 'TestCaller',
       });
 
       // Should contain module first, then caller, then error
@@ -347,10 +395,14 @@ describe('ErrorFormatter', () => {
 
   describe('special characters and formatting', () => {
     it('should handle errors with special characters', () => {
-      const specialError = new Error('Error with "quotes" and \'apostrophes\' and <tags>');
+      const specialError = new Error(
+        'Error with "quotes" and \'apostrophes\' and <tags>'
+      );
       const result = ErrorFormatter.formatError(specialError, {});
 
-      expect(result).toContain('Error with "quotes" and \'apostrophes\' and <tags>');
+      expect(result).toContain(
+        'Error with "quotes" and \'apostrophes\' and <tags>'
+      );
     });
 
     it('should handle multi-line error messages', () => {
@@ -381,7 +433,9 @@ describe('ErrorFormatter', () => {
   describe('real-world error scenarios', () => {
     it('should handle TypeError', () => {
       const typeError = new TypeError('Cannot read property of undefined');
-      const result = ErrorFormatter.formatError(typeError, { includeStack: true });
+      const result = ErrorFormatter.formatError(typeError, {
+        includeStack: true,
+      });
 
       expect(result).toContain('Cannot read property of undefined');
       expect(result).toContain('OverMyHead');
@@ -391,7 +445,7 @@ describe('ErrorFormatter', () => {
       const refError = new ReferenceError('variable is not defined');
       const result = ErrorFormatter.formatError(refError, {
         includeCaller: true,
-        caller: 'SomeModule.someMethod'
+        caller: 'SomeModule.someMethod',
       });
 
       expect(result).toContain('variable is not defined');
@@ -401,14 +455,15 @@ describe('ErrorFormatter', () => {
     it('should handle custom application errors', () => {
       const appError = {
         message: 'Failed to load module configuration',
-        stack: 'ConfigError: Failed to load module configuration\n    at loadConfig (config.mjs:25:10)',
-        code: 'CONFIG_LOAD_ERROR'
+        stack:
+          'ConfigError: Failed to load module configuration\n    at loadConfig (config.mjs:25:10)',
+        code: 'CONFIG_LOAD_ERROR',
       };
 
       const result = ErrorFormatter.formatError(appError, {
         includeStack: true,
         includeCaller: true,
-        caller: 'ConfigManager.initialize'
+        caller: 'ConfigManager.initialize',
       });
 
       expect(result).toContain('Failed to load module configuration');

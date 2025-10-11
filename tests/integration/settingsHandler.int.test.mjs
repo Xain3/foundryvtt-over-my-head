@@ -4,10 +4,19 @@
  * @path tests/integration/settingsHandler.int.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 
 // Mock dependencies to prevent raw import issues
-vi.mock('#/baseClasses/handler', async () => {
+vi.mock('#baseClasses/handler.mjs', async () => {
   const actual = await vi.importActual('../../src/baseClasses/handler.mjs');
   return {
     ...actual,
@@ -17,19 +26,18 @@ vi.mock('#/baseClasses/handler', async () => {
         this.utils = utils;
         this.context = context;
       }
-    }
+    },
   };
 });
 
 vi.mock('#utils/static/validator.mjs', async () => {
   const actual = await vi.importActual('../../src/utils/static/validator.mjs');
+  actual.Validator.isValidSettingsConfig = vi.fn(() => true);
+  actual.Validator.validateAndThrow = vi.fn();
   return {
     ...actual,
-    Validator: {
-      isValidSettingsConfig: vi.fn(() => true),
-      validateAndThrow: vi.fn(),
-      ...actual.Validator
-    }
+    Validator: actual.Validator,
+    default: actual.default,
   };
 });
 
@@ -42,13 +50,13 @@ global.game = {
   settings: {
     register: vi.fn(),
     get: vi.fn(),
-    set: vi.fn()
-  }
+    set: vi.fn(),
+  },
 };
 
 global.Hooks = {
   call: vi.fn(),
-  callAll: vi.fn()
+  callAll: vi.fn(),
 };
 
 describe('SettingsHandler Integration Tests', () => {
@@ -73,9 +81,9 @@ describe('SettingsHandler Integration Tests', () => {
                 default: false,
                 onChange: {
                   sendHook: true,
-                  hookName: 'debugModeChanged'
-                }
-              }
+                  hookName: 'debugModeChanged',
+                },
+              },
             },
             {
               key: 'maxTokens',
@@ -89,12 +97,12 @@ describe('SettingsHandler Integration Tests', () => {
                 range: {
                   min: 1,
                   max: 100,
-                  step: 1
+                  step: 1,
                 },
                 onChange: {
-                  sendHook: true
-                }
-              }
+                  sendHook: true,
+                },
+              },
             },
             {
               key: 'hiddenSetting',
@@ -105,26 +113,26 @@ describe('SettingsHandler Integration Tests', () => {
                 type: String,
                 default: 'internal',
                 onChange: {
-                  sendHook: false
-                }
-              }
-            }
-          ]
+                  sendHook: false,
+                },
+              },
+            },
+          ],
         },
         hooks: {
-          setting: '.setting'
-        }
+          setting: '.setting',
+        },
       },
       manifest: {
         id: 'test-module',
-        title: 'Test Module'
-      }
+        title: 'Test Module',
+      },
     };
 
     context = {
       state: {},
       flags: {},
-      settings: {}
+      settings: {},
     };
 
     utils = {
@@ -132,13 +140,17 @@ describe('SettingsHandler Integration Tests', () => {
       formatHookName: vi.fn((base, suffix) => `TEST${base}${suffix || ''}`),
       logWarning: vi.fn(),
       logDebug: vi.fn(),
-      logInfo: vi.fn()
+      logInfo: vi.fn(),
     };
   });
 
   describe('Full Integration Workflow', () => {
     beforeEach(() => {
-      settingsHandler = new SettingsHandler({ config: config, utils: utils, context: context });
+      settingsHandler = new SettingsHandler({
+        config: config,
+        utils: utils,
+        context: context,
+      });
     });
 
     it('should successfully parse and register all settings', () => {
@@ -164,7 +176,7 @@ describe('SettingsHandler Integration Tests', () => {
           config: true,
           type: Boolean,
           default: false,
-          onChange: expect.any(Function)
+          onChange: expect.any(Function),
         })
       );
 
@@ -181,9 +193,9 @@ describe('SettingsHandler Integration Tests', () => {
           range: {
             min: 1,
             max: 100,
-            step: 1
+            step: 1,
           },
-          onChange: expect.any(Function)
+          onChange: expect.any(Function),
         })
       );
 
@@ -196,7 +208,7 @@ describe('SettingsHandler Integration Tests', () => {
           scope: 'world',
           config: false,
           type: String,
-          default: 'internal'
+          default: 'internal',
           // Should NOT have onChange since sendHook is false
         })
       );
@@ -207,17 +219,20 @@ describe('SettingsHandler Integration Tests', () => {
 
       // Get the onChange function from the first call
       const debugModeCall = game.settings.register.mock.calls.find(
-        call => call[1] === 'debugMode'
+        (call) => call[1] === 'debugMode'
       );
       const debugModeOnChange = debugModeCall[2].onChange;
 
       // Test the onChange callback - now always uses Hooks.callAll
       debugModeOnChange(true);
-      expect(Hooks.callAll).toHaveBeenCalledWith('TEST.settingdebugModeChanged', true);
+      expect(Hooks.callAll).toHaveBeenCalledWith(
+        'TEST.settingdebugModeChanged',
+        true
+      );
 
       // Get the onChange function from the second call
       const maxTokensCall = game.settings.register.mock.calls.find(
-        call => call[1] === 'maxTokens'
+        (call) => call[1] === 'maxTokens'
       );
       const maxTokensOnChange = maxTokensCall[2].onChange;
 
@@ -230,7 +245,7 @@ describe('SettingsHandler Integration Tests', () => {
       settingsHandler.register();
 
       const hiddenSettingCall = game.settings.register.mock.calls.find(
-        call => call[1] === 'hiddenSetting'
+        (call) => call[1] === 'hiddenSetting'
       );
       const hiddenSettingConfig = hiddenSettingCall[2];
 
@@ -249,7 +264,11 @@ describe('SettingsHandler Integration Tests', () => {
           // Succeed for other calls
         });
 
-      settingsHandler = new SettingsHandler({ config: config, utils: utils, context: context });
+      settingsHandler = new SettingsHandler({
+        config: config,
+        utils: utils,
+        context: context,
+      });
       const result = settingsHandler.register();
 
       expect(result.counter).toBe(3);
@@ -263,7 +282,11 @@ describe('SettingsHandler Integration Tests', () => {
         throw new Error('Hook formatting failed');
       });
 
-      settingsHandler = new SettingsHandler({ config: config, utils: utils, context: context });
+      settingsHandler = new SettingsHandler({
+        config: config,
+        utils: utils,
+        context: context,
+      });
       const result = settingsHandler.register();
 
       // Settings should still register, just without hooks
@@ -275,7 +298,11 @@ describe('SettingsHandler Integration Tests', () => {
 
   describe('Custom Settings Integration', () => {
     it('should parse and register custom settings provided at runtime', () => {
-      settingsHandler = new SettingsHandler({ config: config, utils: utils, context: context });
+      settingsHandler = new SettingsHandler({
+        config: config,
+        utils: utils,
+        context: context,
+      });
 
       const customSettings = [
         {
@@ -288,10 +315,10 @@ describe('SettingsHandler Integration Tests', () => {
             default: 'custom',
             onChange: {
               sendHook: true,
-              hookName: 'runtimeChanged'
-            }
-          }
-        }
+              hookName: 'runtimeChanged',
+            },
+          },
+        },
       ];
 
       const parseResult = settingsHandler.parse(customSettings);
@@ -304,7 +331,7 @@ describe('SettingsHandler Integration Tests', () => {
         'runtimeSetting',
         expect.objectContaining({
           name: 'Runtime Setting',
-          onChange: expect.any(Function)
+          onChange: expect.any(Function),
         })
       );
     });
@@ -312,7 +339,11 @@ describe('SettingsHandler Integration Tests', () => {
 
   describe('Real-world Foundry VTT Compatibility', () => {
     it('should register settings that match Foundry VTT expected format', () => {
-      settingsHandler = new SettingsHandler({ config: config, utils: utils, context: context });
+      settingsHandler = new SettingsHandler({
+        config: config,
+        utils: utils,
+        context: context,
+      });
       settingsHandler.register();
 
       // Verify all registered settings follow Foundry patterns
@@ -342,8 +373,8 @@ describe('SettingsHandler Integration Tests', () => {
                   scope: 'world',
                   type: Boolean,
                   default: true,
-                  onChange: { sendHook: true }
-                }
+                  onChange: { sendHook: true },
+                },
               },
               {
                 key: 'clientSetting',
@@ -352,8 +383,8 @@ describe('SettingsHandler Integration Tests', () => {
                   scope: 'client',
                   type: String,
                   default: 'client',
-                  onChange: { sendHook: true }
-                }
+                  onChange: { sendHook: true },
+                },
               },
               {
                 key: 'userSetting',
@@ -362,29 +393,45 @@ describe('SettingsHandler Integration Tests', () => {
                   scope: 'user',
                   type: Number,
                   default: 5,
-                  onChange: { sendHook: true }
-                }
-              }
-            ]
-          }
-        }
+                  onChange: { sendHook: true },
+                },
+              },
+            ],
+          },
+        },
       };
 
-      settingsHandler = new SettingsHandler({ config: multiScopeConfig, utils: utils, context: context });
+      settingsHandler = new SettingsHandler({
+        config: multiScopeConfig,
+        utils: utils,
+        context: context,
+      });
       settingsHandler.register();
 
       // Test hook calling behavior for different scopes
-      const worldCall = game.settings.register.mock.calls.find(call => call[1] === 'worldSetting');
-      const clientCall = game.settings.register.mock.calls.find(call => call[1] === 'clientSetting');
-      const userCall = game.settings.register.mock.calls.find(call => call[1] === 'userSetting');
+      const worldCall = game.settings.register.mock.calls.find(
+        (call) => call[1] === 'worldSetting'
+      );
+      const clientCall = game.settings.register.mock.calls.find(
+        (call) => call[1] === 'clientSetting'
+      );
+      const userCall = game.settings.register.mock.calls.find(
+        (call) => call[1] === 'userSetting'
+      );
 
       // World scope should use Hooks.callAll
       worldCall[2].onChange('newValue');
-      expect(Hooks.callAll).toHaveBeenCalledWith('TEST.settingworldSetting', 'newValue');
+      expect(Hooks.callAll).toHaveBeenCalledWith(
+        'TEST.settingworldSetting',
+        'newValue'
+      );
 
       // Client scope now also uses Hooks.callAll
       clientCall[2].onChange('clientValue');
-      expect(Hooks.callAll).toHaveBeenCalledWith('TEST.settingclientSetting', 'clientValue');
+      expect(Hooks.callAll).toHaveBeenCalledWith(
+        'TEST.settingclientSetting',
+        'clientValue'
+      );
 
       // User scope now also uses Hooks.callAll
       userCall[2].onChange(10);
@@ -407,15 +454,19 @@ describe('SettingsHandler Integration Tests', () => {
                 scope: 'world',
                 type: Boolean,
                 default: false,
-                onChange: { sendHook: true }
-              }
-            }))
-          }
-        }
+                onChange: { sendHook: true },
+              },
+            })),
+          },
+        },
       };
 
       const startTime = Date.now();
-      settingsHandler = new SettingsHandler({ config: largeSettingsConfig, utils: utils, context: context });
+      settingsHandler = new SettingsHandler({
+        config: largeSettingsConfig,
+        utils: utils,
+        context: context,
+      });
       const result = settingsHandler.register();
       const endTime = Date.now();
 
@@ -438,25 +489,29 @@ describe('SettingsHandler Integration Tests', () => {
         settings: {
           register: vi.fn(),
           get: vi.fn(),
-          set: vi.fn()
-        }
+          set: vi.fn(),
+        },
       };
 
       global.Hooks = {
         call: vi.fn(),
-        callAll: vi.fn()
+        callAll: vi.fn(),
       };
 
-      settingsHandler = new SettingsHandler({ config: config, utils: utils, context: context });
-      
+      settingsHandler = new SettingsHandler({
+        config: config,
+        utils: utils,
+        context: context,
+      });
+
       // Mock settings values for retrieval testing
       global.game.settings.get.mockImplementation((namespace, key) => {
         const mockValues = {
           'test-module': {
             debugMode: true,
             maxTokens: 25,
-            hiddenSetting: 'secret-value'
-          }
+            hiddenSetting: 'secret-value',
+          },
         };
         return mockValues[namespace]?.[key];
       });
@@ -483,11 +538,15 @@ describe('SettingsHandler Integration Tests', () => {
       it('should retrieve correct setting values', () => {
         expect(settingsHandler.getSettingValue('debugMode')).toBe(true);
         expect(settingsHandler.getSettingValue('maxTokens')).toBe(25);
-        expect(settingsHandler.getSettingValue('hiddenSetting')).toBe('secret-value');
+        expect(settingsHandler.getSettingValue('hiddenSetting')).toBe(
+          'secret-value'
+        );
       });
 
       it('should return undefined for non-existent settings', () => {
-        expect(settingsHandler.getSettingValue('nonExistentSetting')).toBe(undefined);
+        expect(settingsHandler.getSettingValue('nonExistentSetting')).toBe(
+          undefined
+        );
       });
 
       it('should handle game settings API unavailability', () => {
@@ -519,12 +578,14 @@ describe('SettingsHandler Integration Tests', () => {
     describe('Integration with Handlers class', () => {
       it('should provide access to settings retrieval through Handlers convenience methods', () => {
         const handlers = { settings: settingsHandler };
-        
+
         // Simulate the Handlers class delegation methods
         const hasSetting = (key) => handlers.settings.hasSetting(key);
         const getSettingValue = (key) => handlers.settings.getSettingValue(key);
-        const hasDebugModeSetting = () => handlers.settings.hasDebugModeSetting();
-        const getDebugModeSettingValue = () => handlers.settings.getDebugModeSettingValue();
+        const hasDebugModeSetting = () =>
+          handlers.settings.hasDebugModeSetting();
+        const getDebugModeSettingValue = () =>
+          handlers.settings.getDebugModeSettingValue();
 
         expect(hasSetting('debugMode')).toBe(true);
         expect(getSettingValue('maxTokens')).toBe(25);
@@ -537,7 +598,9 @@ describe('SettingsHandler Integration Tests', () => {
       it('should handle complete workflow of checking config, registering, and retrieving values', () => {
         // 1. Check if setting exists in configuration
         expect(settingsHandler.hasSettingConfigByKey('debugMode')).toBe(true);
-        expect(settingsHandler.hasSettingConfigByKey('nonExistentSetting')).toBe(false);
+        expect(
+          settingsHandler.hasSettingConfigByKey('nonExistentSetting')
+        ).toBe(false);
 
         // 2. Get setting configuration details
         const debugConfig = settingsHandler.getSettingConfigByKey('debugMode');
@@ -554,7 +617,9 @@ describe('SettingsHandler Integration Tests', () => {
         expect(settingsHandler.getSettingValue('debugMode')).toBe(true);
 
         // 5. Compare config default vs actual value
-        expect(settingsHandler.getSettingValue('debugMode')).not.toBe(debugConfig.config.default);
+        expect(settingsHandler.getSettingValue('debugMode')).not.toBe(
+          debugConfig.config.default
+        );
       });
     });
   });

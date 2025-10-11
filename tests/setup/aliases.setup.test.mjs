@@ -14,8 +14,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '../../');
 
+// /\\/g swaps Windows backslashes with forward slashes so comparisons stay OS-agnostic.
 const normalizePath = (value) => path.normalize(value).replace(/\\/g, '/');
+// /\/$/ trims a single trailing slash so directory aliases have a stable key.
 const trimTrailingSlash = (value) => value.replace(/\/$/, '');
+// /\/$/ removes optional trailing slash; /\/\*$/ removes trailing wildcard when present.
 const normalizeAliasKey = (alias) =>
   alias.replace(/\/$/, '').replace(/\/\*$/, '');
 const normalizeAliasValue = (value) =>

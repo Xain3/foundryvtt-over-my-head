@@ -4,20 +4,28 @@
  * @path tests/integration/contextHelpers.smoke.int.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 
 // Mock dependencies to prevent raw import issues
 vi.mock('#utils/static/validator.mjs', async () => {
   const actual = await vi.importActual('../../src/utils/static/validator.mjs');
+  actual.Validator.isValidContext = vi.fn(() => true);
+  actual.Validator.isValidContextComponent = vi.fn(() => true);
+  actual.Validator.validateAndThrow = vi.fn();
+  actual.Validator.validateDate = vi.fn();
   return {
     ...actual,
-    Validator: {
-      isValidContext: vi.fn(() => true),
-      isValidContextComponent: vi.fn(() => true),
-      validateAndThrow: vi.fn(),
-      validateDate: vi.fn(),
-      ...actual.Validator
-    }
+    Validator: actual.Validator,
+    default: actual.default,
   };
 });
 
@@ -31,11 +39,11 @@ vi.mock('#helpers/pathUtils.mjs', async () => {
         const parts = key.split('.');
         return {
           firstKey: parts[0],
-          remainingPath: parts.slice(1).join('.')
+          remainingPath: parts.slice(1).join('.'),
         };
       }),
-      ...actual.default
-    }
+      ...actual.default,
+    },
   };
 });
 
@@ -55,7 +63,7 @@ describe('Context Helpers Integration Tests (Simplified)', () => {
     beforeEach(() => {
       container = new ContextContainer({
         player: { name: 'John', level: 5 },
-        settings: { volume: 0.8, theme: 'dark' }
+        settings: { volume: 0.8, theme: 'dark' },
       });
 
       item = new ContextItem('test value', { type: 'test' });
@@ -90,7 +98,9 @@ describe('Context Helpers Integration Tests (Simplified)', () => {
     it('should compare ContextItem timestamps correctly', () => {
       const comparison = ContextComparison.compare(item1, item2);
 
-      expect(comparison.result).toBe(ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER);
+      expect(comparison.result).toBe(
+        ContextComparison.COMPARISON_RESULTS.CONTAINER_A_NEWER
+      );
       expect(comparison.timeDifference).toBeGreaterThan(0);
     });
   });
@@ -105,7 +115,10 @@ describe('Context Helpers Integration Tests (Simplified)', () => {
     });
 
     it('should sync items using ContextItemSync', () => {
-      const result = ContextItemSync.updateTargetToMatchSource(sourceItem, targetItem);
+      const result = ContextItemSync.updateTargetToMatchSource(
+        sourceItem,
+        targetItem
+      );
 
       expect(result.success).toBe(true);
       expect(targetItem.value).toBe('source value');
@@ -130,12 +143,12 @@ describe('Context Helpers Integration Tests (Simplified)', () => {
     beforeEach(() => {
       sourceContainer = new ContextContainer({
         data: 'source data',
-        shared: 'source shared'
+        shared: 'source shared',
       });
 
       targetContainer = new ContextContainer({
         data: 'target data',
-        shared: 'target shared'
+        shared: 'target shared',
       });
     });
 
@@ -146,7 +159,9 @@ describe('Context Helpers Integration Tests (Simplified)', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.message).toContain('Target container updated to match source');
+      expect(result.message).toContain(
+        'Target container updated to match source'
+      );
     });
 
     it('should merge containers with newer wins', () => {
@@ -199,16 +214,25 @@ describe('Context Helpers Integration Tests (Simplified)', () => {
 
     it('should provide comparison through unified interface', () => {
       const itemComparison = ContextSync.compare(sourceItem, targetItem);
-      const containerComparison = ContextSync.compare(sourceContainer, targetContainer);
+      const containerComparison = ContextSync.compare(
+        sourceContainer,
+        targetContainer
+      );
 
       expect(itemComparison.result).toBeDefined();
       expect(containerComparison.result).toBeDefined();
     });
 
     it('should validate compatibility between objects', () => {
-      expect(ContextSync.validateCompatibility(sourceItem, targetItem)).toBe(true);
-      expect(ContextSync.validateCompatibility(sourceContainer, targetContainer)).toBe(true);
-      expect(ContextSync.validateCompatibility(sourceItem, targetContainer)).toBe(false);
+      expect(ContextSync.validateCompatibility(sourceItem, targetItem)).toBe(
+        true
+      );
+      expect(
+        ContextSync.validateCompatibility(sourceContainer, targetContainer)
+      ).toBe(true);
+      expect(
+        ContextSync.validateCompatibility(sourceItem, targetContainer)
+      ).toBe(false);
     });
   });
 
@@ -218,12 +242,16 @@ describe('Context Helpers Integration Tests (Simplified)', () => {
       const item2 = new ContextItem('test');
 
       // Test with invalid operation
-      await expect(ContextSync.sync(item1, item2, 'invalidOperation')).rejects.toThrow();
+      await expect(
+        ContextSync.sync(item1, item2, 'invalidOperation')
+      ).rejects.toThrow();
     });
 
     it('should handle null/undefined inputs', () => {
       expect(ContextSync.validateCompatibility(null, null)).toBe(false);
-      expect(ContextSync.validateCompatibility(undefined, undefined)).toBe(false);
+      expect(ContextSync.validateCompatibility(undefined, undefined)).toBe(
+        false
+      );
     });
   });
 });

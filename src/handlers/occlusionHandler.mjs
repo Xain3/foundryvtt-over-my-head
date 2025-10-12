@@ -1,6 +1,6 @@
-import Handler from '@/baseClasses/handler.mjs';
+import Handler from '#baseClasses/handler.mjs';
 import PlaceableHandler from './placeableHandler.mjs';
-import TileOcclusionManager from '../handlers/occlusionHelpers/tileOcclusionManager.mjs';
+import TileOcclusionManager from 'occlusionHelpers/tileOcclusionManager.mjs';
 
 const TOKEN_TYPE = 'token';
 const TILE_TYPE = 'tile';

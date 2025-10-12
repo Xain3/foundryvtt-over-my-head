@@ -39,6 +39,7 @@ hooks:
   settingsReady: "SettingsReady"  # The hook called when settings are ready
   contextReady: "ContextReady"  # The hook called when context is ready
   setting: ".setting"  # Base hook for setting changes - will become "OMH.setting.{settingKey}"
+  refreshAlsoFadeSettings: "refreshAlsoFadeSettings"  # The hook to call when settings need to be refreshed
 
 
 # Constants relative to context and state management

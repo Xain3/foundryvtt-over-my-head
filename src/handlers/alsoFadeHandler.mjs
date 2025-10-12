@@ -4,7 +4,7 @@
  * @path src/handlers/alsoFadeHandler.mjs
  */
 
-import Handler from '../baseClasses/handler.mjs';
+import Handler from '@/baseClasses/handler.mjs';
 import SettingsHandler from './settingsHandler.mjs';
 import TileHandler from './tileHandler.mjs';
 

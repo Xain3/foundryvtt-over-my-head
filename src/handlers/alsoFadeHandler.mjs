@@ -4,14 +4,14 @@
  * @path src/handlers/alsoFadeHandler.mjs
  */
 
-import Handler from '@/baseClasses/handler.mjs';
+import Handler from '#baseClasses/handler.mjs';
 import SettingsHandler from './settingsHandler.mjs';
 import TileHandler from './tileHandler.mjs';
 
 /* eslint-disable no-unused-vars */
-import Logger from '@/utils/logger.mjs';
-import Utilities from '@/utils/utils.mjs';
-import Context from '@/contexts/context.mjs';
+import Logger from '#utils/logger.mjs';
+import Utilities from '#utils/utils.mjs';
+import Context from '#contexts/context.mjs';
 /* eslint-enable no-unused-vars */
 
 /**
@@ -61,7 +61,7 @@ class AlsoFadeHandler extends Handler {
    * @throws {TypeError} When required parameters are missing or invalid
    */
   constructor(config, utils, context) {
-    super(config, utils, context);
+    super({ config, utils, context });
 
     // Validate required parameters
     if (!config?.manifest?.title) {
@@ -91,9 +91,9 @@ class AlsoFadeHandler extends Handler {
     // Lazy-loaded settings cache
     this._settingsCache = null;
 
-    // Hook to refresh settings when the refreshSettings hook is called
+    // Hook to refresh settings when the refreshAlsoFadeSettings hook is called
     if (typeof Hooks !== 'undefined') {
-      Hooks.on(this.utils.formatHookName('refreshSettings'), () =>
+      Hooks.on(this.utils.formatHookName('refreshAlsoFadeSettings'), () =>
         this.refreshSettings()
       );
     }

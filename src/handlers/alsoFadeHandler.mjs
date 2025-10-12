@@ -8,20 +8,26 @@ import Handler from '../baseClasses/handler.mjs';
 import SettingsHandler from './settingsHandler.mjs';
 import TileHandler from './tileHandler.mjs';
 
+/* eslint-disable no-unused-vars */
+import Logger from '@/utils/logger.mjs';
+import Utilities from '@/utils/utils.mjs';
+import Context from '@/contexts/context.mjs';
+/* eslint-enable no-unused-vars */
+
 /**
  * Handler for managing tile fade behavior and overrides.
- * 
+ *
  * This class manages the "alsoFade" feature which allows tiles to fade along with
  * other placeables. It provides methods to get/set tile and scene flags, manage
  * tile collections, and handle overrides for both tiles and scenes.
- * 
+ *
  * Uses a Set-based cache for better performance when managing tile collections.
  * Implements lazy getters for settings to avoid redundant lookups.
- * 
+ *
  * @class AlsoFadeHandler
  * @extends Handler
  * @export
- * 
+ *
  * **Public API:**
  * - `getTileAlsoFade(tile)` - Get the alsoFade flag for a tile
  * - `setTileAlsoFade(tile, value)` - Set the alsoFade flag for a tile (returns Promise)
@@ -34,7 +40,7 @@ import TileHandler from './tileHandler.mjs';
  * - `setTileOverride(tile, key, value)` - Set a single tile override (returns Promise)
  * - `collectAlsoFadeTiles(updateCache, returnValue)` - Collect all tiles with alsoFade enabled
  * - `alsoFadeTilesCache` - Get the cached Set of alsoFade tiles
- * 
+ *
  * **Inherited from Handler:**
  * - `config` - Configuration object with manifest and constants
  * - `utils` - Utilities object with logger and other helpers
@@ -43,15 +49,15 @@ import TileHandler from './tileHandler.mjs';
 class AlsoFadeHandler extends Handler {
   /**
    * Creates an instance of AlsoFadeHandler.
-   * 
+   *
    * @constructor
    * @param {Object} config - Configuration object
    * @param {Object} config.manifest - Module manifest
    * @param {string} config.manifest.title - Module title for flag namespacing
    * @param {Object} config.constants - Module constants
-   * @param {Object} utils - Utilities object
-   * @param {Object} utils.logger - Logger instance for logging
-   * @param {Object} context - Context object for state management
+   * @param {Utilities} utils - Utilities object
+   * @param {Logger} utils.logger - Logger instance for logging
+   * @param {Context} context - Context object for state management
    * @throws {TypeError} When required parameters are missing or invalid
    */
   constructor(config, utils, context) {
@@ -85,12 +91,19 @@ class AlsoFadeHandler extends Handler {
     // Lazy-loaded settings cache
     this._settingsCache = null;
 
+    // Hook to refresh settings when the refreshSettings hook is called
+    if (typeof Hooks !== 'undefined') {
+      Hooks.on(this.utils.formatHookName('refreshSettings'), () =>
+        this.refreshSettings()
+      );
+    }
+
     this.utils.logger.debug('AlsoFadeHandler initialized successfully');
   }
 
   /**
    * Lazy getter for settings. Only loads settings once and caches them.
-   * 
+   *
    * @private
    * @returns {Object} Settings object with module configuration
    */
@@ -100,7 +113,8 @@ class AlsoFadeHandler extends Handler {
         this._settingsCache = {
           useModule: this.settingsHandler.getSettingValue('useModule'),
           debugMode: this.settingsHandler.getSettingValue('debugMode'),
-          behaviorTokens: this.settingsHandler.getSettingValue('behaviorTokens'),
+          behaviorTokens:
+            this.settingsHandler.getSettingValue('behaviorTokens'),
           behaviorParty: this.settingsHandler.getSettingValue('behaviorParty'),
           behaviorGM: this.settingsHandler.getSettingValue('behaviorGM'),
         };
@@ -123,7 +137,7 @@ class AlsoFadeHandler extends Handler {
 
   /**
    * Gets the current alsoFade tiles cache as a Set.
-   * 
+   *
    * @returns {Set} Set of tiles with alsoFade enabled
    */
   get alsoFadeTilesCache() {
@@ -131,18 +145,31 @@ class AlsoFadeHandler extends Handler {
   }
 
   /**
+   * Refreshes the settings cache, forcing a reload on next access.
+   *
+   * @example
+   * handler.refreshSettings();
+   */
+  refreshSettings() {
+    this.utils.logger.debug('Refreshing settings');
+    this._settingsCache = null;
+  }
+
+  /**
    * Gets the alsoFade flag value for a tile.
-   * 
+   *
    * @param {Object} tile - The tile object to check
    * @returns {boolean} True if alsoFade is enabled, false otherwise
-   * 
+   *
    * @example
    * const shouldFade = handler.getTileAlsoFade(myTile);
    */
   getTileAlsoFade(tile) {
     // Edge case: validate tile parameter
     if (!tile || typeof tile !== 'object') {
-      this.utils.logger.warn('getTileAlsoFade called with invalid tile parameter');
+      this.utils.logger.warn(
+        'getTileAlsoFade called with invalid tile parameter'
+      );
       return false;
     }
 
@@ -165,11 +192,11 @@ class AlsoFadeHandler extends Handler {
 
   /**
    * Sets the alsoFade flag value for a tile.
-   * 
+   *
    * @param {Object} tile - The tile object to update
    * @param {boolean} value - The value to set for alsoFade
    * @returns {Promise<Object>|Promise<void>} Promise that resolves to the updated tile document
-   * 
+   *
    * @example
    * await handler.setTileAlsoFade(myTile, true);
    */
@@ -190,13 +217,19 @@ class AlsoFadeHandler extends Handler {
 
     // Edge case: validate value is boolean
     if (typeof value !== 'boolean') {
-      this.utils.logger.warn(`setTileAlsoFade called with non-boolean value: ${value}`);
+      this.utils.logger.warn(
+        `setTileAlsoFade called with non-boolean value: ${value}`
+      );
       value = Boolean(value);
     }
 
     try {
       this.utils.logger.debug(`Setting alsoFade flag to ${value} for tile`);
-      const result = await tile.setFlag(this.config.manifest.title, 'alsoFade', value);
+      const result = await tile.setFlag(
+        this.config.manifest.title,
+        'alsoFade',
+        value
+      );
       return result;
     } catch (error) {
       const errorMsg = `Error setting alsoFade flag: ${this.utils.formatError?.(error) || error.message}`;
@@ -207,10 +240,10 @@ class AlsoFadeHandler extends Handler {
 
   /**
    * Toggles the alsoFade flag value for a tile.
-   * 
+   *
    * @param {Object} tile - The tile object to toggle
    * @returns {Promise<Object>|Promise<void>} Promise that resolves to the updated tile document
-   * 
+   *
    * @example
    * await handler.toggleTileAlsoFade(myTile);
    */
@@ -224,7 +257,9 @@ class AlsoFadeHandler extends Handler {
 
     try {
       const current = this.getTileAlsoFade(tile);
-      this.utils.logger.debug(`Toggling alsoFade flag from ${current} to ${!current}`);
+      this.utils.logger.debug(
+        `Toggling alsoFade flag from ${current} to ${!current}`
+      );
       return await this.setTileAlsoFade(tile, !current);
     } catch (error) {
       const errorMsg = `Error toggling alsoFade flag: ${this.utils.formatError?.(error) || error.message}`;
@@ -235,17 +270,19 @@ class AlsoFadeHandler extends Handler {
 
   /**
    * Gets scene-level overrides for the module.
-   * 
+   *
    * @param {Object} scene - The scene object to check
    * @returns {Object} Object containing scene-level overrides
-   * 
+   *
    * @example
    * const overrides = handler.getSceneOverrides(game.scenes.current);
    */
   getSceneOverrides(scene) {
     // Edge case: validate scene parameter
     if (!scene || typeof scene !== 'object') {
-      this.utils.logger.warn('getSceneOverrides called with invalid scene parameter');
+      this.utils.logger.warn(
+        'getSceneOverrides called with invalid scene parameter'
+      );
       return {};
     }
 
@@ -256,7 +293,8 @@ class AlsoFadeHandler extends Handler {
     }
 
     try {
-      const sceneFlags = scene.getFlag(this.config.manifest.title, 'overrides') || {};
+      const sceneFlags =
+        scene.getFlag(this.config.manifest.title, 'overrides') || {};
       this.utils.logger.debug('Retrieved scene overrides');
       return { ...sceneFlags };
     } catch (error) {
@@ -268,11 +306,11 @@ class AlsoFadeHandler extends Handler {
 
   /**
    * Sets scene-level overrides for the module.
-   * 
+   *
    * @param {Object} scene - The scene object to update
    * @param {Object} overrides - The overrides object to set
    * @returns {Promise<Object>|Promise<void>} Promise that resolves to the updated scene document
-   * 
+   *
    * @example
    * await handler.setSceneOverrides(game.scenes.current, { fadeDistance: 100 });
    */
@@ -293,13 +331,19 @@ class AlsoFadeHandler extends Handler {
 
     // Edge case: validate overrides parameter
     if (!overrides || typeof overrides !== 'object') {
-      this.utils.logger.warn('setSceneOverrides called with invalid overrides parameter');
+      this.utils.logger.warn(
+        'setSceneOverrides called with invalid overrides parameter'
+      );
       overrides = {};
     }
 
     try {
       this.utils.logger.debug('Setting scene overrides');
-      const result = await scene.setFlag(this.config.manifest.title, 'overrides', overrides);
+      const result = await scene.setFlag(
+        this.config.manifest.title,
+        'overrides',
+        overrides
+      );
       return result;
     } catch (error) {
       const errorMsg = `Error setting scene overrides: ${this.utils.formatError?.(error) || error.message}`;
@@ -310,12 +354,12 @@ class AlsoFadeHandler extends Handler {
 
   /**
    * Sets a single scene-level override.
-   * 
+   *
    * @param {Object} scene - The scene object to update
    * @param {string} key - The override key
    * @param {*} value - The override value
    * @returns {Promise<Object>|Promise<void>} Promise that resolves to the updated scene document
-   * 
+   *
    * @example
    * await handler.setSceneOverride(game.scenes.current, 'fadeDistance', 100);
    */
@@ -329,7 +373,9 @@ class AlsoFadeHandler extends Handler {
 
     // Edge case: validate key parameter
     if (!key || typeof key !== 'string') {
-      this.utils.logger.warn('setSceneOverride called with invalid key parameter');
+      this.utils.logger.warn(
+        'setSceneOverride called with invalid key parameter'
+      );
       return Promise.resolve();
     }
 
@@ -347,17 +393,19 @@ class AlsoFadeHandler extends Handler {
 
   /**
    * Gets tile-level overrides.
-   * 
+   *
    * @param {Object} tile - The tile object to check
    * @returns {Object} Object containing tile-level overrides
-   * 
+   *
    * @example
    * const overrides = handler.getTileOverrides(myTile);
    */
   getTileOverrides(tile) {
     // Edge case: validate tile parameter
     if (!tile || typeof tile !== 'object') {
-      this.utils.logger.warn('getTileOverrides called with invalid tile parameter');
+      this.utils.logger.warn(
+        'getTileOverrides called with invalid tile parameter'
+      );
       return {};
     }
 
@@ -368,7 +416,8 @@ class AlsoFadeHandler extends Handler {
     }
 
     try {
-      const tileFlags = tile.getFlag(this.config.manifest.title, 'overrides') || {};
+      const tileFlags =
+        tile.getFlag(this.config.manifest.title, 'overrides') || {};
       this.utils.logger.debug('Retrieved tile overrides');
       return { ...tileFlags };
     } catch (error) {
@@ -380,11 +429,11 @@ class AlsoFadeHandler extends Handler {
 
   /**
    * Sets tile-level overrides.
-   * 
+   *
    * @param {Object} tile - The tile object to update
    * @param {Object} overrides - The overrides object to set
    * @returns {Promise<Object>|Promise<void>} Promise that resolves to the updated tile document
-   * 
+   *
    * @example
    * await handler.setTileOverrides(myTile, { opacity: 0.5 });
    */
@@ -405,13 +454,19 @@ class AlsoFadeHandler extends Handler {
 
     // Edge case: validate overrides parameter
     if (!overrides || typeof overrides !== 'object') {
-      this.utils.logger.warn('setTileOverrides called with invalid overrides parameter');
+      this.utils.logger.warn(
+        'setTileOverrides called with invalid overrides parameter'
+      );
       overrides = {};
     }
 
     try {
       this.utils.logger.debug('Setting tile overrides');
-      const result = await tile.setFlag(this.config.manifest.title, 'overrides', overrides);
+      const result = await tile.setFlag(
+        this.config.manifest.title,
+        'overrides',
+        overrides
+      );
       return result;
     } catch (error) {
       const errorMsg = `Error setting tile overrides: ${this.utils.formatError?.(error) || error.message}`;
@@ -422,12 +477,12 @@ class AlsoFadeHandler extends Handler {
 
   /**
    * Sets a single tile-level override.
-   * 
+   *
    * @param {Object} tile - The tile object to update
    * @param {string} key - The override key
    * @param {*} value - The override value
    * @returns {Promise<Object>|Promise<void>} Promise that resolves to the updated tile document
-   * 
+   *
    * @example
    * await handler.setTileOverride(myTile, 'opacity', 0.5);
    */
@@ -441,7 +496,9 @@ class AlsoFadeHandler extends Handler {
 
     // Edge case: validate key parameter
     if (!key || typeof key !== 'string') {
-      this.utils.logger.warn('setTileOverride called with invalid key parameter');
+      this.utils.logger.warn(
+        'setTileOverride called with invalid key parameter'
+      );
       return Promise.resolve();
     }
 
@@ -459,24 +516,26 @@ class AlsoFadeHandler extends Handler {
 
   /**
    * Collects all tiles that have the alsoFade flag enabled.
-   * 
+   *
    * @param {boolean} [updateCache=true] - Whether to update the internal cache
    * @param {boolean} [returnValue=true] - Whether to return the array of tiles
    * @returns {Array|undefined} Array of tiles with alsoFade enabled, or undefined if returnValue is false
-   * 
+   *
    * @example
    * // Update cache and get tiles
    * const fadeTiles = handler.collectAlsoFadeTiles();
-   * 
+   *
    * // Only update cache, don't return
    * handler.collectAlsoFadeTiles(true, false);
-   * 
+   *
    * // Get tiles without updating cache
    * const fadeTiles = handler.collectAlsoFadeTiles(false, true);
    */
   collectAlsoFadeTiles(updateCache = true, returnValue = true) {
     try {
-      this.utils.logger.debug(`Collecting alsoFade tiles (updateCache: ${updateCache}, returnValue: ${returnValue})`);
+      this.utils.logger.debug(
+        `Collecting alsoFade tiles (updateCache: ${updateCache}, returnValue: ${returnValue})`
+      );
 
       const tiles = this.tileHandler.getAll();
 
@@ -493,12 +552,16 @@ class AlsoFadeHandler extends Handler {
         try {
           return this.getTileAlsoFade(tile);
         } catch (error) {
-          this.utils.logger.warn(`Error checking tile alsoFade status: ${error.message}`);
+          this.utils.logger.warn(
+            `Error checking tile alsoFade status: ${error.message}`
+          );
           return false;
         }
       });
 
-      this.utils.logger.debug(`Found ${alsoFadeTiles.length} tiles with alsoFade enabled`);
+      this.utils.logger.debug(
+        `Found ${alsoFadeTiles.length} tiles with alsoFade enabled`
+      );
 
       if (updateCache) {
         this._alsoFadeTilesCache.clear();

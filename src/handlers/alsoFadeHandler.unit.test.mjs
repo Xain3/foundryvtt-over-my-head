@@ -108,15 +108,22 @@ describe('AlsoFadeHandler', () => {
     it('should log debug messages during initialization', () => {
       handler = new AlsoFadeHandler(mockConfig, mockUtils, mockContext);
 
-      expect(mockLogger.debug).toHaveBeenCalledWith('Initializing AlsoFadeHandler');
-      expect(mockLogger.debug).toHaveBeenCalledWith('AlsoFadeHandler initialized successfully');
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        'Initializing AlsoFadeHandler'
+      );
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        'AlsoFadeHandler initialized successfully'
+      );
     });
   });
 
   describe('_settings lazy getter', () => {
     it('should load settings on first access', () => {
       handler = new AlsoFadeHandler(mockConfig, mockUtils, mockContext);
-      const settingsHandlerSpy = vi.spyOn(handler.settingsHandler, 'getSettingValue');
+      const settingsHandlerSpy = vi.spyOn(
+        handler.settingsHandler,
+        'getSettingValue'
+      );
 
       const settings = handler._settings;
 
@@ -128,7 +135,10 @@ describe('AlsoFadeHandler', () => {
 
     it('should cache settings after first access', () => {
       handler = new AlsoFadeHandler(mockConfig, mockUtils, mockContext);
-      const settingsHandlerSpy = vi.spyOn(handler.settingsHandler, 'getSettingValue');
+      const settingsHandlerSpy = vi.spyOn(
+        handler.settingsHandler,
+        'getSettingValue'
+      );
 
       // First access
       const settings1 = handler._settings;
@@ -144,9 +154,11 @@ describe('AlsoFadeHandler', () => {
 
     it('should return fallback settings on error', () => {
       handler = new AlsoFadeHandler(mockConfig, mockUtils, mockContext);
-      vi.spyOn(handler.settingsHandler, 'getSettingValue').mockImplementation(() => {
-        throw new Error('Settings error');
-      });
+      vi.spyOn(handler.settingsHandler, 'getSettingValue').mockImplementation(
+        () => {
+          throw new Error('Settings error');
+        }
+      );
 
       const settings = handler._settings;
 
@@ -165,7 +177,9 @@ describe('AlsoFadeHandler', () => {
       const result = handler.getTileAlsoFade(null);
 
       expect(result).toBe(false);
-      expect(mockLogger.warn).toHaveBeenCalledWith('getTileAlsoFade called with invalid tile parameter');
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'getTileAlsoFade called with invalid tile parameter'
+      );
     });
 
     it('should return false for undefined tile', () => {
@@ -188,7 +202,9 @@ describe('AlsoFadeHandler', () => {
       const result = handler.getTileAlsoFade(invalidTile);
 
       expect(result).toBe(false);
-      expect(mockLogger.warn).toHaveBeenCalledWith('Tile does not have getFlag method');
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'Tile does not have getFlag method'
+      );
     });
 
     it('should return true when alsoFade flag is true', () => {
@@ -245,7 +261,9 @@ describe('AlsoFadeHandler', () => {
       const result = await handler.setTileAlsoFade(null, true);
 
       expect(result).toBeUndefined();
-      expect(mockLogger.warn).toHaveBeenCalledWith('setTileAlsoFade called with invalid tile parameter');
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'setTileAlsoFade called with invalid tile parameter'
+      );
     });
 
     it('should return resolved promise for undefined tile', async () => {
@@ -261,7 +279,9 @@ describe('AlsoFadeHandler', () => {
       const result = await handler.setTileAlsoFade(invalidTile, true);
 
       expect(result).toBeUndefined();
-      expect(mockLogger.warn).toHaveBeenCalledWith('Tile does not have setFlag method');
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'Tile does not have setFlag method'
+      );
     });
 
     it('should convert non-boolean values to boolean', async () => {
@@ -271,8 +291,14 @@ describe('AlsoFadeHandler', () => {
 
       await handler.setTileAlsoFade(tile, 'truthy string');
 
-      expect(tile.setFlag).toHaveBeenCalledWith('test-module', 'alsoFade', true);
-      expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('non-boolean value'));
+      expect(tile.setFlag).toHaveBeenCalledWith(
+        'test-module',
+        'alsoFade',
+        true
+      );
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('non-boolean value')
+      );
     });
 
     it('should set alsoFade flag to true', async () => {
@@ -284,7 +310,11 @@ describe('AlsoFadeHandler', () => {
       const result = await handler.setTileAlsoFade(tile, true);
 
       expect(result).toBe(mockResult);
-      expect(tile.setFlag).toHaveBeenCalledWith('test-module', 'alsoFade', true);
+      expect(tile.setFlag).toHaveBeenCalledWith(
+        'test-module',
+        'alsoFade',
+        true
+      );
     });
 
     it('should set alsoFade flag to false', async () => {
@@ -296,7 +326,11 @@ describe('AlsoFadeHandler', () => {
       const result = await handler.setTileAlsoFade(tile, false);
 
       expect(result).toBe(mockResult);
-      expect(tile.setFlag).toHaveBeenCalledWith('test-module', 'alsoFade', false);
+      expect(tile.setFlag).toHaveBeenCalledWith(
+        'test-module',
+        'alsoFade',
+        false
+      );
     });
 
     it('should throw error when setFlag fails', async () => {
@@ -304,7 +338,9 @@ describe('AlsoFadeHandler', () => {
         setFlag: vi.fn().mockRejectedValue(new Error('setFlag error')),
       };
 
-      await expect(handler.setTileAlsoFade(tile, true)).rejects.toThrow('setFlag error');
+      await expect(handler.setTileAlsoFade(tile, true)).rejects.toThrow(
+        'setFlag error'
+      );
       expect(mockLogger.error).toHaveBeenCalled();
     });
   });
@@ -331,7 +367,11 @@ describe('AlsoFadeHandler', () => {
       const result = await handler.toggleTileAlsoFade(tile);
 
       expect(result).toBe(mockResult);
-      expect(tile.setFlag).toHaveBeenCalledWith('test-module', 'alsoFade', true);
+      expect(tile.setFlag).toHaveBeenCalledWith(
+        'test-module',
+        'alsoFade',
+        true
+      );
     });
 
     it('should toggle from true to false', async () => {
@@ -344,7 +384,11 @@ describe('AlsoFadeHandler', () => {
       const result = await handler.toggleTileAlsoFade(tile);
 
       expect(result).toBe(mockResult);
-      expect(tile.setFlag).toHaveBeenCalledWith('test-module', 'alsoFade', false);
+      expect(tile.setFlag).toHaveBeenCalledWith(
+        'test-module',
+        'alsoFade',
+        false
+      );
     });
 
     it('should throw error when toggle fails', async () => {
@@ -353,7 +397,9 @@ describe('AlsoFadeHandler', () => {
         setFlag: vi.fn().mockRejectedValue(new Error('toggle error')),
       };
 
-      await expect(handler.toggleTileAlsoFade(tile)).rejects.toThrow('toggle error');
+      await expect(handler.toggleTileAlsoFade(tile)).rejects.toThrow(
+        'toggle error'
+      );
       expect(mockLogger.error).toHaveBeenCalled();
     });
   });
@@ -367,7 +413,9 @@ describe('AlsoFadeHandler', () => {
       const result = handler.getSceneOverrides(null);
 
       expect(result).toEqual({});
-      expect(mockLogger.warn).toHaveBeenCalledWith('getSceneOverrides called with invalid scene parameter');
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'getSceneOverrides called with invalid scene parameter'
+      );
     });
 
     it('should return empty object if scene does not have getFlag method', () => {
@@ -376,7 +424,9 @@ describe('AlsoFadeHandler', () => {
       const result = handler.getSceneOverrides(invalidScene);
 
       expect(result).toEqual({});
-      expect(mockLogger.warn).toHaveBeenCalledWith('Scene does not have getFlag method');
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'Scene does not have getFlag method'
+      );
     });
 
     it('should return scene overrides', () => {
@@ -435,8 +485,14 @@ describe('AlsoFadeHandler', () => {
 
       await handler.setSceneOverrides(scene, null);
 
-      expect(scene.setFlag).toHaveBeenCalledWith('test-module', 'overrides', {});
-      expect(mockLogger.warn).toHaveBeenCalledWith('setSceneOverrides called with invalid overrides parameter');
+      expect(scene.setFlag).toHaveBeenCalledWith(
+        'test-module',
+        'overrides',
+        {}
+      );
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'setSceneOverrides called with invalid overrides parameter'
+      );
     });
 
     it('should set scene overrides', async () => {
@@ -449,7 +505,11 @@ describe('AlsoFadeHandler', () => {
       const result = await handler.setSceneOverrides(scene, mockOverrides);
 
       expect(result).toBe(mockResult);
-      expect(scene.setFlag).toHaveBeenCalledWith('test-module', 'overrides', mockOverrides);
+      expect(scene.setFlag).toHaveBeenCalledWith(
+        'test-module',
+        'overrides',
+        mockOverrides
+      );
     });
 
     it('should throw error when setFlag fails', async () => {
@@ -457,7 +517,9 @@ describe('AlsoFadeHandler', () => {
         setFlag: vi.fn().mockRejectedValue(new Error('setFlag error')),
       };
 
-      await expect(handler.setSceneOverrides(scene, {})).rejects.toThrow('setFlag error');
+      await expect(handler.setSceneOverrides(scene, {})).rejects.toThrow(
+        'setFlag error'
+      );
       expect(mockLogger.error).toHaveBeenCalled();
     });
   });
@@ -483,7 +545,9 @@ describe('AlsoFadeHandler', () => {
       const result = await handler.setSceneOverride(scene, null, 'value');
 
       expect(result).toBeUndefined();
-      expect(mockLogger.warn).toHaveBeenCalledWith('setSceneOverride called with invalid key parameter');
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'setSceneOverride called with invalid key parameter'
+      );
     });
 
     it('should set a single scene override', async () => {
@@ -551,7 +615,11 @@ describe('AlsoFadeHandler', () => {
       const result = await handler.setTileOverrides(tile, mockOverrides);
 
       expect(result).toBe(mockResult);
-      expect(tile.setFlag).toHaveBeenCalledWith('test-module', 'overrides', mockOverrides);
+      expect(tile.setFlag).toHaveBeenCalledWith(
+        'test-module',
+        'overrides',
+        mockOverrides
+      );
     });
   });
 
@@ -613,7 +681,11 @@ describe('AlsoFadeHandler', () => {
       const tile2 = { id: 'tile2', getFlag: vi.fn().mockReturnValue(false) };
       const tile3 = { id: 'tile3', getFlag: vi.fn().mockReturnValue(true) };
 
-      vi.spyOn(handler.tileHandler, 'getAll').mockReturnValue([tile1, tile2, tile3]);
+      vi.spyOn(handler.tileHandler, 'getAll').mockReturnValue([
+        tile1,
+        tile2,
+        tile3,
+      ]);
 
       const result = handler.collectAlsoFadeTiles();
 

@@ -1,10 +1,10 @@
 /**
  * @file tileOcclusionManager.js
-import PlaceableHandler from '../placeableHandler.mjs';
+ * @description Handles tile occlusion operations.
  * @path src/handlers/occlusionHelpers/tileOcclusionManager.js
  */
 
-import PlaceableHandler from '../placeableHandler.js';
+import PlaceableHandler from '../placeableHandler.mjs';
 
 /**
  * @class TileOcclusionManager

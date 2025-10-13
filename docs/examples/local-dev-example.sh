@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -u
 # Example: Using Environment Variables for Local Development
 #
 # This script shows different ways to use environment variables

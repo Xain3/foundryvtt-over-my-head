@@ -5,6 +5,7 @@
  */
 
 import GameManager from './static/gameManager.mjs';
+import EnvFlagResolver from '#configHelpers/envFlagResolver.mjs';
 
 /**
  * Private helper function to check for environment variable override.
@@ -14,41 +15,7 @@ import GameManager from './static/gameManager.mjs';
  * @returns {boolean|undefined} The debug mode value from environment, or undefined if not set
  */
 const getEnvDebugModeOverride = (moduleId) => {
-  // Only check environment variables in Node.js environment
-  if (typeof process === 'undefined' || !process.env) {
-    return undefined;
-  }
-
-  // Convert module ID to UPPER_SNAKE_CASE
-  const envModuleId = moduleId.replace(/-/g, '_').toUpperCase();
-
-  // Extract short name (e.g., "foundryvtt-over-my-head" -> "OMH")
-  const shortName = moduleId
-    .split(/[-_]/)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase();
-
-  // Check environment variables in priority order
-  const envVarNames = [
-    `${envModuleId}_DEBUG_MODE`, // FOUNDRYVTT_OVER_MY_HEAD_DEBUG_MODE
-    `${shortName}_DEBUG_MODE`, // OMH_DEBUG_MODE
-    'DEBUG_MODE', // DEBUG_MODE
-  ];
-
-  for (const envVarName of envVarNames) {
-    const value = process.env[envVarName];
-    if (value !== undefined) {
-      // Parse boolean strings
-      const trimmed = String(value).trim().toLowerCase();
-      if (trimmed === 'true') return true;
-      if (trimmed === 'false') return false;
-      // Treat any other truthy value as true
-      return Boolean(value);
-    }
-  }
-
-  return undefined;
+  return EnvFlagResolver.resolveFlag('debugMode', moduleId, undefined);
 };
 
 /**

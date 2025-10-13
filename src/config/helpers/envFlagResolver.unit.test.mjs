@@ -19,7 +19,7 @@ describe('EnvFlagResolver', () => {
     delete process.env.TEST_MODULE_DEBUG_MODE;
     delete process.env.TM_DEBUG_MODE;
     delete process.env.FOUNDRYVTT_OVER_MY_HEAD_DEBUG_MODE;
-    delete process.env.FOMH_DEBUG_MODE;
+    delete process.env.OMH_DEBUG_MODE;
   });
 
   afterEach(() => {
@@ -100,7 +100,7 @@ describe('EnvFlagResolver', () => {
     });
 
     it('should extract correct short name from multi-part module ID', () => {
-      process.env.FOMH_DEBUG_MODE = 'true';
+      process.env.OMH_DEBUG_MODE = 'true';
       const result = EnvFlagResolver.resolveFlag(
         'debugMode',
         'foundryvtt-over-my-head',

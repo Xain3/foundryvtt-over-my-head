@@ -13,6 +13,7 @@ Implemented a comprehensive environment variable-based flag management system th
 ### 1. Environment Variable Priority
 
 Flags are now resolved in the following priority order:
+
 1. **Environment Variables** (NEW - Highest Priority)
 2. Game Settings (user preferences in Foundry)
 3. Module Flags (from module.json)
@@ -21,13 +22,15 @@ Flags are now resolved in the following priority order:
 ### 2. Multiple Naming Patterns
 
 Three environment variable naming patterns are supported (checked in order):
+
 - Full module ID: `FOUNDRYVTT_OVER_MY_HEAD_DEBUG_MODE=true`
-- Short name: `FOMH_DEBUG_MODE=true` ⭐ Recommended
+- Short name: `OMH_DEBUG_MODE=true` ⭐ Recommended
 - Simple: `DEBUG_MODE=true`
 
 ### 3. Automatic Type Parsing
 
 Environment variable values are automatically parsed to the correct JavaScript type:
+
 - `"true"` / `"false"` → Boolean
 - `"123"` → Number
 - `'{"key":"value"}'` → Object (JSON)
@@ -42,7 +45,7 @@ Environment variable values are automatically parsed to the correct JavaScript t
    - Main utility for environment variable resolution
    - 265 lines of code
    - Handles all naming patterns and type parsing
-   
+
 2. **Tests** - `src/config/helpers/envFlagResolver.unit.test.mjs`
    - 41 comprehensive unit tests
    - Tests all naming patterns, priorities, and edge cases
@@ -91,15 +94,15 @@ Environment variable values are automatically parsed to the correct JavaScript t
 
 ```bash
 # Enable debug mode for single command
-FOMH_DEBUG_MODE=true npm run dev
+OMH_DEBUG_MODE=true npm run dev
 
 # Enable debug mode for entire session
-export FOMH_DEBUG_MODE=true
+export OMH_DEBUG_MODE=true
 npm run dev
 npm test
 
 # Test with production settings
-FOMH_DEBUG_MODE=false FOMH_DEV=false npm run build
+OMH_DEBUG_MODE=false OMH_DEV=false npm run build
 ```
 
 ### CI/CD (GitHub Actions)
@@ -109,8 +112,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      FOMH_DEBUG_MODE: true
-      FOMH_DEV: false
+      OMH_DEBUG_MODE: true
+      OMH_DEV: false
     steps:
       - run: npm test
 ```
@@ -121,18 +124,20 @@ jobs:
 services:
   foundry:
     environment:
-      - FOMH_DEBUG_MODE=true
-      - FOMH_DEV=true
+      - OMH_DEBUG_MODE=true
+      - OMH_DEV=true
 ```
 
 ## Test Coverage
 
 ### Unit Tests
+
 - **EnvFlagResolver**: 41 tests covering all functionality
 - **ManifestParser Integration**: 11 tests (4 new for env overrides)
 - **Total**: 2294 tests passing ✓
 
 ### Test Categories
+
 - Flag resolution with different naming patterns
 - Priority resolution
 - Type parsing (boolean, numeric, JSON)
@@ -150,17 +155,20 @@ services:
 ## Benefits
 
 ### For Development
+
 - Quickly toggle debug mode without editing files
 - Test different configurations easily
 - No risk of accidentally committing debug settings
 
 ### For CI/CD
+
 - Enable debug logging for failing tests
 - Matrix testing with different flag combinations
 - Environment-specific builds
 - Conditional debugging based on workflow triggers
 
 ### For Production
+
 - Clear separation between environments
 - Environment variables take precedence over hardcoded values
 - Easy to verify production settings
@@ -168,6 +176,7 @@ services:
 ## Backward Compatibility
 
 ✅ **Fully backward compatible**
+
 - No breaking changes to existing code
 - Existing flag resolution still works
 - Environment variables are additive (optional)
@@ -182,11 +191,13 @@ services:
 ## Documentation
 
 ### Primary Documentation
+
 - `docs/FLAG_MANAGEMENT.md` - Complete guide
 - `QUICKSTART_FLAG_MANAGEMENT.md` - Quick reference
 - `README.md` - Getting started section
 
 ### Examples & References
+
 - `docs/examples/ci-debug-example.yml` - CI/CD examples
 - `docs/examples/local-dev-example.sh` - Local dev examples
 - `docs/examples/README.md` - Examples overview
@@ -203,7 +214,7 @@ import EnvFlagResolver from './config/helpers/envFlagResolver.mjs';
 const debugMode = EnvFlagResolver.resolveFlag(
   'debugMode',
   'foundryvtt-over-my-head',
-  false  // default
+  false // default
 );
 
 // Resolve multiple flags
@@ -223,6 +234,7 @@ const hasOverride = EnvFlagResolver.hasEnvOverride(
 ## Future Enhancements
 
 Potential improvements (not implemented):
+
 - `.env` file support (requires dotenv dependency)
 - Config file support (e.g., `.omhrc`)
 - Command-line argument support
@@ -232,6 +244,7 @@ Potential improvements (not implemented):
 ## Files Changed Summary
 
 **Created:**
+
 - `src/config/helpers/envFlagResolver.mjs` (265 lines)
 - `src/config/helpers/envFlagResolver.unit.test.mjs` (314 lines)
 - `docs/FLAG_MANAGEMENT.md` (283 lines)
@@ -242,12 +255,14 @@ Potential improvements (not implemented):
 - `IMPLEMENTATION_SUMMARY.md` (this file)
 
 **Modified:**
+
 - `src/config/helpers/manifestParser.mjs` (+34 lines)
 - `src/config/helpers/manifestParser.unit.test.mjs` (+59 lines)
 - `src/utils/logger.mjs` (+66 lines)
 - `README.md` (+9 lines)
 
 **Total Changes:**
+
 - **Lines Added**: ~1,491
 - **Lines Modified**: ~168
 - **New Tests**: 45

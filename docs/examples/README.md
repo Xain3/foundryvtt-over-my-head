@@ -7,6 +7,7 @@ This directory contains practical examples for using the flexible flag managemen
 ### [ci-debug-example.yml](ci-debug-example.yml)
 
 GitHub Actions workflow examples showing:
+
 - Production mode testing (debug disabled)
 - Debug mode testing with enhanced logging
 - Matrix testing with different flag combinations
@@ -18,6 +19,7 @@ GitHub Actions workflow examples showing:
 ### [local-dev-example.sh](local-dev-example.sh)
 
 Shell script examples for local development showing:
+
 - Running with debug mode enabled
 - Testing with different configurations
 - Setting session-wide environment variables
@@ -33,10 +35,10 @@ Shell script examples for local development showing:
 
 ```bash
 # For a single command
-FOMH_DEBUG_MODE=true npm run dev
+OMH_DEBUG_MODE=true npm run dev
 
 # For entire session
-export FOMH_DEBUG_MODE=true
+export OMH_DEBUG_MODE=true
 npm run dev  # Will use debug mode
 npm test     # Will also use debug mode
 ```
@@ -49,8 +51,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      FOMH_DEBUG_MODE: true
-      FOMH_DEV: true
+      OMH_DEBUG_MODE: true
+      OMH_DEV: true
     steps:
       - run: npm test
 ```
@@ -59,27 +61,28 @@ jobs:
 
 ```bash
 # Development mode
-FOMH_DEBUG_MODE=true FOMH_DEV=true npm run dev
+OMH_DEBUG_MODE=true OMH_DEV=true npm run dev
 
 # Production testing
-FOMH_DEBUG_MODE=false FOMH_DEV=false npm run build
+OMH_DEBUG_MODE=false OMH_DEV=false npm run build
 
 # Debug tests only
-FOMH_DEBUG_MODE=true npm run test:unit
+OMH_DEBUG_MODE=true npm run test:unit
 ```
 
 ## Environment Variable Reference
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `FOMH_DEBUG_MODE` | `false` | Enable debug logging throughout the module |
-| `FOMH_DEV` | `true` | Enable development-specific features |
-| `FOUNDRYVTT_OVER_MY_HEAD_DEBUG_MODE` | - | Full module ID pattern (highest priority) |
-| `DEBUG_MODE` | - | Global fallback pattern |
+| Variable                             | Default | Description                                |
+| ------------------------------------ | ------- | ------------------------------------------ |
+| `OMH_DEBUG_MODE`                     | `false` | Enable debug logging throughout the module |
+| `OMH_DEV`                            | `true`  | Enable development-specific features       |
+| `FOUNDRYVTT_OVER_MY_HEAD_DEBUG_MODE` | -       | Full module ID pattern (highest priority)  |
+| `DEBUG_MODE`                         | -       | Global fallback pattern                    |
 
 ## More Information
 
 See the main [Flag Management Documentation](../FLAG_MANAGEMENT.md) for:
+
 - Complete flag resolution priority
 - All naming patterns
 - Troubleshooting guide

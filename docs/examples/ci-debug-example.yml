@@ -7,65 +7,65 @@ name: CI with Debug Flags
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   # Standard test job with debug mode disabled
   test:
     name: Run Tests (Production Mode)
     runs-on: ubuntu-latest
-    
+
     env:
       # Explicitly disable debug mode for production-like testing
-      FOMH_DEBUG_MODE: false
-      FOMH_DEV: false
-    
+      OMH_DEBUG_MODE: false
+      OMH_DEV: false
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run tests
         run: npm test
-  
+
   # Debug test job with enhanced logging
   test-debug:
     name: Run Tests (Debug Mode)
     runs-on: ubuntu-latest
-    
+
     # Only run debug tests on specific conditions
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/develop'
-    
+
     env:
       # Enable debug mode for detailed logging
-      FOMH_DEBUG_MODE: true
+      OMH_DEBUG_MODE: true
       # Keep dev mode enabled for development features
-      FOMH_DEV: true
-    
+      OMH_DEV: true
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run tests with debug output
         run: npm test
-      
+
       - name: Upload debug logs
         if: failure()
         uses: actions/upload-artifact@v4

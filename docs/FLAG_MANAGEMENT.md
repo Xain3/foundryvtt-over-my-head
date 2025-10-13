@@ -35,7 +35,7 @@ For maximum flexibility, the system checks multiple environment variable naming 
    - Most specific, highest priority among environment variables
 
 2. **Short Name Pattern**: `{SHORT_NAME}_{FLAG_NAME}`
-   - Example: `FOMH_DEBUG_MODE=true`
+   - Example: `OMH_DEBUG_MODE=true`
    - Convenient shorthand based on module initials
 
 3. **Simple Flag Name**: `{FLAG_NAME}`
@@ -46,7 +46,7 @@ For maximum flexibility, the system checks multiple environment variable naming 
 
 - Module IDs and flag names are converted to `UPPER_SNAKE_CASE`
 - Hyphens and camelCase are automatically converted
-- Short names are derived from module ID initials (e.g., "foundryvtt-over-my-head" → "FOMH")
+- Short names are derived from module ID initials (e.g., "foundryvtt-over-my-head" → "OMH")
 
 ## Supported Flags
 
@@ -55,15 +55,17 @@ For maximum flexibility, the system checks multiple environment variable naming 
 Controls debug logging throughout the module.
 
 **Environment Variables:**
+
 ```bash
 FOUNDRYVTT_OVER_MY_HEAD_DEBUG_MODE=true
-FOMH_DEBUG_MODE=true
+OMH_DEBUG_MODE=true
 DEBUG_MODE=true
 ```
 
 **Default Value:** `false` (from module.json)
 
 **Usage:**
+
 - Set to `true` to enable debug logging
 - Set to `false` to disable debug logging
 - Affects all `logger.debug()` calls in the module
@@ -73,15 +75,17 @@ DEBUG_MODE=true
 Controls development-specific features and behaviors.
 
 **Environment Variables:**
+
 ```bash
 FOUNDRYVTT_OVER_MY_HEAD_DEV=true
-FOMH_DEV=true
+OMH_DEV=true
 DEV=true
 ```
 
 **Default Value:** `true` (from module.json)
 
 **Usage:**
+
 - Enables development-specific features when `true`
 - Disables dev features in production when `false`
 
@@ -89,15 +93,15 @@ DEV=true
 
 Environment variable values are automatically parsed to the appropriate JavaScript type:
 
-| Environment Value | Parsed Result | Type |
-|-------------------|---------------|------|
-| `true` (any case) | `true` | Boolean |
-| `false` (any case) | `false` | Boolean |
-| `"123"` | `123` | Number (integer) |
-| `"3.14"` | `3.14` | Number (float) |
-| `'{"key":"value"}'` | `{key: "value"}` | Object (JSON) |
-| `'["a","b"]'` | `["a", "b"]` | Array (JSON) |
-| `"text"` | `"text"` | String |
+| Environment Value   | Parsed Result    | Type             |
+| ------------------- | ---------------- | ---------------- |
+| `true` (any case)   | `true`           | Boolean          |
+| `false` (any case)  | `false`          | Boolean          |
+| `"123"`             | `123`            | Number (integer) |
+| `"3.14"`            | `3.14`           | Number (float)   |
+| `'{"key":"value"}'` | `{key: "value"}` | Object (JSON)    |
+| `'["a","b"]'`       | `["a", "b"]`     | Array (JSON)     |
+| `"text"`            | `"text"`         | String           |
 
 ## Usage Examples
 
@@ -111,8 +115,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      FOMH_DEBUG_MODE: true
-      FOMH_DEV: false
+      OMH_DEBUG_MODE: true
+      OMH_DEV: false
     steps:
       - name: Run tests
         run: npm test
@@ -124,10 +128,10 @@ Set flags in your shell:
 
 ```bash
 # Enable debug mode for development
-export FOMH_DEBUG_MODE=true
+export OMH_DEBUG_MODE=true
 
 # Or set for a single command
-FOMH_DEBUG_MODE=true npm run dev
+OMH_DEBUG_MODE=true npm run dev
 ```
 
 ### Docker Compose
@@ -139,8 +143,8 @@ Set flags in your docker-compose configuration:
 services:
   foundry:
     environment:
-      - FOMH_DEBUG_MODE=true
-      - FOMH_DEV=true
+      - OMH_DEBUG_MODE=true
+      - OMH_DEV=true
 ```
 
 ### Production Environment
@@ -149,8 +153,8 @@ Ensure debug mode is disabled:
 
 ```bash
 # Explicitly disable debug mode
-export FOMH_DEBUG_MODE=false
-export FOMH_DEV=false
+export OMH_DEBUG_MODE=false
+export OMH_DEV=false
 
 # Or simply don't set the variables (will use defaults)
 ```
@@ -159,13 +163,13 @@ export FOMH_DEV=false
 
 ```bash
 # Test with debug mode enabled
-FOMH_DEBUG_MODE=true npm test
+OMH_DEBUG_MODE=true npm test
 
 # Test with debug mode disabled
-FOMH_DEBUG_MODE=false npm test
+OMH_DEBUG_MODE=false npm test
 
 # Test with production-like settings
-FOMH_DEBUG_MODE=false FOMH_DEV=false npm test
+OMH_DEBUG_MODE=false OMH_DEV=false npm test
 ```
 
 ## Programmatic Usage
@@ -192,7 +196,7 @@ import EnvFlagResolver from './config/helpers/envFlagResolver.mjs';
 const myFlag = EnvFlagResolver.resolveFlag(
   'myCustomFlag',
   'foundryvtt-over-my-head',
-  false  // default value
+  false // default value
 );
 
 // Resolve multiple flags
@@ -215,7 +219,7 @@ if (EnvFlagResolver.hasEnvOverride('debugMode', 'foundryvtt-over-my-head')) {
 1. **Use environment variables** for temporary debug mode changes
 2. **Don't commit** debug mode enabled in module.json
 3. **Document** any custom flags you add
-4. **Use the short name pattern** (e.g., `FOMH_DEBUG_MODE`) for convenience
+4. **Use the short name pattern** (e.g., `OMH_DEBUG_MODE`) for convenience
 
 ### CI/CD
 
@@ -265,6 +269,7 @@ See the following files for detailed API documentation:
 ## Examples Repository
 
 For complete working examples, see:
+
 - `.github/workflows/` - CI configuration examples
 - `docker/` - Docker environment examples (if available)
 - `tests/` - Test examples using environment variables

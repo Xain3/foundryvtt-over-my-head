@@ -11,26 +11,26 @@ echo ""
 
 # Example 1: Run with debug mode enabled
 echo "1. Running with debug mode enabled..."
-FOMH_DEBUG_MODE=true npm run dev
+OMH_DEBUG_MODE=true npm run dev
 echo ""
 
 # Example 2: Run tests with debug logging
 echo "2. Running tests with debug logging..."
-FOMH_DEBUG_MODE=true npm test
+OMH_DEBUG_MODE=true npm test
 echo ""
 
 # Example 3: Run with production-like settings
 echo "3. Running with production-like settings..."
-FOMH_DEBUG_MODE=false FOMH_DEV=false npm run build
+OMH_DEBUG_MODE=false OMH_DEV=false npm run build
 echo ""
 
 # Example 4: Set environment for entire session
 echo "4. Setting environment for entire session..."
-export FOMH_DEBUG_MODE=true
-export FOMH_DEV=true
+export OMH_DEBUG_MODE=true
+export OMH_DEV=true
 echo "Environment variables set:"
-echo "  FOMH_DEBUG_MODE=$FOMH_DEBUG_MODE"
-echo "  FOMH_DEV=$FOMH_DEV"
+echo "  OMH_DEBUG_MODE=$OMH_DEBUG_MODE"
+echo "  OMH_DEV=$OMH_DEV"
 echo ""
 echo "Now all commands will use these settings until you close the terminal"
 echo ""
@@ -39,12 +39,12 @@ echo ""
 echo "5. Example .env file content:"
 cat << 'DOTENV'
 # Development settings
-FOMH_DEBUG_MODE=true
-FOMH_DEV=true
+OMH_DEBUG_MODE=true
+OMH_DEV=true
 
 # Or for production testing:
-# FOMH_DEBUG_MODE=false
-# FOMH_DEV=false
+# OMH_DEBUG_MODE=false
+# OMH_DEV=false
 DOTENV
 echo ""
 
@@ -52,13 +52,13 @@ echo ""
 echo "6. Quick configuration presets:"
 echo ""
 echo "  Development (full debugging):"
-echo "    FOMH_DEBUG_MODE=true FOMH_DEV=true npm run dev"
+echo "    OMH_DEBUG_MODE=true OMH_DEV=true npm run dev"
 echo ""
 echo "  Testing (production-like):"
-echo "    FOMH_DEBUG_MODE=false FOMH_DEV=false npm test"
+echo "    OMH_DEBUG_MODE=false OMH_DEV=false npm test"
 echo ""
 echo "  Debug tests only:"
-echo "    FOMH_DEBUG_MODE=true npm run test:unit"
+echo "    OMH_DEBUG_MODE=true npm run test:unit"
 echo ""
 
 # Example 7: Using with Docker
@@ -68,8 +68,8 @@ cat << 'DOCKER'
 services:
   foundry:
     environment:
-      - FOMH_DEBUG_MODE=true
-      - FOMH_DEV=true
+      - OMH_DEBUG_MODE=true
+      - OMH_DEV=true
 DOCKER
 echo ""
 
@@ -77,9 +77,9 @@ echo ""
 echo "8. Convenience aliases for your shell:"
 cat << 'ALIASES'
 # Add to ~/.bashrc or ~/.zshrc:
-alias omh-dev='FOMH_DEBUG_MODE=true FOMH_DEV=true npm run dev'
-alias omh-test='FOMH_DEBUG_MODE=true npm test'
-alias omh-prod='FOMH_DEBUG_MODE=false FOMH_DEV=false npm run build'
+alias omh-dev='OMH_DEBUG_MODE=true OMH_DEV=true npm run dev'
+alias omh-test='OMH_DEBUG_MODE=true npm test'
+alias omh-prod='OMH_DEBUG_MODE=false OMH_DEV=false npm run build'
 ALIASES
 echo ""
 

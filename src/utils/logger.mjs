@@ -4,7 +4,7 @@
  * @path src/utils/logger.mjs
  */
 
-import GameManager from "./static/gameManager.mjs";
+import GameManager from './static/gameManager.mjs';
 
 /**
  * Private helper function to check for environment variable override.
@@ -21,19 +21,19 @@ const getEnvDebugModeOverride = (moduleId) => {
 
   // Convert module ID to UPPER_SNAKE_CASE
   const envModuleId = moduleId.replace(/-/g, '_').toUpperCase();
-  
-  // Extract short name (e.g., "foundryvtt-over-my-head" -> "FOMH")
+
+  // Extract short name (e.g., "foundryvtt-over-my-head" -> "OMH")
   const shortName = moduleId
     .split(/[-_]/)
-    .map(part => part[0])
+    .map((part) => part[0])
     .join('')
     .toUpperCase();
 
   // Check environment variables in priority order
   const envVarNames = [
-    `${envModuleId}_DEBUG_MODE`,  // FOUNDRYVTT_OVER_MY_HEAD_DEBUG_MODE
-    `${shortName}_DEBUG_MODE`,     // FOMH_DEBUG_MODE
-    'DEBUG_MODE'                    // DEBUG_MODE
+    `${envModuleId}_DEBUG_MODE`, // FOUNDRYVTT_OVER_MY_HEAD_DEBUG_MODE
+    `${shortName}_DEBUG_MODE`, // OMH_DEBUG_MODE
+    'DEBUG_MODE', // DEBUG_MODE
   ];
 
   for (const envVarName of envVarNames) {
@@ -58,7 +58,7 @@ const getEnvDebugModeOverride = (moduleId) => {
  * 2. Game settings (user preferences in Foundry)
  * 3. Module flags (from module.json)
  * 4. Constants default (fallback)
- * 
+ *
  * @private
  * @param {string} moduleId - The module ID to check settings for
  * @param {Object} constants - The constants object containing defaults
@@ -75,7 +75,10 @@ const getDebugModeValue = (moduleId, constants) => {
     if (debugMode !== undefined) return debugMode;
 
     // 3. Fallback to flags if available
-    if (typeof globalThis !== 'undefined' && globalThis.game?.modules?.get(moduleId)?.flags?.debugMode !== undefined) {
+    if (
+      typeof globalThis !== 'undefined' &&
+      globalThis.game?.modules?.get(moduleId)?.flags?.debugMode !== undefined
+    ) {
       return globalThis.game.modules.get(moduleId).flags.debugMode;
     }
 
@@ -182,7 +185,7 @@ class Logger {
   /**
    * Checks if debug mode is currently enabled for this module.
    * Checks in priority order:
-   * 1. Environment variables (e.g., FOUNDRYVTT_OVER_MY_HEAD_DEBUG_MODE, FOMH_DEBUG_MODE, DEBUG_MODE)
+   * 1. Environment variables (e.g., FOUNDRYVTT_OVER_MY_HEAD_DEBUG_MODE, OMH_DEBUG_MODE, DEBUG_MODE)
    * 2. Game settings (user preferences)
    * 3. Module flags (from module.json)
    * 4. Constants default
@@ -243,7 +246,10 @@ class Logger {
       } else if (typeof message === 'string') {
         formattedMessage = formatLogMessage(this.manifest.shortName, message);
       } else {
-        formattedMessage = formatLogMessage(this.manifest.shortName, String(message));
+        formattedMessage = formatLogMessage(
+          this.manifest.shortName,
+          String(message)
+        );
       }
 
       console.error(formattedMessage);

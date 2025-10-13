@@ -10,10 +10,10 @@ You can now control debug and development flags using **environment variables** 
 
 ```bash
 # Single command
-FOMH_DEBUG_MODE=true npm run dev
+OMH_DEBUG_MODE=true npm run dev
 
 # For entire terminal session
-export FOMH_DEBUG_MODE=true
+export OMH_DEBUG_MODE=true
 npm run dev
 npm test
 ```
@@ -26,8 +26,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      FOMH_DEBUG_MODE: true  # Enable debug logging
-      FOMH_DEV: false         # Disable dev features
+      OMH_DEBUG_MODE: true # Enable debug logging
+      OMH_DEV: false # Disable dev features
     steps:
       - run: npm test
 ```
@@ -36,13 +36,13 @@ jobs:
 
 ```bash
 # Production mode
-FOMH_DEBUG_MODE=false FOMH_DEV=false npm test
+OMH_DEBUG_MODE=false OMH_DEV=false npm test
 
 # Development mode
-FOMH_DEBUG_MODE=true FOMH_DEV=true npm run dev
+OMH_DEBUG_MODE=true OMH_DEV=true npm run dev
 
 # Debug tests only
-FOMH_DEBUG_MODE=true npm run test:unit
+OMH_DEBUG_MODE=true npm run test:unit
 ```
 
 ## Environment Variable Names
@@ -50,7 +50,7 @@ FOMH_DEBUG_MODE=true npm run test:unit
 You can use any of these patterns (checked in order):
 
 1. **Full module ID**: `FOUNDRYVTT_OVER_MY_HEAD_DEBUG_MODE=true`
-2. **Short name**: `FOMH_DEBUG_MODE=true` ⭐ Recommended
+2. **Short name**: `OMH_DEBUG_MODE=true` ⭐ Recommended
 3. **Simple**: `DEBUG_MODE=true`
 
 ## How It Works
@@ -64,10 +64,10 @@ Flags are resolved in this priority order:
 
 ## Available Flags
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `debugMode` | `false` | Enable debug logging |
-| `dev` | `true` | Enable development features |
+| Flag        | Default | Description                 |
+| ----------- | ------- | --------------------------- |
+| `debugMode` | `false` | Enable debug logging        |
+| `dev`       | `true`  | Enable development features |
 
 ## More Information
 
@@ -88,9 +88,9 @@ Flags are resolved in this priority order:
 Add to your `~/.bashrc` or `~/.zshrc`:
 
 ```bash
-alias omh-dev='FOMH_DEBUG_MODE=true FOMH_DEV=true npm run dev'
-alias omh-test='FOMH_DEBUG_MODE=true npm test'
-alias omh-prod='FOMH_DEBUG_MODE=false FOMH_DEV=false npm run build'
+alias omh-dev='OMH_DEBUG_MODE=true OMH_DEV=true npm run dev'
+alias omh-test='OMH_DEBUG_MODE=true npm test'
+alias omh-prod='OMH_DEBUG_MODE=false OMH_DEV=false npm run build'
 ```
 
 ### Docker Compose
@@ -99,8 +99,8 @@ alias omh-prod='FOMH_DEBUG_MODE=false FOMH_DEV=false npm run build'
 services:
   foundry:
     environment:
-      - FOMH_DEBUG_MODE=true
-      - FOMH_DEV=true
+      - OMH_DEBUG_MODE=true
+      - OMH_DEV=true
 ```
 
 ### Debug Failing CI Tests
@@ -109,7 +109,7 @@ Just add this to your workflow:
 
 ```yaml
 env:
-  FOMH_DEBUG_MODE: true
+  OMH_DEBUG_MODE: true
 ```
 
 That's it! 🚀

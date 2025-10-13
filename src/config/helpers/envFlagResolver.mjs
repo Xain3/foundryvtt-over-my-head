@@ -171,19 +171,30 @@ class EnvFlagResolver {
    *
    * @private
    * @param {string} moduleId - Module identifier (e.g., 'foundryvtt-over-my-head')
+   * @param {string[]} excludePrefixes - Prefixes to exclude from initials (default: ['foundryvtt'])
    * @returns {string|null} Short name (e.g., 'OMH') or null if extraction fails
    *
    * @example
    * EnvFlagResolver.#extractShortName('foundryvtt-over-my-head') // 'OMH'
    * EnvFlagResolver.#extractShortName('my-test-module') // 'MTM'
    */
-  static #extractShortName(moduleId) {
+  static #extractShortName(moduleId, excludePrefixes = ['foundryvtt']) {
     if (!moduleId || typeof moduleId !== 'string') {
       return null;
     }
 
-    // Split by hyphens and extract first letter of each part
-    const parts = moduleId.split(/[-_]/);
+    // Split by hyphens and underscores
+    let parts = moduleId.split(/[-_]/);
+
+    // Special handling: if the module ID starts with 'foundryvtt-', skip the 'foundryvtt' part
+    for (const prefix of excludePrefixes) {
+      if (parts[0] === prefix && parts.length > 1) {
+        parts = parts.slice(1);
+        break;
+      }
+    }
+
+    // Extract first letter of each remaining part
     const initials = parts
       .map((part) => part.replace(/[^A-Za-z0-9]/g, ''))
       .filter(Boolean)

@@ -29,10 +29,12 @@ words:
   - jannisx
   - maciejdems
   - mhutchie
+  - omhrc
   - perkovec
   - Placeables
   - Schmalfeldt
   - stylelintcache
   - yzhang
-ignoreWords: []
+ignoreWords:
+  - APIKEY
 import: []

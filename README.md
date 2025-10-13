@@ -20,6 +20,15 @@ This module uses Vite for bundling to resolve MIME type errors and improve perfo
 - `npm run dev` - Build the module in watch mode for development
 - `npm test` - Run the test suite
 
+### Flag Management
+
+The module supports flexible debug and development flag management through environment variables, allowing easy configuration for CI/CD and development workflows. See [`docs/FLAG_MANAGEMENT.md`](docs/FLAG_MANAGEMENT.md) for detailed information on:
+
+- Environment variable naming patterns
+- Flag resolution priority
+- CI/CD integration examples
+- Development best practices
+
 ### Build Process
 
 The module source code is in the `src/` directory and gets bundled into `dist/main.mjs` using Vite. The bundled file resolves all ES module imports and JSON imports into a single file that works reliably in Foundry VTT environments.

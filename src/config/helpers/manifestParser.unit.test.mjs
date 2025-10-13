@@ -16,6 +16,8 @@ vi.mock('../constants.mjs', () => ({
 }));
 
 describe('ManifestParser helper class', () => {
+  let originalEnv;
+
   const mockManifestData = {
     id: "test-module",
     title: "Test Module",
@@ -25,6 +27,22 @@ describe('ManifestParser helper class', () => {
   };
 
   const mockRequiredAttributes = ["id", "title", "description", "version"];
+
+  beforeEach(() => {
+    // Save and clean environment
+    originalEnv = { ...process.env };
+    delete process.env.TEST_MODULE_DEBUG_MODE;
+    delete process.env.TEST_MODULE_DEV;
+    delete process.env.TM_DEBUG_MODE;
+    delete process.env.TM_DEV;
+    delete process.env.DEBUG_MODE;
+    delete process.env.DEV;
+  });
+
+  afterEach(() => {
+    // Restore environment
+    process.env = originalEnv;
+  });
 
   describe('constructor', () => {
     it('should initialize with manifest and required attributes', () => {
@@ -80,6 +98,65 @@ describe('ManifestParser helper class', () => {
       expect(() => parser.getValidatedManifest()).toThrow(
         "Manifest is missing required attribute: title"
       );
+    });
+
+    it('should apply environment variable overrides to flags', () => {
+      const manifestWithFlags = {
+        ...mockManifestData,
+        flags: {
+          debugMode: false,
+          dev: false
+        }
+      };
+      
+      // Set environment variables
+      process.env.TEST_MODULE_DEBUG_MODE = 'true';
+      
+      const parser = new ManifestParser(manifestWithFlags);
+      const result = parser.getValidatedManifest();
+      
+      expect(result.flags.debugMode).toBe(true);
+      expect(result.flags.dev).toBe(false);
+      
+      // Clean up
+      delete process.env.TEST_MODULE_DEBUG_MODE;
+    });
+
+    it('should not modify flags if no environment overrides exist', () => {
+      const manifestWithFlags = {
+        ...mockManifestData,
+        flags: {
+          debugMode: false,
+          dev: true
+        }
+      };
+      
+      const parser = new ManifestParser(manifestWithFlags);
+      const result = parser.getValidatedManifest();
+      
+      expect(result.flags.debugMode).toBe(false);
+      expect(result.flags.dev).toBe(true);
+    });
+
+    it('should handle manifest without flags', () => {
+      const parser = new ManifestParser(mockManifestData);
+      const result = parser.getValidatedManifest();
+      
+      expect(result).toBeDefined();
+      expect(Object.isFrozen(result)).toBe(true);
+    });
+
+    it('should handle manifest with null flags', () => {
+      const manifestWithNullFlags = {
+        ...mockManifestData,
+        flags: null
+      };
+      
+      const parser = new ManifestParser(manifestWithNullFlags);
+      const result = parser.getValidatedManifest();
+      
+      expect(result).toBeDefined();
+      expect(result.flags).toBeNull();
     });
   });
 });

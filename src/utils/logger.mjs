@@ -7,7 +7,58 @@
 import GameManager from "./static/gameManager.mjs";
 
 /**
+ * Private helper function to check for environment variable override.
+ * Checks for debugMode in environment variables with multiple naming patterns.
+ * @private
+ * @param {string} moduleId - The module ID to check for
+ * @returns {boolean|undefined} The debug mode value from environment, or undefined if not set
+ */
+const getEnvDebugModeOverride = (moduleId) => {
+  // Only check environment variables in Node.js environment
+  if (typeof process === 'undefined' || !process.env) {
+    return undefined;
+  }
+
+  // Convert module ID to UPPER_SNAKE_CASE
+  const envModuleId = moduleId.replace(/-/g, '_').toUpperCase();
+  
+  // Extract short name (e.g., "foundryvtt-over-my-head" -> "FOMH")
+  const shortName = moduleId
+    .split(/[-_]/)
+    .map(part => part[0])
+    .join('')
+    .toUpperCase();
+
+  // Check environment variables in priority order
+  const envVarNames = [
+    `${envModuleId}_DEBUG_MODE`,  // FOUNDRYVTT_OVER_MY_HEAD_DEBUG_MODE
+    `${shortName}_DEBUG_MODE`,     // FOMH_DEBUG_MODE
+    'DEBUG_MODE'                    // DEBUG_MODE
+  ];
+
+  for (const envVarName of envVarNames) {
+    const value = process.env[envVarName];
+    if (value !== undefined) {
+      // Parse boolean strings
+      const trimmed = String(value).trim().toLowerCase();
+      if (trimmed === 'true') return true;
+      if (trimmed === 'false') return false;
+      // Treat any other truthy value as true
+      return Boolean(value);
+    }
+  }
+
+  return undefined;
+};
+
+/**
  * Private helper function to get the debug mode value from settings or defaults.
+ * Checks in the following priority order:
+ * 1. Environment variables (highest priority - for CI/dev flexibility)
+ * 2. Game settings (user preferences in Foundry)
+ * 3. Module flags (from module.json)
+ * 4. Constants default (fallback)
+ * 
  * @private
  * @param {string} moduleId - The module ID to check settings for
  * @param {Object} constants - The constants object containing defaults
@@ -15,15 +66,20 @@ import GameManager from "./static/gameManager.mjs";
  */
 const getDebugModeValue = (moduleId, constants) => {
   try {
+    // 1. Check environment variable override first (highest priority)
+    const envOverride = getEnvDebugModeOverride(moduleId);
+    if (envOverride !== undefined) return envOverride;
+
+    // 2. Check game settings
     const debugMode = GameManager.getSetting(moduleId, 'debugMode');
     if (debugMode !== undefined) return debugMode;
 
-    // Fallback to flags if available
+    // 3. Fallback to flags if available
     if (typeof globalThis !== 'undefined' && globalThis.game?.modules?.get(moduleId)?.flags?.debugMode !== undefined) {
       return globalThis.game.modules.get(moduleId).flags.debugMode;
     }
 
-    // Fallback to constants default
+    // 4. Fallback to constants default
     return constants?.debug?.enabled || false;
   } catch (_error) {
     return constants?.debug?.enabled || false;
@@ -125,7 +181,11 @@ class Logger {
 
   /**
    * Checks if debug mode is currently enabled for this module.
-   * Checks settings first, then flags, then falls back to constants default.
+   * Checks in priority order:
+   * 1. Environment variables (e.g., FOUNDRYVTT_OVER_MY_HEAD_DEBUG_MODE, FOMH_DEBUG_MODE, DEBUG_MODE)
+   * 2. Game settings (user preferences)
+   * 3. Module flags (from module.json)
+   * 4. Constants default
    *
    * @returns {boolean} True if debug mode is enabled, false otherwise
    *

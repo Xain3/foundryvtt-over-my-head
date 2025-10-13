@@ -5,6 +5,7 @@
  */
 
 import constants from "../constants.mjs";
+import EnvFlagResolver from "./envFlagResolver.mjs";
 
 const REQUIRED_MANIFEST_ATTRIBUTES = constants.requiredManifestAttributes;
 
@@ -125,6 +126,38 @@ class ManifestParser {
   }
 
   /**
+   * Applies environment variable overrides to manifest flags.
+   * Checks for environment variable overrides for each flag in manifest.flags
+   * and applies them before freezing. This allows flexible flag management
+   * in CI/CD and development environments.
+   * 
+   * @private
+   */
+  #applyEnvFlagOverrides() {
+    if (!this.manifest.flags || typeof this.manifest.flags !== 'object') {
+      return;
+    }
+
+    const moduleId = this.manifest.id;
+    const flagNames = Object.keys(this.manifest.flags);
+    
+    // Resolve each flag with environment variable support
+    for (const flagName of flagNames) {
+      const originalValue = this.manifest.flags[flagName];
+      const resolvedValue = EnvFlagResolver.resolveFlag(
+        flagName,
+        moduleId,
+        originalValue
+      );
+      
+      // Only update if the value changed
+      if (resolvedValue !== originalValue) {
+        this.manifest.flags[flagName] = resolvedValue;
+      }
+    }
+  }
+
+  /**
    * Makes the manifest immutable by freezing it and all nested objects.
    * Applies Object.freeze() to the manifest and recursively to nested objects,
    * while safely handling null values and primitive types.
@@ -140,7 +173,8 @@ class ManifestParser {
 
   /**
    * Performs complete validation of the manifest and returns the frozen result.
-   * Executes all validation steps in sequence and ensures immutability.
+   * Executes all validation steps in sequence, applies environment variable
+   * overrides to flags, and ensures immutability.
    * This is the main entry point for manifest processing.
    *
    * @returns {Object} The validated and frozen manifest object.
@@ -150,6 +184,7 @@ class ManifestParser {
     this.validateRequiredManifestAttributes();
     this.validateImportedManifest();
     this.validateManifestHasRequiredAttributes();
+    this.#applyEnvFlagOverrides();
     this.freezeManifest();
     return this.manifest;
   }

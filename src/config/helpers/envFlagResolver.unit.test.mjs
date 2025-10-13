@@ -29,39 +29,63 @@ describe('EnvFlagResolver', () => {
 
   describe('resolveFlag', () => {
     it('should return default value when no environment variable is set', () => {
-      const result = EnvFlagResolver.resolveFlag('debugMode', 'test-module', false);
+      const result = EnvFlagResolver.resolveFlag(
+        'debugMode',
+        'test-module',
+        false
+      );
       expect(result).toBe(false);
     });
 
     it('should resolve flag from full module ID pattern', () => {
       process.env.TEST_MODULE_DEBUG_MODE = 'true';
-      const result = EnvFlagResolver.resolveFlag('debugMode', 'test-module', false);
+      const result = EnvFlagResolver.resolveFlag(
+        'debugMode',
+        'test-module',
+        false
+      );
       expect(result).toBe(true);
     });
 
     it('should resolve flag from short name pattern', () => {
       process.env.TM_DEBUG_MODE = 'true';
-      const result = EnvFlagResolver.resolveFlag('debugMode', 'test-module', false);
+      const result = EnvFlagResolver.resolveFlag(
+        'debugMode',
+        'test-module',
+        false
+      );
       expect(result).toBe(true);
     });
 
     it('should resolve flag from simple flag name', () => {
       process.env.DEBUG_MODE = 'true';
-      const result = EnvFlagResolver.resolveFlag('debugMode', 'test-module', false);
+      const result = EnvFlagResolver.resolveFlag(
+        'debugMode',
+        'test-module',
+        false
+      );
       expect(result).toBe(true);
     });
 
     it('should prioritize full module ID pattern over short name', () => {
       process.env.TEST_MODULE_DEBUG_MODE = 'true';
       process.env.TM_DEBUG_MODE = 'false';
-      const result = EnvFlagResolver.resolveFlag('debugMode', 'test-module', false);
+      const result = EnvFlagResolver.resolveFlag(
+        'debugMode',
+        'test-module',
+        false
+      );
       expect(result).toBe(true);
     });
 
     it('should prioritize short name pattern over simple flag name', () => {
       process.env.TM_DEBUG_MODE = 'false';
       process.env.DEBUG_MODE = 'true';
-      const result = EnvFlagResolver.resolveFlag('debugMode', 'test-module', true);
+      const result = EnvFlagResolver.resolveFlag(
+        'debugMode',
+        'test-module',
+        true
+      );
       expect(result).toBe(false);
     });
 
@@ -109,10 +133,26 @@ describe('EnvFlagResolver', () => {
       expect(result).toBe(42);
     });
 
+    it('should parse negative numeric strings', () => {
+      process.env.NEGATIVE_THRESHOLD = '-17';
+      const result = EnvFlagResolver.resolveFlag(
+        'negativeThreshold',
+        'test',
+        0
+      );
+      expect(result).toBe(-17);
+    });
+
     it('should parse float strings', () => {
       process.env.THRESHOLD = '3.14';
       const result = EnvFlagResolver.resolveFlag('threshold', 'test', 0);
       expect(result).toBe(3.14);
+    });
+
+    it('should parse scientific notation strings', () => {
+      process.env.MIN_VALUE = '6.022e-23';
+      const result = EnvFlagResolver.resolveFlag('minValue', 'test', 0);
+      expect(result).toBe(6.022e-23);
     });
 
     it('should parse JSON object strings', () => {
@@ -161,31 +201,31 @@ describe('EnvFlagResolver', () => {
     it('should resolve multiple flags at once', () => {
       process.env.DEBUG_MODE = 'true';
       process.env.DEV = 'false';
-      
+
       const result = EnvFlagResolver.resolveFlags(
         ['debugMode', 'dev'],
         'test-module',
         { debugMode: false, dev: true }
       );
-      
+
       expect(result).toEqual({
         debugMode: true,
-        dev: false
+        dev: false,
       });
     });
 
     it('should use defaults for missing flags', () => {
       process.env.DEBUG_MODE = 'true';
-      
+
       const result = EnvFlagResolver.resolveFlags(
         ['debugMode', 'dev'],
         'test-module',
         { debugMode: false, dev: true }
       );
-      
+
       expect(result).toEqual({
         debugMode: true,
-        dev: true  // Falls back to default
+        dev: true, // Falls back to default
       });
     });
 
@@ -196,31 +236,31 @@ describe('EnvFlagResolver', () => {
 
     it('should handle flags with no defaults', () => {
       process.env.FLAG_ONE = 'true';
-      
+
       const result = EnvFlagResolver.resolveFlags(
         ['flagOne', 'flagTwo'],
         'test-module'
       );
-      
+
       expect(result).toEqual({
         flagOne: true,
-        flagTwo: undefined
+        flagTwo: undefined,
       });
     });
 
     it('should respect namespacing for each flag', () => {
       process.env.TEST_MODULE_DEBUG_MODE = 'true';
       process.env.DEV = 'false';
-      
+
       const result = EnvFlagResolver.resolveFlags(
         ['debugMode', 'dev'],
         'test-module',
         { debugMode: false, dev: true }
       );
-      
+
       expect(result).toEqual({
         debugMode: true,
-        dev: false
+        dev: false,
       });
     });
   });
@@ -263,7 +303,10 @@ describe('EnvFlagResolver', () => {
 
     it('should handle multi-part module IDs', () => {
       process.env.FOUNDRYVTT_OVER_MY_HEAD_DEBUG_MODE = 'true';
-      const result = EnvFlagResolver.hasEnvOverride('debugMode', 'foundryvtt-over-my-head');
+      const result = EnvFlagResolver.hasEnvOverride(
+        'debugMode',
+        'foundryvtt-over-my-head'
+      );
       expect(result).toBe(true);
     });
   });
@@ -309,7 +352,11 @@ describe('EnvFlagResolver', () => {
 
     it('should handle module IDs with underscores', () => {
       process.env.MY_TEST_MODULE_FLAG = 'true';
-      const result = EnvFlagResolver.resolveFlag('flag', 'my_test_module', false);
+      const result = EnvFlagResolver.resolveFlag(
+        'flag',
+        'my_test_module',
+        false
+      );
       expect(result).toBe(true);
     });
 

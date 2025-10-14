@@ -4,7 +4,7 @@
  * @path src/utils/static/devFeaturesManager.unit.test.mjs
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import DevFeaturesManager from './devFeaturesManager.mjs';
 
 describe('DevFeaturesManager', () => {

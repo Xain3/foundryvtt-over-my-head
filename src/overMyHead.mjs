@@ -75,7 +75,7 @@ class OverMyHead {
    * @description Enables development-specific features if the dev flag is set in the manifest.
    */
   enableDevFeatures() {
-    if (!this.manifest?.flags?.dev) return;
+    if (!this.utils.static.shouldEnableDevFeatures(this.manifest)) return;
     Hooks.once('init', () => {
       this.utils.initializer.initializeDevFeatures(this.utils);
     });

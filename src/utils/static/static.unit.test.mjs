@@ -12,6 +12,7 @@ import GameManager from './gameManager.mjs';
 import ErrorFormatter from './errorFormatter.mjs';
 import Localizer from './localizer.mjs';
 import HooksLogger from './hooksLogger.mjs';
+import DevFeaturesManager from './devFeaturesManager.mjs';
 
 describe('StaticUtils', () => {
   describe('Class Properties', () => {
@@ -37,6 +38,10 @@ describe('StaticUtils', () => {
 
     it('should expose HooksLogger class', () => {
       expect(StaticUtils.HooksLogger).toBe(HooksLogger);
+    });
+
+    it('should expose DevFeaturesManager class', () => {
+      expect(StaticUtils.DevFeaturesManager).toBe(DevFeaturesManager);
     });
   });
 
@@ -352,6 +357,7 @@ describe('StaticUtils', () => {
       expect(info.utilities).toContain('ErrorFormatter');
       expect(info.utilities).toContain('Localizer');
       expect(info.utilities).toContain('HooksLogger');
+      expect(info.utilities).toContain('DevFeaturesManager');
     });
 
     it('should have descriptive information', () => {
@@ -526,6 +532,49 @@ describe('StaticUtils', () => {
         const result = StaticUtils.proxyFoundryHooks({ enabled: false });
 
         expect(result).toBeNull();
+      });
+    });
+
+    describe('DevFeaturesManager integration', () => {
+      it('should expose DevFeaturesManager class', () => {
+        expect(StaticUtils.DevFeaturesManager).toBeDefined();
+        expect(typeof StaticUtils.DevFeaturesManager.shouldEnableDevFeatures).toBe('function');
+      });
+
+      it('should proxy shouldEnableDevFeatures to DevFeaturesManager', () => {
+        const manifest = { flags: { dev: true } };
+        const result = StaticUtils.shouldEnableDevFeatures(manifest);
+        expect(result).toBe(true);
+      });
+
+      it('should proxy shouldEnableDevFeatures with false dev flag', () => {
+        const manifest = { flags: { dev: false } };
+        const result = StaticUtils.shouldEnableDevFeatures(manifest);
+        expect(result).toBe(false);
+      });
+
+      it('should proxy resolveManifestFlag to DevFeaturesManager', () => {
+        const manifest = { flags: { dev: true, debugMode: false } };
+        const result = StaticUtils.resolveManifestFlag(manifest, 'flags.dev', false);
+        expect(result).toBe(true);
+      });
+
+      it('should proxy resolveManifestFlag with default value', () => {
+        const manifest = { flags: { dev: true } };
+        const result = StaticUtils.resolveManifestFlag(manifest, 'flags.missing', 'default');
+        expect(result).toBe('default');
+      });
+
+      it('should proxy hasManifestFlag to DevFeaturesManager', () => {
+        const manifest = { flags: { dev: false } };
+        const result = StaticUtils.hasManifestFlag(manifest, 'flags.dev');
+        expect(result).toBe(true);
+      });
+
+      it('should proxy hasManifestFlag with missing flag', () => {
+        const manifest = { flags: {} };
+        const result = StaticUtils.hasManifestFlag(manifest, 'flags.missing');
+        expect(result).toBe(false);
       });
     });
   });

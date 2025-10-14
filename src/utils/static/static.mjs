@@ -10,6 +10,7 @@ import GameManager from './gameManager.mjs';
 import ErrorFormatter from './errorFormatter.mjs';
 import Localizer from './localizer.mjs';
 import HooksLogger from './hooksLogger.mjs';
+import DevFeaturesManager from './devFeaturesManager.mjs';
 
 /**
  * Central entry point for all static utility classes.
@@ -31,6 +32,9 @@ import HooksLogger from './hooksLogger.mjs';
  * - createHookProxy(hookFunction, options)
  * - createHookLogger(logLevel, prefix, filter)
  * - proxyFoundryHooks(options)
+ * - shouldEnableDevFeatures(manifest)
+ * - resolveManifestFlag(manifest, flagPath, defaultValue)
+ * - hasManifestFlag(manifest, flagPath)
  */
 class StaticUtils {
   /**
@@ -82,6 +86,13 @@ class StaticUtils {
    * @type {typeof HooksLogger}
    */
   static HooksLogger = HooksLogger;
+
+  /**
+   * Static reference to the DevFeaturesManager class for development features management.
+   * @static
+   * @type {typeof DevFeaturesManager}
+   */
+  static DevFeaturesManager = DevFeaturesManager;
 
   /**
    * Static instance of Unpacker for direct method access.
@@ -356,7 +367,7 @@ class StaticUtils {
   static getUtilityInfo() {
     return {
       name: 'StaticUtils',
-      utilities: ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer', 'HooksLogger'],
+      utilities: ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer', 'HooksLogger', 'DevFeaturesManager'],
       description: 'Central entry point for all static utility classes',
       version: '1.0.0'
     };
@@ -423,6 +434,60 @@ class StaticUtils {
    */
   static proxyFoundryHooks(options = {}) {
     return this.HooksLogger.proxyFoundryHooks(options);
+  }
+
+  /**
+   * Determines whether development features should be enabled based on the manifest.
+   * Acts as a convenient proxy to DevFeaturesManager.shouldEnableDevFeatures().
+   *
+   * @static
+   * @param {Object} manifest - The module manifest object
+   * @returns {boolean} True if dev features should be enabled, false otherwise
+   *
+   * @example
+   * const manifest = { flags: { dev: true } };
+   * const shouldEnable = StaticUtils.shouldEnableDevFeatures(manifest);
+   * // Returns: true
+   */
+  static shouldEnableDevFeatures(manifest) {
+    return this.DevFeaturesManager.shouldEnableDevFeatures(manifest);
+  }
+
+  /**
+   * Resolves a flag value from the manifest using a dot-notation path.
+   * Acts as a convenient proxy to DevFeaturesManager.resolveManifestFlag().
+   *
+   * @static
+   * @param {Object} manifest - The module manifest object
+   * @param {string} flagPath - Dot-notation path to the flag (e.g., 'flags.dev')
+   * @param {*} defaultValue - Default value to return if flag is not found
+   * @returns {*} The resolved flag value or default value
+   *
+   * @example
+   * const manifest = { flags: { dev: true } };
+   * const dev = StaticUtils.resolveManifestFlag(manifest, 'flags.dev', false);
+   * // Returns: true
+   */
+  static resolveManifestFlag(manifest, flagPath, defaultValue) {
+    return this.DevFeaturesManager.resolveManifestFlag(manifest, flagPath, defaultValue);
+  }
+
+  /**
+   * Checks if a specific flag exists in the manifest.
+   * Acts as a convenient proxy to DevFeaturesManager.hasManifestFlag().
+   *
+   * @static
+   * @param {Object} manifest - The module manifest object
+   * @param {string} flagPath - Dot-notation path to the flag
+   * @returns {boolean} True if the flag exists, false otherwise
+   *
+   * @example
+   * const manifest = { flags: { dev: false } };
+   * const exists = StaticUtils.hasManifestFlag(manifest, 'flags.dev');
+   * // Returns: true
+   */
+  static hasManifestFlag(manifest, flagPath) {
+    return this.DevFeaturesManager.hasManifestFlag(manifest, flagPath);
   }
 }
 

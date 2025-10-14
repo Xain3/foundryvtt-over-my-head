@@ -15,7 +15,7 @@
  * Public API:
  * - static shouldEnableDevFeatures(manifest) - Determines if dev features should be enabled
  * - static resolveManifestFlag(manifest, flagPath, defaultValue) - Resolves a flag from manifest
- *
+ * - static hasManifestFlag(manifest, flagPath) - Checks if a specific flag exists in the manifest
  * @example
  * // Check if dev features should be enabled
  * const shouldEnable = DevFeaturesManager.shouldEnableDevFeatures(manifest);

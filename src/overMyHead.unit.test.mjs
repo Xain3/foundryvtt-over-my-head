@@ -38,7 +38,8 @@ vi.mock('./config/config.mjs', () => ({
 vi.mock('./utils/utils.mjs', () => ({
   default: vi.fn().mockImplementation(() => ({
     static: {
-      unpack: vi.fn()
+      unpack: vi.fn(),
+      shouldEnableDevFeatures: vi.fn((manifest) => Boolean(manifest?.flags?.dev))
     },
     initializer: {
       initializeDevFeatures: vi.fn(),

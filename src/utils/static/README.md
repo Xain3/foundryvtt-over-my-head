@@ -8,21 +8,23 @@ This folder contains static utility classes that provide common functionality fo
 
 ```
 src/utils/static/
-├── README.md                   # This documentation
-├── static.mjs                   # Central entry point (StaticUtils)
-├── static.unit.test.mjs         # StaticUtils tests
-├── validator.mjs                # Data validation utilities
-├── validator.unit.test.mjs      # Validator tests
-├── unpacker.mjs                 # Object property unpacking utilities
-├── unpacker.unit.test.mjs       # Unpacker tests
-├── gameManager.mjs              # Game module management utilities
-├── gameManager.unit.test.mjs    # GameManager tests
-├── errorFormatter.mjs           # Error formatting utilities
-├── errorFormatter.unit.test.mjs # ErrorFormatter tests
-├── localizer.mjs                # Localization utilities
-├── localizer.unit.test.mjs      # Localizer tests
-├── hooksLogger.mjs              # Hook logging and debugging utilities
-└── hooksLogger.unit.test.mjs    # HooksLogger tests
+├── README.md                        # This documentation
+├── static.mjs                        # Central entry point (StaticUtils)
+├── static.unit.test.mjs              # StaticUtils tests
+├── validator.mjs                     # Data validation utilities
+├── validator.unit.test.mjs           # Validator tests
+├── unpacker.mjs                      # Object property unpacking utilities
+├── unpacker.unit.test.mjs            # Unpacker tests
+├── gameManager.mjs                   # Game module management utilities
+├── gameManager.unit.test.mjs         # GameManager tests
+├── errorFormatter.mjs                # Error formatting utilities
+├── errorFormatter.unit.test.mjs      # ErrorFormatter tests
+├── localizer.mjs                     # Localization utilities
+├── localizer.unit.test.mjs           # Localizer tests
+├── hooksLogger.mjs                   # Hook logging and debugging utilities
+├── hooksLogger.unit.test.mjs         # HooksLogger tests
+├── devFeaturesManager.mjs            # Development features management utilities
+└── devFeaturesManager.unit.test.mjs  # DevFeaturesManager tests
 ```
 
 ## 🚀 Quick Start
@@ -77,9 +79,15 @@ if (StaticUtils.hasLocalization("MYMODULE.optionalText")) {
 // Localizer alias is available at StaticUtils.localizer (class reference)
 const fromAlias = StaticUtils.localizer.localize("MYMODULE.title");
 
+// Development features management
+const manifest = { flags: { dev: true } };
+const shouldEnable = StaticUtils.shouldEnableDevFeatures(manifest);
+const devFlag = StaticUtils.resolveManifestFlag(manifest, "flags.dev", false);
+const hasFlag = StaticUtils.hasManifestFlag(manifest, "flags.debugMode");
+
 // Get available utilities info
 const info = StaticUtils.getUtilityInfo();
-console.log(info.utilities); // ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer', 'HooksLogger']
+console.log(info.utilities); // ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer', 'HooksLogger', 'DevFeaturesManager']
 ```
 
 ### Using Individual Classes
@@ -301,7 +309,62 @@ if (GameManager.moduleExists(manifest)) {
 }
 ```
 
-### 7. HooksLogger
+### 7. DevFeaturesManager
+
+**File**: `devFeaturesManager.mjs`
+**Purpose**: Static utility for managing development features and manifest flag resolution.
+
+#### Key Features:
+
+- ✅ **Dev feature detection** - Determines if development features should be enabled
+- ✅ **Manifest flag resolution** - Safely resolves nested flags from manifest
+- ✅ **Flag existence checking** - Validates flag presence without reading values
+- ✅ **Null-safe operations** - Graceful handling of missing or malformed manifests
+
+#### Main Methods:
+
+- `shouldEnableDevFeatures(manifest)` - Check if dev features should be enabled
+- `resolveManifestFlag(manifest, flagPath, defaultValue)` - Resolve flag value by path
+- `hasManifestFlag(manifest, flagPath)` - Check if flag exists
+
+#### Usage Examples:
+
+```javascript
+import DevFeaturesManager from "#/utils/static/devFeaturesManager.mjs";
+
+// Check if dev features should be enabled
+const manifest = { flags: { dev: true } };
+if (DevFeaturesManager.shouldEnableDevFeatures(manifest)) {
+  console.log("Development features enabled");
+}
+
+// Resolve specific flags
+const debugMode = DevFeaturesManager.resolveManifestFlag(
+  manifest,
+  "flags.debugMode",
+  false
+);
+const version = DevFeaturesManager.resolveManifestFlag(
+  manifest,
+  "version",
+  "0.0.0"
+);
+
+// Check flag existence (even if value is falsy)
+if (DevFeaturesManager.hasManifestFlag(manifest, "flags.dev")) {
+  console.log("Dev flag exists");
+}
+
+// Handles missing paths gracefully
+const missing = DevFeaturesManager.resolveManifestFlag(
+  manifest,
+  "flags.nonexistent",
+  "default"
+);
+// Returns: "default"
+```
+
+### 8. HooksLogger
 
 **File**: `hooksLogger.mjs`
 **Purpose**: Static utility class for logging and debugging Foundry VTT hook calls with proxy support and in-place modification.
@@ -481,6 +544,7 @@ npm test -- src/utils/static/unpacker.unit.test.mjs
 npm test -- src/utils/static/gameManager.unit.test.mjs
 npm test -- src/utils/static/errorFormatter.unit.test.mjs
 npm test -- src/utils/static/localizer.unit.test.mjs
+npm test -- src/utils/static/devFeaturesManager.unit.test.mjs
 npm test -- src/utils/static/static.unit.test.mjs
 
 # Run with coverage
@@ -495,6 +559,7 @@ npm test -- src/utils/static/ --coverage
 - **ErrorFormatter**: Unit tests covering error formatting, validation, and edge cases
 - **Localizer**: Unit tests covering localization methods, static methods, and error handling
 - **HooksLogger**: 50+ tests covering proxy creation, logging, filtering, and Foundry VTT integration
+- **DevFeaturesManager**: 39 tests covering feature detection, flag resolution, and edge cases
 - **StaticUtils**: Unit tests covering central entry point and utility integration
 - **Combined**: 100% line, branch, and function coverage
 
@@ -640,6 +705,7 @@ For detailed API documentation, see the JSDoc comments in each file:
 - [Validator API](./validator.mjs) - All validation methods with examples
 - [Unpacker API](./unpacker.mjs) - Object unpacking functionality
 - [GameManager API](./gameManager.mjs) - Game module management functionality
+- [DevFeaturesManager API](./devFeaturesManager.mjs) - Development features management functionality
 
 ## 🤝 Contributing
 

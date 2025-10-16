@@ -23,6 +23,16 @@ const USER = (() => {
   return process.env.USER || process.env.USERNAME || '';
 })();
 
+const LINUX_PATHS = [
+  `/home/${USER}/.local/share/foundrydata`,
+  `/home/${USER}/.local/share/FoundryVTT`,
+  `/home/${USER}/foundrydata`,
+  `/home/${USER}/FoundryVTT`,
+  `/local/FoundryVTT`,
+];
+const MACOS_PATHS = [`/Users/${USER}/Library/Application Support/FoundryVTT`];
+const WINDOWS_PATHS = [`%LOCALAPPDATA%/FoundryVTT`];
+
 /**
  * @class UserDataDirFinder
  * @description Finds the FoundryVTT user data directory across different platforms (Linux, macOS, Windows).
@@ -89,6 +99,30 @@ class UserDataDirFinder {
   }
 
   /**
+   * Parses and normalizes an array of paths, replacing environment variables and user home shortcuts.
+   * @private
+   * @param {string[]} paths - The array of paths to parse
+   * @param {string} user - The username to use for path construction
+   * @returns {string[]} The array of parsed and normalized paths
+   */
+  #parsePaths(paths, user) {
+    return paths.map((p) => {
+      let parsed = p;
+      if (p.includes('%LOCALAPPDATA%')) {
+        const localAppData =
+          process.env.LOCALAPPDATA ||
+          path.join('C:', 'Users', user, 'AppData', 'Local');
+        parsed = p.replace('%LOCALAPPDATA%', localAppData);
+      }
+      if (p.includes('~')) {
+        const homeDir = os.homedir ? os.homedir() : `/home/${user}`;
+        parsed = p.replace('~', homeDir);
+      }
+      return path.normalize(parsed);
+    });
+  }
+
+  /**
    * Returns platform-specific default paths for FoundryVTT installation.
    * @private
    * @returns {string[]} Array of potential FoundryVTT directory paths
@@ -96,23 +130,24 @@ class UserDataDirFinder {
   #getPlatformPaths() {
     const platform = this.#platform;
     const user = this.#user;
+    let paths;
 
     switch (platform) {
       case 'linux':
-        return [
-          `/home/${user}/.local/share/FoundryVTT`,
-          `/home/${user}/FoundryVTT`,
-          `/local/FoundryVTT`,
-        ];
+        paths = LINUX_PATHS;
+        break;
       case 'darwin':
-        return [
-          path.join(os.homedir(), 'Library/Application Support/FoundryVTT'),
-        ];
+        paths = MACOS_PATHS;
+        break;
       case 'win32':
-        return [path.join(process.env.LOCALAPPDATA || '', 'FoundryVTT')];
+        paths = WINDOWS_PATHS;
+        break;
       default:
-        return [];
+        paths = [];
     }
+
+    const parsedPaths = this.#parsePaths(paths, user);
+    return parsedPaths;
   }
 
   /**

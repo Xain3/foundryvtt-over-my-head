@@ -1,4 +1,4 @@
-version: "0.2"
+version: '0.2'
 ignorePaths: []
 dictionaryDefinitions: []
 dictionaries:
@@ -35,6 +35,36 @@ words:
   - Schmalfeldt
   - stylelintcache
   - yzhang
-ignoreWords:
+  - dont
   - APIKEY
+
+# Extension-specific overrides
+overrides:
+  - filename: '**/*.mjs'
+    ignoreWords:
+      - foundryvtt
+      - placeable
+      - placeables
+
+  - filename: '**/*.yaml'
+    ignoreWords:
+      - foundry
+      - dont
+
+  - filename: '**/*.md'
+    ignoreWords:
+      - foundry
+      - deployments
+      - modularity
+    flagWords:
+      - dont
+      - APIKEY
+
+  - filename: '**/*.json'
+    ignoreWords: []
+
+  - filename: '**/*.css'
+    ignoreWords:
+      - placeable
+
 import: []

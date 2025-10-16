@@ -121,11 +121,10 @@ class StaticUtils {
    *   console.error(formattedError);
    * }
    */
-  static formatError(error, {
-      includeStack = false,
-      includeCaller = false,
-      caller = '',
-    } = {}) {
+  static formatError(
+    error,
+    { includeStack = false, includeCaller = false, caller = '' } = {}
+  ) {
     return this.ErrorFormatter.formatError(error, {
       includeStack,
       includeCaller,
@@ -188,7 +187,7 @@ class StaticUtils {
    * // With custom object name for error reporting
    * StaticUtils.unpack(moduleData, moduleInstance, 'module');
    */
-  static unpack(object, instance, objectName = "object") {
+  static unpack(object, instance, objectName = 'object') {
     return this.#unpackerInstance.unpack(object, instance, objectName);
   }
 
@@ -340,15 +339,28 @@ class StaticUtils {
   static getAvailableValidationTypes() {
     // Extract available validation types from the validation map in Validator.validate
     const checkMethods = [
-      'isDefined', 'isNull', 'isString', 'isObject', 'isArray',
-      'isPlainObject', 'isNumber', 'isEmpty', 'isBoolean',
-      'isPrimitive', 'isReservedKey'
+      'isDefined',
+      'isNull',
+      'isString',
+      'isObject',
+      'isArray',
+      'isPlainObject',
+      'isNumber',
+      'isEmpty',
+      'isBoolean',
+      'isPrimitive',
+      'isReservedKey',
     ];
 
     const validateMethods = [
-      'validateObject', 'validateString', 'validateNumber', 'validateDate',
-      'validateArgsObjectStructure', 'validateSchemaDefinition',
-      'validateStringAgainstPattern', 'validateObjectKeysExist'
+      'validateObject',
+      'validateString',
+      'validateNumber',
+      'validateDate',
+      'validateArgsObjectStructure',
+      'validateSchemaDefinition',
+      'validateStringAgainstPattern',
+      'validateObjectKeysExist',
     ];
 
     return [...checkMethods, ...validateMethods];
@@ -367,31 +379,69 @@ class StaticUtils {
   static getUtilityInfo() {
     return {
       name: 'StaticUtils',
-      utilities: ['Validator', 'Unpacker', 'GameManager', 'ErrorFormatter', 'Localizer', 'HooksLogger', 'DevFeaturesManager'],
+      utilities: [
+        'Validator',
+        'Unpacker',
+        'GameManager',
+        'ErrorFormatter',
+        'Localizer',
+        'HooksLogger',
+        'DevFeaturesManager',
+      ],
       description: 'Central entry point for all static utility classes',
-      version: '1.0.0'
+      version: '1.0.0',
     };
   }
 
   /**
    * Creates a proxy for a hook function that logs hook calls while preserving the original functionality.
-   * Acts as a convenient proxy to HooksLogger.createHookProxy().
+   * Wrapper around HooksLogger.createHookProxy() with two calling styles:
+   *
+   * 1) Function style (non-destructive):
+   *    - StaticUtils.createHookProxy(hookFunction, options?) -> Function (returns a proxy, does NOT modify original)
+   *
+   * 2) Object property style (in-place by default):
+   *    - StaticUtils.createHookProxy(hookObject, functionName, options?) -> void|Function
+   *      Delegates directly to HooksLogger.createHookProxy(hookObject, functionName, options)
+   *
+   * Notes:
+   * - When called with a function as the first argument, this method always returns a proxied function regardless of
+   *   the provided options.returnProxy value, since we cannot replace a bare function property in-place.
    *
    * @static
-   * @param {Function} hookFunction - The original hook function to proxy
-   * @param {Object} [options={}] - Configuration options for the proxy
-   * @returns {Function} The proxied hook function that logs calls and preserves original behavior
-   * @throws {TypeError} If hookFunction is not a function
+   * @param {Function|Object} hookTarget - A function to proxy, or an object containing the function property
+   * @param {string|Object} [functionNameOrOptions] - Function name when first arg is object; otherwise options
+   * @param {Object} [maybeOptions] - Options when first arg is object and second is the function name
+   * @returns {Function|void} Returns a proxied function for function-style usage; otherwise defers to HooksLogger behavior
+   * @throws {TypeError} If provided arguments are invalid
    *
    * @example
-   * // Create a proxy for debugging hook calls
+   * // Function style (recommended for quick debugging):
    * const proxiedHooksCall = StaticUtils.createHookProxy(Hooks.call, {
    *   logLevel: 'debug',
    *   filter: (hookName) => hookName.startsWith('OMH.')
    * });
+   * // Now use: proxiedHooksCall('init')
+   *
+   * @example
+   * // Object property style (modifies Hooks in place):
+   * StaticUtils.createHookProxy(Hooks, 'call', { logLevel: 'debug' });
    */
-  static createHookProxy(hookFunction, options = {}) {
-    return this.HooksLogger.createHookProxy(hookFunction, options);
+  static createHookProxy(
+    hookTarget,
+    functionNameOrOptions = {},
+    maybeOptions = {}
+  ) {
+    // If second arg is a string, treat as object property style and pass three args
+    if (hookTarget && typeof functionNameOrOptions === 'string') {
+      return this.HooksLogger.createHookProxy(
+        hookTarget,
+        functionNameOrOptions,
+        maybeOptions
+      );
+    }
+    // Otherwise, function-style usage: pass only two args to match tests/spies
+    return this.HooksLogger.createHookProxy(hookTarget, functionNameOrOptions);
   }
 
   /**
@@ -406,31 +456,35 @@ class StaticUtils {
    *
    * @example
    * // Create a logger for specific hooks
-   * const logger = StaticUtils.createHookLogger('debug', 'OMH Hook', 
+   * const logger = StaticUtils.createHookLogger('debug', 'OMH Hook',
    *   (hookName) => hookName.startsWith('OMH.')
    * );
    */
-  static createHookLogger(logLevel = 'debug', prefix = 'Hook Call', filter = null) {
+  static createHookLogger(
+    logLevel = 'debug',
+    prefix = 'Hook Call',
+    filter = null
+  ) {
     return this.HooksLogger.createHookLogger(logLevel, prefix, filter);
   }
 
   /**
-  * Convenience method for proxying Foundry VTT's Hooks functions with debugging options.
-  * Acts as a convenient proxy to HooksLogger.proxyFoundryHooks(). Returns a mapping of proxies.
+   * Convenience method for proxying Foundry VTT's Hooks functions with debugging options.
+   * Acts as a convenient proxy to HooksLogger.proxyFoundryHooks(). Returns a mapping of proxies.
    *
    * @static
    * @param {Object} [options={}] - Configuration options for the proxy
-  * @returns {Object<string, Function>|null} Mapping of function names to proxies, or null if none created
+   * @returns {Object<string, Function>|null} Mapping of function names to proxies, or null if none created
    *
    * @example
-  * // Enable hook logging for debugging (multi-function)
-  * if (debugMode) {
-  *   const proxies = StaticUtils.proxyFoundryHooks({ moduleFilter: 'OMH.' });
-  *   if (proxies) {
-  *     if (proxies.call) Hooks.call = proxies.call;
-  *     if (proxies.callAll) Hooks.callAll = proxies.callAll;
-  *   }
-  * }
+   * // Enable hook logging for debugging (multi-function)
+   * if (debugMode) {
+   *   const proxies = StaticUtils.proxyFoundryHooks({ moduleFilter: 'OMH.' });
+   *   if (proxies) {
+   *     if (proxies.call) Hooks.call = proxies.call;
+   *     if (proxies.callAll) Hooks.callAll = proxies.callAll;
+   *   }
+   * }
    */
   static proxyFoundryHooks(options = {}) {
     return this.HooksLogger.proxyFoundryHooks(options);
@@ -469,7 +523,11 @@ class StaticUtils {
    * // Returns: true
    */
   static resolveManifestFlag(manifest, flagPath, defaultValue) {
-    return this.DevFeaturesManager.resolveManifestFlag(manifest, flagPath, defaultValue);
+    return this.DevFeaturesManager.resolveManifestFlag(
+      manifest,
+      flagPath,
+      defaultValue
+    );
   }
 
   /**

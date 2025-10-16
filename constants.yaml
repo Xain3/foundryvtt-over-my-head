@@ -191,6 +191,17 @@ positionChecker:
     RECTANGLE_RECTANGLE: "rectangle-rectangle"
     CENTER_CENTER: "center-center"
 
+## Configuration for the OcclusionHandler
+occlusionHandler:
+  # Events (Foundry VTT hooks) that trigger visibility refresh.
+  # The order matters as a buffer is used to avoid multiple refreshes in quick succession.
+  triggeringEvents:
+    visibilityRefresh: true
+    sightRefresh: true
+    refreshTile: true
+    refreshToken: false
+    refreshWall: false
+
 # Settings for the module
 settings:
   requiredKeys:

@@ -65,16 +65,38 @@ class HooksLogger {
    *   HooksLogger.createHookProxy(Hooks, 'call', { logLevel: 'debug' });
    * }
    */
-  static createHookProxy(hookObject, functionName, {
-    logLevel = 'log',
-    logArgs = true,
-    logResult = false,
-    prefix = 'Hook triggered',
-    filter = null,
-    returnProxy = false
-  } = {}) {
+  static createHookProxy(
+    hookObject,
+    functionName,
+    {
+      logLevel = 'log',
+      logArgs = true,
+      logResult = false,
+      prefix = 'Hook triggered',
+      filter = null,
+      returnProxy = false,
+    } = {}
+  ) {
+    // Overload support: allow (hookFunction, options?)
+    // If first arg is a function, treat it as function-style usage and synthesize object+prop name.
+    if (
+      typeof hookObject === 'function' &&
+      (typeof functionName === 'object' || typeof functionName === 'undefined')
+    ) {
+      const options = functionName || {};
+      const TEMP_PROP = '__omh_hook_fn__';
+      const container = { [TEMP_PROP]: hookObject };
+      // Always return a proxy for bare function usage
+      return HooksLogger.createHookProxy(container, TEMP_PROP, {
+        ...options,
+        returnProxy: true,
+      });
+    }
+
     if (hookObject == null || typeof hookObject[functionName] !== 'function') {
-      throw new TypeError(`HooksLogger.createHookProxy: hookObject must have a function property '${functionName}'`);
+      throw new TypeError(
+        `HooksLogger.createHookProxy: hookObject must have a function property '${functionName}'`
+      );
     }
 
     const originalFunction = hookObject[functionName];
@@ -102,7 +124,7 @@ class HooksLogger {
           debug: console.debug,
           info: console.info,
           warn: console.warn,
-          error: console.error
+          error: console.error,
         };
         const logMethod = LOG_METHODS[logLevel] || console.log;
 
@@ -121,7 +143,7 @@ class HooksLogger {
         }
 
         return result;
-      }
+      },
     });
 
     // Assign the proxy to the original function unless returnProxy is true
@@ -152,7 +174,11 @@ class HooksLogger {
    * Hooks.on('OMH.ready', logger);
    * Hooks.on('OMH.contextUpdate', logger);
    */
-  static createHookLogger(logLevel = 'debug', prefix = 'Hook Call', filter = null) {
+  static createHookLogger(
+    logLevel = 'debug',
+    prefix = 'Hook Call',
+    filter = null
+  ) {
     return function hookLogger(hookName, ...args) {
       // Apply filter if provided
       if (filter && typeof filter === 'function' && !filter(hookName)) {
@@ -206,12 +232,14 @@ class HooksLogger {
     enabled = true,
     logLevel = 'debug',
     moduleFilter = null,
-    functions = {"call": true, "callAll": true}
+    functions = { call: true, callAll: true },
   } = {}) {
     // Early exits - check if Hooks exists and is an object
     if (!HooksLogger.#validateHooksPresence(enabled, functions)) {
       if (typeof Hooks === 'undefined' || Hooks === null) {
-        console.warn('HooksLogger: Hooks object is not available. Use Hooks.once("init", () => { ... }) to ensure proper timing.');
+        console.warn(
+          'HooksLogger: Hooks object is not available. Use Hooks.once("init", () => { ... }) to ensure proper timing.'
+        );
       }
       return false;
     }
@@ -225,7 +253,7 @@ class HooksLogger {
       prefix: 'Foundry Hook',
       logArgs: true,
       logResult: false,
-      filter
+      filter,
     };
 
     // Proxy each requested Hooks function that exists
@@ -260,9 +288,13 @@ class HooksLogger {
       return output; // Early return to avoid accessing undefined Hooks
     }
     // Duck type check - ensure Hooks has the core methods we expect
-    if (!['on', 'once', 'call'].every(fn => typeof Hooks[fn] === 'function')) {
+    if (
+      !['on', 'once', 'call'].every((fn) => typeof Hooks[fn] === 'function')
+    ) {
       output = false;
-      console.warn('HooksLogger: Hooks object is missing required methods (on, once, call).');
+      console.warn(
+        'HooksLogger: Hooks object is missing required methods (on, once, call).'
+      );
     }
     return output;
   }
@@ -282,7 +314,13 @@ class HooksLogger {
       name: 'HooksLogger',
       version: '1.0.0',
       description: 'Hook logging and debugging utilities for Foundry VTT',
-      methods: ['createHookProxy', 'createHookLogger', 'proxyFoundryHooks', 'isHooksAvailable', 'getUtilityInfo']
+      methods: [
+        'createHookProxy',
+        'createHookLogger',
+        'proxyFoundryHooks',
+        'isHooksAvailable',
+        'getUtilityInfo',
+      ],
     };
   }
 
@@ -301,9 +339,11 @@ class HooksLogger {
    * }
    */
   static isHooksAvailable() {
-    return typeof Hooks !== 'undefined' &&
-          Hooks != null &&
-          ['on', 'once', 'call'].every(fn => typeof Hooks[fn] === 'function');
+    return (
+      typeof Hooks !== 'undefined' &&
+      Hooks != null &&
+      ['on', 'once', 'call'].every((fn) => typeof Hooks[fn] === 'function')
+    );
   }
 }
 

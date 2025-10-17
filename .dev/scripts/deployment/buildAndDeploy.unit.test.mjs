@@ -104,8 +104,9 @@ describe('UserDataDirFinder', () => {
   describe('find()', () => {
     it('should find FoundryVTT directory on Linux', () => {
       const finder = new UserDataDirFinder('linux', 'testuser');
-      // Note: paths are built with the actual environment user at import time
-      const expectedPath = '/home/runner/.local/share/FoundryVTT';
+      const expectedPath = '/home/testuser/.local/share/FoundryVTT';
+      
+      os.homedir.mockReturnValue('/home/testuser');
 
       // Only the second path exists (foundrydata is checked first, FoundryVTT second)
       fs.existsSync.mockImplementation((dir) => dir === expectedPath);
@@ -127,10 +128,9 @@ describe('UserDataDirFinder', () => {
 
     it('should find FoundryVTT directory on macOS', () => {
       const finder = new UserDataDirFinder('darwin', 'testuser');
-      // On macOS, paths are built with the actual environment user at import time
-      const expectedPath = '/Users/runner/Library/Application Support/FoundryVTT';
+      const expectedPath = '/Users/testuser/Library/Application Support/FoundryVTT';
 
-      os.homedir.mockReturnValue('/Users/runner');
+      os.homedir.mockReturnValue('/Users/testuser');
       path.join.mockReturnValue(expectedPath);
       path.normalize.mockImplementation((p) => p);
       fs.existsSync.mockReturnValue(true);
@@ -182,7 +182,9 @@ describe('UserDataDirFinder', () => {
 
     it('should try multiple paths on Linux', () => {
       const finder = new UserDataDirFinder('linux', 'testuser');
-      const expectedPath = '/home/runner/FoundryVTT';
+      const expectedPath = '/home/testuser/FoundryVTT';
+      
+      os.homedir.mockReturnValue('/home/testuser');
 
       // First three paths don't exist, fourth one does
       fs.existsSync.mockImplementation((dir) => dir === expectedPath);

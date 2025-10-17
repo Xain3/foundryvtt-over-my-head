@@ -24,13 +24,13 @@ const USER = (() => {
 })();
 
 const LINUX_PATHS = [
-  `/home/${USER}/.local/share/foundrydata`,
-  `/home/${USER}/.local/share/FoundryVTT`,
-  `/home/${USER}/foundrydata`,
-  `/home/${USER}/FoundryVTT`,
+  `~/.local/share/foundrydata`,
+  `~/.local/share/FoundryVTT`,
+  `~/foundrydata`,
+  `~/FoundryVTT`,
   `/local/FoundryVTT`,
 ];
-const MACOS_PATHS = [`/Users/${USER}/Library/Application Support/FoundryVTT`];
+const MACOS_PATHS = [`~/Library/Application Support/FoundryVTT`];
 const WINDOWS_PATHS = [`%LOCALAPPDATA%/FoundryVTT`];
 
 /**

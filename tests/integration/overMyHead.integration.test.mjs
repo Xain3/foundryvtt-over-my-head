@@ -4,43 +4,49 @@
  * @path tests/integration/overMyHead.integration.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 
 // Mock config dependencies to prevent raw imports
 vi.mock('../../src/config/helpers/constantsGetter.mjs', () => ({
   default: {
-    getConstantsYaml: vi.fn(() => `test: value
+    getConstantsYaml: vi.fn(
+      () => `test: value
 requiredManifestAttributes:
   - id
   - title
   - description
-  - version`)
-  }
+  - version`
+    ),
+  },
 }));
 
 vi.mock('../../src/config/helpers/constantsParser.mjs', () => ({
   default: {
-    parseConstants: vi.fn(() => ({ 
+    parseConstants: vi.fn(() => ({
       test: 'value',
       errors: {
-        separator: ': '
+        separator: ': ',
       },
       context: {
         sync: {
-          defaults: {}
-        }
+          defaults: {},
+        },
       },
       moduleManagement: {
-        referToModuleBy: 'id'
+        referToModuleBy: 'id',
       },
-      requiredManifestAttributes: [
-        'id',
-        'title', 
-        'description',
-        'version'
-      ]
-    }))
-  }
+      requiredManifestAttributes: ['id', 'title', 'description', 'version'],
+    })),
+  },
 }));
 
 import OverMyHead from '../../src/overMyHead.mjs';
@@ -48,26 +54,37 @@ import config from '../../src/config/config.mjs';
 
 // Mock the Utilities class since we're testing config integration and init flow wiring
 vi.mock('../../src/utils/utils.mjs', () => {
-  const MockUtils = vi.fn().mockImplementation(() => ({
-    static: {
-      unpack: vi.fn()
-    },
-    initializer: {
+  const MockUtils = vi.fn().mockImplementation(() => {
+    const staticUtils = {
+      unpack: vi.fn(),
+      shouldEnableDevFeatures: vi.fn((manifest) =>
+        Boolean(manifest?.flags?.dev)
+      ),
+    };
+
+    const initializer = {
       initializeDevFeatures: vi.fn(),
-      initializeContext: vi.fn().mockReturnValue(Promise.resolve({ setFlags: vi.fn() })),
+      initializeContext: vi
+        .fn()
+        .mockReturnValue(Promise.resolve({ setFlags: vi.fn() })),
       initializeHandlers: vi.fn().mockReturnValue({ settings: {} }),
       initializeSettings: vi.fn(),
-      confirmInitialization: vi.fn()
-    }
-  }));
-  
+      confirmInitialization: vi.fn(),
+    };
+
+    return {
+      static: staticUtils,
+      initializer,
+    };
+  });
+
   return { default: MockUtils };
 });
 
 // Minimal Hooks mock for tests not running in Foundry
 global.Hooks = {
   once: vi.fn((event, callback) => {}),
-  callAll: vi.fn()
+  callAll: vi.fn(),
 };
 
 describe('OverMyHead Integration Tests', () => {
@@ -75,18 +92,23 @@ describe('OverMyHead Integration Tests', () => {
 
   beforeEach(() => {
     // Capture any existing *Constants globals to restore later
-    originalExportedVarNames = Object.keys(globalThis).filter(k => k.endsWith('Constants'));
+    originalExportedVarNames = Object.keys(globalThis).filter((k) =>
+      k.endsWith('Constants')
+    );
     // Remove them for a clean slate
     for (const k of originalExportedVarNames) delete globalThis[k];
 
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    Hooks.once.mockClear();
+    Hooks.callAll.mockClear();
   });
 
   afterEach(() => {
     // Clean up any exported constants
-    Object.keys(globalThis).forEach(k => {
+    Object.keys(globalThis).forEach((k) => {
       if (k.endsWith('Constants')) delete globalThis[k];
     });
 

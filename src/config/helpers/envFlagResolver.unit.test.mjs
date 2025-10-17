@@ -121,6 +121,18 @@ describe('EnvFlagResolver', () => {
       expect(result).toBe(false);
     });
 
+    it('should coerce numeric string "1" to boolean true when default is boolean', () => {
+      process.env.DEV = '1';
+      const result = EnvFlagResolver.resolveFlag('dev', 'test-module', false);
+      expect(result).toBe(true);
+    });
+
+    it('should coerce numeric string "0" to boolean false when default is boolean', () => {
+      process.env.DEV = '0';
+      const result = EnvFlagResolver.resolveFlag('dev', 'test-module', true);
+      expect(result).toBe(false);
+    });
+
     it('should parse boolean string case-insensitively', () => {
       process.env.DEBUG_MODE = 'TRUE';
       const result = EnvFlagResolver.resolveFlag('debugMode', 'test', false);
@@ -251,6 +263,22 @@ describe('EnvFlagResolver', () => {
     it('should respect namespacing for each flag', () => {
       process.env.TEST_MODULE_DEBUG_MODE = 'true';
       process.env.DEV = 'false';
+
+      const result = EnvFlagResolver.resolveFlags(
+        ['debugMode', 'dev'],
+        'test-module',
+        { debugMode: false, dev: true }
+      );
+
+      expect(result).toEqual({
+        debugMode: true,
+        dev: false,
+      });
+    });
+
+    it('should coerce numeric env overrides to booleans in bulk resolution', () => {
+      process.env.DEBUG_MODE = '1';
+      process.env.DEV = '0';
 
       const result = EnvFlagResolver.resolveFlags(
         ['debugMode', 'dev'],

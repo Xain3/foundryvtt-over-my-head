@@ -232,10 +232,82 @@ describe('OverMyHead Integration Tests', () => {
     it('surface errors from config.exportConstants during initialization', async () => {
       const overMyHead = new OverMyHead();
       const original = config.exportConstants;
-      config.exportConstants = vi.fn(() => { throw new Error('Test error'); });
+      config.exportConstants = vi.fn(() => {
+        throw new Error('Test error');
+      });
       await expect(overMyHead.init()).rejects.toThrow('Test error');
       expect(console.error).toHaveBeenCalled();
       config.exportConstants = original;
+    });
+  });
+
+  describe('Development Features', () => {
+    const createManifestWithDevFlag = (devValue) => {
+      const shortName = config.constants.moduleManagement?.shortName || 'OMH';
+      const flags = Object.freeze({
+        ...(config.manifest.flags || {}),
+        dev: devValue,
+      });
+
+      return Object.freeze({
+        ...config.manifest,
+        shortName,
+        flags,
+      });
+    };
+
+    it('enables dev features when the resolved dev flag is true', () => {
+      const manifestWithDev = createManifestWithDevFlag(true);
+      const buildManifestSpy = vi
+        .spyOn(config, 'buildManifestWithShortName')
+        .mockReturnValue(manifestWithDev);
+
+      const overMyHead = new OverMyHead();
+      const initializeDevFeatures =
+        overMyHead.utils.initializer.initializeDevFeatures;
+
+      overMyHead.utils.static.shouldEnableDevFeatures.mockClear();
+      initializeDevFeatures.mockClear();
+
+      overMyHead.enableDevFeatures();
+
+      expect(
+        overMyHead.utils.static.shouldEnableDevFeatures
+      ).toHaveBeenCalledWith(manifestWithDev);
+      expect(Hooks.once).toHaveBeenCalledWith('init', expect.any(Function));
+
+      const initCallback =
+        Hooks.once.mock.calls[Hooks.once.mock.calls.length - 1][1];
+      initCallback();
+
+      expect(initializeDevFeatures).toHaveBeenCalledTimes(1);
+      expect(initializeDevFeatures).toHaveBeenCalledWith(overMyHead.utils);
+
+      buildManifestSpy.mockRestore();
+    });
+
+    it('does not schedule dev features when the resolved dev flag is false', () => {
+      const manifestWithDevDisabled = createManifestWithDevFlag(false);
+      const buildManifestSpy = vi
+        .spyOn(config, 'buildManifestWithShortName')
+        .mockReturnValue(manifestWithDevDisabled);
+
+      const overMyHead = new OverMyHead();
+      const initializeDevFeatures =
+        overMyHead.utils.initializer.initializeDevFeatures;
+
+      overMyHead.utils.static.shouldEnableDevFeatures.mockClear();
+      initializeDevFeatures.mockClear();
+
+      overMyHead.enableDevFeatures();
+
+      expect(
+        overMyHead.utils.static.shouldEnableDevFeatures
+      ).toHaveBeenCalledWith(manifestWithDevDisabled);
+      expect(Hooks.once).not.toHaveBeenCalled();
+      expect(initializeDevFeatures).not.toHaveBeenCalled();
+
+      buildManifestSpy.mockRestore();
     });
   });
 });

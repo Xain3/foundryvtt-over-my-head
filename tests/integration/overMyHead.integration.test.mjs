@@ -4,43 +4,49 @@
  * @path tests/integration/overMyHead.integration.test.mjs
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 
 // Mock config dependencies to prevent raw imports
 vi.mock('../../src/config/helpers/constantsGetter.mjs', () => ({
   default: {
-    getConstantsYaml: vi.fn(() => `test: value
+    getConstantsYaml: vi.fn(
+      () => `test: value
 requiredManifestAttributes:
   - id
   - title
   - description
-  - version`)
-  }
+  - version`
+    ),
+  },
 }));
 
 vi.mock('../../src/config/helpers/constantsParser.mjs', () => ({
   default: {
-    parseConstants: vi.fn(() => ({ 
+    parseConstants: vi.fn(() => ({
       test: 'value',
       errors: {
-        separator: ': '
+        separator: ': ',
       },
       context: {
         sync: {
-          defaults: {}
-        }
+          defaults: {},
+        },
       },
       moduleManagement: {
-        referToModuleBy: 'id'
+        referToModuleBy: 'id',
       },
-      requiredManifestAttributes: [
-        'id',
-        'title', 
-        'description',
-        'version'
-      ]
-    }))
-  }
+      requiredManifestAttributes: ['id', 'title', 'description', 'version'],
+    })),
+  },
 }));
 
 import OverMyHead from '../../src/overMyHead.mjs';
@@ -48,26 +54,37 @@ import config from '../../src/config/config.mjs';
 
 // Mock the Utilities class since we're testing config integration and init flow wiring
 vi.mock('../../src/utils/utils.mjs', () => {
-  const MockUtils = vi.fn().mockImplementation(() => ({
-    static: {
-      unpack: vi.fn()
-    },
-    initializer: {
+  const MockUtils = vi.fn().mockImplementation(() => {
+    const staticUtils = {
+      unpack: vi.fn(),
+      shouldEnableDevFeatures: vi.fn((manifest) =>
+        Boolean(manifest?.flags?.dev)
+      ),
+    };
+
+    const initializer = {
       initializeDevFeatures: vi.fn(),
-      initializeContext: vi.fn().mockReturnValue(Promise.resolve({ setFlags: vi.fn() })),
+      initializeContext: vi
+        .fn()
+        .mockReturnValue(Promise.resolve({ setFlags: vi.fn() })),
       initializeHandlers: vi.fn().mockReturnValue({ settings: {} }),
       initializeSettings: vi.fn(),
-      confirmInitialization: vi.fn()
-    }
-  }));
-  
+      confirmInitialization: vi.fn(),
+    };
+
+    return {
+      static: staticUtils,
+      initializer,
+    };
+  });
+
   return { default: MockUtils };
 });
 
 // Minimal Hooks mock for tests not running in Foundry
 global.Hooks = {
   once: vi.fn((event, callback) => {}),
-  callAll: vi.fn()
+  callAll: vi.fn(),
 };
 
 describe('OverMyHead Integration Tests', () => {
@@ -75,18 +92,23 @@ describe('OverMyHead Integration Tests', () => {
 
   beforeEach(() => {
     // Capture any existing *Constants globals to restore later
-    originalExportedVarNames = Object.keys(globalThis).filter(k => k.endsWith('Constants'));
+    originalExportedVarNames = Object.keys(globalThis).filter((k) =>
+      k.endsWith('Constants')
+    );
     // Remove them for a clean slate
     for (const k of originalExportedVarNames) delete globalThis[k];
 
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    Hooks.once.mockClear();
+    Hooks.callAll.mockClear();
   });
 
   afterEach(() => {
     // Clean up any exported constants
-    Object.keys(globalThis).forEach(k => {
+    Object.keys(globalThis).forEach((k) => {
       if (k.endsWith('Constants')) delete globalThis[k];
     });
 
@@ -121,7 +143,7 @@ describe('OverMyHead Integration Tests', () => {
       expect(spy).toHaveBeenCalledTimes(1);
       // Find exported var with dynamic name like OMHConstants
       const exportedVar = Object.keys(globalThis).find(
-        k => k.endsWith('Constants') && globalThis[k] === config.constants
+        (k) => k.endsWith('Constants') && globalThis[k] === config.constants
       );
       expect(exportedVar).toBeDefined();
       spy.mockRestore();
@@ -137,21 +159,27 @@ describe('OverMyHead Integration Tests', () => {
       const overMyHead = new OverMyHead();
       await overMyHead.init();
       const exportedVar = Object.keys(globalThis).find(
-        k => k.endsWith('Constants') && globalThis[k] === config.constants
+        (k) => k.endsWith('Constants') && globalThis[k] === config.constants
       );
       expect(globalThis[exportedVar]).toBeDefined();
       expect(globalThis[exportedVar].errors.separator).toBeDefined();
       expect(globalThis[exportedVar].context.sync.defaults).toBeDefined();
-      expect(globalThis[exportedVar].moduleManagement.referToModuleBy).toBeDefined();
+      expect(
+        globalThis[exportedVar].moduleManagement.referToModuleBy
+      ).toBeDefined();
     });
 
     it('logs informative messages with module title and variable name', async () => {
       const overMyHead = new OverMyHead();
       await overMyHead.init();
-      const logCalls = console.log.mock.calls.map(c => String(c[0]));
-      const exportLogCall = logCalls.find(m => m.includes('Constants exported to global scope'));
+      const logCalls = console.log.mock.calls.map((c) => String(c[0]));
+      const exportLogCall = logCalls.find((m) =>
+        m.includes('Constants exported to global scope')
+      );
       expect(exportLogCall).toBeDefined();
-      expect(exportLogCall).toMatch(/Over.*: Constants exported to global scope as \w+Constants\./);
+      expect(exportLogCall).toMatch(
+        /Over.*: Constants exported to global scope as \w+Constants\./
+      );
     });
 
     it('warns on repeated initialization with same dynamic name', async () => {
@@ -161,10 +189,14 @@ describe('OverMyHead Integration Tests', () => {
       console.log.mockClear();
       console.warn.mockClear();
       await overMyHead2.init();
-      const warnCalls = console.warn.mock.calls.map(c => String(c[0]));
-      const exportWarnCall = warnCalls.find(m => m.includes('Constants already exported to global scope'));
+      const warnCalls = console.warn.mock.calls.map((c) => String(c[0]));
+      const exportWarnCall = warnCalls.find((m) =>
+        m.includes('Constants already exported to global scope')
+      );
       expect(exportWarnCall).toBeDefined();
-      expect(exportWarnCall).toMatch(/: Constants already exported to global scope as \w+Constants\./);
+      expect(exportWarnCall).toMatch(
+        /: Constants already exported to global scope as \w+Constants\./
+      );
     });
   });
 
@@ -174,7 +206,7 @@ describe('OverMyHead Integration Tests', () => {
       const instanceConstants = overMyHead.constants;
       await overMyHead.init();
       const exportedVar = Object.keys(globalThis).find(
-        k => k.endsWith('Constants') && globalThis[k] === config.constants
+        (k) => k.endsWith('Constants') && globalThis[k] === config.constants
       );
       expect(globalThis[exportedVar]).toBe(instanceConstants);
       expect(globalThis[exportedVar]).toBe(config.constants);
@@ -189,7 +221,7 @@ describe('OverMyHead Integration Tests', () => {
       const overMyHead = new OverMyHead();
       await overMyHead.init();
       const exportedVar = Object.keys(globalThis).find(
-        k => k.endsWith('Constants') && globalThis[k] === config.constants
+        (k) => k.endsWith('Constants') && globalThis[k] === config.constants
       );
       expect(Object.isFrozen(globalThis[exportedVar])).toBe(true);
       expect(Object.isFrozen(overMyHead.manifest)).toBe(true);
@@ -200,10 +232,82 @@ describe('OverMyHead Integration Tests', () => {
     it('surface errors from config.exportConstants during initialization', async () => {
       const overMyHead = new OverMyHead();
       const original = config.exportConstants;
-      config.exportConstants = vi.fn(() => { throw new Error('Test error'); });
+      config.exportConstants = vi.fn(() => {
+        throw new Error('Test error');
+      });
       await expect(overMyHead.init()).rejects.toThrow('Test error');
       expect(console.error).toHaveBeenCalled();
       config.exportConstants = original;
+    });
+  });
+
+  describe('Development Features', () => {
+    const createManifestWithDevFlag = (devValue) => {
+      const shortName = config.constants.moduleManagement?.shortName || 'OMH';
+      const flags = Object.freeze({
+        ...(config.manifest.flags || {}),
+        dev: devValue,
+      });
+
+      return Object.freeze({
+        ...config.manifest,
+        shortName,
+        flags,
+      });
+    };
+
+    it('enables dev features when the resolved dev flag is true', () => {
+      const manifestWithDev = createManifestWithDevFlag(true);
+      const buildManifestSpy = vi
+        .spyOn(config, 'buildManifestWithShortName')
+        .mockReturnValue(manifestWithDev);
+
+      const overMyHead = new OverMyHead();
+      const initializeDevFeatures =
+        overMyHead.utils.initializer.initializeDevFeatures;
+
+      overMyHead.utils.static.shouldEnableDevFeatures.mockClear();
+      initializeDevFeatures.mockClear();
+
+      overMyHead.enableDevFeatures();
+
+      expect(
+        overMyHead.utils.static.shouldEnableDevFeatures
+      ).toHaveBeenCalledWith(manifestWithDev);
+      expect(Hooks.once).toHaveBeenCalledWith('init', expect.any(Function));
+
+      const initCallback =
+        Hooks.once.mock.calls[Hooks.once.mock.calls.length - 1][1];
+      initCallback();
+
+      expect(initializeDevFeatures).toHaveBeenCalledTimes(1);
+      expect(initializeDevFeatures).toHaveBeenCalledWith(overMyHead.utils);
+
+      buildManifestSpy.mockRestore();
+    });
+
+    it('does not schedule dev features when the resolved dev flag is false', () => {
+      const manifestWithDevDisabled = createManifestWithDevFlag(false);
+      const buildManifestSpy = vi
+        .spyOn(config, 'buildManifestWithShortName')
+        .mockReturnValue(manifestWithDevDisabled);
+
+      const overMyHead = new OverMyHead();
+      const initializeDevFeatures =
+        overMyHead.utils.initializer.initializeDevFeatures;
+
+      overMyHead.utils.static.shouldEnableDevFeatures.mockClear();
+      initializeDevFeatures.mockClear();
+
+      overMyHead.enableDevFeatures();
+
+      expect(
+        overMyHead.utils.static.shouldEnableDevFeatures
+      ).toHaveBeenCalledWith(manifestWithDevDisabled);
+      expect(Hooks.once).not.toHaveBeenCalled();
+      expect(initializeDevFeatures).not.toHaveBeenCalled();
+
+      buildManifestSpy.mockRestore();
     });
   });
 });

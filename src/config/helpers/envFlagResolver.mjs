@@ -81,7 +81,13 @@ class EnvFlagResolver {
 
     for (const envVarName of envVarNames) {
       if (process.env[envVarName] !== undefined) {
-        return EnvFlagResolver.#parseEnvValue(process.env[envVarName]);
+        const parsedValue = EnvFlagResolver.#parseEnvValue(
+          process.env[envVarName]
+        );
+        return EnvFlagResolver.#coerceToReferenceType(
+          parsedValue,
+          defaultValue
+        );
       }
     }
 
@@ -243,6 +249,68 @@ class EnvFlagResolver {
       } catch {
         // Not valid JSON, return as string
       }
+    }
+
+    return value;
+  }
+
+  /**
+   * Coerces a parsed environment value to match the type of the reference value.
+   * Ensures flag overrides preserve their original types (e.g., booleans remain booleans).
+   *
+   * @private
+   * @param {*} value - Parsed environment value
+   * @param {*} referenceValue - Original flag value used for type reference
+   * @returns {*} Value coerced to the reference type when applicable
+   */
+  static #coerceToReferenceType(value, referenceValue) {
+    if (referenceValue === undefined || referenceValue === null) {
+      return value;
+    }
+
+    const referenceType = typeof referenceValue;
+
+    if (referenceType === 'boolean') {
+      if (typeof value === 'boolean') {
+        return value;
+      }
+
+      if (typeof value === 'number') {
+        return value !== 0;
+      }
+
+      if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase();
+        if (normalized === 'true') {
+          return true;
+        }
+        if (normalized === 'false') {
+          return false;
+        }
+      }
+
+      return Boolean(value);
+    }
+
+    if (referenceType === 'number') {
+      if (typeof value === 'number') {
+        return value;
+      }
+
+      if (typeof value === 'boolean') {
+        return value ? 1 : 0;
+      }
+
+      const coercedNumber = Number(value);
+      return Number.isNaN(coercedNumber) ? referenceValue : coercedNumber;
+    }
+
+    if (referenceType === 'string') {
+      if (value === undefined || value === null) {
+        return referenceValue;
+      }
+
+      return String(value);
     }
 
     return value;

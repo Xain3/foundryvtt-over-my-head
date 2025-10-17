@@ -73,6 +73,9 @@ describe('UserDataDirFinder', () => {
     fs.readdirSync.mockReturnValue([]);
     fs.copyFileSync.mockImplementation(() => {});
 
+    // Setup path mocks
+    path.normalize.mockImplementation((p) => p);
+
     // Setup console mocks
     global.console = {
       log: vi.fn(),
@@ -101,33 +104,41 @@ describe('UserDataDirFinder', () => {
   describe('find()', () => {
     it('should find FoundryVTT directory on Linux', () => {
       const finder = new UserDataDirFinder('linux', 'testuser');
+      const expectedPath = '/home/testuser/.local/share/FoundryVTT';
+      
+      os.homedir.mockReturnValue('/home/testuser');
 
-      fs.existsSync.mockReturnValue(true);
-      fs.statSync.mockReturnValue({ isDirectory: () => true });
+      // Only the second path exists (foundrydata is checked first, FoundryVTT second)
+      fs.existsSync.mockImplementation((dir) => dir === expectedPath);
+      fs.statSync.mockImplementation((dir) => {
+        if (dir === expectedPath) {
+          return { isDirectory: () => true };
+        }
+        return { isDirectory: () => false };
+      });
+      path.normalize.mockImplementation((p) => p);
 
       const result = finder.find();
 
-      expect(result).toBe('/home/testuser/.local/share/FoundryVTT');
+      expect(result).toBe(expectedPath);
       expect(console.log).toHaveBeenCalledWith(
-        'Found FoundryVTT user data directory: /home/testuser/.local/share/FoundryVTT'
+        `Found FoundryVTT user data directory: ${expectedPath}`
       );
     });
 
     it('should find FoundryVTT directory on macOS', () => {
       const finder = new UserDataDirFinder('darwin', 'testuser');
+      const expectedPath = '/Users/testuser/Library/Application Support/FoundryVTT';
 
       os.homedir.mockReturnValue('/Users/testuser');
-      path.join.mockReturnValue(
-        '/Users/testuser/Library/Application Support/FoundryVTT'
-      );
+      path.join.mockReturnValue(expectedPath);
+      path.normalize.mockImplementation((p) => p);
       fs.existsSync.mockReturnValue(true);
       fs.statSync.mockReturnValue({ isDirectory: () => true });
 
       const result = finder.find();
 
-      expect(result).toBe(
-        '/Users/testuser/Library/Application Support/FoundryVTT'
-      );
+      expect(result).toBe(expectedPath);
     });
 
     it('should find FoundryVTT directory on Windows', () => {
@@ -135,6 +146,9 @@ describe('UserDataDirFinder', () => {
 
       process.env.LOCALAPPDATA = 'C:\\Users\\testuser\\AppData\\Local';
       path.join.mockReturnValue(
+        'C:\\Users\\testuser\\AppData\\Local\\FoundryVTT'
+      );
+      path.normalize.mockReturnValue(
         'C:\\Users\\testuser\\AppData\\Local\\FoundryVTT'
       );
       fs.existsSync.mockReturnValue(true);
@@ -168,16 +182,24 @@ describe('UserDataDirFinder', () => {
 
     it('should try multiple paths on Linux', () => {
       const finder = new UserDataDirFinder('linux', 'testuser');
+      const expectedPath = '/home/testuser/FoundryVTT';
+      
+      os.homedir.mockReturnValue('/home/testuser');
 
-      fs.existsSync
-        .mockReturnValueOnce(false) // First path doesn't exist
-        .mockReturnValueOnce(true); // Second path exists
-      fs.statSync.mockReturnValue({ isDirectory: () => true });
+      // First three paths don't exist, fourth one does
+      fs.existsSync.mockImplementation((dir) => dir === expectedPath);
+      fs.statSync.mockImplementation((dir) => {
+        if (dir === expectedPath) {
+          return { isDirectory: () => true };
+        }
+        return { isDirectory: () => false };
+      });
+      path.normalize.mockImplementation((p) => p);
 
       const result = finder.find();
 
-      expect(result).toBe('/home/testuser/FoundryVTT');
-      expect(fs.existsSync).toHaveBeenCalledTimes(2);
+      expect(result).toBe(expectedPath);
+      expect(fs.existsSync).toHaveBeenCalledTimes(4);
     });
   });
 });
@@ -467,6 +489,7 @@ describe('BuildAndDeploy', () => {
     os.platform.mockReturnValue('linux');
     os.userInfo.mockReturnValue({ username: 'testuser' });
     path.join.mockImplementation((...parts) => parts.join('/'));
+    path.normalize.mockImplementation((p) => p);
 
     global.console = {
       log: vi.fn(),
@@ -600,6 +623,7 @@ describe('Integration', () => {
     os.platform.mockReturnValue('linux');
     os.userInfo.mockReturnValue({ username: 'testuser' });
     path.join.mockImplementation((...parts) => parts.join('/'));
+    path.normalize.mockImplementation((p) => p);
 
     global.console = {
       log: vi.fn(),

@@ -5,7 +5,7 @@
  */
 import config from './config/config.mjs';
 
-import Utilities from "./utils/utils.mjs";
+import Utilities from './utils/utils.mjs';
 
 /**
  * @class OverMyHead
@@ -22,17 +22,18 @@ class OverMyHead {
     /**
      * @property {object} constants - The module constants.
      */
-  this.config = config;
-  this.constants = this.config.constants;
+    this.config = config;
+    this.constants = this.config.constants;
 
-  /**
-   * @property {object} manifest - The module manifest data with shortName added for backward compatibility.
-   * The manifest is constructed by the central config via buildManifestWithShortName().
-   */
-  this.manifest = this.config.buildManifestWithShortName();
+    /**
+     * @property {object} manifest - The module manifest data with shortName added for backward compatibility.
+     * The manifest is constructed by the central config via buildManifestWithShortName().
+     */
+    const manifestWithShortName = this.config.buildManifestWithShortName();
 
-  this.utils = new Utilities(this.constants, this.manifest);
-  this.utils.static.unpack(this.manifest, this);
+    this.utils = new Utilities(this.constants, manifestWithShortName);
+    this.utils.static.unpack(manifestWithShortName, this);
+    this.manifest = manifestWithShortName;
   }
 
   /**
@@ -57,12 +58,20 @@ class OverMyHead {
       // Initialize context
       this.context = this.utils.initializer.initializeContext();
       // Initialize handlers
-      this.handlers = this.utils.initializer.initializeHandlers(this.config, this.utils, this.context);
+      this.handlers = this.utils.initializer.initializeHandlers(
+        this.config,
+        this.utils,
+        this.context
+      );
       // Initialize settings
       const settingsHandler = this.handlers.settings;
       this.utils.initializer.initializeSettings(settingsHandler, this.utils);
       // Confirm initialization
-      this.utils.initializer.confirmInitialization(this.config, this.context, this.utils);
+      this.utils.initializer.confirmInitialization(
+        this.config,
+        this.context,
+        this.utils
+      );
     } catch (error) {
       console.error(`Error during post-localization initialization: `, error);
       throw error;
@@ -78,6 +87,7 @@ class OverMyHead {
     if (!this.utils.static.shouldEnableDevFeatures(this.manifest)) return;
     Hooks.once('init', () => {
       this.utils.initializer.initializeDevFeatures(this.utils);
+      globalThis['omh'] = this; // For debugging purposes only
     });
   }
 
@@ -95,12 +105,16 @@ class OverMyHead {
     try {
       // Export constants to global scope via config
       config.exportConstants();
-      Hooks.once('i18nInit',  () => {
+      Hooks.once('i18nInit', () => {
         this.#postLocalizationInit();
       });
     } catch (error) {
-      const manifestForLog = (this.config && this.config.manifest) || this.manifest || { title: 'Over My Head', version: 'unknown' };
-      console.error(`Error initializing ${manifestForLog.title} v${manifestForLog.version}: `, error);
+      const manifestForLog = (this.config && this.config.manifest) ||
+        this.manifest || { title: 'Over My Head', version: 'unknown' };
+      console.error(
+        `Error initializing ${manifestForLog.title} v${manifestForLog.version}: `,
+        error
+      );
       throw error;
     }
   }

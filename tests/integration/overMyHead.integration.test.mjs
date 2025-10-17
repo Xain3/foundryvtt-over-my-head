@@ -143,7 +143,7 @@ describe('OverMyHead Integration Tests', () => {
       expect(spy).toHaveBeenCalledTimes(1);
       // Find exported var with dynamic name like OMHConstants
       const exportedVar = Object.keys(globalThis).find(
-        k => k.endsWith('Constants') && globalThis[k] === config.constants
+        (k) => k.endsWith('Constants') && globalThis[k] === config.constants
       );
       expect(exportedVar).toBeDefined();
       spy.mockRestore();
@@ -159,21 +159,27 @@ describe('OverMyHead Integration Tests', () => {
       const overMyHead = new OverMyHead();
       await overMyHead.init();
       const exportedVar = Object.keys(globalThis).find(
-        k => k.endsWith('Constants') && globalThis[k] === config.constants
+        (k) => k.endsWith('Constants') && globalThis[k] === config.constants
       );
       expect(globalThis[exportedVar]).toBeDefined();
       expect(globalThis[exportedVar].errors.separator).toBeDefined();
       expect(globalThis[exportedVar].context.sync.defaults).toBeDefined();
-      expect(globalThis[exportedVar].moduleManagement.referToModuleBy).toBeDefined();
+      expect(
+        globalThis[exportedVar].moduleManagement.referToModuleBy
+      ).toBeDefined();
     });
 
     it('logs informative messages with module title and variable name', async () => {
       const overMyHead = new OverMyHead();
       await overMyHead.init();
-      const logCalls = console.log.mock.calls.map(c => String(c[0]));
-      const exportLogCall = logCalls.find(m => m.includes('Constants exported to global scope'));
+      const logCalls = console.log.mock.calls.map((c) => String(c[0]));
+      const exportLogCall = logCalls.find((m) =>
+        m.includes('Constants exported to global scope')
+      );
       expect(exportLogCall).toBeDefined();
-      expect(exportLogCall).toMatch(/Over.*: Constants exported to global scope as \w+Constants\./);
+      expect(exportLogCall).toMatch(
+        /Over.*: Constants exported to global scope as \w+Constants\./
+      );
     });
 
     it('warns on repeated initialization with same dynamic name', async () => {
@@ -183,10 +189,14 @@ describe('OverMyHead Integration Tests', () => {
       console.log.mockClear();
       console.warn.mockClear();
       await overMyHead2.init();
-      const warnCalls = console.warn.mock.calls.map(c => String(c[0]));
-      const exportWarnCall = warnCalls.find(m => m.includes('Constants already exported to global scope'));
+      const warnCalls = console.warn.mock.calls.map((c) => String(c[0]));
+      const exportWarnCall = warnCalls.find((m) =>
+        m.includes('Constants already exported to global scope')
+      );
       expect(exportWarnCall).toBeDefined();
-      expect(exportWarnCall).toMatch(/: Constants already exported to global scope as \w+Constants\./);
+      expect(exportWarnCall).toMatch(
+        /: Constants already exported to global scope as \w+Constants\./
+      );
     });
   });
 
@@ -196,7 +206,7 @@ describe('OverMyHead Integration Tests', () => {
       const instanceConstants = overMyHead.constants;
       await overMyHead.init();
       const exportedVar = Object.keys(globalThis).find(
-        k => k.endsWith('Constants') && globalThis[k] === config.constants
+        (k) => k.endsWith('Constants') && globalThis[k] === config.constants
       );
       expect(globalThis[exportedVar]).toBe(instanceConstants);
       expect(globalThis[exportedVar]).toBe(config.constants);
@@ -211,7 +221,7 @@ describe('OverMyHead Integration Tests', () => {
       const overMyHead = new OverMyHead();
       await overMyHead.init();
       const exportedVar = Object.keys(globalThis).find(
-        k => k.endsWith('Constants') && globalThis[k] === config.constants
+        (k) => k.endsWith('Constants') && globalThis[k] === config.constants
       );
       expect(Object.isFrozen(globalThis[exportedVar])).toBe(true);
       expect(Object.isFrozen(overMyHead.manifest)).toBe(true);

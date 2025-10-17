@@ -105,12 +105,16 @@ class OverMyHead {
     try {
       // Export constants to global scope via config
       config.exportConstants();
-      Hooks.once('i18nInit',  () => {
+      Hooks.once('i18nInit', () => {
         this.#postLocalizationInit();
       });
     } catch (error) {
-      const manifestForLog = (this.config && this.config.manifest) || this.manifest || { title: 'Over My Head', version: 'unknown' };
-      console.error(`Error initializing ${manifestForLog.title} v${manifestForLog.version}: `, error);
+      const manifestForLog = (this.config && this.config.manifest) ||
+        this.manifest || { title: 'Over My Head', version: 'unknown' };
+      console.error(
+        `Error initializing ${manifestForLog.title} v${manifestForLog.version}: `,
+        error
+      );
       throw error;
     }
   }

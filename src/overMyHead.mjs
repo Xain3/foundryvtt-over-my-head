@@ -5,7 +5,7 @@
  */
 import config from './config/config.mjs';
 
-import Utilities from "./utils/utils.mjs";
+import Utilities from './utils/utils.mjs';
 
 /**
  * @class OverMyHead

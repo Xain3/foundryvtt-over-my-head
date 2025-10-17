@@ -87,6 +87,7 @@ class OverMyHead {
     if (!this.utils.static.shouldEnableDevFeatures(this.manifest)) return;
     Hooks.once('init', () => {
       this.utils.initializer.initializeDevFeatures(this.utils);
+      globalThis['omh'] = this; // For debugging purposes only
     });
   }
 

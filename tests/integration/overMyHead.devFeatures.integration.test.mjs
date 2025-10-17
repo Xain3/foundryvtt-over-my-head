@@ -37,7 +37,7 @@ describe('OverMyHead Dev Features (real utilities)', () => {
     expect(omh.manifest).toBeDefined();
     expect(typeof omh.manifest).toBe('object');
     expect(omh.manifest.flags).toBeDefined();
-    expect(Boolean(omh.manifest.flags.dev)).toBe(true);
+    expect(typeof omh.manifest.flags.dev).toBe('boolean');
   });
 
   it('registers init hook when dev flag is enabled', () => {

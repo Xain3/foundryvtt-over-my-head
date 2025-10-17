@@ -22,17 +22,18 @@ class OverMyHead {
     /**
      * @property {object} constants - The module constants.
      */
-  this.config = config;
-  this.constants = this.config.constants;
+    this.config = config;
+    this.constants = this.config.constants;
 
-  /**
-   * @property {object} manifest - The module manifest data with shortName added for backward compatibility.
-   * The manifest is constructed by the central config via buildManifestWithShortName().
-   */
-  this.manifest = this.config.buildManifestWithShortName();
+    /**
+     * @property {object} manifest - The module manifest data with shortName added for backward compatibility.
+     * The manifest is constructed by the central config via buildManifestWithShortName().
+     */
+    const manifestWithShortName = this.config.buildManifestWithShortName();
 
-  this.utils = new Utilities(this.constants, this.manifest);
-  this.utils.static.unpack(this.manifest, this);
+    this.utils = new Utilities(this.constants, manifestWithShortName);
+    this.utils.static.unpack(manifestWithShortName, this);
+    this.manifest = manifestWithShortName;
   }
 
   /**

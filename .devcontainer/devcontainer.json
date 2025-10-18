@@ -28,12 +28,13 @@
 
   // Bind /foundrydata and /foundryvtt
   "mounts": [
+    "source=${localEnv:HOME},target=/home/node/host-home,type=bind",
     "source=${localEnv:HOME}/foundrydata,target=/home/node/foundrydata,type=bind",
     "source=${localEnv:HOME}/FoundryVTT,target=/home/node/FoundryVTT,type=bind"
   ],
 
   "containerEnv": {
-    "HOST_HOME": "${localEnv:HOME}"
+    "HOST_HOME": "/home/node/host-home"
   },
 
   // Use 'postCreateCommand' to run commands after the container is created.

@@ -115,6 +115,7 @@ if [[ "$DRY_RUN" == true ]]; then
     pass "Git config copied (dry-run)"
 else
     echo "Copying Git config from host..."
+    echo "HOST_HOME is set to: $HOST_HOME"
     if [ -f "$HOST_HOME/.gitconfig" ]; then
         cp "$HOST_HOME/.gitconfig" ~/.gitconfig
         pass "Git config copied from host"

@@ -17,12 +17,13 @@ It can also be run manually by newcomers for troubleshooting or manual setup.
 
 What it does:
 1. Configures Git safe directory to prevent ownership errors
-2. Installs npm dependencies
-3. Sets up Git hooks (husky)
-4. Runs environment validation checks
-5. Sets up Python environment
+2. Copies Git config from host to inherit user.name and user.email
+3. Sets Git editor to VS Code
+4. Installs npm dependencies
+5. Sets up Git hooks (husky)
 6. Sets up ZSH configuration
-7. Shows available commands
+7. Installs Python3 and uv (Universal Version Manager)
+8. Shows available commands
 EOF
     exit 0
 fi
@@ -40,12 +41,13 @@ fi
 #
 # What it does:
 # 1. Configures Git safe directory to prevent ownership errors
-# 2. Installs npm dependencies
-# 3. Sets up Git hooks (husky)
-# 4. Runs environment validation checks
-# 5. Sets up Python environment
+# 2. Copies Git config from host to inherit user.name and user.email
+# 3. Sets Git editor to VS Code
+# 4. Installs npm dependencies
+# 5. Sets up Git hooks (husky)
 # 6. Sets up ZSH configuration
-# 7. Shows available commands
+# 7. Installs Python3 and Uvm (Universal Version Manager)
+# 8. Shows available commands
 #
 # Usage:
 #   Automatic: Called by devcontainer.json postCreateCommand
@@ -108,6 +110,26 @@ else
     git config --global --add safe.directory "$(pwd)"
     pass "Git safe directory configured"
 fi
+if [[ "$DRY_RUN" == true ]]; then
+    echo "Would copy Git config from host if available"
+    pass "Git config copied (dry-run)"
+else
+    echo "Copying Git config from host..."
+    if [ -f "$HOST_HOME/.gitconfig" ]; then
+        cp "$HOST_HOME/.gitconfig" ~/.gitconfig
+        pass "Git config copied from host"
+    else
+        warn "No .gitconfig found on host. Git user.name and user.email may need to be set manually."
+    fi
+fi
+if [[ "$DRY_RUN" == true ]]; then
+    echo "Would configure Git editor to use code --wait"
+    pass "Git editor configured (dry-run)"
+else
+    echo "Configuring Git editor to use code --wait..."
+    git config --global core.editor "code --wait"
+    pass "Git editor configured"
+fi
 
 section "Dependencies"
 if [[ "$DRY_RUN" == true ]]; then
@@ -146,6 +168,67 @@ else
     echo "🪝 Installing Git hooks..."
     npm run prepare
     pass "Git hooks installed"
+fi
+
+section "🐍 Ensure Python3 is installed"
+if [[ "$DRY_RUN" == true ]]; then
+    echo "Would install Python3"
+else
+    echo "Ensuring Python3 is installed..."
+    if ! command -v python3 &> /dev/null; then
+        echo "Python3 could not be found. Installing Python3..."
+        apt-get update && apt-get install -y python3
+        pass "Python3 installed"
+    fi
+fi
+
+section "🍇 Ensure Uv is installed"
+if [[ "$DRY_RUN" == true ]]; then
+    echo "Would install Uv (Universal Version Manager)"
+    pass "Uv installation simulated (dry-run)"
+else
+    if ! command -v uv &> /dev/null; then
+        echo "Uv could not be found. Installing Uv..."
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        # Reload PATH to make uv command available. The installer may place the binary
+        # in one of several locations depending on system and installer (e.g. ~/.local/bin,
+        # ~/.cargo/bin). Add common locations to PATH so the new uv command is found.
+        export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/.bin:$PATH"
+        pass "Uv installed"
+    fi
+fi
+
+section "Install Uv Packages"
+if [[ "$DRY_RUN" == true ]]; then
+    echo "Would install Uv packages"
+    pass "Uv packages installation simulated (dry-run)"
+else
+    echo "Installing Uv packages..."
+    # Ensure uv is in PATH (add common install locations again in case this script
+    # is executed in a new shell session)
+    export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/.bin:$PATH"
+
+    if command -v uv &> /dev/null; then
+        # Try to install the optional specify-cli tool. Use conditional checks so
+        # failures here won't abort the whole postCreateCommand.
+        if uv tool install specify-cli --from git+https://github.com/github/spec-kit.git; then
+            pass "specify-cli installed"
+        else
+            warn "Failed to install specify-cli (optional). Continuing."
+        fi
+
+        # Run uv sync to create the virtual environment / install Python deps.
+        # uv sync may fail if the repository isn't configured as a Python package
+        # (hatchling/build issues). Don't let that failure break the whole setup;
+        # warn and continue.
+        if uv sync; then
+            pass "Uv sync completed"
+        else
+            warn "uv sync failed. This usually means the Python project isn't configured for packaging (see hatchling errors). Skipping Python env setup."
+        fi
+    else
+        warn "Uv not found in PATH. Skipping uv package installation and sync."
+    fi
 fi
 
 if [[ "$DRY_RUN" == true ]]; then

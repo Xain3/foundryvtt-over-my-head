@@ -16,7 +16,8 @@
       "configureZshAsDefaultShell": true,
       "installOhMyZsh": true,
       "upgradePackages": true
-    }
+    },
+    "ghcr.io/va-h/devcontainers-features/uv:1": {}
   },
 
   // Features to add to the dev container. More info: https://containers.dev/features.
@@ -30,6 +31,10 @@
     "source=${localEnv:HOME}/foundrydata,target=/home/node/foundrydata,type=bind",
     "source=${localEnv:HOME}/FoundryVTT,target=/home/node/FoundryVTT,type=bind"
   ],
+
+  "containerEnv": {
+    "HOST_HOME": "${localEnv:HOME}"
+  },
 
   // Use 'postCreateCommand' to run commands after the container is created.
   "postCreateCommand": ".devcontainer/devcontainer-setup.sh",

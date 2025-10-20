@@ -1,50 +1,151 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+  SYNC IMPACT REPORT (v1.0.0)
+
+  Version change: Template → 1.0.0 (Initial adoption)
+
+  Principles established:
+  - I. Modular Architecture (NEW)
+  - II. FoundryVTT Integration (NEW)
+  - III. Configuration Management (NEW)
+  - IV. Documentation Excellence (NEW)
+  - V. Quality & Maintainability (NEW)
+
+  Sections added:
+  - Module Lifecycle (NEW)
+  - Development Standards (NEW)
+
+  Templates requiring updates:
+  - ✅ .specify/templates/plan-template.md (Constitution Check section)
+  - ✅ .specify/templates/spec-template.md (scope alignment)
+  - ✅ .specify/templates/tasks-template.md (task categorization)
+  - ⚠️ None at this time (no command files to update)
+
+  Follow-up TODOs:
+  - Review governance process after first 3 feature cycles
+-->
+
+# Hybrid Occlusion Module for FoundryVTT Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Modular Architecture
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+The module MUST maintain clear separation of concerns with a view toward reuse across other FoundryVTT modules.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+**Non-Negotiable Rules:**
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+- Single point of entry for runtime constants and configuration and environment management; separate entry point for dev
+  configs
+- Composition over inheritance preferred where technically feasible
+- Each module component MUST have explicitly defined responsibility and dependencies
+- Code MUST follow established FoundryVTT coding standards and best practices
+- Error and log messages MUST be prepended by a configurable prefix for easy filtering and identification
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+**Rationale**: Modular code is maintainable, testable, and reusable. Clear responsibility boundaries prevent hidden dependencies and technical debt. Configurable message prefixes enable better debugging and integration with logging systems.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### II. FoundryVTT Integration
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+The module integrates with FoundryVTT's occlusion system through the built-in hooks system only.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+**Non-Negotiable Rules:**
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- Hooks system MUST be the sole mechanism for runtime integration with FoundryVTT
+- Module MUST not patch core FoundryVTT methods or properties
+- Module MUST not interfere with other occlusion-related modules
+- The hybrid occlusion mode (Vision + Fade) MUST be optional and user-configurable per world, scene and tile
+
+**Rationale**: Hook-based integration ensures modularity and prevents conflicts with other modules. Avoiding monkey-patching maintains compatibility and makes updates safer. Optional configuration respects user choice and existing workflows.
+
+### III. Configuration Management
+
+The module MUST expose a single, clearly-documented API for runtime configuration.
+
+**Non-Negotiable Rules:**
+
+- All runtime configuration MUST flow through a dedicated configuration service
+- All development-time configuration MUST have a separate, non-conflicting entry point
+- Configuration changes MUST be immediately reflected without requiring module reload (where possible)
+- Configuration documentation MUST be inline and discoverable
+- In-game configuration UI MUST be provided for all user-adjustable settings
+
+**Rationale**: Centralized configuration reduces cognitive load, prevents silent misconfigurations, and makes testing simpler. Separation of runtime and dev configs avoids accidental production misconfiguration.
+
+### IV. Documentation Excellence
+
+Every code artifact and file structure MUST be documented such that new developers can understand purpose, usage, and integration points without external consultation.
+
+**Non-Negotiable Rules:**
+
+- Every function, method, class (including private ones), and exported symbol MUST have a JSDoc comment explaining purpose, parameters, and return values
+- Every folder MUST contain a versioned README.md describing its purpose, contents, structure, and dependencies; README MUST be updated whenever files are added or removed
+- The main README.md MUST provide module overview, installation instructions, usage guidelines, and troubleshooting tips
+- For files that support comments, complex logic and architectural decisions MUST be explained inline
+- Every file that supports comments MUST start with a file-level header (as defined in coding standards) explaining file purpose, name, and path
+
+**Rationale**: Comprehensive documentation eliminates guesswork, reduces onboarding time, and captures design decisions for future maintainers. Inline documentation ensures context is preserved and constraints are visible.
+
+### V. Quality & Maintainability
+
+The module MUST maintain high code quality through discipline in testing, standards compliance, and ongoing care.
+
+**Non-Negotiable Rules:**
+
+- Code MUST follow FoundryVTT module best practices and established JavaScript/TypeScript conventions
+- The module MUST be easy to enable/disable without manual file editing
+- Automated tests MUST cover at least 80% of the codebase
+- New features MUST be accompanied by appropriate unit or integration tests
+- Performance MUST not degrade as the module evolves
+
+**Rationale**: Quality practices prevent bugs, reduce refactoring burden, and ensure the module remains compatible with FoundryVTT updates. Easy enable/disable improves user experience and simplifies troubleshooting.
+
+## Module Lifecycle
+
+The module MUST support simple enable/disable operations without requiring users to edit files directly.
+
+**Requirements:**
+
+- Enable/disable functionality MUST be exposed through FoundryVTT's module management UI
+- Disabling the module MUST cleanly remove all hooks and state, leaving the system in a stable state
+- Module MUST not persist user data that would cause conflicts if another occlusion module is later enabled
+
+## Development Standards
+
+All contributions MUST adhere to the coding standards defined for this project.
+
+**Requirements:**
+
+- Each file (where supported) MUST begin with a standard file-level header including purpose, name, and path (as specified in the coding standards document)
+- The module's public API surface MUST be clear, concise, and stable across minor version updates
+- Code MUST be well-commented where non-obvious logic exists
+- Pull requests MUST verify:
+  - No regressions in existing occlusion behavior
+  - No interference with other modules
+  - All new code has appropriate comments and documentation updates
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+**Constitution Authority**: This constitution supersedes all other informal guidelines or practices. It is the source of truth for this module's development and architectural decisions.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Amendment Process**:
+
+- Amendments MUST be documented in a rationale explaining why the change is necessary
+- Significant amendments (MAJOR version changes) MUST be approved by project maintainers
+- All amendments MUST update this document and propagate to dependent governance files (`plan.md`, `spec.md`, `tasks.md`)
+- After each significant change, a Sync Impact Report MUST be generated to track which templates/docs require updates
+
+**Compliance Review**: Before opening a PR, contributors MUST verify:
+
+- Adherence to all five Core Principles
+- Alignment with Module Lifecycle requirements
+- Completion of Development Standards checklist
+- Documentation is complete and current
+
+**Version Policy**:
+
+- MAJOR.MINOR.PATCH semantic versioning
+- MAJOR: Backward-incompatible principle changes or removals
+- MINOR: New principle or materially expanded guidance
+- PATCH: Clarifications, wording, typo fixes
+- ALPHA/BETA releases are not governed by this constitution and may experiment with breaking changes
+
+**Version**: 1.0.0 | **Ratified**: 2025-10-20 | **Last Amended**: 2025-10-20

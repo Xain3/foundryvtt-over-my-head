@@ -29,7 +29,7 @@ In the gif below, the roof is a red tile. When occlusion mode is set to vision, 
 
 ### 0.1.0 (2025-10-20)
 
-- Initial version with core module documentation and structure`
+- Initial version with core module documentation and structure
 
 ## Changelog
 

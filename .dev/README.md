@@ -30,12 +30,9 @@ These scripts are typically invoked through npm scripts defined in `package.json
 
 See the main project README.md for detailed development setup instructions.
 
-```
-
 ## Changelog
 
 ### 0.1.0 (2025-10-20)
 
 - Added version badge to README
 - Initial .dev directory documentation
-```

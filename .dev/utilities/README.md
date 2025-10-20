@@ -26,11 +26,9 @@ The utilities provide common functionality for finding directories, managing mod
 
 These utilities are imported and used by the build and deployment scripts to handle common tasks like directory management and code quality checks.
 
-```
-
 ## Changelog
 
 ### 0.1.0 (2025-10-20)
+
 - Added version badge to README
 - Initial utilities directory documentation
-```

@@ -64,20 +64,9 @@ Configurations in this directory are typically read by scripts in `.dev/scripts/
 
 **Note**: This directory is excluded from production builds and doesn't affect the runtime behavior of the Foundry VTT module. It is purely for development and maintenance purposes.
 
-```
-
 ## Changelog
 
 ### 0.1.0 (2025-10-20)
 
 - Added version badge to README
 - Initial development configuration documentation
-
-## Changelog
-
-### [0.1.0] - 2025-10-20
-
-- Initial release of development configuration structure
-- Added centralized configuration management for development workflows
-- Implemented configuration files for build, testing, deployment, and CI/CD processes
-```

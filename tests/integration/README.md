@@ -4,8 +4,6 @@
 
 This folder contains integration tests
 
-```
-
 ## Changelog
 
 ### [0.1.0] - 2025-10-20
@@ -13,4 +11,3 @@ This folder contains integration tests
 - Initial release of integration tests
 - Added test framework for verifying component interactions
 - Implemented mocks for Foundry VTT environment simulation
-```

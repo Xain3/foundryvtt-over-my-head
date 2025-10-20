@@ -13,20 +13,9 @@ This folder contains various documentation files
   - `foundry-vtt-v13-quick-reference.md`
   - `README.md`: Overview of the Foundry VTT API documentation.
 
-```
-
 ## Changelog
 
 ### 0.1.0 (2025-10-20)
 
 - Added version badge to README
-- Initial documentation structure`
-
-## Changelog
-
-### [0.1.0] - 2025-10-20
-
-- Initial release of documentation structure
-- Added Foundry VTT API documentation for version 13
-- Established organization for module documentation and guides
-```
+- Initial documentation structure

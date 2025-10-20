@@ -6,20 +6,9 @@ This directory contains constant definitions and configuration files used by the
 These constants help manage settings, default values, and other fixed parameters that the module relies on
 for consistent behavior.
 
-```
-
 ## Changelog
 
 ### 0.1.0 (2025-10-20)
 
 - Added version badge to README
-- Initial constants directory documentation`
-
-## Changelog
-
-### [0.1.0] - 2025-10-20
-
-- Initial release of constants directory
-- Added constant definitions and configuration files
-- Established structure for runtime settings and default values
-```
+- Initial constants directory documentation

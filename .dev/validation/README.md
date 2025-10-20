@@ -24,11 +24,9 @@ Validation logic is integrated into various utilities, including:
 
 Validation is performed automatically during build and deployment processes to catch issues early in development.
 
-```
-
 ## Changelog
 
 ### 0.1.0 (2025-10-20)
+
 - Added version badge to README
 - Initial validation directory documentation
-```

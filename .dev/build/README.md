@@ -22,8 +22,6 @@ The build scripts handle the compilation and bundling process using Vite, provid
 
 These scripts are used by the main build process and development workflow. The `ModuleBuilder` class provides a clean API for building the module with various options.
 
-```
-
 ## Changelog
 
 ### 0.1.0 (2025-10-20)

@@ -872,8 +872,6 @@ To extend the mock system:
 
 This mock system is part of the "Over My Head" Foundry VTT module and follows the same licensing terms.
 
-```
-
 ## Changelog
 
 ### [0.1.0] - 2025-10-20
@@ -881,4 +879,3 @@ This mock system is part of the "Over My Head" Foundry VTT module and follows th
 - Initial release of Enhanced MockGlobals system
 - Added comprehensive Foundry VTT v13 API coverage
 - Implemented browser environment simulation and library integrations
-```

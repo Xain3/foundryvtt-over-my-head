@@ -6,20 +6,9 @@ This folder contains performance tests for the Foundry VTT Over My Head module. 
 
 Tests in this folder may include benchmarks for rendering, calculations, and other critical operations.
 
-```
-
 ## Changelog
 
 ### 0.1.0 (2025-10-20)
 
 - Added version badge to README
-- Initial performance tests directory documentation`
-
-## Changelog
-
-### [0.1.0] - 2025-10-20
-
-- Initial release of performance tests
-- Added benchmarks for measuring module efficiency and resource usage
-- Implemented tests for rendering, calculations, and critical operations
-```
+- Initial performance tests directory documentation

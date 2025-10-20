@@ -47,12 +47,9 @@ Unit tests for CI scripts can be run with:
 npx vitest run .dev/scripts/ci/*.unit.test.mjs
 ```
 
-````
-
 ## Changelog
 
 ### 0.1.0 (2025-10-20)
+
 - Added version badge to README
 - Initial CI scripts directory documentation
-```
-````

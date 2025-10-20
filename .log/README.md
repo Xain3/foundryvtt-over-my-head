@@ -8,8 +8,6 @@ Log files are automatically deleted regularly to prevent accumulation of outdate
 
 The content of this folder, except for this README.md file, is ignored by version control systems to prevent cluttering the repository with log data.
 
-```
-
 ## Changelog
 
 ### 0.1.0 (2025-10-20)

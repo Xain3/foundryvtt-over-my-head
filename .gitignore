@@ -2,6 +2,10 @@
 # Logs
 logs
 *.log
+!.log
+.log/*
+!.log/README.md
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -106,6 +110,10 @@ public
 # Temporary folders
 tmp/
 temp/
+.tmp/*
+.temp/*
+!.tmp/README.md
+!.temp/README.md
 
 # System files
 .DS_Store

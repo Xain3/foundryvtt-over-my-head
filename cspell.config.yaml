@@ -1,0 +1,82 @@
+version: '0.2'
+ignorePaths:
+  [
+    '**/node_modules/**',
+    '**/dist/**',
+    '**/build/**',
+    '**/.git/**',
+    '**/.svn/**',
+    '**/.hg/**',
+    '**/coverage/**',
+    '**/tmp/**',
+    '**/.tmp/**',
+    '**/.log/**',
+  ]
+dictionaryDefinitions: []
+dictionaries:
+  - en-gb
+  - en-uk
+  - softwareTerms
+  - misc
+  - typescript
+  - bash
+  - npm
+words:
+  - anseki
+  - bierner
+  - chatmodes
+  - csslint
+  - datamodel
+  - davidanson
+  - dependencygraph
+  - devcontainers
+  - donjayamanne
+  - eamodio
+  - esbenp
+  - foundrydata
+  - foundryvtt
+  - geistmann
+  - githistory
+  - iarna
+  - jannisx
+  - maciejdems
+  - mhutchie
+  - omhrc
+  - perkovec
+  - Placeables
+  - Schmalfeldt
+  - stylelintcache
+  - yzhang
+  - dont
+  - APIKEY
+
+# Extension-specific overrides
+overrides:
+  - filename: '**/*.mjs'
+    ignoreWords:
+      - foundryvtt
+      - placeable
+      - placeables
+
+  - filename: '**/*.yaml'
+    ignoreWords:
+      - foundry
+      - dont
+
+  - filename: '**/*.md'
+    ignoreWords:
+      - foundry
+      - deployments
+      - modularity
+    flagWords:
+      - dont
+      - APIKEY
+
+  - filename: '**/*.json'
+    ignoreWords: []
+
+  - filename: '**/*.css'
+    ignoreWords:
+      - placeable
+
+import: []

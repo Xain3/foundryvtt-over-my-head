@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "types": [],
+    "paths": {
+      "#/*": ["./src/*"],
+      "#src/*": ["./src/*"],
+      "#tests/*": ["./tests/*"],
+      "#mocks/*": ["./tests/mocks/*"]
+    }
+  },
+  "include": ["./src/**/*", "./tests/**/*"],
+  "exclude": [
+    "./node_modules",
+    "./dist",
+    "./release",
+    "./coverage",
+    "./.tmp",
+    "./.log"
+  ]
+}

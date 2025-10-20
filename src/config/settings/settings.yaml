@@ -1,0 +1,126 @@
+# file: settings.yaml
+# description: In-game settings for the Over My Head module
+# path: src/config/settings/settings.yaml
+
+# Keys that are required for each setting definition
+requiredKeys:
+  - 'key'
+  - 'config.name'
+  - 'config.hint'
+  - 'config.scope'
+  - 'config.type'
+
+settingsNamespace:
+  useShortName: true
+  useCustomNamespace: false
+  customNamespace: 'OMH'
+
+# List of settings definitions that will be parsed and registered
+settingsList:
+  ## GENERAL SETTINGS
+
+  # Setting to enable or disable the module
+  - key: 'useModule'
+    # Conditions to show or hide this setting in the UI
+    showOnlyIfFlag: null
+    dontShowIfFlag: null
+
+    # Configuration for the setting
+    config:
+      name: 'OMH.settings.useModule.name' # Name localization key
+      hint: 'OMH.settings.useModule.hint' # Hint localization key
+      scope: 'world'
+      config: true
+      type: Boolean
+      requireReload: true
+      default: true
+      onChange: # Behavior when the setting is changed
+        sendHook: false
+        hookName: 'useModule'
+
+  # Setting to enable or disable debug mode
+  - key: 'debugMode'
+    # Conditions to show or hide this setting in the UI
+    showOnlyIfFlag: { or: ['manifest.flags.debugMode', 'manifest.flags.dev'] }
+    dontShowIfFlag: null
+
+    # Configuration for the setting
+    config:
+      name: 'OMH.settings.debugMode.name' # Name localization key
+      hint: 'OMH.settings.debugMode.hint' # Hint localization key
+      scope: 'user'
+      config: true
+      type: Boolean
+      default: { 'manifest.debugMode' }
+      onChange: # Behavior when the setting is changed
+        sendHook: true
+        hookName: 'debugMode'
+
+  ## BEHAVIOR SETTINGS (should be overridable per scene)
+
+  # Configure what tokens the module should consider to determine occlusion mode.
+  # Default is to include tokens that are both active and controlled.
+  - key: 'behaviorTokens'
+    # Conditions to show or hide this setting in the UI
+    showOnlyIfFlag: null
+    dontShowIfFlag: null
+
+    # Configuration for the setting
+    config:
+      name: 'OMH.settings.behaviorTokens.name' # Name localization key
+      hint: 'OMH.settings.behaviorTokens.hint' # Hint localization key
+      choices: {
+          # Value : Localization Key
+          default: 'OMH.settings.behaviorTokens.choices.default',
+          onlyActive: 'OMH.settings.behaviorTokens.choices.onlyActive',
+          onlyControlled: 'OMH.settings.behaviorTokens.choices.onlyControlled',
+        }
+      scope: 'world'
+      config: true
+      type: String
+      default: 'default'
+      onChange: # Behavior when the setting is changed
+        sendHook: true
+        hookName: 'behaviorTokens'
+
+  # Configure whether party members can see each other's overheads.
+  - key: 'behaviorParty'
+    # Conditions to show or hide this setting in the UI
+    showOnlyIfFlag: null
+    dontShowIfFlag: null
+
+    # Configuration for the setting
+    config:
+      name: 'OMH.settings.behaviorParty.name' # Name localization key
+      hint: 'OMH.settings.behaviorParty.hint' # Hint localization key
+      scope: 'world'
+      config: true
+      type: Boolean
+      default: false
+      onChange: # Behavior when the setting is changed
+        sendHook: true
+        hookName: 'behaviorParty'
+
+  # Configure if the module should be active for the GM as well
+  - key: 'behaviorGM'
+    # Conditions to show or hide this setting in the UI
+    showOnlyIfFlag: null
+    dontShowIfFlag: null
+
+    # Configuration for the setting
+    config:
+      name: 'OMH.settings.behaviorGM.name' # Name localization key
+      hint: 'OMH.settings.behaviorGM.hint' # Hint localization key
+      choices: {
+          # Value : Localization Key
+          default: 'OMH.settings.behaviorGM.choices.default',
+          onlyNPCs: 'OMH.settings.behaviorGM.choices.onlyNPCs',
+          inactive: 'OMH.settings.behaviorGM.choices.inactive',
+        }
+      scope: 'world'
+      config: true
+      type: String
+      default: false
+      onChange: # Behavior when the setting is changed
+        sendHook: true
+        hookName: 'behaviorGM'

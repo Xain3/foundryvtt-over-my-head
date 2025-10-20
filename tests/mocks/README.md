@@ -1,3 +1,5 @@
+**Version**: 0.1.0
+
 # Enhanced MockGlobals System for Foundry VTT Integration Testing
 
 ## Overview
@@ -41,9 +43,9 @@ import MockGlobals, {
   MockScene,
   createMockFunction,
   createSpy,
-} from "../mocks/mockGlobals.mjs";
+} from '../mocks/mockGlobals.mjs';
 
-describe("My Foundry Module Tests", () => {
+describe('My Foundry Module Tests', () => {
   let mockGlobals;
 
   beforeAll(() => {
@@ -66,7 +68,7 @@ describe("My Foundry Module Tests", () => {
     mockGlobals.reset();
   });
 
-  it("should work with Foundry APIs", () => {
+  it('should work with Foundry APIs', () => {
     // All Foundry globals are now available
     expect(game.ready).toBeDefined();
     expect(game.user.isGM).toBe(true);
@@ -91,7 +93,7 @@ mockGlobals.setGlobals({
 ```javascript
 // Use your own mock game instance
 const customGame = new MockGame();
-customGame.worldId = "my-test-world";
+customGame.worldId = 'my-test-world';
 
 mockGlobals.setGlobals({
   foundry: true,
@@ -147,12 +149,12 @@ Creates a Vitest mock function when Vitest is available, otherwise returns a reg
 
 ```javascript
 // With Vitest available
-const mockFn = createMockFunction(() => "test result");
+const mockFn = createMockFunction(() => 'test result');
 expect(vi.isMockFunction(mockFn)).toBe(true);
 
 // Without Vitest
-const regularFn = createMockFunction(() => "test result");
-expect(typeof regularFn).toBe("function");
+const regularFn = createMockFunction(() => 'test result');
+expect(typeof regularFn).toBe('function');
 ```
 
 ### `createSpy(object, methodName)`
@@ -160,8 +162,8 @@ expect(typeof regularFn).toBe("function");
 Creates a Vitest spy when Vitest is available, otherwise returns the original method.
 
 ```javascript
-const obj = { method: () => "original" };
-const spy = createSpy(obj, "method");
+const obj = { method: () => 'original' };
+const spy = createSpy(obj, 'method');
 
 // With Vitest, spy tracks calls
 if (vi.isMockFunction(spy)) {
@@ -198,17 +200,17 @@ Represents characters, NPCs, and other actors in the game.
 
 ```javascript
 const actor = new MockActor({
-  name: "Test Hero",
-  type: "character",
+  name: 'Test Hero',
+  type: 'character',
   system: { attributes: { hp: { value: 100 } } },
 });
 
 // Access items and effects
-actor.items.set("sword", new MockItem({ name: "Magic Sword" }));
-actor.effects.set("blessing", new MockActiveEffect());
+actor.items.set('sword', new MockItem({ name: 'Magic Sword' }));
+actor.effects.set('blessing', new MockActiveEffect());
 
 // Get items by type
-const weapons = actor.itemTypes("weapon");
+const weapons = actor.itemTypes('weapon');
 ```
 
 #### MockItem
@@ -217,8 +219,8 @@ Represents equipment, spells, features, and other items.
 
 ```javascript
 const item = new MockItem({
-  name: "Healing Potion",
-  type: "consumable",
+  name: 'Healing Potion',
+  type: 'consumable',
   system: { uses: { value: 3, max: 3 } },
 });
 ```
@@ -229,7 +231,7 @@ Represents game scenes with canvas objects.
 
 ```javascript
 const scene = new MockScene({
-  name: "Dungeon Level 1",
+  name: 'Dungeon Level 1',
   width: 4000,
   height: 3000,
   gridSize: 100,
@@ -246,7 +248,7 @@ Represents players and game masters.
 
 ```javascript
 const user = new MockUser({
-  name: "Player One",
+  name: 'Player One',
   role: 1, // PLAYER role
   active: true,
 });
@@ -260,12 +262,12 @@ Represents chat messages and dice rolls.
 
 ```javascript
 const message = new MockChatMessage({
-  content: "Hello world!",
-  speaker: { alias: "Test Character" },
+  content: 'Hello world!',
+  speaker: { alias: 'Test Character' },
   type: 0, // OTHER type
 });
 
-expect(message.alias).toBe("Test Character");
+expect(message.alias).toBe('Test Character');
 expect(message.isContentVisible(game.user)).toBe(true);
 ```
 
@@ -275,7 +277,7 @@ Represents combat encounters.
 
 ```javascript
 const combat = new MockCombat({
-  scene: "scene-id",
+  scene: 'scene-id',
   round: 1,
   turn: 0,
 });
@@ -294,7 +296,7 @@ Represents actor tokens on the canvas.
 const token = new MockToken({
   x: 100,
   y: 200,
-  actorId: "actor-id",
+  actorId: 'actor-id',
   hidden: false,
 });
 
@@ -307,8 +309,8 @@ Represents organizational folders.
 
 ```javascript
 const folder = new MockFolder({
-  name: "NPCs",
-  type: "Actor",
+  name: 'NPCs',
+  type: 'Actor',
   parent: null,
 });
 ```
@@ -321,8 +323,8 @@ The central game instance containing all collections and systems.
 
 ```javascript
 // Access collections
-game.actors.set("hero", new MockActor({ name: "Hero" }));
-game.scenes.set("dungeon", new MockScene({ name: "Dungeon" }));
+game.actors.set('hero', new MockActor({ name: 'Hero' }));
+game.scenes.set('dungeon', new MockScene({ name: 'Dungeon' }));
 
 // Current references
 const currentScene = game.scene;
@@ -339,17 +341,17 @@ Event system for module communication.
 
 ```javascript
 // Register event listeners
-Hooks.on("ready", () => {
-  console.log("Game ready!");
+Hooks.on('ready', () => {
+  console.log('Game ready!');
 });
 
-Hooks.on("createActor", (actor, options, userId) => {
+Hooks.on('createActor', (actor, options, userId) => {
   console.log(`Actor ${actor.name} created`);
 });
 
 // Trigger events
-Hooks.call("ready");
-Hooks.callAll("createActor", actor, {}, "user-id");
+Hooks.call('ready');
+Hooks.callAll('createActor', actor, {}, 'user-id');
 ```
 
 ### MockSettings
@@ -358,18 +360,18 @@ Game and module settings management.
 
 ```javascript
 // Register settings
-game.settings.register("my-module", "setting-key", {
-  name: "My Setting",
-  hint: "Description of setting",
-  scope: "world",
+game.settings.register('my-module', 'setting-key', {
+  name: 'My Setting',
+  hint: 'Description of setting',
+  scope: 'world',
   config: true,
   default: false,
   type: Boolean,
 });
 
 // Get/set values
-const value = game.settings.get("my-module", "setting-key");
-await game.settings.set("my-module", "setting-key", true);
+const value = game.settings.get('my-module', 'setting-key');
+await game.settings.set('my-module', 'setting-key', true);
 ```
 
 ### MockCanvas
@@ -383,8 +385,8 @@ const lightingLayer = game.canvas.lighting;
 const wallsLayer = game.canvas.walls;
 
 // Layer objects
-tokenLayer.objects.set("token-1", mockToken);
-lightingLayer.objects.set("light-1", mockLight);
+tokenLayer.objects.set('token-1', mockToken);
+lightingLayer.objects.set('light-1', mockLight);
 
 // Canvas methods
 game.canvas.draw();
@@ -399,7 +401,7 @@ Base class for UI applications.
 
 ```javascript
 const app = new MockApplication({
-  title: "My Application",
+  title: 'My Application',
   width: 400,
   height: 300,
 });
@@ -418,8 +420,8 @@ Modal dialogs and confirmations.
 ```javascript
 // Confirmation dialog
 const confirmed = await Dialog.confirm({
-  title: "Confirm Action",
-  content: "Are you sure?",
+  title: 'Confirm Action',
+  content: 'Are you sure?',
   yes: () => true,
   no: () => false,
   defaultYes: false,
@@ -427,22 +429,22 @@ const confirmed = await Dialog.confirm({
 
 // Wait for dialog result
 const result = await Dialog.wait({
-  title: "Choose Option",
+  title: 'Choose Option',
   buttons: {
-    option1: { label: "Option 1", callback: () => "option1" },
-    option2: { label: "Option 2", callback: () => "option2" },
+    option1: { label: 'Option 1', callback: () => 'option1' },
+    option2: { label: 'Option 2', callback: () => 'option2' },
   },
-  default: "option1",
+  default: 'option1',
 });
 ```
 
 ### UI Notifications
 
 ```javascript
-ui.notifications.info("Information message");
-ui.notifications.warn("Warning message");
-ui.notifications.error("Error message");
-ui.notifications.notify("General notification");
+ui.notifications.info('Information message');
+ui.notifications.warn('Warning message');
+ui.notifications.error('Error message');
+ui.notifications.notify('General notification');
 ```
 
 ## Dice Rolling
@@ -452,7 +454,7 @@ ui.notifications.notify("General notification");
 Dice rolling system with formula parsing.
 
 ```javascript
-const roll = new Roll("1d20 + 5", { bonus: 3 });
+const roll = new Roll('1d20 + 5', { bonus: 3 });
 await roll.evaluate();
 
 console.log(roll.total); // Random result
@@ -470,8 +472,8 @@ When `browser: true` is enabled, the following globals are available:
 
 ```javascript
 // JSDOM-powered browser environment
-const element = document.createElement("div");
-element.textContent = "Hello World";
+const element = document.createElement('div');
+element.textContent = 'Hello World';
 document.body.appendChild(element);
 
 // Window properties
@@ -483,18 +485,18 @@ console.log(navigator.userAgent);
 
 ```javascript
 // Local storage
-localStorage.setItem("key", "value");
-const value = localStorage.getItem("key");
+localStorage.setItem('key', 'value');
+const value = localStorage.getItem('key');
 
 // Session storage
-sessionStorage.setItem("temp", "data");
+sessionStorage.setItem('temp', 'data');
 ```
 
 ### Network APIs
 
 ```javascript
 // Fetch API (mocked)
-const response = await fetch("/api/data");
+const response = await fetch('/api/data');
 const data = await response.json();
 ```
 
@@ -502,7 +504,7 @@ const data = await response.json();
 
 ```javascript
 // File handling
-const file = new File(["content"], "test.txt", { type: "text/plain" });
+const file = new File(['content'], 'test.txt', { type: 'text/plain' });
 const reader = new FileReader();
 reader.onload = (e) => console.log(e.target.result);
 reader.readAsText(file);
@@ -520,31 +522,31 @@ const app = new PIXI.Application();
 const container = new PIXI.Container();
 const graphics = new PIXI.Graphics();
 const sprite = new PIXI.Sprite();
-const texture = PIXI.Texture.from("image.png");
+const texture = PIXI.Texture.from('image.png');
 ```
 
 ### jQuery
 
 ```javascript
 // DOM manipulation
-const $element = $("#my-element");
-$element.addClass("active");
-$element.on("click", handler);
+const $element = $('#my-element');
+$element.addClass('active');
+$element.on('click', handler);
 
 // Chaining support
-$element.find(".child").removeClass("hidden");
+$element.find('.child').removeClass('hidden');
 ```
 
 ### Handlebars
 
 ```javascript
 // Template compilation
-const template = Handlebars.compile("<div>{{message}}</div>");
-const html = template({ message: "Hello World" });
+const template = Handlebars.compile('<div>{{message}}</div>');
+const html = template({ message: 'Hello World' });
 
 // Helper registration
-Handlebars.registerHelper("upper", (str) => str.toUpperCase());
-Handlebars.registerPartial("myPartial", "<span>{{text}}</span>");
+Handlebars.registerHelper('upper', (str) => str.toUpperCase());
+Handlebars.registerPartial('myPartial', '<span>{{text}}</span>');
 ```
 
 ### Socket.io
@@ -552,8 +554,8 @@ Handlebars.registerPartial("myPartial", "<span>{{text}}</span>");
 ```javascript
 // Socket connection mock
 const socket = io();
-socket.on("connect", () => console.log("Connected"));
-socket.emit("message", { data: "test" });
+socket.on('connect', () => console.log('Connected'));
+socket.emit('message', { data: 'test' });
 socket.disconnect();
 ```
 
@@ -562,7 +564,7 @@ socket.disconnect();
 ```javascript
 // Drag and drop mock
 const drake = dragula();
-drake.on("drop", (el, target) => console.log("Dropped"));
+drake.on('drop', (el, target) => console.log('Dropped'));
 drake.destroy();
 ```
 
@@ -573,7 +575,7 @@ The mock system exports the following constants and classes for direct use:
 ### Exported Constants
 
 ```javascript
-import { CONST, CONFIG, UI } from "../mocks/mockGlobals.mjs";
+import { CONST, CONFIG, UI } from '../mocks/mockGlobals.mjs';
 
 // User roles
 console.log(CONST.USER_ROLES.PLAYER); // 1
@@ -584,7 +586,7 @@ console.log(CONFIG.Actor.documentClass); // MockActor
 console.log(CONFIG.Item.documentClass); // MockItem
 
 // UI notifications
-UI.notifications.info("Test message");
+UI.notifications.info('Test message');
 ```
 
 ### Exported Mock Classes
@@ -607,12 +609,12 @@ import {
   MockCombat,
   MockToken,
   MockFolder,
-} from "../mocks/mockGlobals.mjs";
+} from '../mocks/mockGlobals.mjs';
 
 // Use directly without global setup
-const actor = new MockActor({ name: "Direct Actor" });
+const actor = new MockActor({ name: 'Direct Actor' });
 const collection = new MockCollection();
-collection.set("actor1", actor);
+collection.set('actor1', actor);
 ```
 
 ## Test Data
@@ -630,10 +632,10 @@ The mock system automatically creates sample test data:
 ### Accessing Test Data
 
 ```javascript
-const testUser = game.users.get("mock-user-id");
-const testScene = game.scenes.get("test-scene");
-const testActor = game.actors.get("test-actor");
-const testItem = game.items.get("test-item");
+const testUser = game.users.get('mock-user-id');
+const testScene = game.scenes.get('test-scene');
+const testActor = game.actors.get('test-actor');
+const testItem = game.items.get('test-item');
 ```
 
 ## Configuration Objects
@@ -652,7 +654,7 @@ const darknessColor = CONFIG.Canvas.darknessColor;
 const dispositionColors = CONFIG.Canvas.dispositionColors;
 
 // UI configuration
-CONFIG.ui.notifications.info("Message");
+CONFIG.ui.notifications.info('Message');
 ```
 
 ### CONST
@@ -676,7 +678,7 @@ const hasOwnership =
 ### Custom Document Classes
 
 ```javascript
-import { MockActor, CONFIG } from "../mocks/mockGlobals.mjs";
+import { MockActor, CONFIG } from '../mocks/mockGlobals.mjs';
 
 // Extend mock documents
 class CustomActor extends MockActor {
@@ -692,14 +694,14 @@ CONFIG.Actor.documentClass = CustomActor;
 ### Event Testing
 
 ```javascript
-import { createMockFunction } from "../mocks/mockGlobals.mjs";
+import { createMockFunction } from '../mocks/mockGlobals.mjs';
 
 // Test hook interactions
 const handler = createMockFunction();
-Hooks.on("myModule.customEvent", handler);
+Hooks.on('myModule.customEvent', handler);
 
 // Trigger from your code
-Hooks.call("myModule.customEvent", { test: true });
+Hooks.call('myModule.customEvent', { test: true });
 
 // Verify in tests
 if (vi.isMockFunction(handler)) {
@@ -711,13 +713,13 @@ if (vi.isMockFunction(handler)) {
 
 ```javascript
 // Test async document operations
-const actor = new MockActor({ name: "Test" });
-await actor.update({ name: "Updated" });
-expect(actor.name).toBe("Updated");
+const actor = new MockActor({ name: 'Test' });
+await actor.update({ name: 'Updated' });
+expect(actor.name).toBe('Updated');
 
-await actor.setFlag("my-module", "flag-key", "flag-value");
-const flagValue = actor.getFlag("my-module", "flag-key");
-expect(flagValue).toBe("flag-value");
+await actor.setFlag('my-module', 'flag-key', 'flag-value');
+const flagValue = actor.getFlag('my-module', 'flag-key');
+expect(flagValue).toBe('flag-value');
 ```
 
 ### Collection Operations
@@ -727,12 +729,12 @@ expect(flagValue).toBe("flag-value");
 const actors = game.actors;
 
 // Add multiple actors
-actors.set("hero", new MockActor({ name: "Hero" }));
-actors.set("villain", new MockActor({ name: "Villain" }));
+actors.set('hero', new MockActor({ name: 'Hero' }));
+actors.set('villain', new MockActor({ name: 'Villain' }));
 
 // Find operations
-const hero = actors.find((a) => a.name === "Hero");
-const npcs = actors.filter((a) => a.type === "npc");
+const hero = actors.find((a) => a.name === 'Hero');
+const npcs = actors.filter((a) => a.type === 'npc');
 const actorArray = actors.toArray();
 ```
 
@@ -741,7 +743,7 @@ const actorArray = actors.toArray();
 ### 1. **Proper Setup/Teardown**
 
 ```javascript
-describe("Module Tests", () => {
+describe('Module Tests', () => {
   let mockGlobals;
 
   beforeAll(() => {
@@ -768,15 +770,15 @@ beforeEach(() => {
   game.scenes.clear();
 
   // Add only what you need
-  game.actors.set("test-actor", new MockActor({ name: "Test" }));
+  game.actors.set('test-actor', new MockActor({ name: 'Test' }));
 });
 ```
 
 ### 3. **Mock Verification**
 
 ```javascript
-it("should call the correct methods", () => {
-  const mockMethod = vi.spyOn(game.canvas, "draw");
+it('should call the correct methods', () => {
+  const mockMethod = vi.spyOn(game.canvas, 'draw');
 
   // Your code that should call canvas.draw()
   myModule.redrawCanvas();
@@ -785,27 +787,27 @@ it("should call the correct methods", () => {
   mockMethod.mockRestore();
 });
 
-it("should verify mock functions", () => {
+it('should verify mock functions', () => {
   // Use Vitest-specific checks for mock functions
   expect(vi.isMockFunction(UI.notifications.info)).toBe(true);
 
   // Test mock calls
-  UI.notifications.info("Test message");
-  expect(UI.notifications.info).toHaveBeenCalledWith("Test message");
+  UI.notifications.info('Test message');
+  expect(UI.notifications.info).toHaveBeenCalledWith('Test message');
 });
 ```
 
 ### 4. **Event Testing**
 
 ```javascript
-it("should handle hook events", () => {
+it('should handle hook events', () => {
   const handler = vi.fn();
-  Hooks.on("myModule.event", handler);
+  Hooks.on('myModule.event', handler);
 
   // Trigger event
-  Hooks.call("myModule.event", { data: "test" });
+  Hooks.call('myModule.event', { data: 'test' });
 
-  expect(handler).toHaveBeenCalledWith({ data: "test" });
+  expect(handler).toHaveBeenCalledWith({ data: 'test' });
 });
 ```
 
@@ -829,14 +831,14 @@ it("should handle hook events", () => {
 
 ```javascript
 // Check if Vitest is available
-if (typeof vi !== "undefined") {
+if (typeof vi !== 'undefined') {
   // Use Vitest-specific features
   const mockFn = createMockFunction();
   expect(vi.isMockFunction(mockFn)).toBe(true);
 } else {
   // Fallback for non-Vitest environments
   const regularFn = createMockFunction();
-  expect(typeof regularFn).toBe("function");
+  expect(typeof regularFn).toBe('function');
 }
 ```
 
@@ -847,14 +849,14 @@ if (typeof vi !== "undefined") {
 CONFIG.debug = { hooks: true };
 
 // Check mock state
-console.log("Game ready:", game.ready);
-console.log("User role:", game.user.role);
-console.log("Actors:", game.actors.size);
+console.log('Game ready:', game.ready);
+console.log('User role:', game.user.role);
+console.log('Actors:', game.actors.size);
 
 // Verify exports
-import { CONST, CONFIG } from "../mocks/mockGlobals.mjs";
-console.log("CONST exported:", typeof CONST);
-console.log("CONFIG exported:", typeof CONFIG);
+import { CONST, CONFIG } from '../mocks/mockGlobals.mjs';
+console.log('CONST exported:', typeof CONST);
+console.log('CONFIG exported:', typeof CONFIG);
 ```
 
 ## Contributing
@@ -869,3 +871,14 @@ To extend the mock system:
 ## License
 
 This mock system is part of the "Over My Head" Foundry VTT module and follows the same licensing terms.
+
+```
+
+## Changelog
+
+### [0.1.0] - 2025-10-20
+
+- Initial release of Enhanced MockGlobals system
+- Added comprehensive Foundry VTT v13 API coverage
+- Implemented browser environment simulation and library integrations
+```

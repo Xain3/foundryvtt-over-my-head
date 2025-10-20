@@ -1,3 +1,5 @@
+**Version**: 0.1.0
+
 # Validation
 
 This directory contains validation utilities and scripts for ensuring the integrity and correctness of the Foundry VTT Over My Head module.
@@ -21,3 +23,12 @@ Validation logic is integrated into various utilities, including:
 ## Usage
 
 Validation is performed automatically during build and deployment processes to catch issues early in development.
+
+```
+
+## Changelog
+
+### 0.1.0 (2025-10-20)
+- Added version badge to README
+- Initial validation directory documentation
+```

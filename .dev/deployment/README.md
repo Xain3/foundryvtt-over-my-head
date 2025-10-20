@@ -1,3 +1,5 @@
+**Version**: 0.1.0
+
 # Deployment Scripts
 
 This directory contains scripts for deploying the built Foundry VTT Over My Head module to the user's Foundry VTT data directory.
@@ -21,3 +23,12 @@ The deployment scripts automate the process of copying the built module to the c
 ## Usage
 
 The `BuildAndDeploy` class is used by the `npm run dev` command to provide a complete development experience with automatic deployment after each build.
+
+```
+
+## Changelog
+
+### 0.1.0 (2025-10-20)
+- Added version badge to README
+- Initial deployment scripts documentation
+```

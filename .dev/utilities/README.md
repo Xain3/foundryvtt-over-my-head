@@ -1,6 +1,8 @@
+**Version**: 0.1.0
+
 # Utilities
 
-This directory contains utility scripts and helpers used by the build and deployment processes.
+This directory contains utility scripts
 
 ## Purpose
 
@@ -23,3 +25,12 @@ The utilities provide common functionality for finding directories, managing mod
 ## Usage
 
 These utilities are imported and used by the build and deployment scripts to handle common tasks like directory management and code quality checks.
+
+```
+
+## Changelog
+
+### 0.1.0 (2025-10-20)
+- Added version badge to README
+- Initial utilities directory documentation
+```

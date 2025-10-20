@@ -1,6 +1,8 @@
+**Version**: 0.1.0
+
 # .dev Directory
 
-This directory contains development scripts and utilities for the Foundry VTT Over My Head module.
+This directory contains development scripts
 
 ## Purpose
 
@@ -27,3 +29,13 @@ These scripts are typically invoked through npm scripts defined in `package.json
 - `npm run build`: Builds the module for production
 
 See the main project README.md for detailed development setup instructions.
+
+```
+
+## Changelog
+
+### 0.1.0 (2025-10-20)
+
+- Added version badge to README
+- Initial .dev directory documentation
+```

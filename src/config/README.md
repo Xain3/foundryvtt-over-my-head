@@ -1,3 +1,5 @@
+**Version**: 0.1.0
+
 # Config System
 
 This directory contains the complete configuration management system for the Foundry VTT module. The system provides centralized configuration management through a unified Config class, YAML-based configuration files, and comprehensive validation for module manifests.
@@ -112,3 +114,13 @@ The system aggregates configuration from sources in `src/config/`. The YAML stru
 ---
 
 For detailed information about the helper classes and their APIs, see the [Helper Documentation](helpers/README.md).
+
+```
+
+## Changelog
+
+### 0.1.0 (2025-10-20)
+
+- Added version badge to README
+- Initial config system documentation
+```

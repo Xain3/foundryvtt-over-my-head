@@ -9,3 +9,10 @@ and scalability.
 ## Structure
 
 - `main.mts`: The main entry point for the module, initializing core functionality.
+
+## Changelog
+
+### [0.1.0] - 2025-10-20
+- Initial release of source code structure
+- Added main entry point for the Over My Head module
+- Established directory organization for maintainability and scalability

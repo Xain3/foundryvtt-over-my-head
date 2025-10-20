@@ -1,3 +1,5 @@
+**Version**: 0.1.0
+
 # CI Scripts
 
 This directory contains Continuous Integration scripts for automated testing, building, and deployment pipelines.
@@ -44,3 +46,13 @@ Unit tests for CI scripts can be run with:
 ```bash
 npx vitest run .dev/scripts/ci/*.unit.test.mjs
 ```
+
+````
+
+## Changelog
+
+### 0.1.0 (2025-10-20)
+- Added version badge to README
+- Initial CI scripts directory documentation
+```
+````

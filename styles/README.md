@@ -1,3 +1,5 @@
+**Version**: 0.1.0
+
 # styles Directory
 
 ## Purpose
@@ -11,3 +13,14 @@ This directory contains the CSS stylesheets for the "Over My Head" Foundry VTT m
 ## Usage
 
 The styles are typically bundled or referenced in the module's manifest (`module.json`) to ensure they are loaded when the module is active in Foundry VTT. Changes to these files should be tested in a Foundry environment to verify visual consistency.
+
+```
+
+## Changelog
+
+### [0.1.0] - 2025-10-20
+
+- Initial release of CSS stylesheets
+- Added main stylesheet for UI elements and overlays
+- Implemented visual styling for text overlays, positioning, and effects
+```

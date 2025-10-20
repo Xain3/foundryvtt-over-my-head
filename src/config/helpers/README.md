@@ -1,3 +1,5 @@
+**Version**: 0.1.0
+
 # Constants Helpers
 
 This directory contains helper classes and utilities that support the constants management system.
@@ -314,3 +316,23 @@ All helpers follow a consistent error handling approach:
 - **Encoding Detection**: Automatic encoding detection for files
 
 All helpers follow the established coding conventions with ES6 syntax, proper error handling, and comprehensive JSDoc documentation.
+
+````
+
+## Changelog
+
+### 0.1.0 (2025-10-20)
+
+- Added version badge to README
+- Initial constants helpers documentation
+
+```
+
+## Changelog
+
+### [0.1.0] - 2025-10-20
+- Initial release of constants helpers system
+- Added helper classes for YAML parsing, file reading, and constants management
+- Implemented comprehensive testing and error handling patterns
+```
+````

@@ -1,3 +1,5 @@
+**Version**: 0.1.0
+
 # Testing Scripts
 
 This directory contains scripts for running tests related to the build and
@@ -53,4 +55,14 @@ node .dev/scripts/testing/test-runner.mjs --integration --watch
 ```
 
 The test runner integrates with the project's Vitest configuration and
+The test runner integrates with the project's Vitest configuration and
 respects the test file patterns defined in `vitest.config.mjs`.
+
+```
+
+## Changelog
+
+### 0.1.0 (2025-10-20)
+- Added version badge to README
+- Initial testing scripts directory documentation
+```

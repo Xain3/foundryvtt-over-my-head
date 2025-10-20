@@ -1,3 +1,5 @@
+**Version**: 0.1.0
+
 # baseClasses Directory
 
 ## Purpose
@@ -38,3 +40,13 @@ When adding new base classes:
 2. Document the expected interface for subclasses
 3. Add unit tests covering the base class functionality
 4. Update this README with the new base class information
+
+```
+
+## Changelog
+
+### 0.1.0 (2025-10-20)
+
+- Added version badge to README
+- Initial base classes directory documentation
+```

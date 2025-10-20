@@ -1,25 +1,112 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
 {
-	"name": "Node.js & TypeScript",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
-	"features": {
-		"ghcr.io/va-h/devcontainers-features/uv:1": {}
-	}
+  "name": "Node.js & TypeScript",
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
 
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true,
+      "additionalPackages": "curl,wget,git-lfs"
+    },
+    "ghcr.io/va-h/devcontainers-features/uv:1": {}
+  },
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+  "containerEnv": {
+    "FOUNDRYDATA_PATH": "/foundrydata",
+    "FOUNDRYVTT_PATH": "/FoundryVTT"
+  },
 
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "yarn install",
+  "mounts": [
+    "source=${localEnv:HOME},target=/home/vscode,type=bind,consistency=cached,readonly",
+    "source=${localEnv:HOME}/foundrydata,target=/foundrydata,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/FoundryVTT,target=/FoundryVTT,type=bind,consistency=cached"
+  ],
 
-	// Configure tool-specific properties.
-	// "customizations": {},
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  // "forwardPorts": [],
 
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+  // Use 'postCreateCommand' to run commands after the container is created.
+  "postCreateCommand": ".devcontainer/devcontainer-setup.sh",
+
+  // Configure tool-specific properties.
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "davidanson.vscode-markdownlint",
+        "esbenp.prettier-vscode",
+        "editorconfig.editorconfig",
+        "redhat.vscode-yaml",
+        "streetsidesoftware.code-spell-checker",
+        "eamodio.gitlens",
+        "ms-vscode.vscode-json",
+        "vitest.explorer",
+        "mhutchie.git-graph",
+        "ms-vscode.PowerShell",
+        "PeterSchmalfeldt.explorer-exclude",
+        "github.vscode-github-actions",
+        "maciejdems.add-to-gitignore",
+        "mads-hartmann.bash-ide-vscode",
+        "donjayamanne.githistory",
+        "yzhang.markdown-all-in-one",
+        "christian-kohler.npm-intellisense"
+      ], // Lightweight TypeScript support; add only essentials
+
+      "settings": {
+        "editor.rulers": [80],
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "files.eol": "\n",
+
+        "chat.promptFilesRecommendations": {
+          "speckit.constitution": true,
+          "speckit.specify": true,
+          "speckit.plan": true,
+          "speckit.tasks": true,
+          "speckit.implement": true
+        },
+
+        "chat.tools.terminal.autoApprove": {
+          ".specify/scripts/bash/": true,
+          ".specify/scripts/powershell/": true
+        },
+
+        "files.associations": {
+          ".prettierignore": "ignore",
+          ".markdownlintignore": "ignore",
+          "CODEOWNERS": "plaintext"
+        },
+
+        "markdownlint.configFile": ".markdownlint.json",
+        "markdownlint.lintWorkspaceGlobs": [
+          "**/*.{md,mkd,mdwn,mdown,markdown,markdn,mdtxt,mdtext,workbook}",
+          "!**/*.code-search",
+          "!**/bower_components",
+          "!**/node_modules",
+          "!**/.git",
+          "!**/.github",
+          "!**/vendor",
+          "!.speckit/memory",
+          "!.speckit/templates"
+        ],
+
+        "gitlens.ai.generateCommits.customInstructions": "Generate commit messages following Conventional Commits format with these rules:\n- Use allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test, dev\n- Subject line: lowercase, imperative mood, maximum 72 characters\n- Body: maximum 100 characters per line\n- For development-only commits that should be suppressed when merging to main, prefix with 'dev:'\n- Examples: 'feat: add user authentication module', 'fix: resolve memory leak in data processing'\n- Reference CONTRIBUTING.md, docs/style-guide.md, and .commitlintrc.json for complete guidelines",
+
+        "[markdown]": {
+          "editor.rulers": [120]
+        }
+      }
+    }
+  }
+
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // "remoteUser": "root"
 }

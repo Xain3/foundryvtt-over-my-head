@@ -1,0 +1,16 @@
+# Default ignores
+**/.git
+**/.svn
+**/.hg
+**/node_modules
+**/.tmp/
+**/.log/
+
+# Ignore artifacts:
+build
+coverage
+dist
+tmp
+.tmp/**
+
+# Project-specific ignores

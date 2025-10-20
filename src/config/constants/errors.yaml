@@ -1,0 +1,10 @@
+# file: errors.yaml
+# description: Configuration constants for error message formatting
+# path: src/config/constants/errors.yaml
+
+# The separator used to join multiple error messages
+separator: ' || '
+
+# The pattern used to format error messages.
+# Not all elements are guaranteed to be present.
+pattern: '{{module}}{{caller}}{{error}}{{stack}}'

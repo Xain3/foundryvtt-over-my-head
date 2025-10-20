@@ -1,0 +1,12 @@
+# file: hooks.yaml
+# description: Configuration constants for Foundry VTT hooks
+# path: src/config/constants/hooks.yaml
+
+# Hooks for module events
+
+hooks:
+  settingsReady: 'SettingsReady' # The hook called when settings are ready
+  contextReady: 'ContextReady' # The hook called when context is ready
+
+hookPatterns:
+  setting: '.setting.{settingKey}' # Base hook for setting changes

@@ -1,0 +1,13 @@
+# file: moduleManagement.yaml
+# description: Configuration constants for module management and identification
+# path: src/config/constants/moduleManagement.yaml
+
+# How to refer to the module in the logs
+# Can be "title", "id", "name", or "shortName"
+referToModuleBy: 'title'
+
+# Whether to automatically derive a short name from the module title
+deriveShortNameFromTitle: true
+
+# Short name for the module (fallback if deriveShortNameFromTitle is false)
+shortName: 'OMH'

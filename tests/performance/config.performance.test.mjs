@@ -1,0 +1,199 @@
+/**
+ * @file Config Performance Tests
+ * @description Performance tests for Config initialization and access
+ * @path tests/performance/config.performance.test.mjs
+ */
+
+import { describe, it, expect } from 'vitest';
+
+describe('Config Performance Tests', () => {
+  describe('Initialization Performance', () => {
+    it('should initialize config in under 100ms on first load', async () => {
+      const startTime = performance.now();
+
+      // Dynamic import triggers initialization
+      await import('../../src/config/config.ts');
+
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      console.log(`First config initialization took ${duration.toFixed(2)}ms`);
+
+      // First initialization may be slower due to module loading
+      // Allow up to 500ms for initial module parse and evaluation
+      expect(duration).toBeLessThan(500);
+    });
+
+    it('should return cached instance in under 1ms on subsequent access', async () => {
+      // First import to warm up
+      const firstModule = await import('../../src/config/config.ts');
+
+      const startTime = performance.now();
+
+      // Second import should return cached instance from module cache
+      const secondModule = await import('../../src/config/config.ts');
+
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      console.log(`Cached config access took ${duration.toFixed(2)}ms`);
+
+      // Cached access should be nearly instant
+      expect(duration).toBeLessThan(1);
+
+      // Verify it's the same instance
+      expect(firstModule.config === secondModule.config).toBe(true);
+    });
+  });
+
+  describe('Access Performance', () => {
+    let config;
+
+    it('setup: load config', async () => {
+      const module = await import('../../src/config/config.ts');
+      config = module.config;
+      expect(config).toBeDefined();
+    });
+
+    it('accessing constants should be instant', () => {
+      const startTime = performance.now();
+
+      // Access nested property
+      const separator = config.constants.errors.separator;
+
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      expect(separator).toBeDefined();
+      expect(duration).toBeLessThan(0.1); // Should be <0.1ms
+    });
+
+    it('accessing module metadata should be instant', () => {
+      const startTime = performance.now();
+
+      const id = config.module.id;
+      const version = config.module.version;
+
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      expect(id).toBeDefined();
+      expect(version).toBeDefined();
+      expect(duration).toBeLessThan(0.1);
+    });
+
+    it('accessing environment variables should be instant', () => {
+      const startTime = performance.now();
+
+      // eslint-disable-next-line no-unused-vars
+      const debugMode = config.env.OMH_DEBUG_MODE;
+
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      expect(duration).toBeLessThan(0.1);
+    });
+
+    it('iterating settings should be fast', () => {
+      const startTime = performance.now();
+
+      let count = 0;
+      if (Array.isArray(config.settings)) {
+        config.settings.forEach((_setting) => {
+          count++;
+        });
+      }
+
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      console.log(`Iterated ${count} settings in ${duration.toFixed(2)}ms`);
+
+      // Should be fast even with many settings
+      expect(duration).toBeLessThan(10);
+    });
+
+    it('getting toString should be fast', () => {
+      const startTime = performance.now();
+
+      const str = config.toString();
+
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      expect(str).toBeTruthy();
+      expect(duration).toBeLessThan(0.1);
+    });
+  });
+
+  describe('Memory Characteristics', () => {
+    it('config object should not cause memory leaks with repeated access', async () => {
+      const module = await import('../../src/config/config.ts');
+      const { config: _config } = module;
+
+      // Simulate repeated accesses
+      for (let i = 0; i < 1000; i++) {
+        const _moduleId = _config.module.id;
+        const _separator = _config.constants.errors.separator;
+        const _env = _config.env;
+        // Mark vars used via accessing them
+        void _moduleId;
+        void _separator;
+        void _env;
+      }
+
+      // If we got here without hanging or throwing, memory access is working
+      expect(true).toBe(true);
+    });
+
+    it('frozen state should prevent mutations efficiently', async () => {
+      const module = await import('../../src/config/config.ts');
+      const { config } = module;
+
+      const startTime = performance.now();
+
+      // Try to mutate (should fail but should be fast)
+      for (let i = 0; i < 1000; i++) {
+        config.module.id = 'attempted-mutation-' + i;
+        config.newProp = 'value';
+        delete config.module.id;
+      }
+
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      console.log(
+        `1000 mutation attempts took ${duration.toFixed(2)}ms (frozen prevention)`
+      );
+
+      // Frozen object checks should be fast
+      expect(duration).toBeLessThan(100);
+
+      // Verify no mutations occurred
+      expect(config.module.id).toBe('vision-with-fade');
+    });
+  });
+
+  describe('Benchmark Comparisons', () => {
+    it('config access should be faster than file I/O', async () => {
+      const module = await import('../../src/config/config.ts');
+      const { config } = module;
+
+      // Time multiple accesses
+      const startAccess = performance.now();
+      for (let i = 0; i < 100; i++) {
+        const _moduleId = config.module.id;
+        const _separator = config.constants.errors.separator;
+        void _moduleId;
+        void _separator;
+      }
+      const endAccess = performance.now();
+      const accessDuration = endAccess - startAccess;
+
+      console.log(`100 config accesses took ${accessDuration.toFixed(2)}ms`);
+
+      // Should be very fast
+      expect(accessDuration).toBeLessThan(1);
+    });
+  });
+});

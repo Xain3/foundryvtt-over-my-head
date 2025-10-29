@@ -1,0 +1,5 @@
+# Valid moduleManagement.yaml
+referToModuleBy: 'title'
+deriveShortNameFromTitle: true
+excludeWordsFromShortName: [foundryvtt]
+shortName: 'OMH'

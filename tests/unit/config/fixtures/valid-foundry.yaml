@@ -1,0 +1,4 @@
+# Valid foundry.yaml
+defaults:
+  i18nLocation: 'game.i18n'
+  modulesLocation: 'game.modules'

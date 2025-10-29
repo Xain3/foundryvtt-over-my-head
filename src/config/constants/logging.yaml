@@ -1,0 +1,10 @@
+# WIP: Logging Configuration
+
+logfiles:
+  directory: ./.log
+
+console:
+  level: info
+  format: '[{timestamp}] [{level}] {message}'
+  timestamp: true
+  colorize: false

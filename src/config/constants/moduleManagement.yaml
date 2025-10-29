@@ -8,6 +8,8 @@ referToModuleBy: 'title'
 
 # Whether to automatically derive a short name from the module title
 deriveShortNameFromTitle: true
+# Whether to exclude certain words when deriving the short name
+excludeWordsFromShortName: [foundryvtt]
 
 # Short name for the module (fallback if deriveShortNameFromTitle is false)
 shortName: 'OMH'

@@ -1,0 +1,17 @@
+- key: debugMode
+  config:
+    name: 'OMH.settings.debugMode.name'
+    hint: 'OMH.settings.debugMode.hint'
+    scope: 'user'
+    config: true
+    type: Boolean
+    default: false
+
+- key: behaviorTokens
+  config:
+    name: 'OMH.settings.behaviorTokens.name'
+    hint: 'OMH.settings.behaviorTokens.hint'
+    scope: 'world'
+    config: true
+    type: String
+    default: 'default'

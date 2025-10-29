@@ -1,0 +1,4 @@
+# Malformed YAML - invalid indentation
+separator: " || "
+  badly_indented: "value"
+unbalanced: [1, 2, 3

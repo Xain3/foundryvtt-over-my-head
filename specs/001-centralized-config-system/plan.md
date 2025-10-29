@@ -1,0 +1,527 @@
+# Implementation Plan: Centralized Configuration System
+
+**Branch**: `001-centralized-config-system` | **Date**: October 20, 2025 | **Spec**: [spec.md](./spec.md)
+**Input**: Feature specification from `/specs/001-centralized-config-system/spec.md`
+
+## Summary
+
+Create a singleton configuration service (`config.ts`) in `src/config/` that centralizes all runtime configuration for the Vision with Fade module. The config system aggregates YAML constant files, settings definitions, module manifest metadata, and environment variables into a single, type-safe, immutable API. Environment variables with the `OMH_` prefix override base configuration values. The singleton is frozen after initialization to prevent accidental modifications and guarantee consistency across the application lifetime. Fail-fast error handling ensures configuration issues are caught immediately during initialization.
+
+## Technical Context
+
+**Language/Version**: TypeScript 2022 (ESM modules, .mts files)
+**Primary Dependencies**: `yaml` package (for YAML parsing), FoundryVTT APIs (game, Hooks globals)
+**Storage**: File system (YAML files, JSON manifest, environment variables)
+**Testing**: Vitest/Jest with mocked file system and environment (≥80% coverage required)
+**Target Platform**: FoundryVTT browser runtime + Node.js dev environment
+**Project Type**: Library/service module (single point of entry)
+**Performance Goals**: Config loading completes in under 100ms; zero initialization overhead for imports
+**Constraints**: Immutable after initialization; fail-fast on any parsing errors; namespace-keyed YAML merging
+**Scale/Scope**: 5 YAML constant files, 1 settings file, 1 module manifest, environment variable overrides
+
+## Constitution Check
+
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
+
+### Core Principles Alignment
+
+✅ **I. Modular Architecture** - PASS
+
+- Single point of entry: Config singleton exported from `src/config/config.ts`
+- Separate dev entry point consideration: Environment variables can override for dev
+- Single responsibility: Config class only handles configuration aggregation
+- Error messages with configurable prefix: `[OMH]` prefix used consistently
+- Composition over inheritance: Config composes YAML, JSON, and env sources
+
+✅ **II. FoundryVTT Integration** - PASS
+
+- No hooks required for config initialization (purely file/environment-based)
+- No monkey-patching of FoundryVTT core
+- Config is independent of occlusion system
+- Configuration is optional per-world via existing settings UI
+
+✅ **III. Configuration Management** - PASS
+
+- Single, clearly-documented API: `Config.getInstance()` → config object with `.constants`, `.settings`, `.module`, `.env`
+- Runtime configuration fully centralized in this service
+- Development-time config via environment variables (separate from production)
+- Documentation inline via JSDoc and file headers (style guide established)
+- In-game UI provided via existing FoundryVTT settings system
+
+✅ **IV. Documentation Excellence** - PASS
+
+- JSDoc required for all functions and classes (enforced via style guide)
+- File-level headers required: `@file`, `@description`, `@path` (per docs/STYLE_GUIDE.md)
+- READMEs required for all folders containing code
+- Inline comments for non-obvious logic (namespace-keyed merge, singleton pattern)
+- Complex decisions documented in spec.md and this plan
+
+✅ **V. Quality & Maintainability** - PASS
+
+- Code follows style guide and ESLint config
+- Enable/disable: Config is runtime-only, doesn't require module lifecycle changes
+- Test coverage: ≥80% required (unit tests for YAML loading, merging, env vars, immutability)
+- New feature: Tests added for all config functionality
+- Performance: 100ms goal for config loading
+
+### Module Lifecycle Alignment
+
+✅ **Enable/Disable** - PASS
+
+- Config initialization is automatic on import
+- No state persisted that would interfere with other modules
+- Module can be disabled via FoundryVTT UI without config issues
+
+### Development Standards Alignment
+
+✅ **File Headers** - PASS (config.ts will include required header)
+✅ **Public API** - PASS (singleton instance with clear interface)
+✅ **Comments** - PASS (complex merge logic will be commented)
+✅ **PR Checklist** - PASS (tests, docs, no regressions planned)
+
+## Project Structure
+
+### Documentation (this feature)
+
+```
+specs/001-centralized-config-system/
+├── spec.md              # Feature specification (COMPLETE)
+├── checklists/
+│   └── requirements.md  # Quality checklist (COMPLETE)
+├── plan.md              # This file (in progress)
+├── research.md          # Phase 0 output (to be generated)
+├── data-model.md        # Phase 1 output (to be generated)
+├── quickstart.md        # Phase 1 output (to be generated)
+├── contracts/           # Phase 1 output (to be generated)
+│   └── config-api.md    # Config class API specification
+└── tasks.md             # Phase 2 output (to be generated by /speckit.tasks)
+```
+
+### Source Code
+
+```
+src/
+├── config/
+│   ├── config.ts                    # MAIN: Singleton config class (to implement)
+│   ├── README.md                     # Config module documentation
+│   ├── constants/
+│   │   ├── errors.yaml               # Error message configuration
+│   │   ├── foundry.yaml              # FoundryVTT integration defaults
+│   │   ├── hooks.yaml                # Hook names and patterns
+│   │   ├── moduleManagement.yaml     # Module lifecycle and prefix config
+│   │   ├── occlusion.yaml            # Occlusion behavior constants
+│   │   ├── placeables.yaml           # Tileable object constants
+│   │   └── README.md                 # Constants folder documentation
+│   ├── settings/
+│   │   ├── settings.yaml             # In-game settings definitions
+│   │   └── README.md                 # Settings folder documentation
+│   └── helpers/
+│       ├── configHelpers.ts         # Helper functions: loadYamlFiles, mergeConstants, extractModulePrefix, loadSettings, loadModuleManifest, loadEnvironmentVariables
+│       └── README.md                 # Helpers documentation
+├── main.mjs                          # Entry point (imports config)
+└── ...
+
+tests/
+├── unit/
+│   ├── config.unit.test.mjs          # Unit tests for Config class (to implement)
+│   ├── configHelpers.unit.test.mjs   # Unit tests for helper functions (to implement)
+│   ├── fixtures/                     # Mock YAML files, test data
+│   └── README.md                     # Test documentation
+└── ...
+
+docs/
+├── STYLE_GUIDE.md                    # Coding standards (COMPLETE)
+├── STYLE_GUIDE_QUICK_REFERENCE.md   # Quick reference (COMPLETE)
+└── ...
+```
+
+**Structure Decision**: Helper functions delegated to `src/config/helpers/configHelpers.ts` for testability and separation of concerns. Config class in `src/config/config.ts` imports helpers and orchestrates them during initialization. This allows individual helper unit testing and enables mocking helpers when testing Config class behavior. All code follows the established style guide with TypeScript + ESM modules.
+
+## Implementation Phases
+
+### Phase 0: Research & Clarification (Status: COMPLETE ✅)
+
+All critical unknowns have been resolved in the clarification session. No additional research needed.
+
+**Outputs**:
+
+- ✅ YAML merging strategy: Namespace-preserving shallow merge
+- ✅ Error handling: Fail-fast with detailed errors
+- ✅ Environment variable naming: Custom prefix pattern (OMH\_\*)
+- ✅ Config immutability: Frozen singleton after initialization
+
+**Next**: Proceed to Phase 1 design.
+
+---
+
+### Phase 1: Design & API Contracts ✅ COMPLETE
+
+**Deliverables generated**:
+
+1. ✅ `research.md` - Consolidated findings (all clarifications already resolved)
+2. ✅ `data-model.md` - Config data structure and entity definitions (476 lines)
+3. ✅ `contracts/config-api.md` - Config class public API specification (598 lines)
+4. ✅ `quickstart.md` - Getting started guide for developers (528 lines)
+5. → Update agent context for coding tasks (pending after approval)
+
+**Actions completed**:
+
+- ✅ Generated data-model.md with Config entity structure and type definitions
+- ✅ Generated API contracts for Config class with 13 exported interfaces
+- ✅ Generated quickstart.md with 15+ usage examples and FAQs
+- → Run update-agent-context.sh to initialize coding agent context
+
+**Completion**: October 20, 2025 - All design documentation complete and comprehensive
+
+**Next**: Run `/speckit.tasks` to generate Phase 2 task breakdown
+
+---
+
+### Phase 2: Task Breakdown ✅ COMPLETE
+
+**Status**: All 22 implementation tasks defined with full acceptance criteria and effort estimates (updated for delegated helpers).
+
+**Deliverables generated**:
+
+- ✅ `tasks.md` - Comprehensive task breakdown with 22 granular, testable tasks organized in 6 phases
+- ✅ Task organization: Helper Functions Phase 1 (T001-T004), Phase 2 (T006-T008), Config Class (T005, T009), Immutability (T010-T012), Error Handling (T013-T014), Testing (T015-T018), Documentation (T019-T022)
+- ✅ Execution order and dependency mapping with helpers parallelizable within each phase
+- ✅ Parallelization opportunities maximized (6-8 tasks can run in parallel within helper phases)
+- ✅ Effort estimation: 32 story points (~32 developer-days sequential, ~12-16 days with 2-3 developers)
+- ✅ Success metrics defined
+
+**Task Organization**:
+
+- **Phase 1** (4 tasks): Helper functions for YAML loading, merging, prefix extraction
+- **Phase 2** (4 tasks): Helper functions for settings, manifest, environment variables
+- **Config Class** (2 tasks): Config skeleton and constructor calling helpers
+- **Immutability** (3 tasks): Singleton pattern, freezing, export
+- **Error Handling** (2 tasks): Comprehensive error handling across all helpers, debug logging
+- **Testing** (4 tasks): Test fixtures, unit tests for helpers and config, integration and performance tests
+- **Documentation** (4 tasks): JSDoc for all helpers and config class, READMEs, integration
+
+**Completion**: October 20, 2025 - Full task breakdown with helper delegation strategy identified
+
+**Next**: Begin implementation starting with helper functions (T001-T004 in parallel)
+
+---
+
+## Key Implementation Decisions
+
+### 1. Singleton Pattern with Object.freeze()
+
+**Decision**: Implement singleton using class static instance + module-level export + Object.freeze()
+
+**Rationale**:
+
+- Guarantees single instance across all imports
+- Prevents accidental modifications after initialization
+- Simple, idiomatic TypeScript pattern
+- Compatible with ESM module system
+
+**Alternatives Considered**:
+
+- Closure-based singleton: Less readable, harder to type
+- WeakMap registry: Unnecessary complexity for known use case
+- Immutable libraries (Immer): External dependency, more overhead
+
+### 2. Namespace-Keyed YAML Merge
+
+**Decision**: Each YAML file loaded into a top-level key under `constants` object
+
+**Example**:
+
+```typescript
+config.constants.errors.separator;
+config.constants.foundry.defaults.i18nLocation;
+config.constants.hooks.hooks.SettingsReady;
+```
+
+**Rationale**:
+
+- Prevents key collisions between different config files
+- Makes source of each value obvious in code
+- Shallow merge easier to reason about and debug
+- Aligns with config structure in existing codebase
+
+**Alternatives Considered**:
+
+- Deep merge (flat namespace): Risk of collisions; harder to trace origin
+- Array of objects: Less intuitive API for developers
+
+## Key Implementation Decisions
+
+### 1. Configurable Error & Log Prefix with Hardcoded Fallback [CRITICAL FIX]
+
+**Decision**: Implement configurable `[OMH]` prefix extracted from `moduleManagement.yaml` shortName field, with hardcoded fallback to `[OMH]` if not found (addresses Constitution Principle I requirement: "Error and log messages MUST be prepended by a configurable prefix").
+
+**Implementation Pattern**:
+
+```typescript
+// In configHelpers.ts
+export function extractConfigPrefix(manifest: Record<string, unknown>): string {
+  const shortName = manifest.shortName || 'OMH';
+  if (!manifest.shortName) {
+    console.warn(
+      `[OMH] CONFIG WARNING: Using fallback prefix "OMH". ` +
+        `To customize, set "shortName" in src/config/constants/moduleManagement.yaml`
+    );
+  }
+  return String(shortName).toUpperCase();
+}
+
+// In config.ts
+export class Config {
+  #prefix: string;
+  constructor() {
+    this.#module = loadModuleManifest();
+    this.#prefix = extractConfigPrefix(this.#module);
+    console.info(`[${this.#prefix}] Config initialized`);
+  }
+}
+```
+
+**Rationale**:
+
+- **Compliance**: Satisfies Constitution Principle I (configurable prefix)
+- **Fallback Safety**: Hard-coded `[OMH]` ensures logging always works even if moduleManagement.yaml missing
+- **Clear Warning**: Users see if fallback is being used instead of custom prefix
+- **Flexibility**: Teams can customize prefix by changing shortName in moduleManagement.yaml
+
+### 2. Delegated Helper Functions
+
+**Decision**: Implement `loadYamlFiles()`, `mergeConstants()`, `extractModulePrefix()`, `loadSettings()`, `loadModuleManifest()`, and `loadEnvironmentVariables()` as exported functions in `src/config/helpers/configHelpers.ts` instead of as methods on the Config class.
+
+**Rationale**:
+
+- **Testability**: Each helper can be unit tested in isolation with mocked file system
+- **Reusability**: Helpers can be imported and tested independently; easier to debug
+- **Separation of Concerns**: Config class focuses on orchestration; helpers focus on I/O and data transformation
+- **Mockability**: Config constructor can use mocked helpers for unit testing Config logic
+- **Parallelization**: Multiple developers can test different helpers simultaneously
+
+**Implementation Pattern**:
+
+```typescript
+// In src/config/helpers/configHelpers.ts
+export function loadYamlFiles(): Record<string, unknown> {
+  /* implementation */
+}
+export function mergeConstants(files: Record<string, unknown>): unknown {
+  /* implementation */
+}
+export function extractModulePrefix(manifest: unknown): string {
+  /* implementation */
+}
+export function loadSettings(): unknown {
+  /* implementation */
+}
+export function loadModuleManifest(): unknown {
+  /* implementation */
+}
+export function loadEnvironmentVariables(
+  prefix: string
+): Record<string, string> {
+  /* implementation */
+}
+
+// In src/config/config.ts
+import {
+  loadYamlFiles,
+  mergeConstants,
+  extractModulePrefix,
+  loadSettings,
+  loadModuleManifest,
+  loadEnvironmentVariables,
+} from './helpers/configHelpers.ts';
+
+class Config {
+  constructor() {
+    const yamlFiles = loadYamlFiles();
+    this.#yamlConstants = mergeConstants(yamlFiles);
+    this.#module = loadModuleManifest();
+    // ... etc
+  }
+}
+```
+
+### 3. Singleton Pattern with Object.freeze()
+
+**Decision**: Implement singleton using class static instance + module-level export + Object.freeze()
+
+**Rationale**:
+
+- Guarantees single instance across all imports
+- Prevents accidental modifications after initialization
+- Simple, idiomatic TypeScript pattern
+- Compatible with ESM module system
+
+**Alternatives Considered**:
+
+- Closure-based singleton: Less readable, harder to type
+- WeakMap registry: Unnecessary complexity for known use case
+- Immutable libraries (Immer): External dependency, more overhead
+
+### 4. Namespace-Keyed YAML Merge
+
+**Decision**: Each YAML file loaded into a top-level key under `constants` object
+
+**Example**:
+
+```typescript
+config.constants.errors.separator;
+config.constants.foundry.defaults.i18nLocation;
+config.constants.hooks.hooks.SettingsReady;
+```
+
+**Rationale**:
+
+- Prevents key collisions between different config files
+- Makes source of each value obvious in code
+- Shallow merge easier to reason about and debug
+- Aligns with config structure in existing codebase
+
+**Alternatives Considered**:
+
+- Deep merge (flat namespace): Risk of collisions; harder to trace origin
+
+### 5. Environment Variable Type Handling and Case-Insensitive Matching [HIGH FIX #2]
+
+**Decision**: Environment variables loaded by `loadEnvironmentVariables()` helper are returned as strings (native Node.js environment behavior) with case-insensitive prefix matching and prefix stripping. Type coercion is caller responsibility.
+
+**Example**:
+
+```typescript
+// In helpers - loadEnvironmentVariables()
+export function loadEnvironmentVariables(
+  prefix: string
+): Record<string, string> {
+  const envVars: Record<string, string> = {};
+  const upperPrefix = prefix.toUpperCase();
+  for (const [key, value] of Object.entries(process.env)) {
+    // Case-insensitive prefix matching
+    if (key.toUpperCase().startsWith(upperPrefix + '_')) {
+      // Strip prefix and convert key to lowercase
+      const strippedKey = key.substring(upperPrefix.length + 1).toLowerCase();
+      envVars[strippedKey] = value || ''; // Always strings
+    }
+  }
+  return envVars;
+}
+
+// In caller code - type coercion (caller responsibility)
+const debugMode = config.env.debug_mode === 'true'; // String → Boolean
+const maxTokens = parseInt(config.env.max_tokens || '10', 10); // String → Number
+```
+
+**Rationale**:
+
+- Follows Node.js convention: environment variables always strings
+- Avoids implicit coercion bugs
+- Caller can implement domain-specific type logic
+- Case-insensitive matching is standard (OMH*, Omh*, omh\_ all match)
+- Prefix stripping reduces verbosity in config object
+
+### 6. Fail-Fast Error Handling
+
+**Decision**: Throw detailed errors immediately on any parsing/loading failure; don't degrade gracefully
+
+**Example**:
+
+```typescript
+throw new Error(
+  `[${PREFIX}] Failed to load YAML from src/config/constants/foundry.yaml: ` +
+    `Line 5, Column 3: errors:\n  separator: "::"\nkey_name:...${error.message}`
+);
+```
+
+**Rationale**:
+
+- Configuration errors are fatal bugs, not recoverable issues
+- Fail-fast prevents silent bugs from propagating
+- Early error detection in dev environment
+- Aligns with Constitution principle of clear diagnostics
+
+### 7. Deep Frozen Immutability [CRITICAL FIX #3]
+
+**Decision**: Apply Object.freeze() recursively to config object and all nested objects to create deep immutability (resolves shallow vs deep ambiguity).
+
+**Implementation**:
+
+```typescript
+// Helper function to deep-freeze an object
+function deepFreeze(obj: any, visited = new Set()): any {
+  if (visited.has(obj)) return obj; // Prevent infinite loops
+  visited.add(obj);
+  Object.freeze(obj);
+  Object.values(obj).forEach((value) => {
+    if (typeof value === 'object' && value !== null) {
+      deepFreeze(value, visited);
+    }
+  });
+  return obj;
+}
+
+// In Config constructor, after all properties set:
+deepFreeze(this);
+```
+
+**Rationale**:
+
+- Prevents accidental modifications at any depth
+- Guarantees consistency across application lifetime
+- Detects programming errors during development
+- \"Deep freeze\" ensures nested objects are immutable
+
+**Trade-off**:
+
+- Cannot update config at runtime (by design)
+- If config needs to change, requires module reload + restart
+
+---
+
+## Risk Assessment
+
+### Low Risk ✅
+
+1. **YAML Parsing Errors**: Handled via fail-fast. Well-established error handling pattern.
+2. **Singleton Collisions**: ESM module system ensures single instantiation.
+3. **Type Safety**: TypeScript provides full type checking.
+
+### Medium Risk ⚠️
+
+1. **Performance**: Config loading must complete in <100ms. YAML parsing could be slow with large files.
+   - **Mitigation**: Keep config files small; benchmark early; consider lazy loading if needed
+2. **Environment Variable Discovery**: `process.env` not available in browser context.
+   - **Mitigation**: FoundryVTT modules run in Node.js for dev; browser for runtime. Gracefully handle env var absence.
+
+### No High Risks Identified ✅
+
+---
+
+## Success Criteria
+
+All from spec.md, restated for implementation focus:
+
+- **SC-001**: Config can be imported and used immediately with zero initialization overhead
+- **SC-002**: All config sources (YAML, JSON, env) successfully loaded and accessible
+- **SC-003**: TypeScript prevents incorrect property access
+- **SC-004**: Same instance returned on every import (identity check)
+- **SC-005**: Config loading completes in <100ms
+
+---
+
+## Next Command
+
+After this plan is approved:
+
+```bash
+# Phase 0: Research (if unknowns remain - they don't in this case)
+# Skip if all clarifications resolved ✅
+
+# Phase 1: Design
+/speckit.plan  # Re-run to generate research.md, data-model.md, contracts/
+
+# Phase 2: Tasks
+/speckit.tasks  # Generate task breakdown and implementation timeline
+```

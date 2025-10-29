@@ -1,0 +1,3 @@
+# Valid errors.yaml
+separator: ' || '
+pattern: '{{module}}{{caller}}{{error}}{{stack}}'

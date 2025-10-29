@@ -1,0 +1,25 @@
+{
+  "id": "vision-with-fade",
+  "title": "Vision Occlusion Mode With Fade",
+  "description": "A Foundry VTT module to enhance vision and provide fade effects.",
+  "authors": [
+    {
+      "id": "author-name",
+      "email": "author@example.com"
+    }
+  ],
+  "version": "12.1.0",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12"
+  },
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "styles": ["styles/vision-with-fade.css"],
+  "esmodules": ["src/main.mjs"]
+}

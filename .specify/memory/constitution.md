@@ -1,7 +1,7 @@
 <!--
-  SYNC IMPACT REPORT (v1.0.0)
+  SYNC IMPACT REPORT (v2.0.0)
 
-  Version change: Template → 1.0.0 (Initial adoption)
+  Version change: Template → 2.0.0 (Constitution Addition)
 
   Principles established:
   - I. Modular Architecture (NEW)
@@ -80,7 +80,8 @@ Every code artifact and file structure MUST be documented such that new develope
 - Every folder MUST contain a versioned README.md describing its purpose, contents, structure, and dependencies; README MUST be updated whenever files are added or removed
 - The main README.md MUST provide module overview, installation instructions, usage guidelines, and troubleshooting tips
 - For files that support comments, complex logic and architectural decisions MUST be explained inline
-- Every file that supports comments MUST start with a file-level header (as defined in coding standards) explaining file purpose, name, and path
+- Every file that supports comments MUST start with a file-level header (as defined in `docs/STYLE_GUIDE.md`) explaining file purpose, name, and path
+- Executable scripts must have shebang lines and usage comments at the top
 
 **Rationale**: Comprehensive documentation eliminates guesswork, reduces onboarding time, and captures design decisions for future maintainers. Inline documentation ensures context is preserved and constraints are visible.
 
@@ -93,6 +94,8 @@ The module MUST maintain high code quality through discipline in testing, standa
 - Code MUST follow FoundryVTT module best practices and established JavaScript/TypeScript conventions
 - The module MUST be easy to enable/disable without manual file editing
 - Automated tests MUST cover at least 80% of the codebase
+- Other tests MUST be organized in a dedicated `tests/` folder with clear structure
+- Unit tests MUST cover all core logic paths and edge cases, and they should run in isolation.
 - New features MUST be accompanied by appropriate unit or integration tests
 - Performance MUST not degrade as the module evolves
 
@@ -148,4 +151,4 @@ All contributions MUST adhere to the coding standards defined for this project.
 - PATCH: Clarifications, wording, typo fixes
 - ALPHA/BETA releases are not governed by this constitution and may experiment with breaking changes
 
-**Version**: 1.0.0 | **Ratified**: 2025-10-20 | **Last Amended**: 2025-10-20
+**Version**: 2.0.0 | **Ratified**: 2025-10-21 | **Last Amended**: 2025-10-21

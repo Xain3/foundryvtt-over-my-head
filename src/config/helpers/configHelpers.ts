@@ -9,6 +9,16 @@ import { resolve } from 'path';
 import { parse as parseYaml } from 'yaml';
 import { fileURLToPath } from 'url';
 
+export const REQUIRED_YAML_FILES = [
+  'errors.yaml',
+  'foundry.yaml',
+  'hooks.yaml',
+  'logging.yaml',
+  'moduleManagement.yaml',
+  'occlusion.yaml',
+  'placeables.yaml',
+];
+
 /**
  * Get the module root directory (one level up from src/)
  * @returns {string} Absolute path to module root
@@ -41,25 +51,20 @@ function extractYamlContext(content: string, lineNumber?: number): string {
 /**
  * Load and parse all YAML constant files from src/config/constants/
  * Each file is loaded into a namespace under the returned object
+ * @param {string[]} [files=REQUIERED_YAML_FILES] List of YAML files to load
  * @returns {Record<string, unknown>} Namespace-keyed YAML data
  * @throws {Error} If any YAML file cannot be parsed
  * @example
  * const constants = loadYamlFiles();
  * // Returns { errors: {...}, foundry: {...}, hooks: {...}, ... }
  */
-export function loadYamlFiles(): Record<string, unknown> {
+export function loadYamlFiles(
+  files = REQUIRED_YAML_FILES
+): Record<string, unknown> {
   const moduleRoot = getModuleRoot();
   const constantsDir = resolve(moduleRoot, 'src/config/constants');
 
-  const yamlFiles = [
-    'errors.yaml',
-    'foundry.yaml',
-    'hooks.yaml',
-    'logging.yaml',
-    'moduleManagement.yaml',
-    'occlusion.yaml',
-    'placeables.yaml',
-  ];
+  const yamlFiles = [...files];
 
   const result: Record<string, unknown> = {};
 
@@ -77,9 +82,7 @@ export function loadYamlFiles(): Record<string, unknown> {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      throw new Error(
-        `Failed to load YAML from ${filePath}: ${errorMessage}`
-      );
+      throw new Error(`Failed to load YAML from ${filePath}: ${errorMessage}`);
     }
   }
 
@@ -119,8 +122,7 @@ export function mergeConstants(
 
     return merged;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to merge constants: ${errorMessage}`);
   }
 }
@@ -178,9 +180,10 @@ export function loadSettings(): unknown {
     const parsed = parseYaml(content);
     return parsed || [];
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to load settings from ${settingsPath}: ${errorMessage}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Failed to load settings from ${settingsPath}: ${errorMessage}`
+    );
   }
 }
 
@@ -206,8 +209,7 @@ export function loadModuleManifest(): Record<string, unknown> {
 
     return parsed as Record<string, unknown>;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(
       `Failed to load module manifest from ${manifestPath}: ${errorMessage}`
     );
@@ -248,8 +250,7 @@ export function loadEnvironmentVariables(
 
     return envVars;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to load environment variables: ${errorMessage}`);
   }
 }

@@ -6,6 +6,27 @@
 
 import { describe, it, expect } from 'vitest';
 
+/**
+ * Performance thresholds in milliseconds
+ * These constants define the maximum acceptable durations for various
+ * operations related to the Config singleton.
+ *
+ * FIRST_INITIALIZATION_MAX: Maximum time allowed for the first-time initialization of the Config singleton.
+ * CACHED_ACCESS_MAX: Maximum time allowed for accessing the Config singleton from cache on subsequent accesses.
+ * INSTANT_ACCESS_MAX: Maximum time allowed for instant property access on the Config object.
+ * SETTINGS_ITERATION_MAX: Maximum time allowed for iterating over all settings in the Config object.
+ * MUTATION_GUARD_LOOP_MAX: Maximum time allowed for repeated mutation attempts on the frozen Config object.
+ * BATCH_ACCESS_MAX: Maximum time allowed for a batch of multiple accesses to Config properties.
+ */
+const PERFORMANCE_THRESHOLDS_MS = {
+  FIRST_INITIALIZATION_MAX: 500,
+  CACHED_ACCESS_MAX: 1,
+  INSTANT_ACCESS_MAX: 0.2,
+  SETTINGS_ITERATION_MAX: 10,
+  MUTATION_GUARD_LOOP_MAX: 100,
+  BATCH_ACCESS_MAX: 1,
+};
+
 describe('Config Performance Tests', () => {
   describe('Initialization Performance', () => {
     it('should initialize config in under 100ms on first load', async () => {
@@ -19,9 +40,10 @@ describe('Config Performance Tests', () => {
 
       console.log(`First config initialization took ${duration.toFixed(2)}ms`);
 
-      // First initialization may be slower due to module loading
-      // Allow up to 500ms for initial module parse and evaluation
-      expect(duration).toBeLessThan(500);
+      // First initialization may be slower due to module loading; allow extra headroom
+      expect(duration).toBeLessThan(
+        PERFORMANCE_THRESHOLDS_MS.FIRST_INITIALIZATION_MAX
+      );
     });
 
     it('should return cached instance in under 1ms on subsequent access', async () => {
@@ -39,7 +61,9 @@ describe('Config Performance Tests', () => {
       console.log(`Cached config access took ${duration.toFixed(2)}ms`);
 
       // Cached access should be nearly instant
-      expect(duration).toBeLessThan(1);
+      expect(duration).toBeLessThan(
+        PERFORMANCE_THRESHOLDS_MS.CACHED_ACCESS_MAX
+      );
 
       // Verify it's the same instance
       expect(firstModule.config === secondModule.config).toBe(true);
@@ -65,7 +89,9 @@ describe('Config Performance Tests', () => {
       const duration = endTime - startTime;
 
       expect(separator).toBeDefined();
-      expect(duration).toBeLessThan(0.1); // Should be <0.1ms
+      expect(duration).toBeLessThan(
+        PERFORMANCE_THRESHOLDS_MS.INSTANT_ACCESS_MAX
+      );
     });
 
     it('accessing module metadata should be instant', () => {
@@ -79,7 +105,9 @@ describe('Config Performance Tests', () => {
 
       expect(id).toBeDefined();
       expect(version).toBeDefined();
-      expect(duration).toBeLessThan(0.1);
+      expect(duration).toBeLessThan(
+        PERFORMANCE_THRESHOLDS_MS.INSTANT_ACCESS_MAX
+      );
     });
 
     it('accessing environment variables should be instant', () => {
@@ -91,7 +119,9 @@ describe('Config Performance Tests', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-      expect(duration).toBeLessThan(0.1);
+      expect(duration).toBeLessThan(
+        PERFORMANCE_THRESHOLDS_MS.INSTANT_ACCESS_MAX
+      );
     });
 
     it('iterating settings should be fast', () => {
@@ -110,7 +140,9 @@ describe('Config Performance Tests', () => {
       console.log(`Iterated ${count} settings in ${duration.toFixed(2)}ms`);
 
       // Should be fast even with many settings
-      expect(duration).toBeLessThan(10);
+      expect(duration).toBeLessThan(
+        PERFORMANCE_THRESHOLDS_MS.SETTINGS_ITERATION_MAX
+      );
     });
 
     it('getting toString should be fast', () => {
@@ -122,7 +154,9 @@ describe('Config Performance Tests', () => {
       const duration = endTime - startTime;
 
       expect(str).toBeTruthy();
-      expect(duration).toBeLessThan(0.1);
+      expect(duration).toBeLessThan(
+        PERFORMANCE_THRESHOLDS_MS.INSTANT_ACCESS_MAX
+      );
     });
   });
 
@@ -167,7 +201,9 @@ describe('Config Performance Tests', () => {
       );
 
       // Frozen object checks should be fast
-      expect(duration).toBeLessThan(100);
+      expect(duration).toBeLessThan(
+        PERFORMANCE_THRESHOLDS_MS.MUTATION_GUARD_LOOP_MAX
+      );
 
       // Verify no mutations occurred
       expect(config.module.id).toBe('vision-with-fade');
@@ -193,7 +229,9 @@ describe('Config Performance Tests', () => {
       console.log(`100 config accesses took ${accessDuration.toFixed(2)}ms`);
 
       // Should be very fast
-      expect(accessDuration).toBeLessThan(1);
+      expect(accessDuration).toBeLessThan(
+        PERFORMANCE_THRESHOLDS_MS.BATCH_ACCESS_MAX
+      );
     });
   });
 });

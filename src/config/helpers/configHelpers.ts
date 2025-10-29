@@ -244,7 +244,7 @@ export function loadEnvironmentVariables(
       // Case-insensitive prefix matching
       if (key.toUpperCase().startsWith(upperPrefix + '_')) {
         // Store with original key (includes prefix)
-        envVars[key.toUpperCase()] = value || '';
+        envVars[key.toUpperCase()] = value ?? '';
       }
     }
 

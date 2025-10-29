@@ -29,6 +29,7 @@ export default defineConfig({
         /.*\.unit\.test\.(js|cjs|mjs|ts|cts|mts)$/,
         /.*\.int\.test\.(js|cjs|mjs|ts|cts|mts)$/,
         /.*\.setup\.test\.(js|cjs|mjs|ts|cts|mts)$/,
+        /tests\/.*/,
       ],
       output: {
         // Ensure the output is ES module format for Foundry VTT

@@ -65,6 +65,7 @@ export default [
       'src/config/manifest.mjs',
       '.tmp/',
       '.log/',
+      'tests/**/fixtures/*',
     ],
   },
 ];

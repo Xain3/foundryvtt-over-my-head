@@ -5,19 +5,15 @@
  */
 
 // Import and initialize the configuration singleton on module load
-import { config } from './config/config.ts';
+import OMH from './omh.mjs';
 
 /**
  * Main module initialization function
  * Called when module loads; ensures configuration is ready for the module
  */
 function main() {
-  console.log('[OMH] Main module initializing...');
-  console.info(config.toString());
-  console.log('Hello, World!');
+  const omh = new OMH();
 }
 
 // Initialize on module load
 main();
-
-export default config;

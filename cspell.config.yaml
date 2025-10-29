@@ -1,17 +1,15 @@
-version: '0.2'
+version: "0.2"
 ignorePaths:
-  [
-    '**/node_modules/**',
-    '**/dist/**',
-    '**/build/**',
-    '**/.git/**',
-    '**/.svn/**',
-    '**/.hg/**',
-    '**/coverage/**',
-    '**/tmp/**',
-    '**/.tmp/**',
-    '**/.log/**',
-  ]
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/.git/**"
+  - "**/.svn/**"
+  - "**/.hg/**"
+  - "**/coverage/**"
+  - "**/tmp/**"
+  - "**/.tmp/**"
+  - "**/.log/**"
 dictionaryDefinitions: []
 dictionaries:
   - en-gb
@@ -23,6 +21,7 @@ dictionaries:
   - npm
 words:
   - anseki
+  - APIKEY
   - bierner
   - chatmodes
   - csslint
@@ -31,6 +30,7 @@ words:
   - dependencygraph
   - devcontainers
   - donjayamanne
+  - dont
   - eamodio
   - esbenp
   - foundrydata
@@ -42,28 +42,23 @@ words:
   - maciejdems
   - mhutchie
   - omhrc
+  - parseable
   - perkovec
   - Placeables
   - Schmalfeldt
   - stylelintcache
   - yzhang
-  - dont
-  - APIKEY
-
-# Extension-specific overrides
 overrides:
-  - filename: '**/*.mjs'
+  - filename: "**/*.mjs"
     ignoreWords:
       - foundryvtt
       - placeable
       - placeables
-
-  - filename: '**/*.yaml'
+  - filename: "**/*.yaml"
     ignoreWords:
       - foundry
       - dont
-
-  - filename: '**/*.md'
+  - filename: "**/*.md"
     ignoreWords:
       - foundry
       - deployments
@@ -71,12 +66,9 @@ overrides:
     flagWords:
       - dont
       - APIKEY
-
-  - filename: '**/*.json'
+  - filename: "**/*.json"
     ignoreWords: []
-
-  - filename: '**/*.css'
+  - filename: "**/*.css"
     ignoreWords:
       - placeable
-
 import: []

@@ -34,7 +34,7 @@ function getModuleRoot(): string {
 }
 
 /**
- * Extract a YAML context snippet for error messages
+ * Extract a YAML context snippet for error messages (scaffolding - not currently used)
  * @param {string} content YAML file content
  * @param {number} [lineNumber] Line number to extract context around
  * @returns {string} Context snippet (up to 5 lines)

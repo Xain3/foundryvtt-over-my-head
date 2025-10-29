@@ -12,6 +12,7 @@ import {
   loadModuleManifest,
   loadEnvironmentVariables,
 } from './helpers/configHelpers.ts';
+import { cloneDeep } from 'lodash';
 
 /**
  * Configuration interface
@@ -345,21 +346,13 @@ class Config {
   }
 
   /**
-   * Clone object or array defensively using structuredClone when available
+   * Clone object or array defensively using Lodash cloneDeep
    * @param {T} value Value to clone
    * @returns {T} Cloned value
    * @private
    */
   private _clone<T>(value: T): T {
-    if (value === null || typeof value !== 'object') {
-      return value;
-    }
-
-    if (typeof structuredClone === 'function') {
-      return structuredClone(value);
-    }
-
-    return JSON.parse(JSON.stringify(value)) as T;
+    return cloneDeep(value) as T;
   }
 
   /**

@@ -143,29 +143,37 @@ class Config {
    * Recursively freeze an object and all nested objects to ensure deep immutability
    * Prevents modifications at any depth in the config tree
    *
-   * @param {any} obj - Object to freeze (typically 'this')
-   * @param {Set<any>} visited - Set of already-visited objects (prevents infinite loops)
-   * @returns {any} The frozen object
+   * @param {unknown} obj - Object to freeze (typically an object)
+   * @param {Set<unknown>} visited - Set of already-visited objects (prevents infinite loops)
+   * @returns {unknown} The frozen object
    * @private
    */
-  private _deepFreeze(obj: any, visited: Set<any> = new Set()): any {
-    // Prevent infinite loops on circular references
-    if (visited.has(obj)) {
+  private _deepFreeze<T>(obj: T, visited: WeakSet<object> = new WeakSet()): T {
+    if (!this._isObjectLike(obj)) {
       return obj;
     }
-    visited.add(obj);
+
+    const reference = obj as Record<PropertyKey, unknown>;
+
+    // Prevent infinite loops on circular references
+    if (visited.has(reference)) {
+      return obj;
+    }
+    visited.add(reference);
 
     // Freeze the object itself
-    Object.freeze(obj);
+    Object.freeze(reference);
 
     // Recursively freeze all nested objects
-    Object.values(obj).forEach((value) => {
-      if (typeof value === 'object' && value !== null) {
-        this._deepFreeze(value, visited);
-      }
-    });
+    for (const value of Object.values(reference)) {
+      this._deepFreeze(value, visited);
+    }
 
-    return obj;
+    return reference as T;
+  }
+
+  private _isObjectLike(value: unknown): value is Record<PropertyKey, unknown> {
+    return value !== null && typeof value === 'object';
   }
 
   /**

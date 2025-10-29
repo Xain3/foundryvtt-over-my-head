@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import process from 'process';
-import { REQUIRED_YAML_FILES } from '#src/src/config/helpers/configHelpers.js';
+import { REQUIRED_YAML_FILES } from '#src/config/helpers/configHelpers.js';
 
 // We'll need to test the helpers through integration since they do I/O
 // For now, we'll create tests that verify the actual project files are loadable

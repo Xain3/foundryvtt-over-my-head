@@ -5,7 +5,7 @@
  */
 
 import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { dirname, resolve } from 'path';
 import { parse as parseYaml } from 'yaml';
 import { fileURLToPath } from 'url';
 
@@ -26,9 +26,11 @@ export const REQUIRED_YAML_FILES = [
  */
 function getModuleRoot(): string {
   const currentFile = fileURLToPath(import.meta.url);
-  // Navigate: configHelpers.ts -> helpers -> config -> src -> root
-  const helpers = resolve(currentFile, '..', '..', '..', '..');
-  return helpers;
+  const helpersDir = dirname(currentFile);
+  const configDir = dirname(helpersDir);
+  const srcDir = dirname(configDir);
+  const moduleRoot = dirname(srcDir);
+  return moduleRoot;
 }
 
 /**

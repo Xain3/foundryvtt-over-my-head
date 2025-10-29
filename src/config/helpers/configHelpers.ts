@@ -53,7 +53,7 @@ function extractYamlContext(content: string, lineNumber?: number): string {
 /**
  * Load and parse all YAML constant files from src/config/constants/
  * Each file is loaded into a namespace under the returned object
- * @param {string[]} [files=REQUIERED_YAML_FILES] List of YAML files to load
+ * @param {string[]} [files=REQUIRED_YAML_FILES] List of YAML files to load
  * @returns {Record<string, unknown>} Namespace-keyed YAML data
  * @throws {Error} If any YAML file cannot be parsed
  * @example

@@ -1,5 +1,5 @@
 /**
- * @file DevModeParser Utility
+ * @file devModeParser.ts
  * @description Static utility for evaluating development and debug mode status according to configuration hierarchy.
  * @feature 002-dev-mode-parser
  * @path src/utils/static/devModeParser.ts

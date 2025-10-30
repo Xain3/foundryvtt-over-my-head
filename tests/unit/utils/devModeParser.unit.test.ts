@@ -6,7 +6,7 @@ import DevModeParser, {
   __internal as internals,
   type ConfigSingleton,
   type ConfigSource,
-} from '../../../src/utils/static/devModeParser.ts';
+} from '#/utils/static/devModeParser.ts';
 
 const { _coerceToBoolean, _evaluateHierarchy, DEFAULT_HIERARCHY } = internals;
 

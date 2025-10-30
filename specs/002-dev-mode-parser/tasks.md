@@ -22,9 +22,9 @@ description: 'Task list for Development Mode Parser implementation'
 
 **Purpose**: Project initialization and file structure setup
 
-- [ ] T001 Create implementation file at src/utils/static/devModeParser.ts with file header and imports
-- [ ] T002 Create test file at tests/unit/utils/devModeParser.unit.test.ts with test structure
-- [ ] T003 [P] Configure TypeScript for new utility module (verify strict mode enabled)
+- [x] T001 Create implementation file at src/utils/static/devModeParser.ts with file header and imports
+- [x] T002 Create test file at tests/unit/utils/devModeParser.unit.test.ts with test structure
+- [x] T003 [P] Configure TypeScript for new utility module (verify strict mode enabled)
 
 ---
 
@@ -34,11 +34,11 @@ description: 'Task list for Development Mode Parser implementation'
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Define ConfigSource, ModeStatus, and ConfigResult types in src/utils/static/devModeParser.ts
-- [ ] T005 Implement internal coercion function \_coerceToBoolean(value: ConfigSource): boolean in src/utils/static/devModeParser.ts
-- [ ] T006 Implement internal hierarchy evaluation function \_evaluateHierarchy(envVar, moduleFlag, inGameSetting): boolean in src/utils/static/devModeParser.ts
-- [ ] T007 [P] Write unit tests for \_coerceToBoolean covering all edge cases in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T008 [P] Write unit tests for \_evaluateHierarchy covering hierarchy precedence in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T004 Define ConfigSource, ModeStatus, and ConfigResult types in src/utils/static/devModeParser.ts
+- [x] T005 Implement internal coercion function \_coerceToBoolean(value: ConfigSource): boolean in src/utils/static/devModeParser.ts
+- [x] T006 Implement internal hierarchy evaluation function \_evaluateHierarchy(envVar, moduleFlag, inGameSetting): boolean in src/utils/static/devModeParser.ts
+- [x] T007 [P] Write unit tests for \_coerceToBoolean covering all edge cases in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T008 [P] Write unit tests for \_evaluateHierarchy covering hierarchy precedence in tests/unit/utils/devModeParser.unit.test.ts
 
 **Checkpoint**: Type system and core utilities ready - user story implementation can now begin in parallel
 
@@ -52,14 +52,14 @@ description: 'Task list for Development Mode Parser implementation'
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Create DevModeParser class with private constructor in src/utils/static/devModeParser.ts
-- [ ] T010 [US1] Implement static method isDevMode(envVar, moduleFlag, inGameSetting): boolean using \_evaluateHierarchy in src/utils/static/devModeParser.ts
-- [ ] T011 [US1] Add JSDoc documentation for isDevMode method with examples in src/utils/static/devModeParser.ts
-- [ ] T012 [P] [US1] Write unit test: env var set to true should return true regardless of other values in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T013 [P] [US1] Write unit test: module flag true (env false/undefined) should return true in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T014 [P] [US1] Write unit test: in-game setting true (env and module false) should return true in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T015 [P] [US1] Write unit test: all sources false/absent should return false in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T016 [P] [US1] Write unit test: hierarchy precedence (env > module > setting) with conflicting values in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T009 [US1] Create DevModeParser class with private constructor in src/utils/static/devModeParser.ts
+- [x] T010 [US1] Implement static method isDevMode(envVar, moduleFlag, inGameSetting): boolean using \_evaluateHierarchy in src/utils/static/devModeParser.ts
+- [x] T011 [US1] Add JSDoc documentation for isDevMode method with examples in src/utils/static/devModeParser.ts
+- [x] T012 [P] [US1] Write unit test: env var set to true should return true regardless of other values in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T013 [P] [US1] Write unit test: module flag true (env false/undefined) should return true in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T014 [P] [US1] Write unit test: in-game setting true (env and module false) should return true in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T015 [P] [US1] Write unit test: all sources false/absent should return false in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T016 [P] [US1] Write unit test: hierarchy precedence (env > module > setting) with conflicting values in tests/unit/utils/devModeParser.unit.test.ts
 
 **Checkpoint**: isDevMode() is fully functional and independently testable with complete coverage
 
@@ -73,13 +73,13 @@ description: 'Task list for Development Mode Parser implementation'
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] Implement static method isDebugMode(envVar, moduleFlag, inGameSetting): boolean using \_evaluateHierarchy in src/utils/static/devModeParser.ts
-- [ ] T018 [US2] Add JSDoc documentation for isDebugMode method with examples in src/utils/static/devModeParser.ts
-- [ ] T019 [P] [US2] Write unit test: env var set to true should return true regardless of other values in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T020 [P] [US2] Write unit test: module flag true (env false/undefined) should return true in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T021 [P] [US2] Write unit test: in-game setting true (env and module false) should return true in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T022 [P] [US2] Write unit test: all sources false/absent should return false in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T023 [P] [US2] Write unit test: debug mode independent from dev mode (dev enabled, debug disabled) in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T017 [US2] Implement static method isDebugMode(envVar, moduleFlag, inGameSetting): boolean using \_evaluateHierarchy in src/utils/static/devModeParser.ts
+- [x] T018 [US2] Add JSDoc documentation for isDebugMode method with examples in src/utils/static/devModeParser.ts
+- [x] T019 [P] [US2] Write unit test: env var set to true should return true regardless of other values in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T020 [P] [US2] Write unit test: module flag true (env false/undefined) should return true in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T021 [P] [US2] Write unit test: in-game setting true (env and module false) should return true in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T022 [P] [US2] Write unit test: all sources false/absent should return false in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T023 [P] [US2] Write unit test: debug mode independent from dev mode (dev enabled, debug disabled) in tests/unit/utils/devModeParser.unit.test.ts
 
 **Checkpoint**: isDebugMode() is fully functional and independently testable with complete coverage
 
@@ -93,15 +93,15 @@ description: 'Task list for Development Mode Parser implementation'
 
 ### Implementation for User Story 3
 
-- [ ] T024 [US3] Define ConfigSingleton minimal interface in src/utils/static/devModeParser.ts
-- [ ] T025 [US3] Implement static method fromConfig(config, prefixOverride?): ConfigResult in src/utils/static/devModeParser.ts
-- [ ] T026 [US3] Implement prefix extraction logic (use config.prefix or prefixOverride) in fromConfig method in src/utils/static/devModeParser.ts
-- [ ] T027 [US3] Call isDevMode and isDebugMode from fromConfig with extracted values in src/utils/static/devModeParser.ts
-- [ ] T028 [US3] Add JSDoc documentation for fromConfig method with examples in src/utils/static/devModeParser.ts
-- [ ] T029 [P] [US3] Write unit test: fromConfig with mock config returns correct devMode and debugMode in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T030 [P] [US3] Write unit test: fromConfig with prefixOverride uses override instead of config.prefix in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T031 [P] [US3] Write unit test: calling fromConfig multiple times with same config returns consistent results (pure function) in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T032 [P] [US3] Write unit test: multiple callers with different configs each get correct results (no shared state) in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T024 [US3] Define ConfigSingleton minimal interface in src/utils/static/devModeParser.ts
+- [x] T025 [US3] Implement static method fromConfig(config, prefixOverride?): ConfigResult in src/utils/static/devModeParser.ts
+- [x] T026 [US3] Implement prefix extraction logic (use config.prefix or prefixOverride) in fromConfig method in src/utils/static/devModeParser.ts
+- [x] T027 [US3] Call isDevMode and isDebugMode from fromConfig with extracted values in src/utils/static/devModeParser.ts
+- [x] T028 [US3] Add JSDoc documentation for fromConfig method with examples in src/utils/static/devModeParser.ts
+- [x] T029 [P] [US3] Write unit test: fromConfig with mock config returns correct devMode and debugMode in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T030 [P] [US3] Write unit test: fromConfig with prefixOverride uses override instead of config.prefix in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T031 [P] [US3] Write unit test: calling fromConfig multiple times with same config returns consistent results (pure function) in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T032 [P] [US3] Write unit test: multiple callers with different configs each get correct results (no shared state) in tests/unit/utils/devModeParser.unit.test.ts
 
 **Checkpoint**: fromConfig() is fully functional and all three user stories can be used independently
 
@@ -115,15 +115,15 @@ description: 'Task list for Development Mode Parser implementation'
 
 ### Implementation for User Story 4
 
-- [ ] T033 [US4] Add null/undefined handling to \_coerceToBoolean function (default to false) in src/utils/static/devModeParser.ts
-- [ ] T034 [US4] Add type coercion for common truthy strings ("true", "1", "yes", "on") to \_coerceToBoolean in src/utils/static/devModeParser.ts
-- [ ] T035 [US4] Add warning logging for unexpected parameter types in \_coerceToBoolean in src/utils/static/devModeParser.ts
-- [ ] T036 [US4] Add graceful error handling in fromConfig for missing config methods in src/utils/static/devModeParser.ts
-- [ ] T037 [P] [US4] Write unit test: undefined parameters should return false without errors in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T038 [P] [US4] Write unit test: null parameters should return false without errors in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T039 [P] [US4] Write unit test: common truthy strings ("yes", "1", "on") should return true in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T040 [P] [US4] Write unit test: unexpected parameter types should log warning and return false in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T041 [P] [US4] Write unit test: fromConfig with missing config.get method should handle gracefully in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T033 [US4] Add null/undefined handling to \_coerceToBoolean function (default to false) in src/utils/static/devModeParser.ts
+- [x] T034 [US4] Add type coercion for common truthy strings ("true", "1", "yes", "on") to \_coerceToBoolean in src/utils/static/devModeParser.ts
+- [x] T035 [US4] Add warning logging for unexpected parameter types in \_coerceToBoolean in src/utils/static/devModeParser.ts
+- [x] T036 [US4] Add graceful error handling in fromConfig for missing config methods in src/utils/static/devModeParser.ts
+- [x] T037 [P] [US4] Write unit test: undefined parameters should return false without errors in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T038 [P] [US4] Write unit test: null parameters should return false without errors in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T039 [P] [US4] Write unit test: common truthy strings ("yes", "1", "on") should return true in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T040 [P] [US4] Write unit test: unexpected parameter types should log warning and return false in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T041 [P] [US4] Write unit test: fromConfig with missing config.get method should handle gracefully in tests/unit/utils/devModeParser.unit.test.ts
 
 **Checkpoint**: All edge cases handled gracefully, system is production-ready
 
@@ -133,16 +133,16 @@ description: 'Task list for Development Mode Parser implementation'
 
 **Purpose**: Final quality checks and performance validation
 
-- [ ] T042 Add file-level JSDoc header documentation to src/utils/static/devModeParser.ts
-- [ ] T043 Add default export for DevModeParser class in src/utils/static/devModeParser.ts
-- [ ] T044 [P] Run ESLint on src/utils/static/devModeParser.ts and fix any issues
-- [ ] T045 [P] Run TypeScript compiler in strict mode and verify no errors
-- [ ] T046 [P] Write performance test: verify isDevMode completes in <1ms in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T047 [P] Write performance test: verify isDebugMode completes in <1ms in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T048 [P] Write performance test: verify fromConfig completes in <1ms in tests/unit/utils/devModeParser.unit.test.ts
-- [ ] T049 Run full test suite and verify 100% code coverage for src/utils/static/devModeParser.ts
-- [ ] T050 Verify Constitution compliance (modular, pure functions, documented, tested)
-- [ ] T051 Create or update README in src/utils/static/ if needed to document new utility
+- [x] T042 Add file-level JSDoc header documentation to src/utils/static/devModeParser.ts
+- [x] T043 Add default export for DevModeParser class in src/utils/static/devModeParser.ts
+- [x] T044 [P] Run ESLint on src/utils/static/devModeParser.ts and fix any issues
+- [x] T045 [P] Run TypeScript compiler in strict mode and verify no errors
+- [x] T046 [P] Write performance test: verify isDevMode completes in <1ms in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T047 [P] Write performance test: verify isDebugMode completes in <1ms in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T048 [P] Write performance test: verify fromConfig completes in <1ms in tests/unit/utils/devModeParser.unit.test.ts
+- [x] T049 Run full test suite and verify 100% code coverage for src/utils/static/devModeParser.ts
+- [x] T050 Verify Constitution compliance (modular, pure functions, documented, tested)
+- [x] T051 Create or update README in src/utils/static/ if needed to document new utility
 
 ---
 

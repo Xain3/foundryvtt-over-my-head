@@ -21,7 +21,8 @@ Developers need a pure static function that checks if development mode is curren
 2. **Given** no environment variable but module.json `flags.dev=true` is passed, **When** checking dev mode status, **Then** the function returns true regardless of in-game setting values
 3. **Given** no env var or module flag but in-game debugMode setting is enabled, **When** checking dev mode status, **Then** the function returns true
 4. **Given** all sources indicate false or are absent, **When** checking dev mode status, **Then** the function returns false
-5. **Given** the hierarchy is configured, **When** multiple parameter sources have conflicting values, **Then** the higher priority source always wins (env > module > config > in-game)
+5. **Given** the default hierarchy is used, **When** multiple parameter sources have conflicting values, **Then** the higher priority source always wins (env > module > config > in-game)
+6. **Given** a custom hierarchy override is supplied, **When** multiple parameter sources have conflicting values, **Then** the evaluation follows the provided order and ignores any sources not listed
 
 ---
 
@@ -40,6 +41,7 @@ Developers need a pure static function to check if debug mode (verbose logging) 
 3. **Given** no env var or module flag but in-game debugMode setting parameter is enabled, **When** checking debug mode status, **Then** the function returns true
 4. **Given** all parameter sources are false or absent, **When** checking debug mode status, **Then** the function returns false
 5. **Given** dev mode is enabled in parameters but debug mode is not, **When** checking debug mode status, **Then** the function returns false (they are independent)
+6. **Given** a custom hierarchy override is supplied, **When** multiple parameter sources have conflicting values, **Then** the evaluation follows the provided order for debug mode
 
 ---
 
@@ -92,7 +94,7 @@ The static functions should handle missing or undefined parameters gracefully wi
 - **FR-001**: System MUST provide a `DevModeParser` class exported as default export with static methods to check development and debug mode status
 - **FR-002**: System MUST implement `DevModeParser.isDevMode(envVar, moduleFlag, inGameSetting)` static method that returns boolean based on hierarchy evaluation
 - **FR-003**: System MUST implement `DevModeParser.isDebugMode(envVar, moduleFlag, inGameSetting)` static method that returns boolean based on hierarchy evaluation
-- **FR-004**: System MUST implement settings hierarchy when evaluating parameters: environment variables override module manifest flags, which override in-game settings (env > module > settings)
+- **FR-004**: System MUST implement settings hierarchy when evaluating parameters with a default precedence of environment variables over module manifest flags over in-game settings (env > module > settings) and support overriding that order when requested
 - **FR-005**: System MUST accept environment variable string values as function parameters (representing `OMH_DEV_MODE`, `OMH_DEBUG_MODE`)
 - **FR-006**: System MUST accept dev mode and debug mode flags from module manifest as function parameters (representing `flags.dev`, `flags.debugMode`)
 - **FR-007**: System MUST accept in-game setting values as function parameters (representing registered settings)
@@ -106,6 +108,7 @@ The static functions should handle missing or undefined parameters gracefully wi
 - **FR-015**: System MUST extract module prefix from `config.prefix` dynamically in convenience methods, with optional override parameter for flexibility
 - **FR-016**: System MUST be implemented in TypeScript (.ts) for type safety and consistency with config.ts
 - **FR-017**: System MUST be implemented as a new file at `src/utils/static/devModeParser.ts`
+- **FR-018**: System MUST allow callers to override the hierarchy order for any evaluation entry point, defaulting to the standard precedence when no override is given
 
 ### Key Entities
 

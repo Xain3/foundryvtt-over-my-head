@@ -10,7 +10,6 @@
     "noEmit": true,
     "skipLibCheck": true,
     "types": [],
-    "baseUrl": ".",
     "paths": {
       "#/*": ["./src/*"],
       "#src/*": ["./src/*"],

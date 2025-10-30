@@ -10,9 +10,28 @@ The utils are organized into functional categories:
 
 - **Module Lifecycle**: [`Initializer`](#initializer), [`Logger`](#logger)
 - **Hook Management**: [`HookFormatter`](#hookformatter)
-- **Static Utilities**: [`static/`](#static-utilities)
+- **Static Utilities**: [`StaticUtils`](#staticutils) (via `static.ts` entrypoint)
 
 ## 📁 Folder Structure
+
+### StaticUtils
+
+The `StaticUtils` class provides centralized access to all static utility functionality through a single entrypoint at `src/utils/static.ts`.
+
+```ts
+import StaticUtils from '#/utils/static.ts';
+
+// Access DevModeParser functionality
+const result = StaticUtils.DevModeParser.fromConfig(config);
+const isDev = StaticUtils.DevModeParser.isDevMode(env, module, setting);
+```
+
+This design provides:
+
+- Single stable import path for all static utilities
+- Clear public API boundaries
+- Easy addition of new static utilities
+- Protection from internal refactoring
 
 ## Changelog
 

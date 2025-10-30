@@ -1,7 +1,7 @@
 /**
- * @file static.unit.test.mjs
+ * @file static.unit.test.ts
  * @description Unit tests for the StaticUtils centralized entrypoint class
- * @path tests/unit/utils/static.unit.test.mjs
+ * @path tests/unit/utils/static.unit.test.ts
  */
 
 import { describe, expect, it, vi } from 'vitest';

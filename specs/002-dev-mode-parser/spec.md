@@ -105,6 +105,7 @@ The static functions should handle missing or undefined parameters gracefully wi
 - **FR-014**: System MUST provide a convenience method `DevModeParser.fromConfig(config, prefixOverride?)` that extracts values from config singleton and calls core methods
 - **FR-015**: System MUST extract module prefix from `config.prefix` dynamically in convenience methods, with optional override parameter for flexibility
 - **FR-016**: System MUST be implemented in TypeScript (.ts) for type safety and consistency with config.ts
+- **FR-017**: System MUST be implemented as a new file at `src/utils/static/devModeParser.ts`
 
 ### Key Entities
 

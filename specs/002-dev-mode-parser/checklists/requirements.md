@@ -27,7 +27,7 @@
 - [x] All functional requirements have clear acceptance criteria
 - [x] User scenarios cover primary flows
 - [x] Feature meets measurable outcomes defined in Success Criteria
-- [x] No implementation details leak into specification
+- [x] File location explicitly specified (FR-017)
 
 ## Notes
 
@@ -37,7 +37,7 @@ All checklist items pass validation:
 
 **Requirement Completeness**:
 
-- All 13 functional requirements are testable and specific
+- All 17 functional requirements are testable and specific
 - 6 success criteria are measurable and technology-agnostic
 - 4 user stories with complete acceptance scenarios (19 total scenarios)
 - 5 edge cases identified with clear handling strategies
@@ -51,6 +51,6 @@ All checklist items pass validation:
 - User stories are prioritized (P1-P3) and independently testable
 - Success criteria are measurable without implementation knowledge and emphasize pure function behavior
 - Hierarchy definition is clear (env > module > in-game settings)
-- Static/pure function requirement is explicitly stated in FR-007 and emphasized throughout
+- File location locked in at `src/utils/static/devModeParser.ts` (FR-017)
 
 **Ready for next phase**: ✅ Specification is complete and ready for `/speckit.clarify` or `/speckit.plan`

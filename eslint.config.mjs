@@ -60,12 +60,20 @@ export default [
   {
     ignores: [
       'dist/',
+      'build/',
       'node_modules/',
       'coverage/',
       'src/config/manifest.mjs',
+      'public/',
+      'tmp/',
       '.tmp/',
       '.log/',
+      '.cache/',
+      '.parcel-cache/',
+      '.nyc_output/',
       'tests/**/fixtures/*',
+      '*.tgz',
+      '.env*',
     ],
   },
 ];

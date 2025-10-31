@@ -55,5 +55,8 @@
   "overrides": {
     "tinymce": "^8.1.2"
   },
-  "scripts": {}
+  "scripts": {
+    "sync-aliases": "node .dev/scripts/sync-aliases.mjs",
+    "prepare": "husky"
+  }
 }

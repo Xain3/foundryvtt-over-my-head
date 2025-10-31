@@ -14,11 +14,11 @@ This document breaks down the implementation into executable tasks organized by 
 
 ## Task Summary
 
-- **Total Tasks**: 59
+- **Total Tasks**: 69
 - **Phase 1 (Setup)**: 7 tasks
 - **Phase 2 (Foundational)**: 10 tasks
-- **Phase 3 (US1 - Validation)**: 11 tasks
-- **Phase 4 (US2 - Sync Script)**: 12 tasks
+- **Phase 3 (US1 - Validation)**: 17 tasks
+- **Phase 4 (US2 - Sync Script)**: 16 tasks
 - **Phase 5 (US5 - Extensibility)**: 6 tasks
 - **Phase 6 (US3 & US4 - Integration)**: 7 tasks
 - **Phase 7 (Polish)**: 6 tasks
@@ -91,13 +91,13 @@ Phase 2: Foundational (blocking - required for all user stories)
 
 ### Tasks
 
-- [ ] T001 Create src/utils/alias-adapters/ directory
-- [ ] T002 Create tests/unit/adapters/ directory
-- [ ] T003 Create tests/project-setup-tests/ directory (if not exists)
-- [ ] T004 Create .dev/scripts/ directory (if not exists)
-- [ ] T005 Create src/utils/alias-adapters/README.md with placeholder content
-- [ ] T006 Create tests/unit/adapters/README.md with placeholder content
-- [ ] T007 Update tests/project-setup-tests/README.md to mention alias validation tests
+- [x] T001 Create src/utils/alias-adapters/ directory
+- [x] T002 Create tests/unit/adapters/ directory
+- [x] T003 Create tests/project-setup-tests/ directory (if not exists)
+- [x] T004 Create .dev/scripts/ directory (if not exists)
+- [x] T005 Create src/utils/alias-adapters/README.md with placeholder content
+- [x] T006 Create tests/unit/adapters/README.md with placeholder content
+- [x] T007 Update tests/project-setup-tests/README.md to mention alias validation tests
 
 ---
 
@@ -111,16 +111,16 @@ Phase 2: Foundational (blocking - required for all user stories)
 
 ### Tasks
 
-- [ ] T008 [P] Implement BaseConfigAdapter class in src/utils/alias-adapters/base-adapter.mjs
-- [ ] T009 [P] Implement AdapterRegistry class in src/utils/alias-adapters/adapter-registry.mjs
-- [ ] T010 [P] Create JSONC helper functions in src/utils/alias-adapters/jsonc-helpers.mjs
-- [ ] T011 [P] Create normalization helper functions in src/utils/alias-adapters/normalization-helpers.mjs
-- [ ] T012 [P] Write unit tests for BaseConfigAdapter in tests/unit/adapters/base-adapter.unit.test.mjs
-- [ ] T013 [P] Write unit tests for AdapterRegistry in tests/unit/adapters/adapter-registry.unit.test.mjs
-- [ ] T014 [P] Write unit tests for JSONC helpers in tests/unit/adapters/jsonc-helpers.unit.test.mjs
-- [ ] T015 [P] Write unit tests for normalization helpers in tests/unit/adapters/normalization-helpers.unit.test.mjs
-- [ ] T016 Run foundational tests to verify base classes work
-- [ ] T017 Update src/utils/alias-adapters/README.md with architecture documentation
+- [x] T008 [P] Implement BaseConfigAdapter class in src/utils/alias-adapters/base-adapter.mjs
+- [x] T009 [P] Implement AdapterRegistry class in src/utils/alias-adapters/adapter-registry.mjs
+- [x] T010 [P] Create JSONC helper functions in src/utils/alias-adapters/jsonc-helpers.mjs
+- [x] T011 [P] Create normalization helper functions in src/utils/alias-adapters/normalization-helpers.mjs
+- [x] T012 [P] Write unit tests for BaseConfigAdapter in tests/unit/adapters/base-adapter.unit.test.mjs
+- [x] T013 [P] Write unit tests for AdapterRegistry in tests/unit/adapters/adapter-registry.unit.test.mjs
+- [x] T014 [P] Write unit tests for JSONC helpers in tests/unit/adapters/jsonc-helpers.unit.test.mjs
+- [x] T015 [P] Write unit tests for normalization helpers in tests/unit/adapters/normalization-helpers.unit.test.mjs
+- [x] T016 Run foundational tests to verify base classes work
+- [x] T017 Update src/utils/alias-adapters/README.md with architecture documentation
 
 ---
 
@@ -136,22 +136,30 @@ Phase 2: Foundational (blocking - required for all user stories)
 
 ### Tasks
 
-- [ ] T018 [P] [US1] Implement TsConfigAdapter in src/utils/alias-adapters/tsconfig-adapter.mjs
-- [ ] T019 [P] [US1] Implement PackageJsonAdapter in src/utils/alias-adapters/package-json-adapter.mjs
-- [ ] T020 [P] [US1] Write unit tests for TsConfigAdapter in tests/unit/adapters/tsconfig-adapter.unit.test.mjs
-- [ ] T021 [P] [US1] Write unit tests for PackageJsonAdapter in tests/unit/adapters/package-json-adapter.unit.test.mjs
-- [ ] T022 [US1] Implement alias validation test in tests/project-setup-tests/alias-sync.setup.test.mjs
-- [ ] T023 [US1] Test validation with synchronized aliases (should pass)
-- [ ] T024 [US1] Test validation with misaligned tsconfig.json (should fail with diff)
-- [ ] T025 [US1] Test validation with missing alias in package.json (should fail with clear message)
-- [ ] T026 [US1] Test validation with extra alias in config file (should fail with clear message)
-- [ ] T027 [US1] Verify error messages include file paths and sync command
-- [ ] T028 [US1] Run full validation test suite to verify US1 acceptance criteria
+- [x] T018 [P] [US1] Implement TsConfigAdapter in src/utils/alias-adapters/tsconfig-adapter.mjs
+- [x] T019 [P] [US1] Implement PackageJsonAdapter in src/utils/alias-adapters/package-json-adapter.mjs
+- [x] T020 [P] [US1] Implement ViteConfigAdapter in src/utils/alias-adapters/vite-adapter.mjs
+- [x] T021 [P] [US1] Implement VitestConfigAdapter in src/utils/alias-adapters/vitest-adapter.mjs
+- [x] T022 [P] [US1] Write unit tests for TsConfigAdapter in tests/unit/adapters/tsconfig-adapter.unit.test.mjs
+- [x] T023 [P] [US1] Write unit tests for PackageJsonAdapter in tests/unit/adapters/package-json-adapter.unit.test.mjs
+- [x] T024 [P] [US1] Write unit tests for ViteConfigAdapter in tests/unit/adapters/vite-adapter.unit.test.mjs
+- [x] T025 [P] [US1] Write unit tests for VitestConfigAdapter in tests/unit/adapters/vitest-adapter.unit.test.mjs
+- [x] T026 [US1] Implement alias validation test in tests/project-setup-tests/alias-sync.setup.test.mjs
+- [x] T027 [US1] Test validation with synchronized aliases (should pass)
+- [x] T028 [US1] Test validation with misaligned tsconfig.json (should fail with unified diff)
+- [x] T029 [US1] Test validation with incorrect vite.config.mjs aliasEntries import (should fail with clear message)
+- [x] T030 [US1] Test validation with incorrect vitest.config.mjs aliasEntries import (should fail with clear message)
+- [x] T031 [US1] Test validation with missing alias in package.json (should fail with clear message)
+- [x] T032 [US1] Test validation with extra alias in config file (should fail with clear message)
+- [x] T033 [US1] Verify error messages include file paths and sync command
+- [x] T034 [US1] Run full validation test suite to verify US1 acceptance criteria
 
 **Acceptance Criteria**:
 
 - ✅ All alias configurations synchronized → tests pass
-- ✅ tsconfig.json misaligned → test fails with diff and fix command
+- ✅ tsconfig.json misaligned → test fails with unified diff and fix command
+- ✅ vite.config.mjs import incorrect → test fails indicating which import is wrong
+- ✅ vitest.config.mjs import incorrect → test fails indicating which import is wrong
 - ✅ package.json missing alias → test fails indicating missing alias
 - ✅ New alias added to alias.config.mjs → test fails indicating not propagated
 
@@ -169,18 +177,22 @@ Phase 2: Foundational (blocking - required for all user stories)
 
 ### Tasks
 
-- [ ] T029 [P] [US2] Implement sync script core logic in .dev/scripts/sync-aliases.mjs
-- [ ] T030 [P] [US2] Add CLI argument parsing (--dry-run, --verbose) in sync-aliases.mjs
-- [ ] T031 [P] [US2] Implement adapter registration and iteration in sync-aliases.mjs
-- [ ] T032 [P] [US2] Implement dry-run mode (preview without writing) in sync-aliases.mjs
-- [ ] T033 [P] [US2] Implement verbose logging mode in sync-aliases.mjs
-- [ ] T034 [P] [US2] Implement error handling and summary reporting in sync-aliases.mjs
-- [ ] T035 [US2] Add shebang line and make sync-aliases.mjs executable
-- [ ] T036 [US2] Write unit tests for sync script logic in tests/unit/sync-aliases.unit.test.mjs
-- [ ] T037 [US2] Test sync with new alias added (should update all files)
-- [ ] T038 [US2] Test sync with alias removed (should remove from all files)
-- [ ] T039 [US2] Test sync with dry-run flag (should preview without modifying)
-- [ ] T040 [US2] Run sync script and validate with US1 tests to verify US2 acceptance criteria
+- [x] T035 [P] [US2] Implement sync script core logic in .dev/scripts/sync-aliases.mjs
+- [x] T036 [P] [US2] Add CLI argument parsing (--dry-run, --verbose) in sync-aliases.mjs
+- [x] T037 [P] [US2] Implement adapter registration and iteration in sync-aliases.mjs
+- [x] T038 [P] [US2] Implement dry-run mode (preview without writing) in sync-aliases.mjs
+- [x] T039 [P] [US2] Implement verbose logging mode in sync-aliases.mjs
+- [x] T040 [P] [US2] Implement conflict detection (check file modification timestamps, skip if modified within 10s) in sync-aliases.mjs
+- [x] T041 [P] [US2] Implement error handling, summary reporting, and [OMH] prefixed logging in sync-aliases.mjs
+- [x] T042 [US2] Add shebang line and make sync-aliases.mjs executable; verify file header (@file, @description, @path)
+- [x] T043 [US2] Write unit tests for sync script logic in tests/unit/sync-aliases.unit.test.mjs
+- [x] T044 [US2] Test sync with new alias added (should update all files with correct syntax)
+- [x] T045 [US2] Test sync with alias removed (should remove from all files)
+- [x] T046 [US2] Test sync with alias path modified (should update all files)
+- [x] T047 [US2] Test sync with dry-run flag (should preview without modifying)
+- [x] T048 [US2] Test sync with conflict detection (file modified within 10s, should skip with warning)
+- [x] T049 [US2] Test format preservation: sync script preserves comments, indentation, trailing commas in config files
+- [x] T050 [US2] Run sync script and validate with US1 tests to verify US2 acceptance criteria
 
 **Acceptance Criteria**:
 
@@ -189,6 +201,8 @@ Phase 2: Foundational (blocking - required for all user stories)
 - ✅ Alias path modified → sync updates all files
 - ✅ All files synchronized → sync reports "already synchronized"
 - ✅ Dry-run flag → displays changes without modifying files
+- ✅ Conflict detection → skips recently modified files (within 10s) with clear warning
+- ✅ Format preservation → preserves comments, indentation, trailing commas in config files
 - ✅ Sync completes → validation tests pass
 
 ---
@@ -205,12 +219,12 @@ Phase 2: Foundational (blocking - required for all user stories)
 
 ### Tasks
 
-- [ ] T041 [P] [US5] Copy adapter-interface.md to docs/alias-adapter-interface.md
-- [ ] T042 [P] [US5] Create example WebpackAdapter in src/utils/alias-adapters/webpack-adapter.mjs (commented as example)
-- [ ] T043 [P] [US5] Write unit tests for WebpackAdapter in tests/unit/adapters/webpack-adapter.unit.test.mjs
-- [ ] T044 [US5] Update src/utils/alias-adapters/README.md with "Adding New Adapters" section
-- [ ] T045 [US5] Test example adapter following extension documentation
-- [ ] T046 [US5] Verify extension process takes <30 minutes by timing documentation follow-through
+- [ ] T051 [P] [US5] Copy adapter-interface.md to docs/alias-adapter-interface.md
+- [ ] T052 [P] [US5] Create example WebpackAdapter in src/utils/alias-adapters/webpack-adapter.mjs (commented as example)
+- [ ] T053 [P] [US5] Write unit tests for WebpackAdapter in tests/unit/adapters/webpack-adapter.unit.test.mjs
+- [ ] T054 [US5] Update src/utils/alias-adapters/README.md with "Adding New Adapters" section
+- [ ] T055 [US5] Test example adapter following extension documentation
+- [ ] T056 [US5] Verify extension process takes <30 minutes by timing documentation follow-through
 
 **Acceptance Criteria**:
 
@@ -238,16 +252,16 @@ Phase 2: Foundational (blocking - required for all user stories)
 
 #### US3: Pre-Commit Hook
 
-- [ ] T047 [P] [US3] Create or update .husky/pre-commit hook to run alias validation
-- [ ] T048 [US3] Configure hook to show clear error message with sync command on failure
-- [ ] T049 [US3] Test hook blocks commit when aliases misaligned
-- [ ] T050 [US3] Test hook allows commit when aliases synchronized
+- [ ] T057 [P] [US3] Create or update .husky/pre-commit hook to run alias validation
+- [ ] T058 [US3] Configure hook to show clear error message with sync command on failure
+- [ ] T059 [US3] Test hook blocks commit when aliases misaligned
+- [ ] T060 [US3] Test hook allows commit when aliases synchronized
 
 #### US4: VS Code Task
 
-- [ ] T051 [P] [US4] Create or update .vscode/tasks.json with "Sync Aliases" task
-- [ ] T052 [US4] Test task runs from command palette
-- [ ] T053 [US4] Verify task output appears in terminal panel
+- [ ] T061 [P] [US4] Create or update .vscode/tasks.json with "Sync Aliases" task
+- [ ] T062 [US4] Test task runs from command palette
+- [ ] T063 [US4] Verify task output appears in terminal panel
 
 **Acceptance Criteria (US3)**:
 
@@ -271,12 +285,12 @@ Phase 2: Foundational (blocking - required for all user stories)
 
 ### Tasks
 
-- [ ] T054 [P] Add npm script "sync-aliases" to package.json
-- [ ] T055 [P] Update main README.md with alias centralization system overview
-- [ ] T056 [P] Update docs/README.md with link to alias adapter interface
-- [ ] T057 Run full test suite (all phases) to verify complete system
-- [ ] T058 Verify performance targets met (validation <5s, sync <3s, pre-commit <2s)
-- [ ] T059 Final review of all file headers, JSDoc completeness, and README updates
+- [x] T064 [P] Add npm script "sync-aliases" to package.json
+- [x] T065 [P] Update main README.md with "Getting Started - Alias Centralization" section (<200 words)
+- [x] T066 [P] Update docs/README.md with link to alias adapter interface documentation
+- [x] T067 Run full test suite (all phases) to verify complete system
+- [x] T068 Verify performance targets met (validation <5s, sync <3s, pre-commit <2s)
+- [x] T069 Final review of all file headers (@file, @description, @path), JSDoc completeness, and README updates
 
 ---
 

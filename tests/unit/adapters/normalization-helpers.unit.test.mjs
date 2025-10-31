@@ -13,7 +13,7 @@ import {
   normalizeToPackageJsonImports,
   compareAliases,
   formatDiff,
-} from '../../../.dev/utils/alias-adapters/normalization-helpers.mjs';
+} from '#devutils/alias-adapters/normalization-helpers.mjs';
 
 describe('normalization-helpers', () => {
   describe('normalizeFromAliasConfig', () => {

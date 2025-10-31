@@ -10,7 +10,7 @@ import {
   detectIndentation,
   detectEolStyle,
   detectTrailingNewline,
-} from '../../../.dev/utils/alias-adapters/jsonc-helpers.mjs';
+} from '#devutils/alias-adapters/jsonc-helpers.mjs';
 
 describe('jsonc-helpers', () => {
   describe('parseJsoncString', () => {

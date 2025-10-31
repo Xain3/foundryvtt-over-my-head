@@ -8,7 +8,8 @@
     "#/": "./src/",
     "#src/": "./src/",
     "#tests/": "./tests/",
-    "#mocks/": "./tests/mocks/"
+    "#mocks/": "./tests/mocks/",
+    "#devutils/": "./.dev/utils/"
   },
   "author": "Andrea Pandolfo",
   "license": "MIT",

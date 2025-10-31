@@ -1,27 +1,24 @@
 <!--
-  SYNC IMPACT REPORT (v2.0.0)
+  SYNC IMPACT REPORT (v2.1.0)
 
-  Version change: Template → 2.0.0 (Constitution Addition)
+  Version change: 2.0.0 → 2.1.0 (Dry-Run Mode Addition)
 
-  Principles established:
-  - I. Modular Architecture (NEW)
-  - II. FoundryVTT Integration (NEW)
-  - III. Configuration Management (NEW)
-  - IV. Documentation Excellence (NEW)
-  - V. Quality & Maintainability (NEW)
+  Principles modified:
+  - V. Quality & Maintainability (EXPANDED - added dry-run requirement for executable scripts)
 
   Sections added:
-  - Module Lifecycle (NEW)
-  - Development Standards (NEW)
+  - None
+
+  Sections modified:
+  - Development Standards (added executable script dry-run requirement)
 
   Templates requiring updates:
-  - ✅ .specify/templates/plan-template.md (Constitution Check section)
-  - ✅ .specify/templates/spec-template.md (scope alignment)
-  - ✅ .specify/templates/tasks-template.md (task categorization)
-  - ⚠️ None at this time (no command files to update)
+  - ✅ .specify/templates/plan-template.md (may mention dry-run as testing strategy)
+  - ✅ .specify/templates/tasks-template.md (add task type for script testing)
+  - ⚠ None critical at this time
 
   Follow-up TODOs:
-  - Review governance process after first 3 feature cycles
+  - Review dry-run implementation patterns after first feature using this requirement
 -->
 
 # Hybrid Occlusion Module for FoundryVTT Constitution
@@ -98,8 +95,9 @@ The module MUST maintain high code quality through discipline in testing, standa
 - Unit tests MUST cover all core logic paths and edge cases, and they should run in isolation.
 - New features MUST be accompanied by appropriate unit or integration tests
 - Performance MUST not degrade as the module evolves
+- All executable scripts MUST support a dry-run mode for testing and validation purposes
 
-**Rationale**: Quality practices prevent bugs, reduce refactoring burden, and ensure the module remains compatible with FoundryVTT updates. Easy enable/disable improves user experience and simplifies troubleshooting.
+**Rationale**: Quality practices prevent bugs, reduce refactoring burden, and ensure the module remains compatible with FoundryVTT updates. Easy enable/disable improves user experience and simplifies troubleshooting. Dry-run modes on executable scripts provide developers and CI/CD pipelines a safe way to preview changes before committing to destructive operations.
 
 ## Module Lifecycle
 
@@ -120,6 +118,7 @@ All contributions MUST adhere to the coding standards defined for this project.
 - Each file (where supported) MUST begin with a standard file-level header including purpose, name, and path (as specified in the coding standards document)
 - The module's public API surface MUST be clear, concise, and stable across minor version updates
 - Code MUST be well-commented where non-obvious logic exists
+- Executable scripts MUST support a dry-run mode (typically `--dry-run` flag) that previews changes without applying them
 - Pull requests MUST verify:
   - No regressions in existing occlusion behavior
   - No interference with other modules
@@ -151,4 +150,4 @@ All contributions MUST adhere to the coding standards defined for this project.
 - PATCH: Clarifications, wording, typo fixes
 - ALPHA/BETA releases are not governed by this constitution and may experiment with breaking changes
 
-**Version**: 2.0.0 | **Ratified**: 2025-10-21 | **Last Amended**: 2025-10-21
+**Version**: 2.1.0 | **Ratified**: 2025-10-21 | **Last Amended**: 2025-10-31

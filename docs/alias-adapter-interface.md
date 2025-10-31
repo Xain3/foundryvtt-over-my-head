@@ -46,7 +46,7 @@ For complete details, examples, and testing guidelines, see the full contract at
 - [ ] Add comprehensive unit tests (≥80% coverage)
 - [ ] Register with `adapterRegistry.register(new MyAdapter())`
 - [ ] Update validation tests
-- [ ] Document in `src/utils/alias-adapters/README.md`
+- [ ] Document in `.dev/utils/alias-adapters/README.md`
 
 ---
 

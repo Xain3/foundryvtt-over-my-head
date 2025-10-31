@@ -1,7 +1,7 @@
 /**
  * @file base-adapter.mjs
  * @description Base adapter class providing common interface for configuration file adapters
- * @path src/utils/alias-adapters/base-adapter.mjs
+ * @path .dev/utils/alias-adapters/base-adapter.mjs
  */
 
 /**

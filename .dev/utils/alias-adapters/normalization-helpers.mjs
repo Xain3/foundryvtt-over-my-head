@@ -1,7 +1,7 @@
 /**
  * @file normalization-helpers.mjs
  * @description Helper functions for normalizing alias configurations between different formats
- * @path src/utils/alias-adapters/normalization-helpers.mjs
+ * @path .dev/utils/alias-adapters/normalization-helpers.mjs
  */
 
 /**

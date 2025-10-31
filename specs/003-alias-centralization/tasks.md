@@ -91,11 +91,11 @@ Phase 2: Foundational (blocking - required for all user stories)
 
 ### Tasks
 
-- [x] T001 Create src/utils/alias-adapters/ directory
+- [x] T001 Create .dev/utils/alias-adapters/ directory
 - [x] T002 Create tests/unit/adapters/ directory
 - [x] T003 Create tests/project-setup-tests/ directory (if not exists)
 - [x] T004 Create .dev/scripts/ directory (if not exists)
-- [x] T005 Create src/utils/alias-adapters/README.md with placeholder content
+- [x] T005 Create .dev/utils/alias-adapters/README.md with placeholder content
 - [x] T006 Create tests/unit/adapters/README.md with placeholder content
 - [x] T007 Update tests/project-setup-tests/README.md to mention alias validation tests
 
@@ -111,16 +111,16 @@ Phase 2: Foundational (blocking - required for all user stories)
 
 ### Tasks
 
-- [x] T008 [P] Implement BaseConfigAdapter class in src/utils/alias-adapters/base-adapter.mjs
-- [x] T009 [P] Implement AdapterRegistry class in src/utils/alias-adapters/adapter-registry.mjs
-- [x] T010 [P] Create JSONC helper functions in src/utils/alias-adapters/jsonc-helpers.mjs
-- [x] T011 [P] Create normalization helper functions in src/utils/alias-adapters/normalization-helpers.mjs
+- [x] T008 [P] Implement BaseConfigAdapter class in .dev/utils/alias-adapters/base-adapter.mjs
+- [x] T009 [P] Implement AdapterRegistry class in .dev/utils/alias-adapters/adapter-registry.mjs
+- [x] T010 [P] Create JSONC helper functions in .dev/utils/alias-adapters/jsonc-helpers.mjs
+- [x] T011 [P] Create normalization helper functions in .dev/utils/alias-adapters/normalization-helpers.mjs
 - [x] T012 [P] Write unit tests for BaseConfigAdapter in tests/unit/adapters/base-adapter.unit.test.mjs
 - [x] T013 [P] Write unit tests for AdapterRegistry in tests/unit/adapters/adapter-registry.unit.test.mjs
 - [x] T014 [P] Write unit tests for JSONC helpers in tests/unit/adapters/jsonc-helpers.unit.test.mjs
 - [x] T015 [P] Write unit tests for normalization helpers in tests/unit/adapters/normalization-helpers.unit.test.mjs
 - [x] T016 Run foundational tests to verify base classes work
-- [x] T017 Update src/utils/alias-adapters/README.md with architecture documentation
+- [x] T017 Update .dev/utils/alias-adapters/README.md with architecture documentation
 
 ---
 
@@ -136,10 +136,10 @@ Phase 2: Foundational (blocking - required for all user stories)
 
 ### Tasks
 
-- [x] T018 [P] [US1] Implement TsConfigAdapter in src/utils/alias-adapters/tsconfig-adapter.mjs
-- [x] T019 [P] [US1] Implement PackageJsonAdapter in src/utils/alias-adapters/package-json-adapter.mjs
-- [x] T020 [P] [US1] Implement ViteConfigAdapter in src/utils/alias-adapters/vite-adapter.mjs
-- [x] T021 [P] [US1] Implement VitestConfigAdapter in src/utils/alias-adapters/vitest-adapter.mjs
+- [x] T018 [P] [US1] Implement TsConfigAdapter in .dev/utils/alias-adapters/tsconfig-adapter.mjs
+- [x] T019 [P] [US1] Implement PackageJsonAdapter in .dev/utils/alias-adapters/package-json-adapter.mjs
+- [x] T020 [P] [US1] Implement ViteConfigAdapter in .dev/utils/alias-adapters/vite-adapter.mjs
+- [x] T021 [P] [US1] Implement VitestConfigAdapter in .dev/utils/alias-adapters/vitest-adapter.mjs
 - [x] T022 [P] [US1] Write unit tests for TsConfigAdapter in tests/unit/adapters/tsconfig-adapter.unit.test.mjs
 - [x] T023 [P] [US1] Write unit tests for PackageJsonAdapter in tests/unit/adapters/package-json-adapter.unit.test.mjs
 - [x] T024 [P] [US1] Write unit tests for ViteConfigAdapter in tests/unit/adapters/vite-adapter.unit.test.mjs
@@ -220,9 +220,9 @@ Phase 2: Foundational (blocking - required for all user stories)
 ### Tasks
 
 - [ ] T051 [P] [US5] Copy adapter-interface.md to docs/alias-adapter-interface.md
-- [ ] T052 [P] [US5] Create example WebpackAdapter in src/utils/alias-adapters/webpack-adapter.mjs (commented as example)
+- [ ] T052 [P] [US5] Create example WebpackAdapter in .dev/utils/alias-adapters/webpack-adapter.mjs (commented as example)
 - [ ] T053 [P] [US5] Write unit tests for WebpackAdapter in tests/unit/adapters/webpack-adapter.unit.test.mjs
-- [ ] T054 [US5] Update src/utils/alias-adapters/README.md with "Adding New Adapters" section
+- [ ] T054 [US5] Update .dev/utils/alias-adapters/README.md with "Adding New Adapters" section
 - [ ] T055 [US5] Test example adapter following extension documentation
 - [ ] T056 [US5] Verify extension process takes <30 minutes by timing documentation follow-through
 

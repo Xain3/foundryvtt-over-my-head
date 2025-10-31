@@ -6,12 +6,12 @@
 
 import { describe, it, expect } from 'vitest';
 import { resolve } from 'path';
-import { AdapterRegistry } from '#/utils/alias-adapters/adapter-registry.mjs';
-import { TsConfigAdapter } from '#/utils/alias-adapters/tsconfig-adapter.mjs';
-import { PackageJsonAdapter } from '#/utils/alias-adapters/package-json-adapter.mjs';
-import { ViteConfigAdapter } from '#/utils/alias-adapters/vite-adapter.mjs';
-import { VitestConfigAdapter } from '#/utils/alias-adapters/vitest-adapter.mjs';
-import { normalizeFromAliasConfig } from '#/utils/alias-adapters/normalization-helpers.mjs';
+import { AdapterRegistry } from '../../.dev/utils/alias-adapters/adapter-registry.mjs';
+import { TsConfigAdapter } from '../../.dev/utils/alias-adapters/tsconfig-adapter.mjs';
+import { PackageJsonAdapter } from '../../.dev/utils/alias-adapters/package-json-adapter.mjs';
+import { ViteConfigAdapter } from '../../.dev/utils/alias-adapters/vite-adapter.mjs';
+import { VitestConfigAdapter } from '../../.dev/utils/alias-adapters/vitest-adapter.mjs';
+import { normalizeFromAliasConfig } from '../../.dev/utils/alias-adapters/normalization-helpers.mjs';
 import aliasEntries from '../../alias.config.mjs';
 
 const projectRoot = resolve(process.cwd());

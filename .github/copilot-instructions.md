@@ -367,3 +367,10 @@ Before submitting a pull request:
 **Module Version**: 12.1.0
 **Document Version**: 0.1.0
 **Reference**: See [docs/STYLE_GUIDE.md](../docs/STYLE_GUIDE.md), [Constitution](../.specify/memory/constitution.md)
+
+## Active Technologies
+- JavaScript/Node.js (ES2022, ESM modules with .mjs/.mts extensions) (003-alias-centralization)
+- File system - reading/writing JSON and JavaScript configuration files (tsconfig.json, package.json, alias.config.mjs, vite.config.mjs, vitest.config.mjs) (003-alias-centralization)
+
+## Recent Changes
+- 003-alias-centralization: Added JavaScript/Node.js (ES2022, ESM modules with .mjs/.mts extensions)

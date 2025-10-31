@@ -55,5 +55,15 @@
   "overrides": {
     "tinymce": "^8.1.2"
   },
-  "scripts": {}
+  "scripts": {
+    "test": "vitest",
+    "test:unit": "vitest --project unit",
+    "test:integration": "vitest --project integration",
+    "test:performance": "vitest --project performance",
+    "test:smoke": "vitest --project smoke",
+    "test:setup": "vitest --project setup",
+    "build": "vite build",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  }
 }

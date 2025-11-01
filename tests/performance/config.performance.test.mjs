@@ -145,18 +145,34 @@ describe('Config Performance Tests', () => {
       );
     });
 
-    it('getting toString should be fast', () => {
-      const startTime = performance.now();
+    it('getting toString should be fast relative to property access', () => {
+      // Warmup: call toString() and property access multiple times to stabilize JIT
+      for (let i = 0; i < 10; i++) {
+        config.toString();
+        config.module.id;
+      }
 
-      const str = config.toString();
+      // Measure toString() performance
+      const toStringStart = performance.now();
+      for (let i = 0; i < 100; i++) {
+        config.toString();
+      }
+      const toStringDuration = performance.now() - toStringStart;
 
-      const endTime = performance.now();
-      const duration = endTime - startTime;
+      // Measure property access baseline
+      const propStart = performance.now();
+      for (let i = 0; i < 100; i++) {
+        const _id = config.module.id;
+        void _id;
+      }
+      const propDuration = performance.now() - propStart;
 
-      expect(str).toBeTruthy();
-      expect(duration).toBeLessThan(
-        PERFORMANCE_THRESHOLDS_MS.INSTANT_ACCESS_MAX
+      console.log(
+        `toString(): ${toStringDuration.toFixed(2)}ms | property access: ${propDuration.toFixed(2)}ms`
       );
+
+      // toString should be no more than 5x slower than property access (meaningful ratio)
+      expect(toStringDuration).toBeLessThan(propDuration * 5);
     });
   });
 

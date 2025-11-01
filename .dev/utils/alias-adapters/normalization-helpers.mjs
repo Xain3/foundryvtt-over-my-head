@@ -5,26 +5,36 @@
  */
 
 /**
+ * Determines if a path is a file (has an extension) vs a directory.
+ *
+ * @param {string} path - Path to check
+ * @returns {boolean} True if path appears to be a file (has extension)
+ */
+function isFilePath(path) {
+  // Check if path has a file extension (e.g., .ts, .js, .mjs, .json)
+  const lastSegment = path.split('/').pop();
+  return lastSegment && lastSegment.includes('.') && !lastSegment.startsWith('.');
+}
+
+/**
  * Normalizes an alias configuration from alias.config.mjs format to interchange format.
  *
  * @param {Array<{find: string, replacement: string}>} aliasEntries - Array of alias entries from alias.config.mjs
  * @param {string} projectRoot - Absolute path to project root directory
- * @returns {Object} Normalized aliases in format { "#/": "./src/", "#tests/": "./tests/" }
+ * @returns {Object} Normalized aliases in format { "#/": "./src/", "#tests/": "./tests/", "#config": "./src/config/config.ts" }
  *
  * @example
  * const aliases = normalizeFromAliasConfig([
  *   { find: "#", replacement: "/abs/path/to/src" },
- *   { find: "#tests", replacement: "/abs/path/to/tests" }
+ *   { find: "#tests", replacement: "/abs/path/to/tests" },
+ *   { find: "#config", replacement: "/abs/path/to/src/config/config.ts" }
  * ], "/abs/path");
- * // Returns: { "#/": "./src/", "#tests/": "./tests/" }
+ * // Returns: { "#/": "./src/", "#tests/": "./tests/", "#config": "./src/config/config.ts" }
  */
 export function normalizeFromAliasConfig(aliasEntries, projectRoot) {
   const normalized = {};
 
   for (const entry of aliasEntries) {
-    // Ensure find key ends with /
-    const key = entry.find.endsWith('/') ? entry.find : `${entry.find}/`;
-
     // Convert absolute path to relative path from project root
     let relativePath = entry.replacement;
     if (relativePath.startsWith(projectRoot)) {
@@ -33,12 +43,25 @@ export function normalizeFromAliasConfig(aliasEntries, projectRoot) {
       relativePath = './' + relativePath;
     }
 
-    // Ensure relative path ends with /
-    if (!relativePath.endsWith('/')) {
-      relativePath += '/';
-    }
+    // Determine if this is a file or directory alias
+    const isFile = isFilePath(relativePath);
 
-    normalized[key] = relativePath;
+    // For directory aliases, ensure key and value end with /
+    // For file aliases, no trailing slashes
+    let key = entry.find;
+    if (isFile) {
+      // File alias - no trailing slashes
+      normalized[key] = relativePath;
+    } else {
+      // Directory alias - ensure trailing slashes
+      if (!key.endsWith('/')) {
+        key += '/';
+      }
+      if (!relativePath.endsWith('/')) {
+        relativePath += '/';
+      }
+      normalized[key] = relativePath;
+    }
   }
 
   return normalized;
@@ -47,26 +70,38 @@ export function normalizeFromAliasConfig(aliasEntries, projectRoot) {
 /**
  * Normalizes TypeScript paths format to interchange format.
  * Converts { "#/*": ["./src/*"] } to { "#/": "./src/" }
+ * Also handles file aliases: { "#config": ["./src/config/config.ts"] } to { "#config": "./src/config/config.ts" }
  *
  * @param {Object} paths - TypeScript compilerOptions.paths object
  * @returns {Object} Normalized aliases
  *
  * @example
- * const aliases = normalizeFromTsConfigPaths({ "#/*": ["./src/*"], "#tests/*": ["./tests/*"] });
- * // Returns: { "#/": "./src/", "#tests/": "./tests/" }
+ * const aliases = normalizeFromTsConfigPaths({ 
+ *   "#/*": ["./src/*"], 
+ *   "#tests/*": ["./tests/*"],
+ *   "#config": ["./src/config/config.ts"]
+ * });
+ * // Returns: { "#/": "./src/", "#tests/": "./tests/", "#config": "./src/config/config.ts" }
  */
 export function normalizeFromTsConfigPaths(paths) {
   const normalized = {};
 
   for (const [key, value] of Object.entries(paths)) {
-    // Remove /* from key
-    const cleanKey = key.replace(/\/\*$/, '/');
-
-    // Take first path from array and remove /*
+    // Take first path from array
     let cleanValue = Array.isArray(value) ? value[0] : value;
-    cleanValue = cleanValue.replace(/\/\*$/, '/');
-
-    normalized[cleanKey] = cleanValue;
+    
+    // Check if this is a file path (no wildcard)
+    const hasWildcard = key.endsWith('/*') || cleanValue.endsWith('/*');
+    
+    if (hasWildcard) {
+      // Directory alias - remove /* from both key and value
+      const cleanKey = key.replace(/\/\*$/, '/');
+      cleanValue = cleanValue.replace(/\/\*$/, '/');
+      normalized[cleanKey] = cleanValue;
+    } else {
+      // File alias - use as-is (no modifications)
+      normalized[key] = cleanValue;
+    }
   }
 
   return normalized;
@@ -75,23 +110,35 @@ export function normalizeFromTsConfigPaths(paths) {
 /**
  * Normalizes TypeScript paths format from interchange format.
  * Converts { "#/": "./src/" } to { "#/*": ["./src/*"] }
+ * Also handles file aliases: { "#config": "./src/config/config.ts" } to { "#config": ["./src/config/config.ts"] }
  *
  * @param {Object} normalized - Normalized aliases
  * @returns {Object} TypeScript paths format
  *
  * @example
- * const paths = normalizeToTsConfigPaths({ "#/": "./src/", "#tests/": "./tests/" });
- * // Returns: { "#/*": ["./src/*"], "#tests/*": ["./tests/*"] }
+ * const paths = normalizeToTsConfigPaths({ 
+ *   "#/": "./src/", 
+ *   "#tests/": "./tests/",
+ *   "#config": "./src/config/config.ts"
+ * });
+ * // Returns: { "#/*": ["./src/*"], "#tests/*": ["./tests/*"], "#config": ["./src/config/config.ts"] }
  */
 export function normalizeToTsConfigPaths(normalized) {
   const paths = {};
 
   for (const [key, value] of Object.entries(normalized)) {
-    // Add /* to both key and value
-    const tsKey = key.replace(/\/$/, '/*');
-    const tsValue = value.replace(/\/$/, '/*');
-
-    paths[tsKey] = [tsValue];
+    // Check if this is a file alias (no trailing slash)
+    const isFile = !key.endsWith('/') && isFilePath(value);
+    
+    if (isFile) {
+      // File alias - wrap in array but don't add wildcards
+      paths[key] = [value];
+    } else {
+      // Directory alias - add /* to both key and value
+      const tsKey = key.replace(/\/$/, '/*');
+      const tsValue = value.replace(/\/$/, '/*');
+      paths[tsKey] = [tsValue];
+    }
   }
 
   return paths;

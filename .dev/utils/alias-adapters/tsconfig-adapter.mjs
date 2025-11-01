@@ -1,7 +1,7 @@
 /**
  * @file tsconfig-adapter.mjs
  * @description Adapter for reading/writing aliases in tsconfig.json (TypeScript configuration)
- * @path src/utils/alias-adapters/tsconfig-adapter.mjs
+ * @path .dev/utils/alias-adapters/tsconfig-adapter.mjs
  */
 
 import { resolve } from 'path';

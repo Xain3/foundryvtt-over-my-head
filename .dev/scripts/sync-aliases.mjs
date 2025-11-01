@@ -8,10 +8,10 @@
 import { resolve } from 'path';
 import { existsSync, statSync } from 'fs';
 import process from 'process';
-import { AdapterRegistry } from '../../src/utils/alias-adapters/adapter-registry.mjs';
-import { TsConfigAdapter } from '../../src/utils/alias-adapters/tsconfig-adapter.mjs';
-import { PackageJsonAdapter } from '../../src/utils/alias-adapters/package-json-adapter.mjs';
-import { normalizeFromAliasConfig } from '../../src/utils/alias-adapters/normalization-helpers.mjs';
+import { AdapterRegistry } from '../utils/alias-adapters/adapter-registry.mjs';
+import { TsConfigAdapter } from '../utils/alias-adapters/tsconfig-adapter.mjs';
+import { PackageJsonAdapter } from '../utils/alias-adapters/package-json-adapter.mjs';
+import { normalizeFromAliasConfig } from '../utils/alias-adapters/normalization-helpers.mjs';
 import aliasEntries from '../../alias.config.mjs';
 
 const MODULE_PREFIX = 'OMH';

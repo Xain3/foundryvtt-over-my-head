@@ -1,7 +1,7 @@
 /**
  * @file jsonc-helpers.mjs
  * @description Helper functions for parsing and writing JSONC (JSON with Comments) files
- * @path src/utils/alias-adapters/jsonc-helpers.mjs
+ * @path .dev/utils/alias-adapters/jsonc-helpers.mjs
  */
 
 import { readFileSync, writeFileSync } from 'fs';

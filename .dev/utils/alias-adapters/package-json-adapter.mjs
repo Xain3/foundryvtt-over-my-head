@@ -1,7 +1,7 @@
 /**
  * @file package-json-adapter.mjs
  * @description Adapter for reading/writing aliases in package.json (Node.js imports field)
- * @path src/utils/alias-adapters/package-json-adapter.mjs
+ * @path .dev/utils/alias-adapters/package-json-adapter.mjs
  */
 
 import { resolve } from 'path';

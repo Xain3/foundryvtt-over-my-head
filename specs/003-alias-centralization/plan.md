@@ -148,8 +148,8 @@ tests/
     │   └── README.md
     └── sync-aliases.unit.test.mjs  # Unit tests for sync script logic
 
-# Source (new) - if we create reusable adapter modules
-src/
+# Development utilities (new) - reusable adapter modules
+.dev/
 └── utils/
     └── alias-adapters/  # Adapter modules for different config file types
         ├── README.md
@@ -163,7 +163,7 @@ src/
 └── pre-commit          # Updated to run alias validation
 ```
 
-**Structure Decision**: Single project structure with development tooling. The sync script lives in `.dev/scripts/` following project conventions. Validation tests are in `tests/project-setup-tests/` using the `*.setup.test.mjs` pattern. Adapter modules are in `src/utils/alias-adapters/` as reusable utilities that can be imported by both tests and the sync script. This keeps the adapters DRY and testable while maintaining clear separation between validation (tests) and synchronization (script).
+**Structure Decision**: Single project structure with development tooling. The sync script lives in `.dev/scripts/` following project conventions. Validation tests are in `tests/project-setup-tests/` using the `*.setup.test.mjs` pattern. Adapter modules are in `.dev/utils/alias-adapters/` as development-only utilities that can be imported by both tests and the sync script. This keeps the adapters DRY and testable while maintaining clear separation between validation (tests) and synchronization (script). The adapters are in `.dev/` because they are not used during runtime or production.
 
 ## Complexity Tracking
 

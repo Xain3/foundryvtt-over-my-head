@@ -171,10 +171,10 @@ npm run sync-aliases -- --dry-run
 
 **Steps**:
 
-1. **Create adapter** in `src/utils/alias-adapters/`:
+1. **Create adapter** in `.dev/utils/alias-adapters/`:
 
    ```bash
-   touch src/utils/alias-adapters/WebpackAdapter.mjs
+   touch .dev/utils/alias-adapters/WebpackAdapter.mjs
    ```
 
 2. **Implement interface** (see [adapter-interface.md](./contracts/adapter-interface.md)):
@@ -350,7 +350,7 @@ git commit --no-verify
 **Resources**:
 
 1. Read [Adapter Interface Contract](./contracts/adapter-interface.md)
-2. Look at existing adapters in `src/utils/alias-adapters/`
+2. Look at existing adapters in `.dev/utils/alias-adapters/`
 3. Follow [Task 5: Adding Support for a New Config File Type](#task-5-adding-support-for-a-new-config-file-type)
 
 **Ask for help**:

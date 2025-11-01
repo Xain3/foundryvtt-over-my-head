@@ -317,7 +317,7 @@ Here's a complete example of implementing an adapter for a hypothetical webpack 
 /**
  * @file WebpackAdapter.mjs
  * @description Adapter for webpack.config.js resolve.alias configuration
- * @path src/utils/alias-adapters/WebpackAdapter.mjs
+ * @path .dev/utils/alias-adapters/WebpackAdapter.mjs
  */
 
 import fs from 'fs/promises';
@@ -640,7 +640,7 @@ When adding a new adapter:
 - [ ] Register adapter in sync script: `adapterRegistry.register(new MyAdapter())`
 - [ ] Update validation tests to include new file type
 - [ ] Document adapter in this contract (if needed)
-- [ ] Add adapter to README in `src/utils/alias-adapters/`
+- [ ] Add adapter to README in `.dev/utils/alias-adapters/`
 
 ---
 

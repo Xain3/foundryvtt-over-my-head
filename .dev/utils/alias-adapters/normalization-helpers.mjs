@@ -9,6 +9,7 @@
  *
  * @param {string} path - Path to check
  * @returns {boolean} True if path appears to be a file (has extension)
+ * @private
  */
 function isFilePath(path) {
   // Check if path has a file extension at the end (e.g., .ts, .js, .mjs, .json)

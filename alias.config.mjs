@@ -34,6 +34,10 @@ export const aliasEntries = [
     find: '#mocks',
     replacement: resolve(cwd, 'tests/mocks'),
   },
+  {
+    find: '#devutils',
+    replacement: resolve(cwd, '.dev/utils'),
+  },
 ];
 
 export default aliasEntries;

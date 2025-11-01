@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { BaseConfigAdapter } from '../../../.dev/utils/alias-adapters/base-adapter.mjs';
+import { BaseConfigAdapter } from '#devutils/alias-adapters/base-adapter.mjs';
 
 // Test implementation of BaseConfigAdapter
 class TestAdapter extends BaseConfigAdapter {

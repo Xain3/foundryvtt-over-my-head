@@ -4,7 +4,7 @@
  * @path src/omh.mjs
  */
 
-import config from './config/config.ts';
+import config from '#config';
 
 class OMH {
   constructor() {

@@ -202,7 +202,7 @@ const isDev = DevModeParser.isDevMode(
    */
   withConfig: `
 import { DevModeParser } from './devModeParser';
-import { config } from '../config/config';
+import { config } from '#config';
 
 const { devMode, debugMode } = DevModeParser.fromConfig(config);
 

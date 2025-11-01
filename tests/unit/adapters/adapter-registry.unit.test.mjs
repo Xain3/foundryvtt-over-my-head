@@ -5,8 +5,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { AdapterRegistry } from '../../../.dev/utils/alias-adapters/adapter-registry.mjs';
-import { BaseConfigAdapter } from '../../../.dev/utils/alias-adapters/base-adapter.mjs';
+import { AdapterRegistry } from '#devutils/alias-adapters/adapter-registry.mjs';
+import { BaseConfigAdapter } from '#devutils/alias-adapters/base-adapter.mjs';
 
 // Test adapter implementations
 class TestAdapterA extends BaseConfigAdapter {

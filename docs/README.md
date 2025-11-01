@@ -26,6 +26,12 @@ This folder contains module documentation, including API references, guides, and
   - Common patterns and examples
   - Quick checklist
 
+- **[alias-adapter-interface.md](./alias-adapter-interface.md)** - Alias adapter interface contract
+  - How to add support for new configuration file types
+  - Required methods and contracts
+  - Testing guidelines
+  - Extension checklist
+
 ### FoundryVTT API Documentation
 
 - `foundry-vtt-api/`: Comprehensive API references and guides for Foundry VTT version 13
@@ -51,6 +57,18 @@ This folder contains module documentation, including API references, guides, and
 - **Quality & Maintainability**: ≥80% test coverage, clean enable/disable, best practices
 
 ## Changelog
+
+### 1.2.0 (2025-10-31)
+
+- Added pre-commit hook integration for alias validation
+- Added VS Code tasks for alias synchronization
+- Added .husky/README.md and .vscode/README.md documentation
+
+### 1.1.0 (2025-10-31)
+
+- Added alias-adapter-interface.md with adapter extension guidelines
+- Added centralized alias configuration system documentation
+- Added alias synchronization tooling
 
 ### 1.0.0 (2025-10-20)
 

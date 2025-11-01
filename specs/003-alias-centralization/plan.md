@@ -11,8 +11,9 @@ This feature centralizes alias configuration management by establishing alias.co
 
 ## Technical Context
 
-**Language/Version**: JavaScript/Node.js (ES2022, ESM modules with .mjs/.mts extensions)  
-**Primary Dependencies**: 
+**Language/Version**: JavaScript/Node.js (ES2022, ESM modules with .mjs/.mts extensions)
+**Primary Dependencies**:
+
 - Vitest 3.2.4 (testing framework)
 - Node.js built-in modules (fs, path, process)
 - Vite 7.1.1 (build tool already using alias.config.mjs)
@@ -26,31 +27,34 @@ This feature centralizes alias configuration management by establishing alias.co
 
 **Project Type**: Single FoundryVTT module project with centralized configuration management
 
-**Performance Goals**: 
+**Performance Goals**:
+
 - Validation tests complete in <5 seconds
 - Sync script updates all files in <3 seconds
 - Pre-commit hook validation completes in <2 seconds
 
-**Constraints**: 
+**Constraints**:
+
 - Must preserve existing file formatting and comments when updating configuration files
 - Must handle concurrent file modifications gracefully (detect conflicts, warn and skip)
 - Must support dry-run mode for safe preview of changes
 - Scripts must follow project conventions (file headers, .dev/scripts/ location, error handling with module prefix)
 
-**Scale/Scope**: 
+**Scale/Scope**:
+
 - Currently 4 configuration files to validate/sync (tsconfig.json, package.json, vite.config.mjs, vitest.config.mjs)
 - 4 existing aliases defined in alias.config.mjs (#, #src, #tests, #mocks)
 - Extensible architecture must support adding new configuration file types with minimal effort (<30 minutes per adapter)
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 ### I. Modular Architecture ✅
 
 - **Single configuration entry point**: alias.config.mjs serves as single source of truth for runtime aliases
 - **Composition over inheritance**: Adapter pattern for configuration file handlers enables composition
-- **Clear responsibilities**: 
+- **Clear responsibilities**:
   - Validation tests: Detect drift
   - Sync script: Update configuration files
   - Adapters: Handle file-type-specific syntax
@@ -87,7 +91,7 @@ This feature centralizes alias configuration management by establishing alias.co
 
 ### V. Quality & Maintainability ✅
 
-- **Testing**: Validation tests in tests/project-setup-tests/ with *.setup.test.mjs naming
+- **Testing**: Validation tests in tests/project-setup-tests/ with \*.setup.test.mjs naming
 - **Coverage**: Will cover adapter logic and sync script with unit tests
 - **Easy enable/disable**: Tests can be skipped; sync script is opt-in manual execution
 - **Performance**: Meets goals (<5s validation, <3s sync)
@@ -170,6 +174,7 @@ After completing Phase 0 (research) and Phase 1 (design), the constitution compl
 ### Architecture Review ✅
 
 **Modular Design Confirmed**:
+
 - Adapter pattern provides clear separation of concerns
 - Each adapter handles one file format independently
 - Registry manages adapters without coupling
@@ -180,6 +185,7 @@ After completing Phase 0 (research) and Phase 1 (design), the constitution compl
 ### Integration Review ✅
 
 **Development Tooling Only**:
+
 - No FoundryVTT runtime integration needed
 - Build-time validation and synchronization
 - No hooks, no patching, no module conflicts possible
@@ -189,6 +195,7 @@ After completing Phase 0 (research) and Phase 1 (design), the constitution compl
 ### Configuration Review ✅
 
 **Single Source of Truth Maintained**:
+
 - alias.config.mjs remains canonical
 - All adapters normalize to interchange format
 - Sync script propagates changes unidirectionally (source → targets)
@@ -199,6 +206,7 @@ After completing Phase 0 (research) and Phase 1 (design), the constitution compl
 ### Documentation Review ✅
 
 **Comprehensive Documentation Delivered**:
+
 - research.md: All technology decisions documented
 - data-model.md: All entities and relationships defined
 - adapter-interface.md: Complete contract with examples
@@ -211,6 +219,7 @@ After completing Phase 0 (research) and Phase 1 (design), the constitution compl
 ### Quality Review ✅
 
 **Testing Strategy Defined**:
+
 - Unit tests for adapters (isolated, mocked file system)
 - Integration tests for real file validation
 - Project setup tests for live validation
@@ -223,5 +232,5 @@ After completing Phase 0 (research) and Phase 1 (design), the constitution compl
 
 All five constitution principles remain satisfied after design. No new violations introduced. Ready to proceed with implementation (Phase 2 - tasks.md generation via `/speckit.tasks` command).
 
-**Design Approval**: ✅ Approved for implementation  
+**Design Approval**: ✅ Approved for implementation
 **Date**: 2025-10-31

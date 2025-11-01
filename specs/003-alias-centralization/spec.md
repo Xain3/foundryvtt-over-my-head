@@ -5,6 +5,16 @@
 **Status**: Draft
 **Input**: User description: "Centralize alias configuration with validation and sync tooling - aliasing is currently defined in several places (and could be defined in even more if I hadn't already done a centralisation with alias.config.mjs). For example, at the moment both tsconfig.json and package.json set import aliases. I want to use alias.config.mjs as a single source of truth, and create a tests that checks that all other aliases align correctly (each with the idiosyncratic syntax of each file). I might also want a dev script (in .dev/scripts) to quickly update the other files when alias.config.mjs is updated (might also be set up as a vscode task or a husky pre-commit command)."
 
+## Clarifications
+
+### Session 2025-10-31
+
+- Q: Should the pre-commit hook automatically synchronize configuration files, or should it only validate and block commits with clear instructions? → A: Validate-only: Hook validates synchronization and blocks commit with instructions to run sync script if misaligned
+- Q: How should the sync script handle conflicts when a configuration file has been manually edited with unsaved changes? → A: Detect and warn: Check file modification times or detect conflicts, skip the file with a warning message
+- Q: What specific guidance should validation failure messages provide to developers? → A: Diff plus command: Show diff of expected vs actual, affected file paths, and the exact sync script command to run
+- Q: Should the sync script support a dry-run mode that previews changes without applying them? → A: Yes, support dry-run mode
+- Q: What level of logging should the validation tests and sync script provide? → A: Standard: Output progress, warnings, errors with details, and summary; support optional verbose flag for detailed debug info
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Automated Alias Validation (Priority: P1)
@@ -18,7 +28,7 @@ As a developer, when I run the test suite, the system validates that all alias c
 **Acceptance Scenarios**:
 
 1. **Given** all alias configurations are synchronized, **When** the test suite runs, **Then** all alias validation tests pass
-2. **Given** tsconfig.json has a misaligned alias path, **When** the alias validation test runs, **Then** the test fails with a clear message showing the expected vs. actual alias configuration
+2. **Given** tsconfig.json has a misaligned alias path, **When** the alias validation test runs, **Then** the test fails with a clear message showing the expected vs. actual alias configuration diff, the affected file path, and the exact command to run the sync script
 3. **Given** package.json imports section is missing an alias, **When** the alias validation test runs, **Then** the test fails indicating which alias is missing
 4. **Given** a new alias is added to alias.config.mjs, **When** the alias validation test runs without updating other files, **Then** the test fails indicating the new alias is not propagated
 
@@ -38,7 +48,8 @@ As a developer, when I modify alias.config.mjs (add, remove, or change an alias)
 2. **Given** an alias is removed from alias.config.mjs, **When** the sync script runs, **Then** all configuration files have that alias removed
 3. **Given** an alias path is modified in alias.config.mjs, **When** the sync script runs, **Then** all configuration files reflect the updated path
 4. **Given** all files are already synchronized, **When** the sync script runs, **Then** no files are modified and the script reports "All aliases already synchronized"
-5. **Given** the sync script completes successfully, **When** the validation test runs, **Then** all tests pass
+5. **Given** the sync script is run with dry-run flag, **When** changes would be made, **Then** the script displays what would change without modifying any files
+6. **Given** the sync script completes successfully, **When** the validation test runs, **Then** all tests pass
 
 ---
 
@@ -53,9 +64,8 @@ As a developer, when I attempt to commit changes that include modifications to a
 **Acceptance Scenarios**:
 
 1. **Given** alias.config.mjs has been modified, **When** a commit is attempted, **Then** the pre-commit hook validates alias synchronization
-2. **Given** alias synchronization validation fails, **When** a commit is attempted, **Then** the commit is blocked with a clear error message and instructions to run the sync script
-3. **Given** all aliases are synchronized, **When** a commit is attempted, **Then** the commit proceeds normally
-4. **Given** the pre-commit hook is configured to auto-sync, **When** alias.config.mjs is modified and committed, **Then** all dependent files are automatically updated and included in the commit
+2. **Given** alias synchronization validation fails, **When** a commit is attempted, **Then** the commit is blocked with a clear error message and instructions to run the sync script manually
+3. **Given** all aliases are synchronized, **When** a commit is attempted, **Then** the commit proceeds normally without modification
 
 ---
 
@@ -100,7 +110,7 @@ As a developer, when the project adopts a new build tool or framework that requi
 - What happens when a configuration file is missing entirely (e.g., no tsconfig.json in the project)?
 - What happens when alias.config.mjs defines an alias pattern that cannot be represented in one of the target file formats?
 - What happens when multiple aliases map to the same directory with different path syntax (e.g., trailing slash vs. no trailing slash)?
-- What happens when the sync script is run while a configuration file is open in an editor with unsaved changes?
+- What happens when the sync script is run while a configuration file is open in an editor with unsaved changes? → The sync script detects potential conflicts (by checking modification times or other indicators), skips the file with a clear warning message, and continues processing other files
 - What happens when running tests in CI/CD environments where files may be read-only?
 - What happens when a new configuration file type is added but lacks proper adapter registration?
 - What happens when two adapters claim to handle the same configuration file?
@@ -115,15 +125,18 @@ As a developer, when the project adopts a new build tool or framework that requi
 - **FR-003**: System MUST validate that package.json imports section matches all aliases from alias.config.mjs in Node.js subpath imports syntax
 - **FR-004**: System MUST validate that vite.config.mjs uses the aliasEntries import correctly (this is already done, but validation ensures it stays that way)
 - **FR-005**: System MUST validate that vitest.config.mjs uses the aliasEntries import correctly (this is already done, but validation ensures it stays that way)
-- **FR-006**: Validation tests MUST fail with clear diff output showing expected vs. actual alias configuration when misalignment is detected
+- **FR-006**: Validation tests MUST fail with clear diff output showing expected vs. actual alias configuration, affected file paths, and the exact sync script command to run when misalignment is detected
 - **FR-007**: Validation tests MUST pass when all alias configurations are synchronized with alias.config.mjs
 - **FR-008**: Sync script MUST read alias.config.mjs and update tsconfig.json paths section with proper TypeScript syntax
 - **FR-009**: Sync script MUST read alias.config.mjs and update package.json imports section with proper Node.js syntax
 - **FR-010**: Sync script MUST preserve existing formatting, comments, and other content in configuration files when updating alias sections
 - **FR-011**: Sync script MUST report which files were modified and what changes were made
+- **FR-011a**: Sync script MUST detect potential conflicts (e.g., recently modified files) and skip those files with a clear warning message to prevent data loss
 - **FR-012**: Sync script MUST exit with error code if any file update fails
 - **FR-013**: Sync script MUST be executable from command line with a clear interface
-- **FR-014**: System MUST support pre-commit hook integration that runs validation or sync before allowing commits
+- **FR-013a**: Sync script MUST support a dry-run mode that previews changes without applying them, allowing developers to verify changes before committing to the operation
+- **FR-013b**: Sync script and validation tests MUST provide standard logging output (progress, warnings, errors with details, and summary) with optional verbose flag for detailed debugging information
+- **FR-014**: System MUST support pre-commit hook integration that runs validation (not auto-sync) and blocks commits with clear instructions if synchronization fails
 - **FR-015**: System MUST provide VS Code task configuration that can be run from the command palette
 - **FR-016**: Validation tests MUST be organized in the appropriate test directory following project conventions (tests/project-setup-tests/ or similar)
 - **FR-017**: Sync script MUST be located in .dev/scripts/ following project structure conventions
@@ -217,7 +230,7 @@ As a developer, when the project adopts a new build tool or framework that requi
 - Extension documentation should include: interface/pattern to implement, where to register the adapter, and an example showing how to add support for a hypothetical new file type
 - Future configuration files that might need support include: webpack.config.js, rollup.config.js, esbuild config, jest.config.js, or framework-specific configs
 - Pre-commit hooks should be carefully designed to not slow down the commit process excessively (validation should be fast)
-- Consider whether the pre-commit hook should auto-sync or just validate and block; auto-sync is convenient but may surprise developers
+- Pre-commit hook uses validate-only approach: blocks commits with clear instructions rather than auto-syncing to avoid surprising developers and maintain explicit control
 - The project uses vitest for testing, so validation tests should be written as vitest test files
 - Follow the project's test naming conventions (\*.setup.test.mjs for project setup/structure tests)
 - All new scripts and tests must include the mandatory file headers as specified in the style guide

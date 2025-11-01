@@ -7,8 +7,10 @@
   "imports": {
     "#/": "./src/",
     "#src/": "./src/",
+    "#config": "./src/config/config.ts",
     "#tests/": "./tests/",
-    "#mocks/": "./tests/mocks/"
+    "#mocks/": "./tests/mocks/",
+    "#devutils/": "./.dev/utils/"
   },
   "author": "Andrea Pandolfo",
   "license": "MIT",

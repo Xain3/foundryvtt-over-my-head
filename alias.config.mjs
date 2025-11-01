@@ -26,6 +26,14 @@ export const aliasEntries = [
     find: '#src',
     replacement: resolve(cwd, 'src'),
   },
+  /**
+   * Alias for the config singleton module.
+   * Allows imports like `import { config } from '#config'` to resolve to `src/config/config.ts`.
+   */
+  {
+    find: '#config',
+    replacement: resolve(cwd, 'src/config/config.ts'),
+  },
   {
     find: '#tests',
     replacement: resolve(cwd, 'tests'),
@@ -33,6 +41,10 @@ export const aliasEntries = [
   {
     find: '#mocks',
     replacement: resolve(cwd, 'tests/mocks'),
+  },
+  {
+    find: '#devutils',
+    replacement: resolve(cwd, '.dev/utils'),
   },
 ];
 

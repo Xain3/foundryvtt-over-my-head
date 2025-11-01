@@ -1,0 +1,270 @@
+/**
+ * @file normalization-helpers.mjs
+ * @description Helper functions for normalizing alias configurations between different formats
+ * @path .dev/utils/alias-adapters/normalization-helpers.mjs
+ */
+
+/**
+ * Determines if a path is a file (has an extension) vs a directory.
+ *
+ * @param {string} path - Path to check
+ * @returns {boolean} True if path appears to be a file (has extension)
+ * @private
+ */
+function isFilePath(path) {
+  // Check if path has a file extension at the end (e.g., .ts, .js, .mjs, .json)
+  const lastSegment = path.split('/').pop();
+  return lastSegment ? /\.[a-z0-9]+$/i.test(lastSegment) : false;
+}
+
+/**
+ * Normalizes an alias configuration from alias.config.mjs format to interchange format.
+ *
+ * @param {Array<{find: string, replacement: string}>} aliasEntries - Array of alias entries from alias.config.mjs
+ * @param {string} projectRoot - Absolute path to project root directory
+ * @returns {Object} Normalized aliases in format { "#/": "./src/", "#tests/": "./tests/", "#config": "./src/config/config.ts" }
+ *
+ * @example
+ * const aliases = normalizeFromAliasConfig([
+ *   { find: "#", replacement: "/abs/path/to/src" },
+ *   { find: "#tests", replacement: "/abs/path/to/tests" },
+ *   { find: "#config", replacement: "/abs/path/to/src/config/config.ts" }
+ * ], "/abs/path");
+ * // Returns: { "#/": "./src/", "#tests/": "./tests/", "#config": "./src/config/config.ts" }
+ */
+export function normalizeFromAliasConfig(aliasEntries, projectRoot) {
+  const normalized = {};
+
+  for (const entry of aliasEntries) {
+    // Convert absolute path to relative path from project root
+    let relativePath = entry.replacement;
+    if (relativePath.startsWith(projectRoot)) {
+      relativePath = './' + relativePath.slice(projectRoot.length + 1);
+    } else if (!relativePath.startsWith('.')) {
+      relativePath = './' + relativePath;
+    }
+
+    // Determine if this is a file or directory alias
+    const isFile = isFilePath(relativePath);
+
+    // For directory aliases, ensure key and value end with /
+    // For file aliases, no trailing slashes
+    let key = entry.find;
+    if (isFile) {
+      // File alias - no trailing slashes
+      normalized[key] = relativePath;
+    } else {
+      // Directory alias - ensure trailing slashes
+      if (!key.endsWith('/')) {
+        key += '/';
+      }
+      if (!relativePath.endsWith('/')) {
+        relativePath += '/';
+      }
+      normalized[key] = relativePath;
+    }
+  }
+
+  return normalized;
+}
+
+/**
+ * Normalizes TypeScript paths format to interchange format.
+ * Converts { "#/*": ["./src/*"] } to { "#/": "./src/" }
+ * Also handles file aliases: { "#config": ["./src/config/config.ts"] } to { "#config": "./src/config/config.ts" }
+ *
+ * @param {Object} paths - TypeScript compilerOptions.paths object
+ * @returns {Object} Normalized aliases
+ *
+ * @example
+ * const aliases = normalizeFromTsConfigPaths({ 
+ *   "#/*": ["./src/*"], 
+ *   "#tests/*": ["./tests/*"],
+ *   "#config": ["./src/config/config.ts"]
+ * });
+ * // Returns: { "#/": "./src/", "#tests/": "./tests/", "#config": "./src/config/config.ts" }
+ */
+export function normalizeFromTsConfigPaths(paths) {
+  const normalized = {};
+
+  for (const [key, value] of Object.entries(paths)) {
+    // Take first path from array
+    let cleanValue = Array.isArray(value) ? value[0] : value;
+    
+    // Check if this is a file path (no wildcard)
+    const hasWildcard = key.endsWith('/*') || cleanValue.endsWith('/*');
+    
+    if (hasWildcard) {
+      // Directory alias - remove /* from both key and value
+      const cleanKey = key.replace(/\/\*$/, '/');
+      cleanValue = cleanValue.replace(/\/\*$/, '/');
+      normalized[cleanKey] = cleanValue;
+    } else {
+      // File alias - use as-is (no modifications)
+      normalized[key] = cleanValue;
+    }
+  }
+
+  return normalized;
+}
+
+/**
+ * Normalizes TypeScript paths format from interchange format.
+ * Converts { "#/": "./src/" } to { "#/*": ["./src/*"] }
+ * Also handles file aliases: { "#config": "./src/config/config.ts" } to { "#config": ["./src/config/config.ts"] }
+ *
+ * @param {Object} normalized - Normalized aliases
+ * @returns {Object} TypeScript paths format
+ *
+ * @example
+ * const paths = normalizeToTsConfigPaths({ 
+ *   "#/": "./src/", 
+ *   "#tests/": "./tests/",
+ *   "#config": "./src/config/config.ts"
+ * });
+ * // Returns: { "#/*": ["./src/*"], "#tests/*": ["./tests/*"], "#config": ["./src/config/config.ts"] }
+ */
+export function normalizeToTsConfigPaths(normalized) {
+  const paths = {};
+
+  for (const [key, value] of Object.entries(normalized)) {
+    // Check if this is a file alias (no trailing slash)
+    const isFile = !key.endsWith('/') && isFilePath(value);
+    
+    if (isFile) {
+      // File alias - wrap in array but don't add wildcards
+      paths[key] = [value];
+    } else {
+      // Directory alias - add /* to both key and value
+      const tsKey = key.replace(/\/$/, '/*');
+      const tsValue = value.replace(/\/$/, '/*');
+      paths[tsKey] = [tsValue];
+    }
+  }
+
+  return paths;
+}
+
+/**
+ * Normalizes package.json imports format (already in correct format, but validate).
+ *
+ * @param {Object} imports - package.json imports object
+ * @returns {Object} Normalized aliases
+ *
+ * @example
+ * const aliases = normalizeFromPackageJsonImports({ "#/": "./src/", "#tests/": "./tests/" });
+ * // Returns: { "#/": "./src/", "#tests/": "./tests/" }
+ */
+export function normalizeFromPackageJsonImports(imports) {
+  // package.json imports format matches our interchange format
+  // Just validate and return
+  const normalized = {};
+
+  for (const [key, value] of Object.entries(imports)) {
+    // Skip non-alias entries (like #package.json)
+    if (!key.startsWith('#') || key === '#package.json') {
+      continue;
+    }
+
+    normalized[key] = value;
+  }
+
+  return normalized;
+}
+
+/**
+ * Normalizes to package.json imports format (same as interchange format).
+ *
+ * @param {Object} normalized - Normalized aliases
+ * @returns {Object} package.json imports format
+ *
+ * @example
+ * const imports = normalizeToPackageJsonImports({ "#/": "./src/", "#tests/": "./tests/" });
+ * // Returns: { "#/": "./src/", "#tests/": "./tests/" }
+ */
+export function normalizeToPackageJsonImports(normalized) {
+  // Interchange format matches package.json imports format
+  return { ...normalized };
+}
+
+/**
+ * Compares two normalized alias objects and returns differences.
+ *
+ * @param {Object} current - Current aliases
+ * @param {Object} expected - Expected aliases
+ * @returns {Object} Diff object with missing, extra, and mismatched keys
+ *
+ * @example
+ * const diff = compareAliases(
+ *   { "#/": "./src/" },
+ *   { "#/": "./src/", "#tests/": "./tests/" }
+ * );
+ * // Returns: { missing: ["#tests/"], extra: [], mismatched: [] }
+ */
+export function compareAliases(current, expected) {
+  const missing = [];
+  const extra = [];
+  const mismatched = [];
+
+  // Check for missing and mismatched keys
+  for (const [key, expectedValue] of Object.entries(expected)) {
+    if (!(key in current)) {
+      missing.push(key);
+    } else if (current[key] !== expectedValue) {
+      mismatched.push({
+        key,
+        currentValue: current[key],
+        expectedValue,
+      });
+    }
+  }
+
+  // Check for extra keys
+  for (const key of Object.keys(current)) {
+    if (!(key in expected)) {
+      extra.push(key);
+    }
+  }
+
+  return { missing, extra, mismatched };
+}
+
+/**
+ * Formats a unified diff output for validation error messages.
+ *
+ * @param {Object} diff - Diff object from compareAliases
+ * @param {Object} current - Current aliases
+ * @param {Object} expected - Expected aliases
+ * @returns {string} Formatted diff string
+ *
+ * @example
+ * const diffStr = formatDiff(diff, current, expected);
+ */
+export function formatDiff(diff, current, expected) {
+  let output = '';
+
+  if (diff.missing.length > 0) {
+    output += `\nMissing aliases:\n`;
+    for (const key of diff.missing) {
+      output += `  + ${key} → ${expected[key]}\n`;
+    }
+  }
+
+  if (diff.extra.length > 0) {
+    output += `\nExtra aliases:\n`;
+    for (const key of diff.extra) {
+      output += `  - ${key} → ${current[key]}\n`;
+    }
+  }
+
+  if (diff.mismatched.length > 0) {
+    output += `\nMismatched aliases:\n`;
+    for (const { key, currentValue, expectedValue } of diff.mismatched) {
+      output += `  ${key}:\n`;
+      output += `    - ${currentValue}\n`;
+      output += `    + ${expectedValue}\n`;
+    }
+  }
+
+  return output;
+}

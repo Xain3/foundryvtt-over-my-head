@@ -1,1 +1,83 @@
-npm test
+#!/bin/bash
+# Pre-commit hook: Validate alias configuration synchronization and run tests
+# This hook ensures that alias.config.mjs is synchronized with all config files
+# before allowing a commit. If validation fails, run: npm run sync-aliases
+#
+# Usage: .husky/pre-commit [--dry-run]
+# --dry-run: Run validations and tests in dry-run mode for testing purposes.
+#            Failures are reported as warnings but do not prevent the commit.
+
+prefix=${PREFIX:-"OMH"}
+
+# Parse arguments
+DRY_RUN=false
+if [ "$1" = "--dry-run" ]; then
+  DRY_RUN=true
+fi
+
+# Test to run separately
+separately_run_test="tests/project-setup-tests/alias-sync.setup.test.mjs"
+
+if [ "$DRY_RUN" = true ]; then
+  echo "[${prefix}] Running in DRY-RUN mode: Validations will be checked but failures will not block the commit."
+fi
+
+echo "[${prefix}] Validating alias configuration synchronization..."
+
+# Run alias validation tests
+npm test -- --project "project setup" tests/project-setup-tests/alias-sync.setup.test.mjs --reporter=verbose
+
+# Capture exit code
+VALIDATION_EXIT=$?
+
+if [ $VALIDATION_EXIT -ne 0 ]; then
+  if [ "$DRY_RUN" = true ]; then
+    echo ""
+    echo "⚠️  [${prefix}] Alias validation FAILED (dry-run: not blocking commit)!"
+    echo ""
+    echo "Configuration files are out of sync with alias.config.mjs."
+    echo "To fix this, run:"
+    echo ""
+    echo "  npm run sync-aliases"
+    echo ""
+  else
+    echo ""
+    echo "❌ [${prefix}] Alias validation FAILED!"
+    echo ""
+    echo "Configuration files are out of sync with alias.config.mjs."
+    echo "To fix this, run:"
+    echo ""
+    echo "  npm run sync-aliases"
+    echo ""
+    echo "Then stage the updated files and retry your commit."
+    exit 1
+  fi
+else
+  echo "✅ [${prefix}] Alias validation PASSED!"
+fi
+
+# Run tests excluding the ones already run separately
+exclude_args="--exclude=${separately_run_test}"
+npm test -- ${exclude_args}
+
+TEST_EXIT=$?
+
+if [ $TEST_EXIT -ne 0 ]; then
+  if [ "$DRY_RUN" = true ]; then
+    echo ""
+    echo "⚠️  [${prefix}] Tests FAILED (dry-run: not blocking commit)!"
+    echo ""
+    echo "Please review and fix the test failures."
+  else
+    echo ""
+    echo "❌ [${prefix}] Tests FAILED!"
+    echo ""
+    echo "Please fix the test failures before committing."
+    exit 1
+  fi
+fi
+
+if [ "$DRY_RUN" = true ]; then
+  echo ""
+  echo "✅ [${prefix}] Dry-run completed. No commit blocking occurred."
+fi

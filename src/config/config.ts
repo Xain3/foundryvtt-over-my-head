@@ -427,6 +427,16 @@ function createConfigProxy(instance: Config): Config {
   });
 }
 
+// Initialize raw config instance
+
+/**
+ * Raw Config singleton instance
+ * Created eagerly to ensure initialization before proxy wrapping
+ * @type {Config}
+ * @private
+ */
+const _rawConfigInstance: Config = Config.getInstance();
+
 /**
  * Singleton config instance exported for application-wide use
  * Automatically initialized on first import
@@ -434,13 +444,12 @@ function createConfigProxy(instance: Config): Config {
  * @type {Config}
  * @constant
  * @example
- * import { config } from './config.ts';
+ * import { config } from '#config';
  *
  * console.log(config.module.title);
  * console.log(config.constants.errors.separator);
  */
-const rawConfigInstance = Config.getInstance();
-const proxiedConfig = createConfigProxy(rawConfigInstance);
+const proxiedConfig: Config = createConfigProxy(_rawConfigInstance);
 
 export { proxiedConfig as config };
 

@@ -1,24 +1,22 @@
 <!--
-  SYNC IMPACT REPORT (v2.1.0)
+  SYNC IMPACT REPORT (v2.2.0)
 
-  Version change: 2.0.0 → 2.1.0 (Dry-Run Mode Addition)
+  Version change: 2.1.0 → 2.2.0 (Aliasing Import Requirement Addition)
 
   Principles modified:
-  - V. Quality & Maintainability (EXPANDED - added dry-run requirement for executable scripts)
+  - I. Modular Architecture (EXPANDED - added import aliasing requirement)
 
   Sections added:
   - None
 
   Sections modified:
-  - Development Standards (added executable script dry-run requirement)
+  - None
 
   Templates requiring updates:
-  - ✅ .specify/templates/plan-template.md (may mention dry-run as testing strategy)
-  - ✅ .specify/templates/tasks-template.md (add task type for script testing)
-  - ⚠ None critical at this time
+  - None (small addition, no impact on templates)
 
   Follow-up TODOs:
-  - Review dry-run implementation patterns after first feature using this requirement
+  - None
 -->
 
 # Hybrid Occlusion Module for FoundryVTT Constitution
@@ -37,8 +35,9 @@ The module MUST maintain clear separation of concerns with a view toward reuse a
 - Each module component MUST have explicitly defined responsibility and dependencies
 - Code MUST follow established FoundryVTT coding standards and best practices
 - Error and log messages MUST be prepended by a configurable prefix for easy filtering and identification
+- Imports MUST use aliasing where available to ensure portability and clarity
 
-**Rationale**: Modular code is maintainable, testable, and reusable. Clear responsibility boundaries prevent hidden dependencies and technical debt. Configurable message prefixes enable better debugging and integration with logging systems.
+**Rationale**: Modular code is maintainable, testable, and reusable. Clear responsibility boundaries prevent hidden dependencies and technical debt. Configurable message prefixes enable better debugging and integration with logging systems. Aliasing improves code readability and maintainability by providing consistent, root-relative paths that work across different environments.
 
 ### II. FoundryVTT Integration
 
@@ -150,4 +149,4 @@ All contributions MUST adhere to the coding standards defined for this project.
 - PATCH: Clarifications, wording, typo fixes
 - ALPHA/BETA releases are not governed by this constitution and may experiment with breaking changes
 
-**Version**: 2.1.0 | **Ratified**: 2025-10-21 | **Last Amended**: 2025-10-31
+**Version**: 2.2.0 | **Ratified**: 2025-10-21 | **Last Amended**: 2025-11-01

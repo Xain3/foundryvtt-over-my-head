@@ -11,9 +11,9 @@
  * @returns {boolean} True if path appears to be a file (has extension)
  */
 function isFilePath(path) {
-  // Check if path has a file extension (e.g., .ts, .js, .mjs, .json)
+  // Check if path has a file extension at the end (e.g., .ts, .js, .mjs, .json)
   const lastSegment = path.split('/').pop();
-  return lastSegment && lastSegment.includes('.') && !lastSegment.startsWith('.');
+  return lastSegment ? /\.[a-z0-9]+$/i.test(lastSegment) : false;
 }
 
 /**

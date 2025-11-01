@@ -36,7 +36,7 @@ describe('Config Integration Tests - Real Project Files', () => {
       const { config } = module;
 
       expect(config.module).toBeDefined();
-      expect(config.module.id).toBe('vision-with-fade');
+      expect(config.module.id).toBe('foundryvtt-over-my-head');
     });
 
     it('should load YAML constants with all namespaces', async () => {
@@ -236,7 +236,7 @@ describe('Config Integration Tests - Real Project Files', () => {
       expect(typeof str).toBe('string');
       expect(str).toContain('Config');
       expect(str).toContain('OMH');
-      expect(str).toContain('vision-with-fade');
+      expect(str).toContain('foundryvtt-over-my-head');
     });
   });
 
@@ -256,7 +256,9 @@ describe('Config Integration Tests - Real Project Files', () => {
       const { config } = module;
 
       expect(typeof config.constants).toBe('object');
-      expect(Array.isArray(config.settings) || typeof config.settings === 'object').toBe(true);
+      expect(
+        Array.isArray(config.settings) || typeof config.settings === 'object'
+      ).toBe(true);
       expect(typeof config.module).toBe('object');
       expect(typeof config.env).toBe('object');
     });

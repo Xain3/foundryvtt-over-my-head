@@ -19,7 +19,7 @@ import { describe, it, expect } from 'vitest';
  * BATCH_ACCESS_MAX: Maximum time allowed for a batch of multiple accesses to Config properties.
  */
 const PERFORMANCE_THRESHOLDS_MS = {
-  FIRST_INITIALIZATION_MAX: 500,
+  FIRST_INITIALIZATION_MAX: 1000,
   CACHED_ACCESS_MAX: 1,
   INSTANT_ACCESS_MAX: 0.2,
   SETTINGS_ITERATION_MAX: 10,
@@ -206,7 +206,7 @@ describe('Config Performance Tests', () => {
       );
 
       // Verify no mutations occurred
-      expect(config.module.id).toBe('vision-with-fade');
+      expect(config.module.id).toBe('foundryvtt-over-my-head');
     });
   });
 

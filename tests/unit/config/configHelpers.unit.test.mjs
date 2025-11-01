@@ -48,7 +48,7 @@ describe('Helper Functions Integration Tests', () => {
       expect(manifest).toHaveProperty('id');
       expect(manifest).toHaveProperty('title');
       expect(manifest).toHaveProperty('version');
-      expect(manifest.id).toBe('vision-with-fade');
+      expect(manifest.id).toBe('foundryvtt-over-my-head');
     });
   });
 

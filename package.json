@@ -56,12 +56,14 @@
     "tinymce": "^8.1.2"
   },
   "scripts": {
-    "test": "vitest",
-    "test:unit": "vitest --project unit",
-    "test:integration": "vitest --project integration",
-    "test:performance": "vitest --project performance",
-    "test:smoke": "vitest --project smoke",
-    "test:setup": "vitest --project setup",
+    "prepare": "husky",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "npm run test -- --project integration",
+    "test:performance": "npm run test -- --project performance",
+    "test:smoke": "npm run test -- --project smoke",
+    "test:setup": "npm run test -- --project setup",
+    "test:watch": "npm run test -- --watch",
     "build": "vite build",
     "lint": "eslint .",
     "format": "prettier --write ."

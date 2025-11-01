@@ -25,7 +25,7 @@ fi
 echo "[${prefix}] Validating alias configuration synchronization..."
 
 # Run alias validation tests
-npx vitest run --project "project setup" tests/project-setup-tests/alias-sync.setup.test.mjs --reporter=verbose
+npm test -- --project "project setup" tests/project-setup-tests/alias-sync.setup.test.mjs --reporter=verbose
 
 # Capture exit code
 VALIDATION_EXIT=$?
@@ -58,7 +58,7 @@ fi
 
 # Run tests excluding the ones already run separately
 exclude_args="--exclude=${separately_run_test}"
-npx vitest run ${exclude_args}
+npm test -- ${exclude_args}
 
 TEST_EXIT=$?
 

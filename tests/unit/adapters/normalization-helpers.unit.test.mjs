@@ -31,7 +31,7 @@ describe('normalization-helpers', () => {
       });
     });
 
-    it('ensures keys end with /', () => {
+    it('ensures keys end with / for directory aliases', () => {
       const entries = [{ find: '#', replacement: '/abs/path/to/src' }];
       const result = normalizeFromAliasConfig(entries, '/abs/path/to');
 
@@ -39,7 +39,7 @@ describe('normalization-helpers', () => {
       expect(result['#']).toBeUndefined();
     });
 
-    it('ensures values end with /', () => {
+    it('ensures values end with / for directory aliases', () => {
       const entries = [{ find: '#', replacement: '/abs/path/to/src' }];
       const result = normalizeFromAliasConfig(entries, '/abs/path/to');
 
@@ -51,6 +51,46 @@ describe('normalization-helpers', () => {
       const result = normalizeFromAliasConfig(entries, '/abs/path/to');
 
       expect(result['#/']).toMatch(/^\.\//);
+    });
+
+    it('handles file aliases without trailing slashes', () => {
+      const entries = [
+        { find: '#config', replacement: '/abs/path/to/src/config/config.ts' },
+      ];
+
+      const result = normalizeFromAliasConfig(entries, '/abs/path/to');
+
+      expect(result).toEqual({
+        '#config': './src/config/config.ts',
+      });
+    });
+
+    it('handles mixed directory and file aliases', () => {
+      const entries = [
+        { find: '#', replacement: '/abs/path/to/src' },
+        { find: '#config', replacement: '/abs/path/to/src/config/config.ts' },
+        { find: '#tests', replacement: '/abs/path/to/tests' },
+      ];
+
+      const result = normalizeFromAliasConfig(entries, '/abs/path/to');
+
+      expect(result).toEqual({
+        '#/': './src/',
+        '#config': './src/config/config.ts',
+        '#tests/': './tests/',
+      });
+    });
+
+    it('preserves file extensions in file aliases', () => {
+      const entries = [
+        { find: '#main', replacement: '/abs/path/to/src/main.mjs' },
+        { find: '#utils', replacement: '/abs/path/to/src/utils.js' },
+      ];
+
+      const result = normalizeFromAliasConfig(entries, '/abs/path/to');
+
+      expect(result['#main']).toBe('./src/main.mjs');
+      expect(result['#utils']).toBe('./src/utils.js');
     });
   });
 
@@ -69,7 +109,7 @@ describe('normalization-helpers', () => {
       });
     });
 
-    it('removes /* from keys and values', () => {
+    it('removes /* from keys and values for directory aliases', () => {
       const paths = { '#/*': ['./src/*'] };
       const result = normalizeFromTsConfigPaths(paths);
 
@@ -82,6 +122,34 @@ describe('normalization-helpers', () => {
       const result = normalizeFromTsConfigPaths(paths);
 
       expect(result['#/']).toBe('./src/');
+    });
+
+    it('handles file aliases without wildcards', () => {
+      const paths = {
+        '#config': ['./src/config/config.ts'],
+      };
+
+      const result = normalizeFromTsConfigPaths(paths);
+
+      expect(result).toEqual({
+        '#config': './src/config/config.ts',
+      });
+    });
+
+    it('handles mixed directory and file aliases', () => {
+      const paths = {
+        '#/*': ['./src/*'],
+        '#config': ['./src/config/config.ts'],
+        '#tests/*': ['./tests/*'],
+      };
+
+      const result = normalizeFromTsConfigPaths(paths);
+
+      expect(result).toEqual({
+        '#/': './src/',
+        '#config': './src/config/config.ts',
+        '#tests/': './tests/',
+      });
     });
   });
 
@@ -100,7 +168,7 @@ describe('normalization-helpers', () => {
       });
     });
 
-    it('adds /* to keys and values', () => {
+    it('adds /* to keys and values for directory aliases', () => {
       const normalized = { '#/': './src/' };
       const result = normalizeToTsConfigPaths(normalized);
 
@@ -113,6 +181,34 @@ describe('normalization-helpers', () => {
 
       expect(Array.isArray(result['#/*'])).toBe(true);
       expect(result['#/*']).toHaveLength(1);
+    });
+
+    it('handles file aliases without adding wildcards', () => {
+      const normalized = {
+        '#config': './src/config/config.ts',
+      };
+
+      const result = normalizeToTsConfigPaths(normalized);
+
+      expect(result).toEqual({
+        '#config': ['./src/config/config.ts'],
+      });
+    });
+
+    it('handles mixed directory and file aliases', () => {
+      const normalized = {
+        '#/': './src/',
+        '#config': './src/config/config.ts',
+        '#tests/': './tests/',
+      };
+
+      const result = normalizeToTsConfigPaths(normalized);
+
+      expect(result).toEqual({
+        '#/*': ['./src/*'],
+        '#config': ['./src/config/config.ts'],
+        '#tests/*': ['./tests/*'],
+      });
     });
   });
 

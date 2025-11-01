@@ -373,10 +373,13 @@ import * as path from 'path';
 // 2. External dependencies
 import * as yaml from 'yaml';
 
-// 3. Local imports (relative)
-import { loadConfig } from './config.ts';
-import { validateSettings } from '../validation/validator.mts';
+// 3. Local imports (use aliases where available)
+import { config } from '#config';
+import { loadYamlFile } from '#/config/helpers/configHelpers.ts';
+import { validateSettings } from '../validation/validator.mts'; // Relative only if no alias
 ```
+
+**Non-Negotiable Rule**: Imports MUST use aliasing where available to ensure portability and clarity.
 
 ### Exported API
 
@@ -632,7 +635,7 @@ Before submitting a PR, verify:
 
 | Element     | Format                                 | Example                |
 | ----------- | -------------------------------------- | ---------------------- |
-| File header | JSDoc `@file`, `@description`, `@path` | `@file config.ts`     |
+| File header | JSDoc `@file`, `@description`, `@path` | `@file config.ts`      |
 | Class       | PascalCase                             | `ConfigManager`        |
 | Function    | camelCase, verb first                  | `loadConfig()`         |
 | Variable    | camelCase                              | `isInitialized`        |
@@ -655,6 +658,6 @@ Before submitting a PR, verify:
 
 ---
 
-**Last Updated**: October 20, 2025
-**Style Guide Version**: 1.0.0
+**Last Updated**: November 1, 2025
+**Style Guide Version**: 1.1.0
 **Module Version**: 12.1.0

@@ -3,6 +3,12 @@
 **Branch**: `003-alias-centralization` | **Date**: 2025-10-31 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/003-alias-centralization/spec.md`
 
+**Analysis Status**: Remediation applied 2025-10-31
+
+- Spec analysis identified 3 coverage gaps and 3 high-severity ambiguities
+- All gaps resolved: vite/vitest validation added (Risk 1), conflict detection defined at 10s (Risk 2), unsupported alias handling defined (Risk 3), format preservation test added (Risk 4), unified diff format specified (Risk 5)
+- Total tasks increased from 59 to 69; Phase 3 (validation) increased from 11 to 17 tasks, Phase 4 (sync) increased from 12 to 16 tasks
+
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Summary

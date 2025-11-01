@@ -19,7 +19,7 @@
 
 ### User Story 1 - Automated Alias Validation (Priority: P1)
 
-As a developer, when I run the test suite, the system validates that all alias configurations across different tooling files (tsconfig.json, package.json, vite.config.mjs, vitest.config.mjs, etc.) are synchronized with the single source of truth (alias.config.mjs). If any file has misaligned aliases, the test fails with a clear diff showing what needs to be corrected.
+As a developer, when I run the test suite, the system validates that all alias configurations across different tooling files (tsconfig.json, package.json, vite.config.mjs, vitest.config.mjs) are synchronized with the single source of truth (alias.config.mjs). If any file has misaligned aliases, the test fails with a unified diff showing what needs to be corrected (expected vs. actual configuration).
 
 **Why this priority**: This is the core value proposition - preventing configuration drift and catching errors early in the development workflow. Without this validation, the entire centralization effort is undermined.
 
@@ -28,9 +28,10 @@ As a developer, when I run the test suite, the system validates that all alias c
 **Acceptance Scenarios**:
 
 1. **Given** all alias configurations are synchronized, **When** the test suite runs, **Then** all alias validation tests pass
-2. **Given** tsconfig.json has a misaligned alias path, **When** the alias validation test runs, **Then** the test fails with a clear message showing the expected vs. actual alias configuration diff, the affected file path, and the exact command to run the sync script
-3. **Given** package.json imports section is missing an alias, **When** the alias validation test runs, **Then** the test fails indicating which alias is missing
-4. **Given** a new alias is added to alias.config.mjs, **When** the alias validation test runs without updating other files, **Then** the test fails indicating the new alias is not propagated
+2. **Given** tsconfig.json has a misaligned alias path, **When** the alias validation test runs, **Then** the test fails with a unified diff (expected vs. actual), the affected file path, and the exact command to run the sync script
+3. **Given** vite.config.mjs or vitest.config.mjs has incorrect aliasEntries import, **When** the validation test runs, **Then** the test fails indicating which import is incorrect
+4. **Given** package.json imports section is missing an alias, **When** the alias validation test runs, **Then** the test fails indicating which alias is missing
+5. **Given** a new alias is added to alias.config.mjs, **When** the alias validation test runs without updating other files, **Then** the test fails indicating the new alias is not propagated
 
 ---
 
@@ -110,7 +111,7 @@ As a developer, when the project adopts a new build tool or framework that requi
 - What happens when a configuration file is missing entirely (e.g., no tsconfig.json in the project)?
 - What happens when alias.config.mjs defines an alias pattern that cannot be represented in one of the target file formats?
 - What happens when multiple aliases map to the same directory with different path syntax (e.g., trailing slash vs. no trailing slash)?
-- What happens when the sync script is run while a configuration file is open in an editor with unsaved changes? → The sync script detects potential conflicts (by checking modification times or other indicators), skips the file with a clear warning message, and continues processing other files
+- What happens when the sync script is run while a configuration file is open in an editor with unsaved changes? → The sync script detects potential conflicts (by checking file modification timestamps for changes within last 10 seconds), skips the file with a clear warning message (including file path and timestamp), and continues processing other files
 - What happens when running tests in CI/CD environments where files may be read-only?
 - What happens when a new configuration file type is added but lacks proper adapter registration?
 - What happens when two adapters claim to handle the same configuration file?
@@ -123,15 +124,15 @@ As a developer, when the project adopts a new build tool or framework that requi
 - **FR-001**: System MUST parse alias.config.mjs and extract all alias definitions (find/replacement pairs)
 - **FR-002**: System MUST validate that tsconfig.json paths section matches all aliases from alias.config.mjs in TypeScript path mapping syntax
 - **FR-003**: System MUST validate that package.json imports section matches all aliases from alias.config.mjs in Node.js subpath imports syntax
-- **FR-004**: System MUST validate that vite.config.mjs uses the aliasEntries import correctly (this is already done, but validation ensures it stays that way)
-- **FR-005**: System MUST validate that vitest.config.mjs uses the aliasEntries import correctly (this is already done, but validation ensures it stays that way)
-- **FR-006**: Validation tests MUST fail with clear diff output showing expected vs. actual alias configuration, affected file paths, and the exact sync script command to run when misalignment is detected
+- **FR-004**: System MUST validate that vite.config.mjs correctly imports and uses aliasEntries from alias.config.mjs (parsing import statement and verifying alias consistency)
+- **FR-005**: System MUST validate that vitest.config.mjs correctly imports and uses aliasEntries from alias.config.mjs (parsing import statement and verifying alias consistency)
+- **FR-006**: Validation tests MUST fail with unified diff output (showing expected vs. actual configuration in human-readable format), affected file paths, and the exact sync script command to run when misalignment is detected
 - **FR-007**: Validation tests MUST pass when all alias configurations are synchronized with alias.config.mjs
 - **FR-008**: Sync script MUST read alias.config.mjs and update tsconfig.json paths section with proper TypeScript syntax
 - **FR-009**: Sync script MUST read alias.config.mjs and update package.json imports section with proper Node.js syntax
 - **FR-010**: Sync script MUST preserve existing formatting, comments, and other content in configuration files when updating alias sections
 - **FR-011**: Sync script MUST report which files were modified and what changes were made
-- **FR-011a**: Sync script MUST detect potential conflicts (e.g., recently modified files) and skip those files with a clear warning message to prevent data loss
+- **FR-011a**: Sync script MUST detect potential conflicts by checking file modification timestamps; if a file was modified within the last 10 seconds, skip it with a clear warning message (\"[OMH] Skipping {file}: modified {seconds}s ago; manual update may be in progress. Try again after changes are saved.\") to prevent data loss
 - **FR-012**: Sync script MUST exit with error code if any file update fails
 - **FR-013**: Sync script MUST be executable from command line with a clear interface
 - **FR-013a**: Sync script MUST support a dry-run mode that previews changes without applying them, allowing developers to verify changes before committing to the operation
@@ -140,8 +141,8 @@ As a developer, when the project adopts a new build tool or framework that requi
 - **FR-015**: System MUST provide VS Code task configuration that can be run from the command palette
 - **FR-016**: Validation tests MUST be organized in the appropriate test directory following project conventions (tests/project-setup-tests/ or similar)
 - **FR-017**: Sync script MUST be located in .dev/scripts/ following project structure conventions
-- **FR-018**: All scripts and tests MUST follow the project's file header requirements (file, description, path comments)
-- **FR-019**: System MUST handle the case where an alias is defined in alias.config.mjs but a target configuration file does not support that alias type
+- **FR-018**: All scripts and tests MUST follow the project's file header requirements (file, description, path comments); executable scripts must include shebang line (e.g., `#!/usr/bin/env -S node --loader ts-node/esm`)
+- **FR-019**: System MUST handle the case where an alias is defined in alias.config.mjs but a target configuration file format does not support that alias pattern; adapters MUST log warning (\"[OMH] Adapter {adapter}: Cannot represent alias {name} in this file format; skipping\") and continue processing other files
 - **FR-020**: Documentation MUST be updated to explain the alias centralization system, how to add new aliases, and how to run validation/sync
 - **FR-021**: System MUST use a modular architecture that separates configuration file type handling into discrete, pluggable components
 - **FR-022**: System MUST provide clear interfaces or patterns for adding support for new configuration file types
@@ -169,7 +170,7 @@ As a developer, when the project adopts a new build tool or framework that requi
 - **SC-004**: Manual alias synchronization effort is reduced to zero (developers only edit alias.config.mjs)
 - **SC-005**: Configuration file format errors (syntax mistakes in TypeScript paths, Node.js imports, etc.) are eliminated through automation
 - **SC-006**: Pre-commit hooks prevent 100% of commits that would introduce alias configuration drift
-- **SC-007**: Onboarding documentation clearly explains the centralized alias system in under 200 words, enabling new developers to understand the approach within 2 minutes
+- **SC-007**: Onboarding documentation (main README \"Getting Started\" section) clearly explains the centralized alias system in under 200 words, enabling new developers to understand the approach within 2 minutes
 - **SC-008**: Developers can add support for a new configuration file type in under 30 minutes by following extension documentation
 - **SC-009**: Adding support for new configuration file types requires zero changes to core validation and sync logic
 
@@ -234,3 +235,5 @@ As a developer, when the project adopts a new build tool or framework that requi
 - The project uses vitest for testing, so validation tests should be written as vitest test files
 - Follow the project's test naming conventions (\*.setup.test.mjs for project setup/structure tests)
 - All new scripts and tests must include the mandatory file headers as specified in the style guide
+- Validation diff output MUST use unified diff format (3 lines context before/after differences) for human readability
+- Unsupported alias handling: adapters should gracefully skip aliases they cannot represent, with clear warning messages prefixed with `[OMH]`

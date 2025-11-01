@@ -1,7 +1,7 @@
 /**
  * @file adapter-registry.mjs
  * @description Singleton registry for managing configuration file adapters
- * @path src/utils/alias-adapters/adapter-registry.mjs
+ * @path .dev/utils/alias-adapters/adapter-registry.mjs
  */
 
 /**

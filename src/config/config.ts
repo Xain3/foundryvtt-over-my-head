@@ -263,16 +263,17 @@ class Config {
    * @returns {string} String representation of config
    * @example
    * console.log(config.toString());
-   * // Output: Config[OMH] { constants: {...}, settings: [...], module: {...}, env: {...} }
+   * // Output: Config[OMH] { constants: [...], settings: [...], module: ..., env: [...] }
    */
   toString(): string {
-    return (
-      `Config[${this.#prefix}] { ` +
-      `constants: [${Object.keys(this.#yamlConstants).join(', ')}], ` +
-      `settings: [${Array.isArray(this.#settings) ? this.#settings.length : 0} items], ` +
-      `module: ${this.#moduleData.id || 'unknown'}, ` +
-      `env: [${Object.keys(this.#env).length} vars] }`
-    );
+    const constantsKeys = Object.keys(this.#yamlConstants);
+    const envKeys = Object.keys(this.#env);
+    const settingsCount = Array.isArray(this.#settings)
+      ? this.#settings.length
+      : 0;
+    const moduleId = this.#moduleData.id || 'unknown';
+
+    return `Config[${this.#prefix}] { constants: [${constantsKeys.length}], settings: [${settingsCount}], module: ${moduleId}, env: [${envKeys.length}] }`;
   }
 
   /**
@@ -390,12 +391,28 @@ class Config {
   }
 }
 
+// Initialize raw config instance
+
+/**
+ * Cached proxy instance for the config singleton
+ * Created once and reused on subsequent exports
+ * @type {Config | null}
+ * @private
+ */
+let cachedProxy: Config | null = null;
+
 /**
  * Wrap config in a Proxy to ignore direct mutation attempts at top-level
+ * Proxy is created once and cached to optimize repeated access
  * @param {Config} instance Config singleton instance
  * @returns {Config} Proxy instance presented to consumers
  */
 function createConfigProxy(instance: Config): Config {
+  // Return cached proxy if already created
+  if (cachedProxy) {
+    return cachedProxy;
+  }
+
   Object.freeze(instance);
 
   const warn = (action: string, prop: string | symbol): void => {
@@ -407,7 +424,7 @@ function createConfigProxy(instance: Config): Config {
     );
   };
 
-  return new Proxy(instance, {
+  cachedProxy = new Proxy(instance, {
     get: (target, property, receiver) => {
       const value = Reflect.get(target, property, target);
       return typeof value === 'function' ? value.bind(target) : value;
@@ -425,9 +442,9 @@ function createConfigProxy(instance: Config): Config {
       return true;
     },
   });
-}
 
-// Initialize raw config instance
+  return cachedProxy;
+}
 
 /**
  * Raw Config singleton instance
@@ -440,6 +457,7 @@ const _rawConfigInstance: Config = Config.getInstance();
 /**
  * Singleton config instance exported for application-wide use
  * Automatically initialized on first import
+ * Proxy is cached internally for optimal repeated access performance
  *
  * @type {Config}
  * @constant

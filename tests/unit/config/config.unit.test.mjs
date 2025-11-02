@@ -182,9 +182,9 @@ describe('Config Singleton', () => {
     const output = config.toString();
     expect(output).toContain('Config[OMH]');
     expect(output).toContain('constants:');
-    expect(output).toContain('settings: [2 items]');
+    expect(output).toContain('settings: [2]');
     expect(output).toContain('vision-with-fade');
-    expect(output).toContain('env: [2 vars]');
+    expect(output).toContain('env: [2]');
   });
 
   it('returns bound methods from the proxy so `this` is preserved', async () => {

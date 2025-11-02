@@ -84,10 +84,10 @@ A developer needs to access the logger and other utilities through a centralized
 ### Edge Cases
 
 - What happens when no configuration is provided to the logger? (Should use sensible defaults: console output only, info level, basic format)
-- What happens when an invalid log level is specified in configuration? (Should default to info level and optionally warn about the invalid value)
-- What happens when a format string contains placeholders that are not available in the log context? (Should leave placeholder as-is or replace with empty string)
-- What happens when the logger is called with non-string message types (objects, arrays, errors)? (Should handle gracefully with appropriate serialization)
-- What happens when circular references exist in logged objects? (Should detect and handle without crashing)
+- What happens when an invalid log level is specified in configuration? (Should default to info level and log warning with [OMH] prefix about the invalid value)
+- What happens when a format string contains placeholders that are not available in the log context? (Should replace with empty string and continue formatting)
+- What happens when the logger is called with non-string message types (objects, arrays, errors)? (Should handle gracefully with appropriate serialization per FR-013)
+- What happens when circular references exist in logged objects? (Should detect via try/catch on JSON.stringify; fallback to "[Circular]" placeholder and log warning)
 - What happens when a new utility is added to the utils entry point that conflicts with an existing utility name? (Should handle gracefully, potentially with namespacing or error reporting)
 - What happens when configuration contains both console and file output settings? (Should support both simultaneously based on configuration)
 
@@ -107,10 +107,10 @@ A developer needs to access the logger and other utilities through a centralized
 - **FR-010**: Utils entry point MUST accept configuration and instantiate utilities with that configuration
 - **FR-011**: Utils entry point MUST provide access to logger instance through a clear, documented interface
 - **FR-012**: Utils entry point MUST support addition of new utilities without requiring changes to existing utility code
-- **FR-013**: Logger MUST handle non-string message types gracefully (objects, errors, arrays) by serializing them appropriately
+- **FR-013**: Logger MUST handle non-string message types gracefully (objects, errors, arrays) by serializing them appropriately: objects/arrays serialized via JSON.stringify with circular reference detection; Error objects formatted as "${error.name}: ${error.message}\n${error.stack}"; primitives converted via String(value)
 - **FR-014**: Logger MUST include timestamp formatting based on configuration settings (format string, enabled/disabled)
 - **FR-015**: Logger MUST support colorization of output based on log level when enabled in configuration
-- **FR-016**: Logger MUST be architected with pluggable output targets to enable future support for file and other output types; Phase 1 implementation MUST support console output only
+- **FR-016**: Logger MUST be architected with pluggable output targets to enable future support for file and other output types; Phase 1 implementation MUST support console output only (Note: OutputTarget interface design deferred to Phase 2 specification; Phase 1 uses hard-coded console.log/warn/error calls)
 - **FR-017**: Configuration MUST support hierarchical override patterns via shallow merge: defaults < base configuration < instance overrides; when instance overrides provide a format section, it replaces the format section from base configuration entirely (no nested merge)
 
 ### Key Entities

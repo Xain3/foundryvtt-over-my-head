@@ -5,6 +5,15 @@
 **Status**: Draft
 **Input**: User description: "Create a logger module with a logger class that is fully parametrable and formats log to console according to config passed as arguments. The logger should not import config.ts directly. Configuration should be inspired by logging.yaml, with module name placeholder from moduleManagement.yaml, and debug mode influenced by settings and variables. The logger should be easily parametrable via config instance or single overrides. Located in src/utils with entry point in utils.ts providing flexible scaffolding for future utils."
 
+## Clarifications
+
+### Session 2025-11-02
+
+- Q: How does logger access logging.yaml? → A: Logger receives pre-parsed configuration object; file I/O and YAML parsing handled by caller (config.ts or utils.ts entry point)
+- Q: How deep do hierarchical overrides merge? → A: Shallow merge at top level; format section replaces entirely when provided in overrides
+- Q: Should file output be implemented in Phase 1? → A: Deferred to Phase 2; architecture designed with pluggable output targets for future extensibility; Phase 1 console-only
+- Q: How does logger resolve module name from moduleManagement.yaml patterns? → A: Static utility function resolves module name given `referToModuleBy` setting; logger receives resolved `moduleName` string in configuration object
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Basic Logging with Module Configuration (Priority: P1)
@@ -86,7 +95,7 @@ A developer needs to access the logger and other utilities through a centralized
 
 ### Functional Requirements
 
-- **FR-001**: Logger MUST accept configuration as a constructor parameter and not import configuration modules directly
+- **FR-001**: Logger MUST accept a pre-parsed configuration object as a constructor parameter and MUST NOT import configuration modules or YAML files directly; configuration object contains all runtime settings including module name, log levels, format strings, and debug mode
 - **FR-002**: Logger MUST support standard log levels: error, warn, info, verbose, and debug
 - **FR-003**: Logger MUST format output messages according to configuration-specified format strings with placeholder substitution
 - **FR-004**: Logger MUST respect log level thresholds so messages below the configured level are not output
@@ -101,15 +110,17 @@ A developer needs to access the logger and other utilities through a centralized
 - **FR-013**: Logger MUST handle non-string message types gracefully (objects, errors, arrays) by serializing them appropriately
 - **FR-014**: Logger MUST include timestamp formatting based on configuration settings (format string, enabled/disabled)
 - **FR-015**: Logger MUST support colorization of output based on log level when enabled in configuration
-- **FR-016**: Logger MUST support multiple output targets (console, file) based on configuration settings
-- **FR-017**: Configuration MUST support hierarchical override patterns: defaults < base configuration < instance overrides
+- **FR-016**: Logger MUST be architected with pluggable output targets to enable future support for file and other output types; Phase 1 implementation MUST support console output only
+- **FR-017**: Configuration MUST support hierarchical override patterns via shallow merge: defaults < base configuration < instance overrides; when instance overrides provide a format section, it replaces the format section from base configuration entirely (no nested merge)
 
 ### Key Entities
 
-- **Logger Instance**: Represents a configured logging facility with specific format, level, and output settings. Contains methods for each log level, maintains reference to configuration, and handles message formatting and output.
-- **Log Configuration**: Represents the logging behavior parameters including log levels, format strings, output targets, timestamp settings, and colorization preferences. Structured hierarchically to support defaults, global settings, and instance overrides.
-- **Utils Entry Point**: Represents the centralized access point for all utility instances. Maintains references to configuration, instantiated utilities, and provides methods to access specific utilities.
+- **Logger Instance**: Represents a configured logging facility with specific format, level, and output settings. Accepts pre-parsed configuration object at instantiation. Contains methods for each log level, maintains reference to configuration, and handles message formatting and console output.
+- **Log Configuration Object**: A plain object passed to logger containing logging behavior parameters: log levels, format strings, colorization preferences, timestamp settings, module name (resolved string), and debug mode. Supports shallow hierarchical overrides where format section replaces entirely on override.
+- **Module Name Resolver**: Static utility function that derives module name from configuration's `referToModuleBy` setting and module management data; returns resolved string for use in logger configuration object.
+- **Utils Entry Point**: Represents the centralized access point for all utility instances. Accepts configuration object, instantiates utilities with that configuration, and provides methods to access specific utilities (e.g., `utils.logger`).
 - **Log Message**: Represents a single log event with severity level, message content, optional metadata, timestamp, and module context.
+- **Output Target Interface** (Future): Abstraction for pluggable output implementations (console, file, etc.); Phase 1 has hard-coded console target; Phase 2+ will support registration of custom targets.
 
 ## Success Criteria _(mandatory)_
 
@@ -126,10 +137,13 @@ A developer needs to access the logger and other utilities through a centralized
 ### Assumptions
 
 - Configuration object structure follows patterns established in logging.yaml (hierarchical, with separate sections for console, file, and format settings)
-- Module name resolution follows patterns from moduleManagement.yaml (referToModuleBy setting, shortName derivation)
+- Module name resolution follows patterns from moduleManagement.yaml (referToModuleBy setting, shortName derivation) and is performed by a static utility before logger instantiation
 - Debug mode setting is available in configuration as a boolean or string value that can be evaluated
 - The logger is primarily used in Node.js/module development context, not browser context (though browser console output is acceptable)
 - Format strings use a templating syntax similar to `{placeholder}` for variable substitution
-- Console output is the primary use case, with file output as a secondary feature
+- Console output is the primary and Phase 1 requirement; file output deferred to Phase 2 and beyond with architecture designed for future extensibility
 - Colorization is handled via ANSI escape codes or similar standard console coloring mechanism
 - All utilities added to the utils entry point follow a similar instantiation pattern (constructor accepts configuration)
+- Configuration object passed to logger is pre-parsed and ready for use; logger does not perform file I/O or YAML parsing
+- Module name resolution via `referToModuleBy` setting is performed by a static utility before logger instantiation; logger receives resolved module name string directly in configuration
+- Hierarchical configuration merge is shallow at top level; format object replaces entirely when provided in overrides (no nested merge of format properties)

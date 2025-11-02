@@ -50,22 +50,22 @@ logger.error('Connection failed', { host: 'localhost' });
 **Recommended for production code**
 
 ```javascript
-import { createUtils } from '#/utils/utils.ts';
+import { Logger } from '#/utils/logger.ts';
 import { resolveModuleName } from '#/utils/static/moduleNameResolver.ts';
 import { config } from '#/config/config.ts';
 
 // Resolve module name once
 const moduleName = resolveModuleName(config);
 
-// Create utils with logger
-const utils = createUtils({
+// Create logger with config
+const logger = new Logger({
   ...config.logging,
   moduleName,
 });
 
 // Use logger throughout application
-utils.logger.info('User logged in', { userId: 123 });
-utils.logger.debug('Session token refreshed');
+logger.info('User logged in', { userId: 123 });
+logger.debug('Session token refreshed');
 ```
 
 **Why**: Centralized configuration; single source of truth; easy to update settings.
@@ -334,15 +334,18 @@ describe('Logger', () => {
 
 ```javascript
 import { describe, it, expect } from 'vitest';
-import { createUtils } from '#/utils/utils.ts';
+import { Logger } from '#/utils/logger.ts';
 import { config } from '#/config/config.ts';
 
-describe('Utils Entry Point Integration', () => {
-  it('should provide logger with config settings', () => {
-    const utils = createUtils(config.logging);
+describe('Logger Integration', () => {
+  it('should work with config settings', () => {
+    const logger = new Logger({
+      ...config.logging,
+      moduleName: config.module.shortName,
+    });
 
-    expect(utils.logger).toBeInstanceOf(Logger);
-    expect(utils.logger.config.moduleName).toBe(config.module.shortName);
+    expect(logger).toBeInstanceOf(Logger);
+    expect(logger.config.moduleName).toBe(config.module.shortName);
   });
 });
 ```
@@ -413,7 +416,7 @@ logger.debug('State', {
 - 5 log levels with numeric hierarchy
 - Template-based formatting with `{placeholder}` syntax
 - Debug mode overrides level to enable verbose output
-- Utils entry point provides centralized logger access
+- Direct instantiation with Logger class for flexible usage
 
 **Common Gotchas**:
 

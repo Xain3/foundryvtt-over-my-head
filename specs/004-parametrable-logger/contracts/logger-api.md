@@ -180,55 +180,6 @@ logger.debug('Request headers', { headers: { 'User-Agent': 'Chrome' } });
 
 ---
 
-## Utils Entry Point
-
-### Factory Function: `createUtils()`
-
-**Signature**:
-
-```typescript
-function createUtils(config: LogConfigurationObject): UtilsEntryPoint;
-```
-
-**Parameters**:
-
-| Name     | Type                     | Required | Description                     |
-| -------- | ------------------------ | -------- | ------------------------------- |
-| `config` | `LogConfigurationObject` | Yes      | Configuration object for logger |
-
-**Returns**: `UtilsEntryPoint` object with `logger` property
-
-**Example**:
-
-```typescript
-import { createUtils } from '#/utils/utils.ts';
-import { config } from '#/config/config.ts';
-
-const utils = createUtils(config.logging);
-utils.logger.info('Application initialized');
-```
-
----
-
-### UtilsEntryPoint Interface
-
-**Type**:
-
-```typescript
-interface UtilsEntryPoint {
-  logger: Logger;
-  // Future utilities added here as needed
-}
-```
-
-**Properties**:
-
-| Name     | Type     | Description                    |
-| -------- | -------- | ------------------------------ |
-| `logger` | `Logger` | Pre-configured Logger instance |
-
----
-
 ## Module Name Resolver
 
 ### Static Function: `resolveModuleName()`
@@ -369,13 +320,6 @@ export type {
 export { Logger, LOG_LEVELS };
 ```
 
-### From `utils.ts`
-
-```typescript
-export type { UtilsEntryPoint };
-export { createUtils };
-```
-
 ### From `moduleNameResolver.ts`
 
 ```typescript
@@ -511,30 +455,11 @@ logger.error('Payment failed', {
 
 ---
 
-### Via Utils Entry Point
-
-```typescript
-import { createUtils } from '#/utils/utils.ts';
-import { resolveModuleName } from '#/utils/static/moduleNameResolver.ts';
-import { config } from '#/config/config.ts';
-
-const moduleName = resolveModuleName(config);
-const utils = createUtils({
-  ...config.logging,
-  moduleName,
-});
-
-utils.logger.info('Using centralized utils entry point');
-```
-
----
-
 ## Summary
 
 Complete API contract defined for:
 
 - **Logger class**: 5 public methods (error, warn, info, verbose, debug) with consistent signature
-- **Utils entry point**: Factory function `createUtils()` returning `UtilsEntryPoint` interface
 - **Module name resolver**: Static utility `resolveModuleName()` for name derivation
 - **Configuration interfaces**: Fully typed with validation rules and defaults
 - **Error handling**: Clear error messages and warning patterns

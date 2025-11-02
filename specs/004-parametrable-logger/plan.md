@@ -7,7 +7,7 @@
 
 ## Summary
 
-Create a parametrable logger module with flexible configuration support located in `src/utils/`. The logger accepts pre-parsed configuration objects (no direct file I/O), supports standard log levels (error, warn, info, verbose, debug), provides template-based message formatting with placeholder substitution, and integrates with debug mode settings. Phase 1 delivers console-only output with architecture supporting pluggable output targets for future file logging. A utils entry point (`utils.ts`) provides centralized access to logger and future utilities, with shallow hierarchical configuration merge supporting instance-level overrides.
+Create a parametrable logger module with flexible configuration support located in `src/utils/`. The logger accepts pre-parsed configuration objects (no direct file I/O), supports standard log levels (error, warn, info, verbose, debug), provides template-based message formatting with placeholder substitution, and integrates with debug mode settings. Phase 1 delivers console-only output with architecture supporting pluggable output targets for future file logging. Shallow hierarchical configuration merge supports instance-level overrides.
 
 ## Technical Context
 
@@ -19,7 +19,7 @@ Create a parametrable logger module with flexible configuration support located 
 **Project Type**: Single project (utility module within FoundryVTT module)
 **Performance Goals**: Minimal overhead (<1ms per log call at info level); non-blocking console output; negligible memory footprint (<1MB for logger instance)
 **Constraints**: No file I/O in logger class; no direct imports of config.ts or YAML files; must follow project alias import patterns; 80%+ test coverage required
-**Scale/Scope**: Single logger class (~200-300 LOC), utils entry point (~50-100 LOC), module name resolver utility (~30-50 LOC); 3-5 configuration object interfaces
+**Scale/Scope**: Single logger class (~200-300 LOC), module name resolver utility (~30-50 LOC); 3-5 configuration object interfaces
 
 ## Constitution Check
 
@@ -27,9 +27,9 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 ### I. Modular Architecture ✅
 
-- ✅ Single point of entry: Logger configuration via pre-parsed object parameter; utils entry point for access
+- ✅ Single point of entry: Logger configuration via pre-parsed object parameter
 - ✅ Composition: Logger accepts configuration object (dependency injection); no inheritance chains
-- ✅ Explicit responsibility: Logger (formatting/output), Module Name Resolver (name derivation), Utils Entry Point (utility access)
+- ✅ Explicit responsibility: Logger (formatting/output), Module Name Resolver (name derivation)
 - ✅ Coding standards: Follows project style guide (file headers, JSDoc, 2-space indent, aliasing)
 - ✅ Message prefix: Logger configuration includes module name for all output
 - ✅ Aliasing: All imports use `#` aliases per alias.config.mjs
@@ -53,16 +53,16 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - ✅ File headers: All .mjs/.mts files include @file, @description, @path headers
 - ✅ Folder README: src/utils/README.md exists; will be updated with logger details
-- ✅ JSDoc coverage: All Logger methods, Module Name Resolver, and Utils entry point require JSDoc
+- ✅ JSDoc coverage: All Logger methods and Module Name Resolver require JSDoc
 - ✅ Inline comments: Non-obvious logic (e.g., placeholder substitution, shallow merge) requires explanation
 - ✅ Main README: Not modified by this feature (utils are internal)
 
 ### V. Quality & Maintainability ✅
 
 - ✅ Coding conventions: JavaScript ES2022, ESM modules, follows project style guide
-- ✅ Easy enable/disable: Logger is opt-in via utils entry point; no side effects if unused
+- ✅ Easy enable/disable: Logger is opt-in via direct instantiation; no side effects if unused
 - ✅ 80%+ coverage: Unit tests for all log methods, format substitution, level filtering, override merge
-- ✅ Test organization: tests/unit/logger.unit.test.mjs, tests/unit/utils-entry-point.unit.test.mjs
+- ✅ Test organization: tests/unit/logger.unit.test.mjs
 - ✅ Unit test isolation: Tests use mock configuration objects; no real file I/O
 - ✅ Integration tests: tests/integration/logger-with-config.int.test.mjs validates integration with config.ts
 - ✅ Performance: Minimal overhead; no blocking operations
@@ -89,19 +89,17 @@ specs/[###-feature]/
 ```text
 src/utils/
 ├── logger.ts                    # Logger class (NEW)
-├── utils.ts                     # Utils entry point (MODIFIED - add logger access)
 ├── static.ts                    # Existing static utilities
-├── README.md                    # (UPDATE - document logger and utils entry point)
+├── README.md                    # (UPDATE - document logger)
 └── static/
     └── moduleNameResolver.ts    # Module name resolver utility (NEW)
 
 tests/unit/
 ├── logger.unit.test.mjs         # Logger unit tests (NEW)
-├── utils.unit.test.mjs          # Utils entry point tests (NEW)
 └── moduleNameResolver.unit.test.mjs # Module name resolver tests (NEW)
 
 tests/integration/
-└── logger-with-config.int.test.mjs  # Logger integration with config.ts (NEW)
+└── logger.int.test.mjs          # Logger integration tests (NEW)
 
 src/config/
 ├── constants/
@@ -109,7 +107,7 @@ src/config/
 └── config.ts                    # Config singleton (EXISTS - no changes needed)
 ```
 
-**Structure Decision**: Single project structure. Logger implemented as new utility class in `src/utils/` following existing module organization. Utils entry point (`utils.ts`) modified to provide logger access. Module name resolver added to `src/utils/static/` alongside other static utilities. All new code follows project aliasing conventions and file header requirements.
+**Structure Decision**: Single project structure. Logger implemented as new utility class in `src/utils/` following existing module organization. Module name resolver added to `src/utils/static/` alongside other static utilities. All new code follows project aliasing conventions and file header requirements.
 
 ## Complexity Tracking
 

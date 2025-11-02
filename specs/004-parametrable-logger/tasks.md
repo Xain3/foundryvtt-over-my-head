@@ -56,31 +56,33 @@ description: 'Task list for parametrable logger implementation'
 
 ### Tests for User Story 1 (Write these tests FIRST, ensure they FAIL before implementation) ⚠️
 
-- [ ] T014 [P] [US1] Unit test: Logger constructor accepts config object in tests/unit/logger.unit.test.mjs
-- [ ] T015 [P] [US1] Unit test: Logger.error() outputs formatted message in tests/unit/logger.unit.test.mjs
-- [ ] T016 [P] [US1] Unit test: Logger.warn() outputs formatted message in tests/unit/logger.unit.test.mjs
-- [ ] T017 [P] [US1] Unit test: Logger.info() outputs formatted message in tests/unit/logger.unit.test.mjs
-- [ ] T018 [P] [US1] Unit test: Logger.verbose() outputs formatted message in tests/unit/logger.unit.test.mjs
-- [ ] T019 [P] [US1] Unit test: Logger.debug() outputs formatted message in tests/unit/logger.unit.test.mjs
-- [ ] T020 [P] [US1] Unit test: Timestamp formatting (ISO 8601) in tests/unit/logger.unit.test.mjs
-- [ ] T021 [P] [US1] Unit test: Placeholder substitution ({timestamp}, {level}, {message}, {moduleName}) in tests/unit/logger.unit.test.mjs
-- [ ] T022 [P] [US1] Unit test: Custom context placeholders ({custom.key}) in tests/unit/logger.unit.test.mjs
-- [ ] T023 [P] [US1] Integration test: End-to-end logging with real console output in tests/integration/logger.int.test.mjs
+- [x] T014 [P] [US1] Unit test: Logger constructor accepts config object in tests/unit/logger.unit.test.mjs
+- [x] T015 [P] [US1] Unit test: Logger.error() outputs formatted message in tests/unit/logger.unit.test.mjs
+- [x] T016 [P] [US1] Unit test: Logger.warn() outputs formatted message in tests/unit/logger.unit.test.mjs
+- [x] T017 [P] [US1] Unit test: Logger.info() outputs formatted message in tests/unit/logger.unit.test.mjs
+- [x] T018 [P] [US1] Unit test: Logger.verbose() outputs formatted message in tests/unit/logger.unit.test.mjs
+- [x] T019 [P] [US1] Unit test: Logger.debug() outputs formatted message in tests/unit/logger.unit.test.mjs
+- [x] T020 [P] [US1] Unit test: Timestamp formatting (ISO 8601) in tests/unit/logger.unit.test.mjs
+- [x] T021 [P] [US1] Unit test: Placeholder substitution ({timestamp}, {level}, {message}, {moduleName}) in tests/unit/logger.unit.test.mjs
+- [x] T022 [P] [US1] Unit test: Custom context placeholders ({custom.key}) in tests/unit/logger.unit.test.mjs
+- [x] T022b [P] [US1] Unit test: Colorization enabled/disabled per log level using chalk in tests/unit/logger.unit.test.mjs
+- [x] T022c [P] [US1] Unit test: Handle circular references in logged objects without crashing in tests/unit/logger.unit.test.mjs
+- [x] T023 [P] [US1] Integration test: End-to-end logging with real console output in tests/integration/logger.int.test.mjs
 
 ### Implementation for User Story 1
 
-- [ ] T024 [US1] Implement Logger class constructor in src/utils/logger.ts (accepts config: LogConfigurationObject)
-- [ ] T025 [US1] Implement private \_formatTimestamp() method in src/utils/logger.ts per TimestampConfig
-- [ ] T026 [US1] Implement private \_applyPlaceholders() method in src/utils/logger.ts using regex substitution per research.md
-- [ ] T027 [US1] Implement private \_formatMessage() method in src/utils/logger.ts (orchestrates timestamp, template, placeholders)
-- [ ] T028 [US1] Implement private \_shouldLog() method in src/utils/logger.ts (checks currentLevel vs LogLevel)
-- [ ] T029 [US1] Implement Logger.error() method in src/utils/logger.ts per contracts/logger-api.md
-- [ ] T030 [US1] Implement Logger.warn() method in src/utils/logger.ts per contracts/logger-api.md
-- [ ] T031 [US1] Implement Logger.info() method in src/utils/logger.ts per contracts/logger-api.md
-- [ ] T032 [US1] Implement Logger.verbose() method in src/utils/logger.ts per contracts/logger-api.md
-- [ ] T033 [US1] Implement Logger.debug() method in src/utils/logger.ts per contracts/logger-api.md
-- [ ] T034 [US1] Add JSDoc comments to Logger class and all public methods per style guide
-- [ ] T035 [US1] Add inline comments for complex regex logic in \_applyPlaceholders()
+- [x] T024 [US1] Implement Logger class constructor in src/utils/logger.ts (accepts config: LogConfigurationObject)
+- [x] T025 [US1] Implement private \_formatTimestamp() method in src/utils/logger.ts per TimestampConfig
+- [x] T026 [US1] Implement private \_applyPlaceholders() method in src/utils/logger.ts using regex substitution per research.md
+- [x] T027 [US1] Implement private \_formatMessage() method in src/utils/logger.ts (orchestrates timestamp, template, placeholders)
+- [x] T028 [US1] Implement private \_shouldLog() method in src/utils/logger.ts (checks currentLevel vs LogLevel)
+- [x] T029 [US1] Implement Logger.error() method in src/utils/logger.ts per contracts/logger-api.md
+- [x] T030 [US1] Implement Logger.warn() method in src/utils/logger.ts per contracts/logger-api.md
+- [x] T031 [US1] Implement Logger.info() method in src/utils/logger.ts per contracts/logger-api.md
+- [x] T032 [US1] Implement Logger.verbose() method in src/utils/logger.ts per contracts/logger-api.md
+- [x] T033 [US1] Implement Logger.debug() method in src/utils/logger.ts per contracts/logger-api.md
+- [x] T034 [US1] Add JSDoc comments to Logger class and all public methods per style guide
+- [x] T035 [US1] Add inline comments for complex regex logic in \_applyPlaceholders()
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 

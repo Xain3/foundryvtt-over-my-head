@@ -96,16 +96,16 @@ description: 'Task list for parametrable logger implementation'
 
 ### Tests for User Story 2 (Write these tests FIRST, ensure they FAIL before implementation) ⚠️
 
-- [ ] T036 [P] [US2] Unit test: debugMode=false suppresses debug/verbose logs in tests/unit/logger.unit.test.mjs
-- [ ] T037 [P] [US2] Unit test: debugMode=true allows debug/verbose logs in tests/unit/logger.unit.test.mjs
-- [ ] T038 [P] [US2] Unit test: debugMode=false does NOT suppress error/warn/info logs in tests/unit/logger.unit.test.mjs
-- [ ] T039 [P] [US2] Integration test: Toggle debugMode at runtime, verify behavior in tests/integration/logger.int.test.mjs
+- [x] T036 [P] [US2] Unit test: debugMode=false suppresses debug/verbose logs in tests/unit/logger.unit.test.mjs
+- [x] T037 [P] [US2] Unit test: debugMode=true allows debug/verbose logs in tests/unit/logger.unit.test.mjs
+- [x] T038 [P] [US2] Unit test: debugMode=false does NOT suppress error/warn/info logs in tests/unit/logger.unit.test.mjs
+- [x] T039 [P] [US2] Integration test: Toggle debugMode at runtime, verify behavior in tests/integration/logger.int.test.mjs
 
 ### Implementation for User Story 2
 
-- [ ] T040 [US2] Update \_shouldLog() method in src/utils/logger.ts to check config.debugMode for debug/verbose levels
-- [ ] T041 [US2] Add JSDoc comments explaining debugMode behavior to Logger constructor and \_shouldLog()
-- [ ] T042 [US2] Update quickstart.md with debugMode usage examples and troubleshooting tips
+- [x] T040 [US2] Update \_shouldLog() method in src/utils/logger.ts to check config.debugMode for debug/verbose levels
+- [x] T041 [US2] Add JSDoc comments explaining debugMode behavior to Logger constructor and \_shouldLog()
+- [x] T042 [US2] Update quickstart.md with debugMode usage examples and troubleshooting tips
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -119,27 +119,27 @@ description: 'Task list for parametrable logger implementation'
 
 ### Tests for User Story 3 (Write these tests FIRST, ensure they FAIL before implementation) ⚠️
 
-- [ ] T043 [P] [US3] Unit test: Override format.error template in tests/unit/logger.unit.test.mjs
-- [ ] T044 [P] [US3] Unit test: Override format.warn template in tests/unit/logger.unit.test.mjs
-- [ ] T045 [P] [US3] Unit test: Override format.info template in tests/unit/logger.unit.test.mjs
-- [ ] T046 [P] [US3] Unit test: Override format.verbose template in tests/unit/logger.unit.test.mjs
-- [ ] T047 [P] [US3] Unit test: Override format.debug template in tests/unit/logger.unit.test.mjs
-- [ ] T048 [P] [US3] Unit test: Override timestamp.enabled in tests/unit/logger.unit.test.mjs
-- [ ] T049 [P] [US3] Unit test: Override timestamp.format in tests/unit/logger.unit.test.mjs
-- [ ] T050 [P] [US3] Unit test: Override multiple settings simultaneously in tests/unit/logger.unit.test.mjs
-- [ ] T051 [P] [US3] Unit test: Verify overrides do not mutate original config (immutability) in tests/unit/logger.unit.test.mjs
-- [ ] T052 [P] [US3] Integration test: Shallow merge behavior per research.md in tests/integration/logger.int.test.mjs
+- [x] T043 [P] [US3] Unit test: Override format.error template in tests/unit/logger.unit.test.mjs
+- [x] T044 [P] [US3] Unit test: Override format.warn template in tests/unit/logger.unit.test.mjs
+- [x] T045 [P] [US3] Unit test: Override format.info template in tests/unit/logger.unit.test.mjs
+- [x] T046 [P] [US3] Unit test: Override format.verbose template in tests/unit/logger.unit.test.mjs
+- [x] T047 [P] [US3] Unit test: Override format.debug template in tests/unit/logger.unit.test.mjs
+- [x] T048 [P] [US3] Unit test: Override timestamp.enabled in tests/unit/logger.unit.test.mjs
+- [x] T049 [P] [US3] Unit test: Override timestamp.format in tests/unit/logger.unit.test.mjs
+- [x] T050 [P] [US3] Unit test: Override multiple settings simultaneously in tests/unit/logger.unit.test.mjs
+- [x] T051 [P] [US3] Unit test: Verify overrides do not mutate original config (immutability) in tests/unit/logger.unit.test.mjs
+- [x] T052 [P] [US3] Integration test: Shallow merge behavior per research.md in tests/integration/logger.int.test.mjs
 
 ### Implementation for User Story 3
 
-- [ ] T053 [US3] Implement private \_mergeConfig() method in src/utils/logger.ts using shallow merge per research.md
-- [ ] T054 [US3] Update Logger.error() to accept optional overrides parameter per contracts/logger-api.md
-- [ ] T055 [US3] Update Logger.warn() to accept optional overrides parameter per contracts/logger-api.md
-- [ ] T056 [US3] Update Logger.info() to accept optional overrides parameter per contracts/logger-api.md
-- [ ] T057 [US3] Update Logger.verbose() to accept optional overrides parameter per contracts/logger-api.md
-- [ ] T058 [US3] Update Logger.debug() to accept optional overrides parameter per contracts/logger-api.md
-- [ ] T059 [US3] Update JSDoc comments to document overrides parameter and shallow merge behavior
-- [ ] T060 [US3] Add inline comments explaining shallow merge vs deep merge tradeoffs
+- [x] T053 [US3] Implement private \_mergeConfig() method in src/utils/logger.ts using shallow merge per research.md
+- [x] T054 [US3] Update Logger.error() to accept optional overrides parameter per contracts/logger-api.md
+- [x] T055 [US3] Update Logger.warn() to accept optional overrides parameter per contracts/logger-api.md
+- [x] T056 [US3] Update Logger.info() to accept optional overrides parameter per contracts/logger-api.md
+- [x] T057 [US3] Update Logger.verbose() to accept optional overrides parameter per contracts/logger-api.md
+- [x] T058 [US3] Update Logger.debug() to accept optional overrides parameter per contracts/logger-api.md
+- [x] T059 [US3] Update JSDoc comments to document overrides parameter and shallow merge behavior
+- [x] T060 [US3] Add inline comments explaining shallow merge vs deep merge tradeoffs
 
 **Checkpoint**: All user stories should now be independently functional
 

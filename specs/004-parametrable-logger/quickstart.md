@@ -88,9 +88,14 @@ logger.debug('This will NOT appear');
 
 // When debugMode = true:
 logger.debug('This WILL appear');
+
+// Verbose messages are gated the same way
+logger.verbose('Only visible when debugMode is true');
 ```
 
 **Why**: Enable verbose logging in production by toggling setting; no redeployment needed.
+
+> ⚠️ Debug and verbose entries are always suppressed while `debugMode` is `false`, even if `level` is set to `'debug'`. Toggle `debugMode` to `true` whenever temporary deep diagnostics are required.
 
 ---
 

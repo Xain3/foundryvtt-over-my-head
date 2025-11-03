@@ -11,6 +11,7 @@ import { fileURLToPath } from 'url';
 
 export const REQUIRED_CONSTANT_FILES = [
   'errors.yaml',
+  'features.yaml',
   'foundry.yaml',
   'hooks.yaml',
 ];

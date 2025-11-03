@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Logger } from '#/utils/logger.ts';
 import { resolveModuleName } from '#/utils/static/moduleNameResolver.ts';
+import { config } from '#/config/config.ts';
 
 describe('Logger integration', () => {
   afterEach(() => {
@@ -108,7 +109,7 @@ describe('Logger integration', () => {
     const consoleInfoSpy = vi
       .spyOn(console, 'info')
       .mockImplementation(() => {});
-    const config = {
+    const configObj = {
       moduleManagement: {
         referToModuleBy: 'shortName',
       },
@@ -130,9 +131,9 @@ describe('Logger integration', () => {
       },
     };
 
-    const moduleName = resolveModuleName(config);
+    const moduleName = resolveModuleName(configObj);
     const logger = new Logger({
-      ...config.logging,
+      ...configObj.logging,
       moduleName,
     });
 
@@ -156,8 +157,8 @@ describe('Logger integration', () => {
     expect(consoleInfoSpy.mock.calls[1][0]).toBe(
       '[OVERRIDE] Override message (alpha)'
     );
-    expect(config.logging.format.info).toBe('[{module}] :: {message}');
-    expect(config.logging.timestamp.enabled).toBe(true);
+    expect(configObj.logging.format.info).toBe('[{module}] :: {message}');
+    expect(configObj.logging.timestamp.enabled).toBe(true);
 
     logger.info('Base info message again');
 
@@ -165,5 +166,38 @@ describe('Logger integration', () => {
     expect(consoleInfoSpy.mock.calls[2][0]).toBe(
       '[OMH] :: Base info message again'
     );
+  });
+
+  it('creates logger directly from Config singleton', () => {
+    const consoleInfoSpy = vi
+      .spyOn(console, 'info')
+      .mockImplementation(() => {});
+
+    // Create logger using Config singleton
+    const logger = new Logger(config);
+
+    logger.info('Message from Config singleton');
+
+    expect(consoleInfoSpy).toHaveBeenCalledTimes(1);
+    expect(consoleInfoSpy.mock.calls[0][0]).toContain(
+      'Message from Config singleton'
+    );
+  });
+
+  it('uses logging configuration from Config.features.logging', () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
+    // Create logger using Config singleton
+    const logger = new Logger(config);
+
+    logger.error('Error from Config singleton');
+
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+    // Verify it follows the format from features.yaml
+    const errorMessage = consoleErrorSpy.mock.calls[0][0];
+    expect(errorMessage).toMatch(/\[.*\] ERROR \|/);
+    expect(errorMessage).toContain('Error from Config singleton');
   });
 });

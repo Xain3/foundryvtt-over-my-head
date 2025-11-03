@@ -5,6 +5,7 @@
  */
 
 import chalk from 'chalk';
+import type { Config } from '#/config/config.ts';
 
 export type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
 
@@ -84,6 +85,50 @@ type PlaceholderContext = LogContext & {
 };
 
 /**
+ * Extracts LogConfigurationObject from a Config instance.
+ *
+ * @param {Config} config - Config singleton instance containing features.logging configuration.
+ * @returns {LogConfigurationObject} Extracted logging configuration.
+ * @throws {Error} If config.features.logging is not properly structured.
+ */
+function extractLogConfigFromConfig(config: Config): LogConfigurationObject {
+  const features = config.constants.features as Record<string, unknown>;
+  
+  if (!features || typeof features !== 'object') {
+    throw new Error(
+      `${MODULE_PREFIX} Config.constants.features is not available or invalid`
+    );
+  }
+
+  const logging = features.logging as Record<string, unknown>;
+  
+  if (!logging || typeof logging !== 'object') {
+    throw new Error(
+      `${MODULE_PREFIX} Config.constants.features.logging is not available or invalid`
+    );
+  }
+
+  return logging as LogConfigurationObject;
+}
+
+/**
+ * Type guard to check if the provided value is a Config instance.
+ *
+ * @param {Config | LogConfigurationObject} value - Value to check.
+ * @returns {boolean} True if value is a Config instance.
+ */
+function isConfig(value: Config | LogConfigurationObject): value is Config {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    'constants' in value &&
+    'module' in value &&
+    'settings' in value &&
+    'env' in value
+  );
+}
+
+/**
  * Configurable logger that formats console output based on runtime configuration.
  */
 export class Logger {
@@ -96,12 +141,33 @@ export class Logger {
   /**
    * Creates a logger instance using the provided configuration options.
    *
-   * @param {LogConfigurationObject} config - Pre-parsed configuration object defining logger behavior.
+   * @param {Config | LogConfigurationObject} config - Either a Config singleton instance
+   * (extracting logging configuration from config.features.logging) or a pre-parsed
+   * LogConfigurationObject defining logger behavior directly.
    * When {@link LogConfigurationObject.debugMode} is true the logger emits verbose and debug entries
    * regardless of the base log level threshold.
+   * @throws {Error} If Config is provided but features.logging is not properly configured.
+   *
+   * @example
+   * // Using Config singleton
+   * import { config } from '#config';
+   * const logger = new Logger(config);
+   *
+   * @example
+   * // Using explicit configuration
+   * const logger = new Logger({
+   *   moduleName: 'OMH',
+   *   level: 'info',
+   *   debugMode: false,
+   *   colorize: true
+   * });
    */
-  constructor(config: LogConfigurationObject) {
-    this.baseConfig = this.normalizeConfig(config);
+  constructor(config: Config | LogConfigurationObject) {
+    const logConfig = isConfig(config)
+      ? extractLogConfigFromConfig(config)
+      : config;
+
+    this.baseConfig = this.normalizeConfig(logConfig);
     this.colors = {
       error: (text: string) => chalk.red(text),
       warn: (text: string) => chalk.yellow(text),

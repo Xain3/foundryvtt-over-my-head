@@ -3,16 +3,17 @@
 **Feature Branch**: `004-parametrable-logger`
 **Created**: November 1, 2025
 **Status**: Draft
-**Input**: User description: "Create a logger module with a logger class that is fully parametrable and formats log to console according to config passed as arguments. The logger should not import config.ts directly. Configuration should be inspired by logging.yaml, with module name placeholder from moduleManagement.yaml, and debug mode influenced by settings and variables. The logger should be easily parametrable via config instance or single overrides. Located in src/utils with entry point in utils.ts providing flexible scaffolding for future utils."
+**Input**: User description: "Create a logger module with a logger class that is fully parametrable and formats log to console according to config passed as arguments. The logger should not import config.ts directly. Configuration should be inspired by logging.yaml, with module name placeholder from moduleManagement.yaml, and debug mode influenced by settings and variables. The logger should be easily parametrable via config instance or single overrides. Located in src/utils."
 
 ## Clarifications
 
 ### Session 2025-11-02
 
-- Q: How does logger access logging.yaml? → A: Logger receives pre-parsed configuration object; file I/O and YAML parsing handled by caller (config.ts or utils.ts entry point)
+- Q: How does logger access logging.yaml? → A: Logger receives pre-parsed configuration object; file I/O and YAML parsing handled by caller (config.ts)
 - Q: How deep do hierarchical overrides merge? → A: Shallow merge at top level; format section replaces entirely when provided in overrides
 - Q: Should file output be implemented in Phase 1? → A: Deferred to Phase 2; architecture designed with pluggable output targets for future extensibility; Phase 1 console-only
 - Q: How does logger resolve module name from moduleManagement.yaml patterns? → A: Static utility function resolves module name given `referToModuleBy` setting; logger receives resolved `moduleName` string in configuration object
+- Q: Should utils.ts entry point be included in this implementation? → A: No, utils.ts entry point will be implemented separately in the future
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -65,22 +66,6 @@ A developer needs to create specialized logger instances with custom settings th
 
 ---
 
-### User Story 4 - Utility Access Point with Flexible Scaffolding (Priority: P4)
-
-A developer needs to access the logger and other utilities through a centralized entry point that receives the configuration once and distributes it to all utility instances. Additionally, developers should be able to add new utilities to this entry point without modifying existing code significantly.
-
-**Why this priority**: This provides architectural consistency and future-proofs the codebase for new utilities. It's important for maintainability but the logger can function independently if needed.
-
-**Independent Test**: Can be fully tested by importing the utils entry point, passing a configuration object, accessing the logger through the entry point, verifying it works as expected, then adding a mock utility to the scaffolding and confirming it receives configuration correctly.
-
-**Acceptance Scenarios**:
-
-1. **Given** the utils entry point is imported and initialized with a configuration object, **When** the developer accesses `utils.logger`, **Then** a fully-configured logger instance is returned that uses the provided configuration
-2. **Given** the utils scaffolding structure exists, **When** a developer adds a new utility class following the established pattern, **Then** the new utility is accessible through the utils entry point and receives configuration correctly
-3. **Given** multiple utilities are registered in the utils entry point, **When** configuration is updated via the entry point, **Then** all utility instances reflect the updated configuration (or new instances are created with updated config)
-
----
-
 ### Edge Cases
 
 - What happens when no configuration is provided to the logger? (Should use sensible defaults: console output only, info level, basic format)
@@ -88,7 +73,6 @@ A developer needs to access the logger and other utilities through a centralized
 - What happens when a format string contains placeholders that are not available in the log context? (Should replace with empty string and continue formatting)
 - What happens when the logger is called with non-string message types (objects, arrays, errors)? (Should handle gracefully with appropriate serialization per FR-013)
 - What happens when circular references exist in logged objects? (Should detect via try/catch on JSON.stringify; fallback to "[Circular]" placeholder and log warning)
-- What happens when a new utility is added to the utils entry point that conflicts with an existing utility name? (Should handle gracefully, potentially with namespacing or error reporting)
 - What happens when configuration contains both console and file output settings? (Should support both simultaneously based on configuration)
 
 ## Requirements _(mandatory)_
@@ -104,21 +88,17 @@ A developer needs to access the logger and other utilities through a centralized
 - **FR-007**: Logger MUST derive module name from configuration settings (following moduleManagement.yaml patterns for placeholder resolution)
 - **FR-008**: Logger MUST adjust log level behavior based on debug mode settings from configuration
 - **FR-009**: Logger MUST provide methods for each log level (error, warn, info, verbose, debug) that accept message strings and optional metadata
-- **FR-010**: Utils entry point MUST accept configuration and instantiate utilities with that configuration
-- **FR-011**: Utils entry point MUST provide access to logger instance through a clear, documented interface
-- **FR-012**: Utils entry point MUST support addition of new utilities without requiring changes to existing utility code
-- **FR-013**: Logger MUST handle non-string message types gracefully (objects, errors, arrays) by serializing them appropriately: objects/arrays serialized via JSON.stringify with circular reference detection; Error objects formatted as "${error.name}: ${error.message}\n${error.stack}"; primitives converted via String(value)
-- **FR-014**: Logger MUST include timestamp formatting based on configuration settings (format string, enabled/disabled)
-- **FR-015**: Logger MUST support colorization of output based on log level when enabled in configuration
-- **FR-016**: Logger MUST be architected with pluggable output targets to enable future support for file and other output types; Phase 1 implementation MUST support console output only (Note: OutputTarget interface design deferred to Phase 2 specification; Phase 1 uses hard-coded console.log/warn/error calls)
-- **FR-017**: Configuration MUST support hierarchical override patterns via shallow merge: defaults < base configuration < instance overrides; when instance overrides provide a format section, it replaces the format section from base configuration entirely (no nested merge)
+- **FR-010**: Logger MUST handle non-string message types gracefully (objects, errors, arrays) by serializing them appropriately: objects/arrays serialized via JSON.stringify with circular reference detection; Error objects formatted as "${error.name}: ${error.message}\n${error.stack}"; primitives converted via String(value)
+- **FR-011**: Logger MUST include timestamp formatting based on configuration settings (format string, enabled/disabled)
+- **FR-012**: Logger MUST support colorization of output based on log level when enabled in configuration
+- **FR-013**: Logger MUST be architected with pluggable output targets to enable future support for file and other output types; Phase 1 implementation MUST support console output only (Note: OutputTarget interface design deferred to Phase 2 specification; Phase 1 uses hard-coded console.log/warn/error calls)
+- **FR-014**: Configuration MUST support hierarchical override patterns via shallow merge: defaults < base configuration < instance overrides; when instance overrides provide a format section, it replaces the format section from base configuration entirely (no nested merge)
 
 ### Key Entities
 
 - **Logger Instance**: Represents a configured logging facility with specific format, level, and output settings. Accepts pre-parsed configuration object at instantiation. Contains methods for each log level, maintains reference to configuration, and handles message formatting and console output.
 - **Log Configuration Object**: A plain object passed to logger containing logging behavior parameters: log levels, format strings, colorization preferences, timestamp settings, module name (resolved string), and debug mode. Supports shallow hierarchical overrides where format section replaces entirely on override.
 - **Module Name Resolver**: Static utility function that derives module name from configuration's `referToModuleBy` setting and module management data; returns resolved string for use in logger configuration object.
-- **Utils Entry Point**: Represents the centralized access point for all utility instances. Accepts configuration object, instantiates utilities with that configuration, and provides methods to access specific utilities (e.g., `utils.logger`).
 - **Log Message**: Represents a single log event with severity level, message content, optional metadata, timestamp, and module context.
 - **Output Target Interface** (Future): Abstraction for pluggable output implementations (console, file, etc.); Phase 1 has hard-coded console target; Phase 2+ will support registration of custom targets.
 
@@ -129,10 +109,9 @@ A developer needs to access the logger and other utilities through a centralized
 - **SC-001**: Developers can instantiate and use a logger with consistent formatting in 3 lines of code or fewer (import, instantiate with config, call log method)
 - **SC-002**: Logger produces correctly formatted output 100% of the time when provided valid configuration
 - **SC-003**: Debug mode can be toggled via configuration or environment variables without any code changes in modules using the logger
-- **SC-004**: A new utility can be added to the utils entry point scaffolding in under 10 minutes including configuration wiring and access method
-- **SC-005**: Log level filtering works correctly 100% of the time, with no messages appearing above their configured threshold
-- **SC-006**: All log format placeholders are substituted correctly in 100% of output messages when placeholder data is available
-- **SC-007**: Developer documentation for the logger and utils entry point can be read and understood in under 5 minutes
+- **SC-004**: Log level filtering works correctly 100% of the time, with no messages appearing above their configured threshold
+- **SC-005**: All log format placeholders are substituted correctly in 100% of output messages when placeholder data is available
+- **SC-006**: Developer documentation for the logger can be read and understood in under 5 minutes
 
 ### Assumptions
 
@@ -143,7 +122,6 @@ A developer needs to access the logger and other utilities through a centralized
 - Format strings use a templating syntax similar to `{placeholder}` for variable substitution
 - Console output is the primary and Phase 1 requirement; file output deferred to Phase 2 and beyond with architecture designed for future extensibility
 - Colorization is handled via ANSI escape codes or similar standard console coloring mechanism
-- All utilities added to the utils entry point follow a similar instantiation pattern (constructor accepts configuration)
 - Configuration object passed to logger is pre-parsed and ready for use; logger does not perform file I/O or YAML parsing
 - Module name resolution via `referToModuleBy` setting is performed by a static utility before logger instantiation; logger receives resolved module name string directly in configuration
 - Hierarchical configuration merge is shallow at top level; format object replaces entirely when provided in overrides (no nested merge of format properties)

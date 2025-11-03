@@ -12,7 +12,7 @@ description: 'Task list for parametrable logger implementation'
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
-- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3, US4)
+- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
 - Include exact file paths in descriptions
 
 ---
@@ -145,46 +145,21 @@ description: 'Task list for parametrable logger implementation'
 
 ---
 
-## Phase 6: User Story 4 - Utils Entry Point (Priority: P4)
-
-**Goal**: Developer can import logger via createUtils() factory from src/utils/utils.ts
-
-**Independent Test**: Import { createUtils } from '#/utils/utils.ts', call logger = createUtils(config).logger, call logger.info("test"), verify output
-
-### Tests for User Story 4 (Write these tests FIRST, ensure they FAIL before implementation) ⚠️
-
-- [ ] T061 [P] [US4] Unit test: createUtils() returns object with logger property in tests/unit/utils.unit.test.mjs
-- [ ] T062 [P] [US4] Unit test: createUtils(config) passes config to Logger constructor in tests/unit/utils.unit.test.mjs
-- [ ] T063 [P] [US4] Unit test: Multiple createUtils() calls return independent logger instances in tests/unit/utils.unit.test.mjs
-- [ ] T064 [P] [US4] Integration test: Import via alias (#/utils/utils.ts) in tests/integration/utils.int.test.mjs
-
-### Implementation for User Story 4
-
-- [ ] T065 [US4] Implement createUtils() function in src/utils/utils.ts per contracts/logger-api.md
-- [ ] T066 [US4] Export Logger class and createUtils from src/utils/utils.ts
-- [ ] T067 [US4] Add JSDoc comments to createUtils() explaining factory pattern and return type
-- [ ] T068 [US4] Update src/utils/README.md with logger module documentation per style guide
-- [ ] T069 [US4] Verify alias imports (#/utils/utils.ts) work correctly per constitution principle I
-
-**Checkpoint**: All user stories complete, logger accessible via utils entry point
-
----
-
-## Phase 7: Polish & Cross-Cutting Concerns
+## Phase 6: Polish & Cross-Cutting Concerns
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T070 [P] Update docs/STYLE_GUIDE.md with logger usage patterns (if applicable)
-- [ ] T071 Code cleanup: Remove console.log debug statements from src/utils/logger.ts
-- [ ] T072 Code cleanup: Ensure all error messages include [OMH] prefix per style guide
-- [ ] T073 Performance validation: Verify <1ms per log call per plan.md performance constraints
-- [ ] T074 Memory validation: Verify <1MB memory footprint per plan.md performance constraints
-- [ ] T075 [P] Coverage validation: Run npm test -- --coverage and verify ≥80% coverage
-- [ ] T076 [P] Lint validation: Run npm run lint and fix all warnings
-- [ ] T077 [P] Type validation: Run tsc --noEmit and fix all TypeScript errors
-- [ ] T078 Run quickstart.md validation: Follow quickstart steps manually, verify all examples work
-- [ ] T079 Security: Verify no user input directly interpolated into console.log (prevent injection)
-- [ ] T080 Documentation: Verify all files have required @file, @description, @path headers per style guide
+- [ ] T061 [P] Update docs/STYLE_GUIDE.md with logger usage patterns (if applicable)
+- [ ] T062 Code cleanup: Remove console.log debug statements from src/utils/logger.ts
+- [ ] T063 Code cleanup: Ensure all error messages include [OMH] prefix per style guide
+- [ ] T064 Performance validation: Verify <1ms per log call per plan.md performance constraints
+- [ ] T065 Memory validation: Verify <1MB memory footprint per plan.md performance constraints
+- [ ] T066 [P] Coverage validation: Run npm test -- --coverage and verify ≥80% coverage
+- [ ] T067 [P] Lint validation: Run npm run lint and fix all warnings
+- [ ] T068 [P] Type validation: Run tsc --noEmit and fix all TypeScript errors
+- [ ] T069 Run quickstart.md validation: Follow quickstart steps manually, verify all examples work
+- [ ] T070 Security: Verify no user input directly interpolated into console.log (prevent injection)
+- [ ] T071 Documentation: Verify all files have required @file, @description, @path headers per style guide
 
 ---
 
@@ -194,17 +169,16 @@ description: 'Task list for parametrable logger implementation'
 
 - **Setup (Phase 1)**: No dependencies - can start immediately
 - **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
-- **User Stories (Phase 3-6)**: All depend on Foundational phase completion
+- **User Stories (Phase 3-5)**: All depend on Foundational phase completion
   - User stories can then proceed in parallel (if staffed)
-  - Or sequentially in priority order (US1-P1 → US2-P2 → US3-P3 → US4-P4)
-- **Polish (Phase 7)**: Depends on all desired user stories being complete
+  - Or sequentially in priority order (US1-P1 → US2-P2 → US3-P3)
+- **Polish (Phase 6)**: Depends on all desired user stories being complete
 
 ### User Story Dependencies
 
 - **User Story 1 (P1) - Basic Logging**: Can start after Foundational (Phase 2) - No dependencies on other stories
 - **User Story 2 (P2) - Debug Mode**: Can start after Foundational (Phase 2) - No dependencies on other stories (but logically builds on US1)
 - **User Story 3 (P3) - Overrides**: Depends on US1 implementation (\_formatMessage needs to exist to be augmented with merge logic)
-- **User Story 4 (P4) - Utils Entry**: Depends on US1 implementation (Logger class must exist to be exported)
 
 ### Within Each User Story
 
@@ -223,8 +197,7 @@ description: 'Task list for parametrable logger implementation'
 - **US2 Tests**: T036-T039 can all run in parallel
 - **US3 Tests**: T043-T052 can all run in parallel
 - **US3 Implementation**: T054-T058 (updating log methods with overrides) can run in parallel after T053 complete
-- **US4 Tests**: T061-T064 can all run in parallel
-- **Polish**: T070, T075, T076, T077, T080 can all run in parallel
+- **Polish**: T061, T066, T067, T068, T071 can all run in parallel
 
 ---
 
@@ -246,8 +219,7 @@ description: 'Task list for parametrable logger implementation'
 2. Add User Story 1 → Test independently → **MVP: Basic logging works!**
 3. Add User Story 2 → Test independently → **v1.1: Debug mode control!**
 4. Add User Story 3 → Test independently → **v1.2: Configuration overrides!**
-5. Add User Story 4 → Test independently → **v1.3: Utils entry point!**
-6. Complete Polish → **v1.4: Production-ready!**
+5. Complete Polish → **v1.3: Production-ready!**
 
 ### Parallel Team Strategy
 
@@ -259,8 +231,8 @@ With multiple developers:
    - Developer B: User Story 2 (T036-T042) - Debug mode (can start early but integrates with US1)
 3. After US1 complete:
    - Developer A: User Story 3 (T043-T060) - Overrides (depends on US1)
-   - Developer B: User Story 4 (T061-T069) - Utils entry (depends on US1)
-4. Team converges on Polish (T070-T080)
+   - Developer B: Polish tasks (T061-T071)
+4. Team converges on remaining Polish tasks
 
 ---
 
@@ -285,7 +257,7 @@ T053 (US3 merge logic)
   ↓
 T054-T060 (US3 override parameters + docs)
   ↓
-T070-T080 (Polish)
+T061-T071 (Polish)
 ```
 
 **Estimated duration** (if single developer):
@@ -295,18 +267,17 @@ T070-T080 (Polish)
 - US1: 6-8 hours (tests + implementation)
 - US2: 2-3 hours (straightforward flag check)
 - US3: 4-5 hours (merge logic + parameter updates)
-- US4: 2-3 hours (factory + exports)
 - Polish: 2-3 hours (validation + cleanup)
 
-**Total**: ~20-27 hours for complete implementation
+**Total**: ~18-24 hours for complete implementation
 
 ---
 
 ## Notes
 
 - [P] tasks = different files, no dependencies - can run simultaneously
-- [Story] label maps task to specific user story for traceability (US1, US2, US3, US4)
-- Each user story should be independently completable and testable (except US3/US4 which depend on US1)
+- [Story] label maps task to specific user story for traceability (US1, US2, US3)
+- Each user story should be independently completable and testable (except US3 which depends on US1)
 - Verify tests FAIL before implementing (TDD approach)
 - Commit after each task or logical group (e.g., all US1 tests, then all US1 implementation)
 - Stop at any checkpoint to validate story independently before continuing

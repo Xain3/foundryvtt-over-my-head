@@ -41,6 +41,8 @@ const envFactory = vi.hoisted(() => () => ({
   OMH_MAX_TOKENS: '42',
 }));
 
+const yamlFactory = vi.hoisted(() => constantsFactory);
+
 vi.mock('#src/config/helpers/configHelpers.ts', () => helperMocks);
 
 const importConfigModule = () => import('#src/config/config.ts');
@@ -101,13 +103,18 @@ describe('Config Singleton', () => {
     expect(helperMocks.loadModuleManifest).toHaveBeenCalledTimes(1);
     expect(helperMocks.extractConfigPrefix).toHaveBeenCalledTimes(1);
     expect(helperMocks.loadYamlFiles).toHaveBeenCalledTimes(1);
-    expect(helperMocks.mergeConstants).toHaveBeenCalledTimes(1);
+    expect(helperMocks.loadConfigFiles).toHaveBeenCalledTimes(1);
+    expect(helperMocks.mergeConstants).toHaveBeenCalledTimes(2);
     expect(helperMocks.loadSettings).toHaveBeenCalledTimes(1);
     expect(helperMocks.loadEnvironmentVariables).toHaveBeenCalledTimes(1);
 
-    const mergeArg = helperMocks.mergeConstants.mock.calls[0][0];
+    const constantsMergeArg = helperMocks.mergeConstants.mock.calls[0][0];
     const yamlResult = helperMocks.loadYamlFiles.mock.results[0].value;
-    expect(mergeArg).toStrictEqual(yamlResult);
+    expect(constantsMergeArg).toStrictEqual(yamlResult);
+
+    const configsMergeArg = helperMocks.mergeConstants.mock.calls[1][0];
+    const configsResult = helperMocks.loadConfigFiles.mock.results[0].value;
+    expect(configsMergeArg).toStrictEqual(configsResult);
 
     const moduleB = await importConfigModule();
     expect(moduleB.config).toBe(config);
@@ -119,12 +126,20 @@ describe('Config Singleton', () => {
 
     expect(Object.isFrozen(config.constants)).toBe(true);
     expect(Object.isFrozen(config.constants.errors)).toBe(true);
+    expect(Object.isFrozen(config.configs)).toBe(true);
+    expect(Object.isFrozen(config.configs.logging)).toBe(true);
 
     const originalSeparator = config.constants.errors.separator;
     expect(() => {
       config.constants.errors.separator = 'updated';
     }).toThrow(TypeError);
     expect(config.constants.errors.separator).toBe(originalSeparator);
+
+    const originalLogLevel = config.configs.logging.console.defaultLevel;
+    expect(() => {
+      config.configs.logging.console.defaultLevel = 'debug';
+    }).toThrow(TypeError);
+    expect(config.configs.logging.console.defaultLevel).toBe(originalLogLevel);
 
     expect(Array.isArray(config.settings)).toBe(true);
     expect(Object.isFrozen(config.settings)).toBe(true);

@@ -9,7 +9,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import process from 'process';
 import {
-  REQUIRED_YAML_FILES,
   REQUIRED_CONSTANT_FILES,
   REQUIRED_CONFIG_FILES,
 } from '#src/config/helpers/configHelpers.js';

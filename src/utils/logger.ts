@@ -100,6 +100,7 @@ function extractLogConfigFromConfig(config: Config): LogConfigurationObject {
     );
   }
 
+  // Safe to cast: runtime check confirms features is an object
   const featuresRecord = features as Record<string, unknown>;
   const logging = featuresRecord.logging;
   
@@ -109,6 +110,7 @@ function extractLogConfigFromConfig(config: Config): LogConfigurationObject {
     );
   }
 
+  // Safe to cast: runtime check confirms logging is an object
   const loggingRecord = logging as Record<string, unknown>;
 
   // Validate required fields for LogConfigurationObject
@@ -124,12 +126,23 @@ function extractLogConfigFromConfig(config: Config): LogConfigurationObject {
     );
   }
 
+  // Safe to cast: validation confirms structure matches LogConfigurationObject
+  // The normalizeConfig method will validate remaining fields
   return loggingRecord as LogConfigurationObject;
 }
 
 /**
  * Type guard to check if the provided value is a Config instance.
- * Checks for the presence of Config-specific methods and structure.
+ * Uses structural typing to distinguish Config from LogConfigurationObject.
+ *
+ * The discriminator relies on:
+ * - Config has: constants, module, settings, env (no moduleName)
+ * - LogConfigurationObject has: moduleName, level (no constants/module/settings/env)
+ *
+ * This approach is safe because:
+ * 1. The two types serve different purposes and have non-overlapping structures
+ * 2. LogConfigurationObject is a flat configuration object
+ * 3. Config is a complex singleton with nested properties
  *
  * @param {Config | LogConfigurationObject} value - Value to check.
  * @returns {boolean} True if value is a Config instance.

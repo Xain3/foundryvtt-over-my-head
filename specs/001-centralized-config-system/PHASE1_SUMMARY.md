@@ -178,7 +178,7 @@ interface Config {
 import config from './src/config/config.ts';
 
 // Access any property immediately
-const prefix = config.constants.moduleManagement.shortName; // "OMH"
+const prefix = config.configs.moduleManagement.shortName; // "OMH"
 const version = config.module.version; // "12.1.0"
 const debugMode = config.env.OMH_DEBUG_MODE; // "true" or undefined
 ```

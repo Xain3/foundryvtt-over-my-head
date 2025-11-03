@@ -215,7 +215,7 @@ import { config } from './config/config.ts';
 // Module initialization
 function initializeModule() {
   console.info(
-    `[${config.constants.moduleManagement.shortName}] Initializing...`
+    `[${config.configs.moduleManagement.shortName}] Initializing...`
   );
 
   // Use config throughout module
@@ -223,7 +223,7 @@ function initializeModule() {
   const debugMode = config.env.OMH_DEBUG_MODE === 'true';
 
   console.info(
-    `[${config.constants.moduleManagement.shortName}] Version ${version} initialized`
+    `[${config.configs.moduleManagement.shortName}] Version ${version} initialized`
   );
 
   if (debugMode) {
@@ -240,7 +240,7 @@ initializeModule();
 import { config } from './config/config.ts';
 
 function logWithPrefix(message: string, level: 'info' | 'debug' | 'warn' | 'error' = 'info') {
-  const prefix = config.constants.moduleManagement.shortName;
+  const prefix = config.configs.moduleManagement.shortName;
   console[level](`[${prefix}] ${message}`);
 }
 

@@ -109,7 +109,7 @@ export interface Config {
  * config.constants.errors.separator        // " || "
  * config.constants.foundry.defaults        // {i18nLocation: '...', ...}
  * config.constants.hooks.hooks.settingsReady // "SettingsReady"
- * config.constants.moduleManagement.shortName // "OMH"
+ * config.configs.moduleManagement.shortName // "OMH"
  */
 export interface ConfigConstants {
   errors: ErrorsConfig;
@@ -219,7 +219,7 @@ export interface HooksConfig {
  *                                Used as prefix for environment variables and logging
  *
  * @example
- * const prefix = config.constants.moduleManagement.shortName;  // "OMH"
+ * const prefix = config.configs.moduleManagement.shortName;  // "OMH"
  * const envVarKey = `${prefix}_DEBUG_MODE`;  // "OMH_DEBUG_MODE"
  */
 export interface ModuleManagementConfig {
@@ -244,7 +244,7 @@ export interface ModuleManagementConfig {
  * Currently allows any key-value pairs for flexibility.
  *
  * @example
- * const occlusionConfig = config.constants.occlusion;
+ * const occlusionConfig = config.configs.occlusion;
  * // Access properties based on actual occlusion.yaml structure
  */
 export interface OcclusionConfig {
@@ -266,7 +266,7 @@ export interface OcclusionConfig {
  * Currently allows any key-value pairs for flexibility.
  *
  * @example
- * const placeablesConfig = config.constants.placeables;
+ * const placeablesConfig = config.configs.placeables;
  * // Access properties based on actual placeables.yaml structure
  */
 export interface PlaceablesConfig {
@@ -486,7 +486,7 @@ export interface EnvironmentConfig {
  * config.constants.errors.separator;
  * config.constants.foundry.defaults.i18nLocation;
  * config.constants.hooks.hooks.settingsReady;
- * config.constants.moduleManagement.shortName;
+ * config.configs.moduleManagement.shortName;
  *
  * // Settings array
  * config.settings.find(s => s.key === 'debugMode');

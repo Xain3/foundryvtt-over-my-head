@@ -28,12 +28,12 @@ All helpers are exported from `configHelpers.ts` and can be imported individuall
 **Signature**:
 
 ```typescript
-function loadYamlFiles(): Record<string, unknown>;
+function loadYamlFiles(files?: string[]): Record<string, unknown>;
 ```
 
 **Behavior**:
 
-- Discovers and loads 7 YAML files: errors, foundry, hooks, logging, moduleManagement, occlusion, placeables
+- Discovers and loads constant YAML files: errors, foundry, hooks
 - Each file is parsed and stored under its name as a key (without .yaml extension)
 - Empty YAML files return empty objects `{}`
 - Fails fast on any parse error with file path and context
@@ -45,7 +45,6 @@ function loadYamlFiles(): Record<string, unknown>;
   errors: { separator: " || ", ... },
   foundry: { defaults: { ... } },
   hooks: { ... },
-  // ... etc
 }
 ```
 
@@ -56,8 +55,47 @@ function loadYamlFiles(): Record<string, unknown>;
 ```typescript
 import { loadYamlFiles } from './configHelpers.ts';
 
-const yamlData = loadYamlFiles();
-console.log(yamlData.errors.separator); // " || "
+const constantsData = loadYamlFiles();
+console.log(constantsData.errors.separator); // " || "
+```
+
+### loadConfigFiles()
+
+**Purpose**: Load and parse all YAML config files from `src/config/configs/`
+
+**Signature**:
+
+```typescript
+function loadConfigFiles(files?: string[]): Record<string, unknown>;
+```
+
+**Behavior**:
+
+- Discovers and loads config YAML files: logging, moduleManagement, occlusion, placeables
+- Each file is parsed and stored under its name as a key (without .yaml extension)
+- Empty YAML files return empty objects `{}`
+- Fails fast on any parse error with file path and context
+
+**Returns**: Object with namespace-keyed YAML data
+
+```typescript
+{
+  logging: { console: { ... }, file: { ... } },
+  moduleManagement: { shortName: "OMH", ... },
+  occlusion: { ... },
+  placeables: { ... },
+}
+```
+
+**Throws**: Error with file path if YAML parsing fails
+
+**Example**:
+
+```typescript
+import { loadConfigFiles } from './configHelpers.ts';
+
+const configsData = loadConfigFiles();
+console.log(configsData.logging.console.defaultLevel); // "info"
 ```
 
 ### mergeConstants()

@@ -1,6 +1,6 @@
-# @file features.yaml
-# @description Feature-specific configuration for the Over My Head module
-# @path src/config/constants/features.yaml
+# @file configs.yaml
+# @description Runtime configuration settings for the Over My Head module
+# @path src/config/constants/configs.yaml
 
 logging:
   moduleName: OMH

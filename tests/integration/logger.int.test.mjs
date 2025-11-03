@@ -57,7 +57,9 @@ describe('Logger integration', () => {
   });
 
   it('toggles debug mode behavior between logger instances', () => {
-    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const consoleDebugSpy = vi
+      .spyOn(console, 'debug')
+      .mockImplementation(() => {});
     const config = {
       moduleManagement: {
         referToModuleBy: 'shortName',
@@ -89,9 +91,9 @@ describe('Logger integration', () => {
     });
     nonDebugLogger.debug('Suppressed debug message');
 
-    expect(consoleLogSpy).not.toHaveBeenCalled();
+    expect(consoleDebugSpy).not.toHaveBeenCalled();
 
-    consoleLogSpy.mockClear();
+    consoleDebugSpy.mockClear();
 
     const debugLogger = new Logger({
       ...baseLoggingConfig,
@@ -99,7 +101,7 @@ describe('Logger integration', () => {
     });
     debugLogger.debug('Visible debug message');
 
-    expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+    expect(consoleDebugSpy).toHaveBeenCalledTimes(1);
   });
 
   it('applies per-call overrides without mutating base configuration', () => {

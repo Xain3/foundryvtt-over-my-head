@@ -268,43 +268,6 @@ class Logger {
 
 ---
 
-### 7. UtilsEntryPoint (Interface)
-
-**Type**: Interface
-
-**Description**: Public API surface for utils entry point providing access to utilities.
-
-**Structure**:
-
-```typescript
-interface UtilsEntryPoint {
-  logger: Logger; // Pre-configured logger instance
-  // Future utilities added here
-}
-```
-
-**Factory Function**:
-
-```typescript
-function createUtils(config: LogConfigurationObject): UtilsEntryPoint {
-  return {
-    logger: new Logger(config),
-  };
-}
-```
-
-**Usage Pattern**:
-
-```typescript
-import { createUtils } from '#/utils/utils.ts';
-import { config } from '#/config/config.ts';
-
-const utils = createUtils(config.logging);
-utils.logger.info('Application started');
-```
-
----
-
 ## Relationships
 
 ### Configuration Flow
@@ -317,8 +280,6 @@ moduleNameResolver.ts
 LogConfigurationObject (merged with defaults)
   ↓ passed to constructor
 Logger instance
-  ↓ accessed via
-UtilsEntryPoint
   ↓ used by
 Application code
 ```
@@ -455,13 +416,6 @@ export type {
   FormatTemplates,
 };
 export { Logger, LOG_LEVELS };
-```
-
-**Utils Entry Point** (exported from `utils.ts`):
-
-```typescript
-export type { UtilsEntryPoint };
-export { createUtils };
 ```
 
 **Module Name Resolver** (exported from `moduleNameResolver.ts`):

@@ -371,6 +371,8 @@ Before submitting a pull request:
 **Reference**: See [docs/STYLE_GUIDE.md](../docs/STYLE_GUIDE.md), [Constitution](../.specify/memory/constitution.md)
 
 ## Active Technologies
+- JavaScript ES2022 / TypeScript with ESM modules (.mjs/.mts extensions) (004-parametrable-logger)
+- N/A (logger is stateless; configuration passed as object) (004-parametrable-logger)
 
 - JavaScript/Node.js (ES2022, ESM modules with .mjs/.mts extensions) (003-alias-centralization)
 - File system - reading/writing JSON and JavaScript configuration files (tsconfig.json, package.json, alias.config.mjs, vite.config.mjs, vitest.config.mjs) (003-alias-centralization)

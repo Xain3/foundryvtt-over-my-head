@@ -97,7 +97,7 @@ src/utils/
 
 tests/unit/
 ├── logger.unit.test.mjs         # Logger unit tests (NEW)
-├── utils-entry-point.unit.test.mjs  # Utils entry point tests (NEW)
+├── utils.unit.test.mjs          # Utils entry point tests (NEW)
 └── moduleNameResolver.unit.test.mjs # Module name resolver tests (NEW)
 
 tests/integration/

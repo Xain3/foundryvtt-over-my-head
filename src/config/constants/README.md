@@ -5,7 +5,9 @@
 
 ## Overview
 
-This directory contains YAML constant files that define fixed parameters and configuration values for the Vision with Fade module. Each YAML file is loaded as a separate namespace under `config.constants`.
+This directory contains YAML constant files that define fixed, immutable values for the Vision with Fade module. Each YAML file is loaded as a separate namespace under `config.constants`.
+
+Unlike the `configs/` directory which contains behavioral settings, the `constants/` directory contains values that are truly fixed and never change - such as separators, patterns, hook names, and default paths.
 
 ## Constant Files
 
@@ -67,63 +69,7 @@ Hooks.on(settingsHook, () => {
 });
 ```
 
-### logging.yaml
 
-Configuration constants for logging and debugging.
-
-**Accessible via**: `config.constants.logging`
-
-**Properties**: TBD - structure defined in logging.yaml
-
-### moduleManagement.yaml
-
-Configuration constants for module identification and management.
-
-**Accessible via**: `config.constants.moduleManagement`
-
-**Properties**:
-
-- `referToModuleBy`: How to refer to the module in logs ('title', 'id', 'name', or 'shortName')
-- `deriveShortNameFromTitle`: Whether to automatically derive short name from module title
-- `excludeWordsFromShortName`: List of words to exclude when deriving short name
-- `shortName`: Short name for the module (used for prefix, e.g., "OMH")
-
-**Example**:
-
-```typescript
-const shortName = config.constants.moduleManagement.shortName; // "OMH"
-const referBy = config.constants.moduleManagement.referToModuleBy; // "title"
-```
-
-### occlusion.yaml
-
-Configuration constants for occlusion (vision hiding) handling in Foundry VTT.
-
-**Accessible via**: `config.constants.occlusion`
-
-**Properties**: Structure defined in occlusion.yaml (triggers, behavior, etc.)
-
-**Example**:
-
-```typescript
-const occlusionConfig = config.constants.occlusion;
-// Access specific occlusion settings as defined in the YAML
-```
-
-### placeables.yaml
-
-Configuration constants for placeable objects in Foundry VTT (tokens, tiles, walls, etc.).
-
-**Accessible via**: `config.constants.placeables`
-
-**Properties**: Structure defined in placeables.yaml (token config, tile defaults, etc.)
-
-**Example**:
-
-```typescript
-const placeablesConfig = config.constants.placeables;
-// Access specific placeable settings as defined in the YAML
-```
 
 ## How Constants Are Loaded
 
@@ -148,8 +94,9 @@ To add new constants:
 
 1. **Create YAML file**: Add `src/config/constants/newfile.yaml`
 2. **Define structure**: Define your constants in YAML format
-3. **Reference**: Access via `config.constants.newfile`
-4. **Reload**: Module reload required to load new file
+3. **Update helper**: Add the filename to `REQUIRED_CONSTANT_FILES` in `configHelpers.ts`
+4. **Reference**: Access via `config.constants.newfile`
+5. **Reload**: Module reload required to load new file
 
 **Example**:
 
@@ -186,28 +133,50 @@ nested:
 - **Valid YAML syntax**: Must parse without errors (fail-fast if invalid)
 - **Encoding**: UTF-8
 - **Structure**: Must be an object (or empty)
+- **Header comment**: Each file should include `@file`, `@description`, and `@path` in comments
+
+## Difference Between Constants and Configs
+
+**Constants** (`src/config/constants/`):
+- Fixed values that never change
+- Core identifiers, patterns, and defaults
+- Examples: error separators, hook names, Foundry paths
+
+**Configs** (`src/config/configs/`):
+- Behavioral settings that define how the module operates
+- Dynamic parameters that could vary per environment
+- Examples: logging levels, occlusion triggers, placeable settings
+
+Both are immutable at runtime, but the distinction helps organize the codebase.
 
 ## Related Documentation
 
 - [Config Module](../README.md) - Main config documentation
+- [Configs](../configs/README.md) - Behavioral configuration files
 - [Helpers](../helpers/README.md) - How constants are loaded
-- [Data Model](../../001-centralized-config-system/data-model.md) - Config structure
+- [Data Model](../../specs/001-centralized-config-system/data-model.md) - Config structure
 
 ---
 
 **Status**: Complete ✅
-**Last Updated**: October 28, 2025
-
-- `placeables.tile`: Tile configuration (type, name, class, allowedCorners)
-- `positionChecker`: Configuration for position checking with check types, position uses, and method keys
+**Last Updated**: November 3, 2025
+**Maintainer**: Vision with Fade Team
 
 ## Changelog
+
+### 0.3.0 (2025-11-03)
+
+- Separated constants from configs for better organization
+- Removed behavioral configuration files (moved to `configs/`)
+- Now contains only fixed values: errors, foundry, hooks
+- Added distinction documentation between constants and configs
+- Updated related documentation
+
+### 0.2.0 (2025-11-01)
+
+- Added comprehensive documentation for all constant files
 
 ### 0.1.0 (2025-10-20)
 
 - Added version badge to README
 - Initial constants directory documentation
-
-### 0.2.0 (2025-11-05)
-
-- Added comprehensive documentation for all constant files

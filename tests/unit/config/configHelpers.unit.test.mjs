@@ -8,7 +8,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import process from 'process';
-import { REQUIRED_YAML_FILES } from '#src/config/helpers/configHelpers.js';
+import {
+  REQUIRED_CONSTANT_FILES,
+  REQUIRED_CONFIG_FILES,
+} from '#src/config/helpers/configHelpers.js';
 
 // We'll need to test the helpers through integration since they do I/O
 // For now, we'll create tests that verify the actual project files are loadable
@@ -19,10 +22,20 @@ describe('Helper Functions Integration Tests', () => {
   describe('YAML and JSON files exist', () => {
     it('should have all required YAML constant files', () => {
       const constantsDir = path.join(moduleRoot, 'src/config/constants');
-      const requiredFiles = [...REQUIRED_YAML_FILES];
+      const requiredFiles = [...REQUIRED_CONSTANT_FILES];
 
       for (const file of requiredFiles) {
         const filePath = path.join(constantsDir, file);
+        expect(fs.existsSync(filePath)).toBe(true);
+      }
+    });
+
+    it('should have all required YAML config files', () => {
+      const configsDir = path.join(moduleRoot, 'src/config/configs');
+      const requiredFiles = [...REQUIRED_CONFIG_FILES];
+
+      for (const file of requiredFiles) {
+        const filePath = path.join(configsDir, file);
         expect(fs.existsSync(filePath)).toBe(true);
       }
     });

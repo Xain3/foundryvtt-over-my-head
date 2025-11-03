@@ -172,7 +172,7 @@ Both are immutable at runtime, but the distinction helps organize the codebase.
 - Added distinction documentation between constants and configs
 - Updated related documentation
 
-### 0.2.0 (2025-11-05)
+### 0.2.0 (2025-11-01)
 
 - Added comprehensive documentation for all constant files
 

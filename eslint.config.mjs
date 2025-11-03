@@ -58,6 +58,12 @@ export default [
     },
   },
   {
+    files: ['tests/mocks/**/*.mjs'],
+    rules: {
+      'no-unused-vars': 'off',
+    },
+  },
+  {
     ignores: [
       'dist/',
       'build/',

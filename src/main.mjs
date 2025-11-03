@@ -12,6 +12,7 @@ import OMH from './omh.mjs';
  * Called when module loads; ensures configuration is ready for the module
  */
 function main() {
+  /* eslint-disable no-unused-vars */
   const omh = new OMH();
 }
 

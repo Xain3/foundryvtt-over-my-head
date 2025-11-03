@@ -94,13 +94,13 @@ describe('Logger', () => {
   });
 
   it('formats debug messages with metadata serialization', () => {
-    const logSpy = setUpConsoleSpy('log');
+    const debugSpy = setUpConsoleSpy('debug');
     const logger = createLogger({ colorize: false, debugMode: true });
 
     logger.debug('Debug details', { feature: 'logger', enabled: true });
 
-    expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy.mock.calls[0][0]).toBe(
+    expect(debugSpy).toHaveBeenCalledTimes(1);
+    expect(debugSpy.mock.calls[0][0]).toBe(
       '[OMH] DEBUG | 2025-11-02T15:30:45.123Z | Debug details | {"feature":"logger","enabled":true}'
     );
   });
@@ -143,7 +143,8 @@ describe('Logger', () => {
   });
 
   it('suppresses verbose and debug messages when debug mode is disabled', () => {
-    const logSpy = setUpConsoleSpy('log');
+    const verboseSpy = setUpConsoleSpy('log');
+    const debugSpy = setUpConsoleSpy('debug');
     const logger = createLogger({
       level: 'info',
       debugMode: false,
@@ -152,11 +153,13 @@ describe('Logger', () => {
     logger.verbose('Should not appear');
     logger.debug('Should not appear');
 
-    expect(logSpy).not.toHaveBeenCalled();
+    expect(verboseSpy).not.toHaveBeenCalled();
+    expect(debugSpy).not.toHaveBeenCalled();
   });
 
   it('emits verbose and debug messages when debug mode is enabled', () => {
-    const logSpy = setUpConsoleSpy('log');
+    const verboseSpy = setUpConsoleSpy('log');
+    const debugSpy = setUpConsoleSpy('debug');
     const logger = createLogger({
       level: 'info',
       debugMode: true,
@@ -165,7 +168,8 @@ describe('Logger', () => {
     logger.verbose('Verbose enabled');
     logger.debug('Debug enabled');
 
-    expect(logSpy).toHaveBeenCalledTimes(2);
+    expect(verboseSpy).toHaveBeenCalledTimes(1);
+    expect(debugSpy).toHaveBeenCalledTimes(1);
   });
 
   it('still emits error, warn, and info messages when debug mode is disabled', () => {
@@ -243,7 +247,7 @@ describe('Logger', () => {
   });
 
   it('allows overriding debug format on a per-call basis', () => {
-    const logSpy = setUpConsoleSpy('log');
+    const debugSpy = setUpConsoleSpy('debug');
     const logger = createLogger({ colorize: false, debugMode: true });
 
     logger.debug(
@@ -256,8 +260,8 @@ describe('Logger', () => {
       }
     );
 
-    expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy.mock.calls[0][0]).toBe('DEBUG => Override debug :: true');
+    expect(debugSpy).toHaveBeenCalledTimes(1);
+    expect(debugSpy.mock.calls[0][0]).toBe('DEBUG => Override debug :: true');
   });
 
   it('allows overriding timestamp.enabled per call', () => {

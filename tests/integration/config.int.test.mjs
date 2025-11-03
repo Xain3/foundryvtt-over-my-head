@@ -25,6 +25,7 @@ describe('Config Integration Tests - Real Project Files', () => {
       const { config } = module;
 
       expect(config).toHaveProperty('constants');
+      expect(config).toHaveProperty('configs');
       expect(config).toHaveProperty('settings');
       expect(config).toHaveProperty('module');
       expect(config).toHaveProperty('env');
@@ -50,7 +51,20 @@ describe('Config Integration Tests - Real Project Files', () => {
       expect(config.constants).toHaveProperty('errors');
       expect(config.constants).toHaveProperty('foundry');
       expect(config.constants).toHaveProperty('hooks');
-      expect(config.constants).toHaveProperty('moduleManagement');
+    });
+
+    it('should load YAML configs with all namespaces', async () => {
+      const module = await import('../../src/config/config.ts');
+      const { config } = module;
+
+      expect(config.configs).toBeDefined();
+      expect(typeof config.configs).toBe('object');
+
+      // Each YAML file should be a namespace
+      expect(config.configs).toHaveProperty('logging');
+      expect(config.configs).toHaveProperty('moduleManagement');
+      expect(config.configs).toHaveProperty('occlusion');
+      expect(config.configs).toHaveProperty('placeables');
     });
 
     it('should load settings as array', async () => {
@@ -95,14 +109,40 @@ describe('Config Integration Tests - Real Project Files', () => {
       expect(config.constants.hooks).toBeDefined();
       expect(typeof config.constants.hooks).toBe('object');
     });
+  });
 
-    it('should have moduleManagement constants with shortName', async () => {
+  describe('Configs Structure', () => {
+    it('should have logging configs', async () => {
       const module = await import('../../src/config/config.ts');
       const { config } = module;
 
-      expect(config.constants.moduleManagement).toBeDefined();
-      expect(config.constants.moduleManagement).toHaveProperty('shortName');
-      expect(config.constants.moduleManagement.shortName).toBe('OMH');
+      expect(config.configs.logging).toBeDefined();
+      expect(typeof config.configs.logging).toBe('object');
+    });
+
+    it('should have moduleManagement configs with shortName', async () => {
+      const module = await import('../../src/config/config.ts');
+      const { config } = module;
+
+      expect(config.configs.moduleManagement).toBeDefined();
+      expect(config.configs.moduleManagement).toHaveProperty('shortName');
+      expect(config.configs.moduleManagement.shortName).toBe('OMH');
+    });
+
+    it('should have occlusion configs', async () => {
+      const module = await import('../../src/config/config.ts');
+      const { config } = module;
+
+      expect(config.configs.occlusion).toBeDefined();
+      expect(typeof config.configs.occlusion).toBe('object');
+    });
+
+    it('should have placeables configs', async () => {
+      const module = await import('../../src/config/config.ts');
+      const { config } = module;
+
+      expect(config.configs.placeables).toBeDefined();
+      expect(typeof config.configs.placeables).toBe('object');
     });
   });
 
@@ -303,7 +343,7 @@ describe('Config Integration Tests - Real Project Files', () => {
       const module = await import('../../src/config/config.ts');
       const { config } = module;
 
-      const prefix = config.constants.moduleManagement.shortName;
+      const prefix = config.configs.moduleManagement.shortName;
       expect(prefix).toBe('OMH');
     });
   });

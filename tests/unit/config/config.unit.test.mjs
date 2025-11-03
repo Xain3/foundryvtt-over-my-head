@@ -7,6 +7,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 const helperMocks = vi.hoisted(() => ({
   loadYamlFiles: vi.fn(),
+  loadConfigFiles: vi.fn(),
   mergeConstants: vi.fn(),
   extractConfigPrefix: vi.fn(),
   loadSettings: vi.fn(),
@@ -22,11 +23,17 @@ const manifestFactory = vi.hoisted(() => () => ({
   compatibility: { minimum: '12' },
 }));
 
-const yamlFactory = vi.hoisted(() => () => ({
+const constantsFactory = vi.hoisted(() => () => ({
   errors: { separator: ' || ' },
   foundry: { defaults: { something: true } },
   hooks: { ready: 'hook-ready' },
+}));
+
+const configsFactory = vi.hoisted(() => () => ({
+  logging: { console: { defaultLevel: 'info' } },
   moduleManagement: { shortName: 'OMH' },
+  occlusion: { occlusionHandler: { triggeringEvents: {} } },
+  placeables: { placeables: { token: {} } },
 }));
 
 const envFactory = vi.hoisted(() => () => ({
@@ -64,7 +71,8 @@ beforeEach(() => {
     }
     return 'OMH';
   });
-  helperMocks.loadYamlFiles.mockImplementation(() => yamlFactory());
+  helperMocks.loadYamlFiles.mockImplementation(() => constantsFactory());
+  helperMocks.loadConfigFiles.mockImplementation(() => configsFactory());
   helperMocks.mergeConstants.mockImplementation((value) => value);
   currentSettingsFixture = [
     { key: 'alpha', name: 'Alpha Setting' },

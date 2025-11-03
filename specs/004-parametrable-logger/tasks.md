@@ -149,17 +149,17 @@ description: 'Task list for parametrable logger implementation'
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T061 [P] Update docs/STYLE_GUIDE.md with logger usage patterns (if applicable)
-- [ ] T062 Code cleanup: Remove console.log debug statements from src/utils/logger.ts
-- [ ] T063 Code cleanup: Ensure all error messages include [OMH] prefix per style guide
-- [ ] T064 Performance validation: Verify <1ms per log call per plan.md performance constraints
-- [ ] T065 Memory validation: Verify <1MB memory footprint per plan.md performance constraints
-- [ ] T066 [P] Coverage validation: Run npm test -- --coverage and verify ≥80% coverage
-- [ ] T067 [P] Lint validation: Run npm run lint and fix all warnings
-- [ ] T068 [P] Type validation: Run tsc --noEmit and fix all TypeScript errors
-- [ ] T069 Run quickstart.md validation: Follow quickstart steps manually, verify all examples work
-- [ ] T070 Security: Verify no user input directly interpolated into console.log (prevent injection)
-- [ ] T071 Documentation: Verify all files have required @file, @description, @path headers per style guide
+- [x] T061 [P] Update docs/STYLE_GUIDE.md with logger usage patterns (if applicable)
+- [x] T062 Code cleanup: Remove console.log debug statements from src/utils/logger.ts
+- [x] T063 Code cleanup: Ensure all error messages include [OMH] prefix per style guide
+- [x] T064 Performance validation: Verify <1ms per log call per plan.md performance constraints
+- [x] T065 Memory validation: Verify <1MB memory footprint per plan.md performance constraints
+- [x] T066 [P] Coverage validation: Run npm test -- --coverage and verify ≥80% coverage
+- [x] T067 [P] Lint validation: Run npm run lint and fix all warnings
+- [x] T068 [P] Type validation: Run tsc --noEmit and fix all TypeScript errors
+- [x] T069 Run quickstart.md validation: Follow quickstart steps manually, verify all examples work
+- [x] T070 Security: Verify no user input directly interpolated into console.log (prevent injection)
+- [x] T071 Documentation: Verify all files have required @file, @description, @path headers per style guide
 
 ---
 

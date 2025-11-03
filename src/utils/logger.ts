@@ -92,7 +92,7 @@ type PlaceholderContext = LogContext & {
  * @throws {Error} If config.features.logging is not properly structured.
  */
 function extractLogConfigFromConfig(config: Config): LogConfigurationObject {
-  const features = config.constants.features as Record<string, unknown>;
+  const features = config.constants.features;
   
   if (!features || typeof features !== 'object') {
     throw new Error(
@@ -100,7 +100,8 @@ function extractLogConfigFromConfig(config: Config): LogConfigurationObject {
     );
   }
 
-  const logging = features.logging as Record<string, unknown>;
+  const featuresRecord = features as Record<string, unknown>;
+  const logging = featuresRecord.logging;
   
   if (!logging || typeof logging !== 'object') {
     throw new Error(
@@ -108,24 +109,47 @@ function extractLogConfigFromConfig(config: Config): LogConfigurationObject {
     );
   }
 
-  return logging as LogConfigurationObject;
+  const loggingRecord = logging as Record<string, unknown>;
+
+  // Validate required fields for LogConfigurationObject
+  if (typeof loggingRecord.moduleName !== 'string') {
+    throw new Error(
+      `${MODULE_PREFIX} Config.constants.features.logging.moduleName must be a string`
+    );
+  }
+
+  if (typeof loggingRecord.level !== 'string') {
+    throw new Error(
+      `${MODULE_PREFIX} Config.constants.features.logging.level must be a string`
+    );
+  }
+
+  return loggingRecord as LogConfigurationObject;
 }
 
 /**
  * Type guard to check if the provided value is a Config instance.
+ * Checks for the presence of Config-specific methods and structure.
  *
  * @param {Config | LogConfigurationObject} value - Value to check.
  * @returns {boolean} True if value is a Config instance.
  */
 function isConfig(value: Config | LogConfigurationObject): value is Config {
-  return (
-    value !== null &&
-    typeof value === 'object' &&
-    'constants' in value &&
-    'module' in value &&
-    'settings' in value &&
-    'env' in value
-  );
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  // Check for Config-specific structure with all required properties
+  const hasConstants = 'constants' in value;
+  const hasModule = 'module' in value;
+  const hasSettings = 'settings' in value;
+  const hasEnv = 'env' in value;
+
+  // LogConfigurationObject must have moduleName, not module
+  const hasModuleName = 'moduleName' in value;
+
+  // A Config has constants/module/settings/env, while LogConfigurationObject has moduleName
+  return hasConstants && hasModule && hasSettings && hasEnv && !hasModuleName;
 }
 
 /**

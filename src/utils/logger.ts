@@ -260,6 +260,14 @@ export class Logger {
         console.info(payload);
         break;
       }
+      case 'verbose': {
+        console.log(payload);
+        break;
+      }
+      case 'debug': {
+        console.debug(payload);
+        break;
+      }
       default: {
         console.log(payload);
       }

@@ -88,7 +88,7 @@ type PlaceholderContext = LogContext & {
  * Default configuration path in Config.constants for logger settings.
  * @private
  */
-const DEFAULT_CONFIG_PATH = 'configs.logging';
+const DEFAULT_CONFIG_PATH = 'defaults.logging';
 
 /**
  * Extracts LogConfigurationObject from a Config instance using a configuration path.
@@ -99,7 +99,7 @@ const DEFAULT_CONFIG_PATH = 'configs.logging';
  * @throws {Error} If the configuration path is not properly structured.
  *
  * @example
- * // Using default path (config.constants.configs.logging)
+ * // Using default path (config.constants.defaults.logging)
  * const logConfig = extractLogConfigFromConfig(config);
  *
  * @example
@@ -221,7 +221,7 @@ export class Logger {
    * @throws {Error} If Config is provided but the configuration path is not properly configured.
    *
    * @example
-   * // Using Config singleton with default path (config.constants.configs.logging)
+   * // Using Config singleton with default path (config.constants.defaults.logging)
    * import { config } from '#config';
    * const logger = new Logger(config);
    *

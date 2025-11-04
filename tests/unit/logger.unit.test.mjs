@@ -399,7 +399,7 @@ describe('Logger', () => {
     };
     
     expect(() => new Logger(invalidConfig)).toThrow(
-      /Config.constants.configs is not available or invalid/
+      /Config.constants.defaults is not available or invalid/
     );
   });
 
@@ -407,11 +407,11 @@ describe('Logger', () => {
     const errorSpy = setUpConsoleSpy('error');
     const logger = new Logger(config);
     
-    // The config should have the default format from configs.yaml
+    // The config should have the default format from defaults.yaml
     logger.error('Config-based error');
     
     expect(errorSpy).toHaveBeenCalledTimes(1);
-    // Verify it uses the format from configs.yaml
+    // Verify it uses the format from defaults.yaml
     expect(errorSpy.mock.calls[0][0]).toMatch(/\[.*\] ERROR \|/);
   });
 
@@ -425,7 +425,7 @@ describe('Logger', () => {
     expect(infoSpy).toHaveBeenCalledTimes(1);
     
     // Using explicit path should also work
-    const explicitLogger = new Logger(config, 'configs.logging');
+    const explicitLogger = new Logger(config, 'defaults.logging');
     explicitLogger.info('Explicit path test');
     
     expect(infoSpy).toHaveBeenCalledTimes(2);

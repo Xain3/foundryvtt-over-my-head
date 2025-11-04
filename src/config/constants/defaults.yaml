@@ -1,6 +1,6 @@
-# @file configs.yaml
+# @file defaults.yaml
 # @description Runtime configuration settings for the Over My Head module
-# @path src/config/constants/configs.yaml
+# @path src/config/constants/defaults.yaml
 
 logging:
   moduleName: OMH

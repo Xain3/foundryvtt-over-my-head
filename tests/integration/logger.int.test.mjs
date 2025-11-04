@@ -195,7 +195,7 @@ describe('Logger integration', () => {
     logger.error('Error from Config singleton');
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    // Verify it follows the format from configs.yaml
+    // Verify it follows the format from defaults.yaml
     const errorMessage = consoleErrorSpy.mock.calls[0][0];
     expect(errorMessage).toMatch(/\[.*\] ERROR \|/);
     expect(errorMessage).toContain('Error from Config singleton');

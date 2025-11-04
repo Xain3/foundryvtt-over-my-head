@@ -379,13 +379,13 @@ describe('Logger', () => {
 
   it('accepts a Config object and extracts logging configuration', () => {
     const infoSpy = setUpConsoleSpy('info');
-    
+
     // Create logger using Config object
     expect(() => new Logger(config)).not.toThrow();
-    
+
     const logger = new Logger(config);
     logger.info('Test message from Config');
-    
+
     expect(infoSpy).toHaveBeenCalledTimes(1);
     expect(infoSpy.mock.calls[0][0]).toContain('Test message from Config');
   });
@@ -397,7 +397,7 @@ describe('Logger', () => {
       settings: [],
       env: {},
     };
-    
+
     expect(() => new Logger(invalidConfig)).toThrow(
       /Config.constants.defaults is not available or invalid/
     );
@@ -406,10 +406,10 @@ describe('Logger', () => {
   it('uses logging configuration from Config.configs.logging', () => {
     const errorSpy = setUpConsoleSpy('error');
     const logger = new Logger(config);
-    
+
     // The config should have the default format from defaults.yaml
     logger.error('Config-based error');
-    
+
     expect(errorSpy).toHaveBeenCalledTimes(1);
     // Verify it uses the format from defaults.yaml
     expect(errorSpy.mock.calls[0][0]).toMatch(/\[.*\] ERROR \|/);
@@ -417,17 +417,17 @@ describe('Logger', () => {
 
   it('accepts custom configPath parameter for Config object', () => {
     const infoSpy = setUpConsoleSpy('info');
-    
+
     // Using default path should work
     const defaultLogger = new Logger(config);
     defaultLogger.info('Default path test');
-    
+
     expect(infoSpy).toHaveBeenCalledTimes(1);
-    
+
     // Using explicit path should also work
     const explicitLogger = new Logger(config, 'defaults.logging');
     explicitLogger.info('Explicit path test');
-    
+
     expect(infoSpy).toHaveBeenCalledTimes(2);
   });
 
@@ -439,16 +439,19 @@ describe('Logger', () => {
 
   it('ignores configPath parameter when using LogConfigurationObject', () => {
     const infoSpy = setUpConsoleSpy('info');
-    
+
     // configPath should be ignored when passing explicit config
-    const logger = new Logger({
-      moduleName: 'TEST',
-      level: 'info',
-      colorize: false,
-    }, 'ignored.path');
-    
+    const logger = new Logger(
+      {
+        moduleName: 'TEST',
+        level: 'info',
+        colorize: false,
+      },
+      'ignored.path'
+    );
+
     logger.info('Direct config test');
-    
+
     expect(infoSpy).toHaveBeenCalledTimes(1);
     expect(infoSpy.mock.calls[0][0]).toContain('TEST');
   });

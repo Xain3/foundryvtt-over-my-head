@@ -116,7 +116,7 @@ function extractLogConfigFromConfig(
   // Traverse the path to find the configuration object
   for (let i = 0; i < pathSegments.length; i++) {
     const segment = pathSegments[i];
-    
+
     if (!current || typeof current !== 'object') {
       const traversedPath = pathSegments.slice(0, i).join('.');
       throw new Error(

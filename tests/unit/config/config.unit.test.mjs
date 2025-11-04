@@ -226,6 +226,34 @@ describe('Config Singleton', () => {
     expect(config.toString()).toContain('Config[VWF]');
   });
 
+  it('derives prefix from manifest shortName and normalizes casing', async () => {
+    const manifestFixture = {
+      ...manifestFactory(),
+      shortName: 'omh-beta',
+    };
+    helperMocks.loadModuleManifest.mockImplementation(() => manifestFixture);
+
+    const { config } = await importConfigModule();
+
+    expect(helperMocks.extractConfigPrefix).toHaveBeenCalledWith(
+      manifestFixture
+    );
+    expect(config.prefix).toBe('OMH-BETA');
+  });
+
+  it('falls back to OMH prefix when manifest shortName is absent', async () => {
+    const manifestFixture = { ...manifestFactory() };
+    delete manifestFixture.shortName;
+    helperMocks.loadModuleManifest.mockImplementation(() => manifestFixture);
+
+    const { config } = await importConfigModule();
+
+    expect(helperMocks.extractConfigPrefix).toHaveBeenCalledWith(
+      manifestFixture
+    );
+    expect(config.prefix).toBe('OMH');
+  });
+
   it('clones module manifest and keeps proxy view stable', async () => {
     const manifestFixture = {
       id: 'vision-with-fade',
@@ -256,6 +284,105 @@ describe('Config Singleton', () => {
       config.env.OMH_DEBUG_MODE = 'false';
     }).toThrow(TypeError);
     expect(config.env.OMH_DEBUG_MODE).toBe('true');
+  });
+
+  it('deep freezes nested arrays returned by configuration namespaces', async () => {
+    helperMocks.loadConfigFiles.mockImplementation(() => {
+      const base = configsFactory();
+      base.placeables = {
+        ...base.placeables,
+        placeables: {
+          token: {
+            allowedCorners: ['top-left', 'top-right'],
+          },
+        },
+        sequences: [
+          ['north', 'east'],
+          ['south', 'west'],
+        ],
+      };
+      return base;
+    });
+
+    const { config } = await importConfigModule();
+
+    const allowedCorners =
+      config.configs.placeables.placeables.token.allowedCorners;
+    expect(Object.isFrozen(allowedCorners)).toBe(true);
+    expect(() => {
+      allowedCorners.push('center');
+    }).toThrow(TypeError);
+    expect(allowedCorners).toEqual(['top-left', 'top-right']);
+
+    const sequences = config.configs.placeables.sequences;
+    expect(Object.isFrozen(sequences)).toBe(true);
+    expect(Object.isFrozen(sequences[0])).toBe(true);
+    expect(() => {
+      sequences[0].push('extra');
+    }).toThrow(TypeError);
+    expect(sequences[0]).toEqual(['north', 'east']);
+  });
+
+  it('preserves custom logging configuration values', async () => {
+    helperMocks.loadConfigFiles.mockImplementation(() => ({
+      logging: {
+        console: { defaultLevel: 'debug', colorize: ['debug'] },
+        json: { enabled: true, destination: './logs.json' },
+      },
+      moduleManagement: { shortName: 'OMH' },
+      occlusion: { occlusionHandler: { triggeringEvents: {} } },
+      placeables: { placeables: { token: {} } },
+    }));
+
+    const { config } = await importConfigModule();
+
+    expect(config.configs.logging.console.defaultLevel).toBe('debug');
+    expect(config.configs.logging.json.enabled).toBe(true);
+    expect(Object.isFrozen(config.configs.logging)).toBe(true);
+    expect(() => {
+      config.configs.logging.console.defaultLevel = 'info';
+    }).toThrow(TypeError);
+  });
+
+  it('maps null or undefined namespaces to empty frozen objects', async () => {
+    helperMocks.mergeConstants.mockImplementation((namespaces) => {
+      const merged = {};
+      for (const [key, value] of Object.entries(namespaces)) {
+        if (value === null || value === undefined) {
+          merged[key] = {};
+        } else if (typeof value === 'object') {
+          merged[key] = value;
+        } else {
+          throw new Error('Invalid namespace payload');
+        }
+      }
+      return merged;
+    });
+
+    helperMocks.loadYamlFiles.mockImplementation(() => ({
+      errors: null,
+      foundry: undefined,
+      hooks: { ready: 'hook-ready' },
+    }));
+
+    helperMocks.loadConfigFiles.mockImplementation(() => ({
+      logging: null,
+      moduleManagement: undefined,
+      occlusion: { occlusionHandler: { triggeringEvents: {} } },
+      placeables: { placeables: { token: {} } },
+    }));
+
+    const { config } = await importConfigModule();
+
+    expect(config.constants.errors).toEqual({});
+    expect(config.constants.foundry).toEqual({});
+    expect(Object.isFrozen(config.constants.errors)).toBe(true);
+    expect(Object.isFrozen(config.constants.foundry)).toBe(true);
+
+    expect(config.configs.logging).toEqual({});
+    expect(config.configs.moduleManagement).toEqual({});
+    expect(Object.isFrozen(config.configs.logging)).toBe(true);
+    expect(Object.isFrozen(config.configs.moduleManagement)).toBe(true);
   });
 
   it('handles circular references during deep freeze without crashing', async () => {

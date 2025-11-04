@@ -5,6 +5,7 @@
  */
 
 import chalk from 'chalk';
+import type { Config } from '#/config/config.ts';
 
 export type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
 
@@ -84,6 +85,119 @@ type PlaceholderContext = LogContext & {
 };
 
 /**
+ * Default configuration path in Config.constants for logger settings.
+ * @private
+ */
+const DEFAULT_CONFIG_PATH = 'defaults.logging';
+
+/**
+ * Extracts LogConfigurationObject from a Config instance using a configuration path.
+ *
+ * @param {Config} config - Config singleton instance containing logging configuration.
+ * @param {string} [configPath='configs.logging'] - Dot-separated path to logging config in Config.constants.
+ * @returns {LogConfigurationObject} Extracted logging configuration.
+ * @throws {Error} If the configuration path is not properly structured.
+ *
+ * @example
+ * // Using default path (config.constants.defaults.logging)
+ * const logConfig = extractLogConfigFromConfig(config);
+ *
+ * @example
+ * // Using custom path (config.constants.myapp.logger)
+ * const logConfig = extractLogConfigFromConfig(config, 'myapp.logger');
+ */
+function extractLogConfigFromConfig(
+  config: Config,
+  configPath: string = DEFAULT_CONFIG_PATH
+): LogConfigurationObject {
+  const pathSegments = configPath.split('.');
+  let current: unknown = config.constants;
+
+  // Traverse the path to find the configuration object
+  for (let i = 0; i < pathSegments.length; i++) {
+    const segment = pathSegments[i];
+
+    if (!current || typeof current !== 'object') {
+      const traversedPath = pathSegments.slice(0, i).join('.');
+      throw new Error(
+        `${MODULE_PREFIX} Config.constants.${traversedPath} is not available or invalid`
+      );
+    }
+
+    const currentRecord = current as Record<string, unknown>;
+    current = currentRecord[segment];
+
+    if (current === undefined) {
+      const fullPath = pathSegments.slice(0, i + 1).join('.');
+      throw new Error(
+        `${MODULE_PREFIX} Config.constants.${fullPath} is not available or invalid`
+      );
+    }
+  }
+
+  // Validate that we have a valid object at the end of the path
+  if (!current || typeof current !== 'object') {
+    throw new Error(
+      `${MODULE_PREFIX} Config.constants.${configPath} is not available or invalid`
+    );
+  }
+
+  // Safe to cast: runtime check confirms current is an object
+  const loggingRecord = current as Record<string, unknown>;
+
+  // Validate required fields for LogConfigurationObject
+  if (typeof loggingRecord.moduleName !== 'string') {
+    throw new Error(
+      `${MODULE_PREFIX} Config.constants.${configPath}.moduleName must be a string`
+    );
+  }
+
+  if (typeof loggingRecord.level !== 'string') {
+    throw new Error(
+      `${MODULE_PREFIX} Config.constants.${configPath}.level must be a string`
+    );
+  }
+
+  // Safe to cast: validation confirms structure matches LogConfigurationObject
+  // The normalizeConfig method will validate remaining fields
+  return loggingRecord as unknown as LogConfigurationObject;
+}
+
+/**
+ * Type guard to check if the provided value is a Config instance.
+ * Uses structural typing to distinguish Config from LogConfigurationObject.
+ *
+ * The discriminator relies on:
+ * - Config has: constants, module, settings, env (no moduleName)
+ * - LogConfigurationObject has: moduleName, level (no constants/module/settings/env)
+ *
+ * This approach is safe because:
+ * 1. The two types serve different purposes and have non-overlapping structures
+ * 2. LogConfigurationObject is a flat configuration object
+ * 3. Config is a complex singleton with nested properties
+ *
+ * @param {Config | LogConfigurationObject} value - Value to check.
+ * @returns {boolean} True if value is a Config instance.
+ */
+function isConfig(value: Config | LogConfigurationObject): value is Config {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  // Check for Config-specific structure with all required properties
+  const hasConstants = 'constants' in value;
+  const hasModule = 'module' in value;
+  const hasSettings = 'settings' in value;
+  const hasEnv = 'env' in value;
+
+  // LogConfigurationObject must have moduleName, not module
+  const hasModuleName = 'moduleName' in value;
+
+  // A Config has constants/module/settings/env, while LogConfigurationObject has moduleName
+  return hasConstants && hasModule && hasSettings && hasEnv && !hasModuleName;
+}
+
+/**
  * Configurable logger that formats console output based on runtime configuration.
  */
 export class Logger {
@@ -96,12 +210,44 @@ export class Logger {
   /**
    * Creates a logger instance using the provided configuration options.
    *
-   * @param {LogConfigurationObject} config - Pre-parsed configuration object defining logger behavior.
+   * @param {Config | LogConfigurationObject} config - Either a Config singleton instance
+   * (extracting logging configuration from config.configs.logging by default) or a pre-parsed
+   * LogConfigurationObject defining logger behavior directly.
    * When {@link LogConfigurationObject.debugMode} is true the logger emits verbose and debug entries
    * regardless of the base log level threshold.
+   * @param {string} [configPath='configs.logging'] - When using Config, optional dot-separated path
+   * to logging configuration in Config.constants. Defaults to 'configs.logging'.
+   * Ignored when passing a LogConfigurationObject directly.
+   * @throws {Error} If Config is provided but the configuration path is not properly configured.
+   *
+   * @example
+   * // Using Config singleton with default path (config.constants.defaults.logging)
+   * import { config } from '#config';
+   * const logger = new Logger(config);
+   *
+   * @example
+   * // Using Config singleton with custom path (config.constants.myapp.logger)
+   * import { config } from '#config';
+   * const logger = new Logger(config, 'myapp.logger');
+   *
+   * @example
+   * // Using explicit configuration (configPath is ignored)
+   * const logger = new Logger({
+   *   moduleName: 'OMH',
+   *   level: 'info',
+   *   debugMode: false,
+   *   colorize: true
+   * });
    */
-  constructor(config: LogConfigurationObject) {
-    this.baseConfig = this.normalizeConfig(config);
+  constructor(
+    config: Config | LogConfigurationObject,
+    configPath: string = DEFAULT_CONFIG_PATH
+  ) {
+    const logConfig = isConfig(config)
+      ? extractLogConfigFromConfig(config, configPath)
+      : config;
+
+    this.baseConfig = this.normalizeConfig(logConfig);
     this.colors = {
       error: (text: string) => chalk.red(text),
       warn: (text: string) => chalk.yellow(text),

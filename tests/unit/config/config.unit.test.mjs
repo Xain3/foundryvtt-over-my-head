@@ -41,6 +41,8 @@ const envFactory = vi.hoisted(() => () => ({
   OMH_MAX_TOKENS: '42',
 }));
 
+const yamlFactory = vi.hoisted(() => constantsFactory);
+
 vi.mock('#src/config/helpers/configHelpers.ts', () => helperMocks);
 
 const importConfigModule = () => import('#src/config/config.ts');
@@ -101,13 +103,18 @@ describe('Config Singleton', () => {
     expect(helperMocks.loadModuleManifest).toHaveBeenCalledTimes(1);
     expect(helperMocks.extractConfigPrefix).toHaveBeenCalledTimes(1);
     expect(helperMocks.loadYamlFiles).toHaveBeenCalledTimes(1);
-    expect(helperMocks.mergeConstants).toHaveBeenCalledTimes(1);
+    expect(helperMocks.loadConfigFiles).toHaveBeenCalledTimes(1);
+    expect(helperMocks.mergeConstants).toHaveBeenCalledTimes(2);
     expect(helperMocks.loadSettings).toHaveBeenCalledTimes(1);
     expect(helperMocks.loadEnvironmentVariables).toHaveBeenCalledTimes(1);
 
-    const mergeArg = helperMocks.mergeConstants.mock.calls[0][0];
+    const constantsMergeArg = helperMocks.mergeConstants.mock.calls[0][0];
     const yamlResult = helperMocks.loadYamlFiles.mock.results[0].value;
-    expect(mergeArg).toStrictEqual(yamlResult);
+    expect(constantsMergeArg).toStrictEqual(yamlResult);
+
+    const configsMergeArg = helperMocks.mergeConstants.mock.calls[1][0];
+    const configsResult = helperMocks.loadConfigFiles.mock.results[0].value;
+    expect(configsMergeArg).toStrictEqual(configsResult);
 
     const moduleB = await importConfigModule();
     expect(moduleB.config).toBe(config);
@@ -119,12 +126,20 @@ describe('Config Singleton', () => {
 
     expect(Object.isFrozen(config.constants)).toBe(true);
     expect(Object.isFrozen(config.constants.errors)).toBe(true);
+    expect(Object.isFrozen(config.configs)).toBe(true);
+    expect(Object.isFrozen(config.configs.logging)).toBe(true);
 
     const originalSeparator = config.constants.errors.separator;
     expect(() => {
       config.constants.errors.separator = 'updated';
     }).toThrow(TypeError);
     expect(config.constants.errors.separator).toBe(originalSeparator);
+
+    const originalLogLevel = config.configs.logging.console.defaultLevel;
+    expect(() => {
+      config.configs.logging.console.defaultLevel = 'debug';
+    }).toThrow(TypeError);
+    expect(config.configs.logging.console.defaultLevel).toBe(originalLogLevel);
 
     expect(Array.isArray(config.settings)).toBe(true);
     expect(Object.isFrozen(config.settings)).toBe(true);
@@ -211,6 +226,34 @@ describe('Config Singleton', () => {
     expect(config.toString()).toContain('Config[VWF]');
   });
 
+  it('derives prefix from manifest shortName and normalizes casing', async () => {
+    const manifestFixture = {
+      ...manifestFactory(),
+      shortName: 'omh-beta',
+    };
+    helperMocks.loadModuleManifest.mockImplementation(() => manifestFixture);
+
+    const { config } = await importConfigModule();
+
+    expect(helperMocks.extractConfigPrefix).toHaveBeenCalledWith(
+      manifestFixture
+    );
+    expect(config.prefix).toBe('OMH-BETA');
+  });
+
+  it('falls back to OMH prefix when manifest shortName is absent', async () => {
+    const manifestFixture = { ...manifestFactory() };
+    delete manifestFixture.shortName;
+    helperMocks.loadModuleManifest.mockImplementation(() => manifestFixture);
+
+    const { config } = await importConfigModule();
+
+    expect(helperMocks.extractConfigPrefix).toHaveBeenCalledWith(
+      manifestFixture
+    );
+    expect(config.prefix).toBe('OMH');
+  });
+
   it('clones module manifest and keeps proxy view stable', async () => {
     const manifestFixture = {
       id: 'vision-with-fade',
@@ -241,6 +284,105 @@ describe('Config Singleton', () => {
       config.env.OMH_DEBUG_MODE = 'false';
     }).toThrow(TypeError);
     expect(config.env.OMH_DEBUG_MODE).toBe('true');
+  });
+
+  it('deep freezes nested arrays returned by configuration namespaces', async () => {
+    helperMocks.loadConfigFiles.mockImplementation(() => {
+      const base = configsFactory();
+      base.placeables = {
+        ...base.placeables,
+        placeables: {
+          token: {
+            allowedCorners: ['top-left', 'top-right'],
+          },
+        },
+        sequences: [
+          ['north', 'east'],
+          ['south', 'west'],
+        ],
+      };
+      return base;
+    });
+
+    const { config } = await importConfigModule();
+
+    const allowedCorners =
+      config.configs.placeables.placeables.token.allowedCorners;
+    expect(Object.isFrozen(allowedCorners)).toBe(true);
+    expect(() => {
+      allowedCorners.push('center');
+    }).toThrow(TypeError);
+    expect(allowedCorners).toEqual(['top-left', 'top-right']);
+
+    const sequences = config.configs.placeables.sequences;
+    expect(Object.isFrozen(sequences)).toBe(true);
+    expect(Object.isFrozen(sequences[0])).toBe(true);
+    expect(() => {
+      sequences[0].push('extra');
+    }).toThrow(TypeError);
+    expect(sequences[0]).toEqual(['north', 'east']);
+  });
+
+  it('preserves custom logging configuration values', async () => {
+    helperMocks.loadConfigFiles.mockImplementation(() => ({
+      logging: {
+        console: { defaultLevel: 'debug', colorize: ['debug'] },
+        json: { enabled: true, destination: './logs.json' },
+      },
+      moduleManagement: { shortName: 'OMH' },
+      occlusion: { occlusionHandler: { triggeringEvents: {} } },
+      placeables: { placeables: { token: {} } },
+    }));
+
+    const { config } = await importConfigModule();
+
+    expect(config.configs.logging.console.defaultLevel).toBe('debug');
+    expect(config.configs.logging.json.enabled).toBe(true);
+    expect(Object.isFrozen(config.configs.logging)).toBe(true);
+    expect(() => {
+      config.configs.logging.console.defaultLevel = 'info';
+    }).toThrow(TypeError);
+  });
+
+  it('maps null or undefined namespaces to empty frozen objects', async () => {
+    helperMocks.mergeConstants.mockImplementation((namespaces) => {
+      const merged = {};
+      for (const [key, value] of Object.entries(namespaces)) {
+        if (value === null || value === undefined) {
+          merged[key] = {};
+        } else if (typeof value === 'object') {
+          merged[key] = value;
+        } else {
+          throw new Error('Invalid namespace payload');
+        }
+      }
+      return merged;
+    });
+
+    helperMocks.loadYamlFiles.mockImplementation(() => ({
+      errors: null,
+      foundry: undefined,
+      hooks: { ready: 'hook-ready' },
+    }));
+
+    helperMocks.loadConfigFiles.mockImplementation(() => ({
+      logging: null,
+      moduleManagement: undefined,
+      occlusion: { occlusionHandler: { triggeringEvents: {} } },
+      placeables: { placeables: { token: {} } },
+    }));
+
+    const { config } = await importConfigModule();
+
+    expect(config.constants.errors).toEqual({});
+    expect(config.constants.foundry).toEqual({});
+    expect(Object.isFrozen(config.constants.errors)).toBe(true);
+    expect(Object.isFrozen(config.constants.foundry)).toBe(true);
+
+    expect(config.configs.logging).toEqual({});
+    expect(config.configs.moduleManagement).toEqual({});
+    expect(Object.isFrozen(config.configs.logging)).toBe(true);
+    expect(Object.isFrozen(config.configs.moduleManagement)).toBe(true);
   });
 
   it('handles circular references during deep freeze without crashing', async () => {

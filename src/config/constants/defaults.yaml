@@ -1,0 +1,18 @@
+# @file defaults.yaml
+# @description Runtime configuration settings for the Over My Head module
+# @path src/config/constants/defaults.yaml
+
+logging:
+  moduleName: OMH
+  level: info
+  debugMode: false
+  colorize: true
+  timestamp:
+    enabled: true
+    format: iso
+  format:
+    error: '[{module}] ERROR | {timestamp} | {message}'
+    warn: '[{module}] WARN | {timestamp} | {message}'
+    info: '[{module}] {message}'
+    verbose: '[{module}] VERBOSE | {message}'
+    debug: '[{module}] DEBUG | {timestamp} | {message} | {metadata}'

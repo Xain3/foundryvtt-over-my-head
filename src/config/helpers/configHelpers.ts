@@ -10,6 +10,7 @@ import { parse as parseYaml } from 'yaml';
 import { fileURLToPath } from 'url';
 
 export const REQUIRED_CONSTANT_FILES = [
+  'defaults.yaml',
   'errors.yaml',
   'foundry.yaml',
   'hooks.yaml',

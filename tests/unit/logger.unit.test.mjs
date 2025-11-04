@@ -8,6 +8,7 @@ import chalk from 'chalk';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Logger } from '#/utils/logger.ts';
+import { config } from '#/config/config.ts';
 
 const FIXED_DATE = new Date('2025-11-02T15:30:45.123Z');
 
@@ -374,5 +375,84 @@ describe('Logger', () => {
     expect(() => logger.error('Circular test', circular)).not.toThrow();
     expect(errorSpy.mock.calls[0][0]).toContain('[Circular]');
     expect(warnSpy).toHaveBeenCalled();
+  });
+
+  it('accepts a Config object and extracts logging configuration', () => {
+    const infoSpy = setUpConsoleSpy('info');
+
+    // Create logger using Config object
+    expect(() => new Logger(config)).not.toThrow();
+
+    const logger = new Logger(config);
+    logger.info('Test message from Config');
+
+    expect(infoSpy).toHaveBeenCalledTimes(1);
+    expect(infoSpy.mock.calls[0][0]).toContain('Test message from Config');
+  });
+
+  it('throws error if Config object does not have configs.logging', () => {
+    const invalidConfig = {
+      constants: {},
+      module: {},
+      settings: [],
+      env: {},
+    };
+
+    expect(() => new Logger(invalidConfig)).toThrow(
+      /Config.constants.defaults is not available or invalid/
+    );
+  });
+
+  it('uses logging configuration from Config.configs.logging', () => {
+    const errorSpy = setUpConsoleSpy('error');
+    const logger = new Logger(config);
+
+    // The config should have the default format from defaults.yaml
+    logger.error('Config-based error');
+
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+    // Verify it uses the format from defaults.yaml
+    expect(errorSpy.mock.calls[0][0]).toMatch(/\[.*\] ERROR \|/);
+  });
+
+  it('accepts custom configPath parameter for Config object', () => {
+    const infoSpy = setUpConsoleSpy('info');
+
+    // Using default path should work
+    const defaultLogger = new Logger(config);
+    defaultLogger.info('Default path test');
+
+    expect(infoSpy).toHaveBeenCalledTimes(1);
+
+    // Using explicit path should also work
+    const explicitLogger = new Logger(config, 'defaults.logging');
+    explicitLogger.info('Explicit path test');
+
+    expect(infoSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('throws error when custom configPath does not exist', () => {
+    expect(() => new Logger(config, 'nonexistent.path')).toThrow(
+      /Config.constants.nonexistent is not available or invalid/
+    );
+  });
+
+  it('ignores configPath parameter when using LogConfigurationObject', () => {
+    const infoSpy = setUpConsoleSpy('info');
+
+    // configPath should be ignored when passing explicit config
+    const logger = new Logger(
+      {
+        moduleName: 'TEST',
+        level: 'info',
+        colorize: false,
+      },
+      'ignored.path'
+    );
+
+    logger.info('Direct config test');
+
+    expect(infoSpy).toHaveBeenCalledTimes(1);
+    expect(infoSpy.mock.calls[0][0]).toContain('TEST');
   });
 });

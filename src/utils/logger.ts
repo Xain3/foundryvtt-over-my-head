@@ -160,7 +160,7 @@ function extractLogConfigFromConfig(
 
   // Safe to cast: validation confirms structure matches LogConfigurationObject
   // The normalizeConfig method will validate remaining fields
-  return loggingRecord as LogConfigurationObject;
+  return loggingRecord as unknown as LogConfigurationObject;
 }
 
 /**

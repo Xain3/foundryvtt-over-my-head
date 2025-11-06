@@ -41,8 +41,6 @@ const envFactory = vi.hoisted(() => () => ({
   OMH_MAX_TOKENS: '42',
 }));
 
-const yamlFactory = vi.hoisted(() => constantsFactory);
-
 vi.mock('#src/config/helpers/configHelpers.ts', () => helperMocks);
 
 const importConfigModule = () => import('#src/config/config.ts');
@@ -387,7 +385,7 @@ describe('Config Singleton', () => {
 
   it('handles circular references during deep freeze without crashing', async () => {
     helperMocks.loadYamlFiles.mockImplementation(() => {
-      const base = yamlFactory();
+      const base = constantsFactory();
       const circular = {};
       circular.self = circular;
       return { ...base, circular };

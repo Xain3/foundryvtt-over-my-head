@@ -34,6 +34,14 @@ export const aliasEntries = [
     find: '#config',
     replacement: resolve(cwd, 'src/config/config.ts'),
   },
+  /**
+   * Alias for the logger utility module.
+   * Allows imports like `import { Logger } from '#logger'` to resolve to `src/utils/logger.ts`.
+   */
+  {
+    find: '#logger',
+    replacement: resolve(cwd, 'src/utils/logger.ts'),
+  },
   {
     find: '#tests',
     replacement: resolve(cwd, 'tests'),

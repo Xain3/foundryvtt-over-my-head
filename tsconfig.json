@@ -1,33 +1,53 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "allowJs": true,
-    "checkJs": false,
-    "allowImportingTsExtensions": true,
-    "esModuleInterop": true,
-    "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true,
-    "types": [],
-    "paths": {
-      "#/*": ["./src/*"],
-      "#src/*": ["./src/*"],
-      "#config": ["./src/config/config.ts"],
-      "#tests/*": ["./tests/*"],
-      "#mocks/*": ["./tests/mocks/*"],
-      "#devutils/*": ["./.dev/utils/*"]
-    }
-  },
-  "include": ["./src/**/*", "./tests/**/*"],
-  "exclude": [
-    "./node_modules",
-    "./dist",
-    "./release",
-    "./coverage",
-    "./.tmp",
-    "./.log"
-  ]
+    "compilerOptions": {
+        "target": "ES2022",
+        "lib": [
+            "ES2022"
+        ],
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "allowJs": true,
+        "checkJs": false,
+        "allowImportingTsExtensions": true,
+        "esModuleInterop": true,
+        "strict": true,
+        "noEmit": true,
+        "skipLibCheck": true,
+        "types": [],
+        "paths": {
+            "#/*": [
+                "./src/*"
+            ],
+            "#src/*": [
+                "./src/*"
+            ],
+            "#config": [
+                "./src/config/config.ts"
+            ],
+            "#logger": [
+                "./src/utils/logger.ts"
+            ],
+            "#tests/*": [
+                "./tests/*"
+            ],
+            "#mocks/*": [
+                "./tests/mocks/*"
+            ],
+            "#devutils/*": [
+                "./.dev/utils/*"
+            ]
+        }
+    },
+    "include": [
+        "./src/**/*",
+        "./tests/**/*"
+    ],
+    "exclude": [
+        "./node_modules",
+        "./dist",
+        "./release",
+        "./coverage",
+        "./.tmp",
+        "./.log"
+    ]
 }

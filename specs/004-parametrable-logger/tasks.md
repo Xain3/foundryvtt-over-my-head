@@ -115,7 +115,7 @@ description: 'Task list for parametrable logger implementation'
 
 **Goal**: Developer can override specific format templates or timestamp settings per log call
 
-**Independent Test**: Create logger with default format, call logger.info("test", { format: { info: "CUSTOM: {message}" } }), verify custom format used
+**Independent Test**: Create logger with default format, call logger.info("test", { overrides: { format: { info: "CUSTOM: {message}" } } }), verify custom format used
 
 ### Tests for User Story 3 (Write these tests FIRST, ensure they FAIL before implementation) ⚠️
 

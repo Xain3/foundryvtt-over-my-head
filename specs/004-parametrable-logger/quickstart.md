@@ -35,8 +35,8 @@ const logger = new Logger({
 
 ```javascript
 logger.info('Application started');
-logger.warn('Low disk space', { available: '500MB' });
-logger.error('Connection failed', { host: 'localhost' });
+logger.warn('Low disk space', { metadata: { available: '500MB' } });
+logger.error('Connection failed', { metadata: { host: 'localhost' } });
 ```
 
 **Done!** You're now logging with consistent formatting.
@@ -64,7 +64,7 @@ const logger = new Logger({
 });
 
 // Use logger throughout application
-logger.info('User logged in', { userId: 123 });
+logger.info('User logged in', { metadata: { userId: 123 } });
 logger.debug('Session token refreshed');
 ```
 
@@ -113,7 +113,7 @@ const performanceLogger = new Logger({
   },
 });
 
-performanceLogger.info('Render complete', { duration: 42 });
+performanceLogger.info('Render complete', { metadata: { duration: 42 } });
 // Output: [⚡ PERF] Render complete (42ms)
 ```
 
@@ -144,8 +144,10 @@ const securityLogger = new Logger({
 });
 
 securityLogger.warn('Failed login attempt', {
-  username: 'admin',
-  ip: '192.168.1.1',
+  metadata: {
+    username: 'admin',
+    ip: '192.168.1.1',
+  },
 });
 // Output: 🔒 [OMH] SECURITY WARNING: Failed login attempt
 ```
@@ -228,7 +230,9 @@ logger.debug('🚫 Hidden');
 ### Nested Access
 
 ```javascript
-logger.info('User action', { user: { id: 123, name: 'Alice' } });
+logger.info('User action', {
+  metadata: { user: { id: 123, name: 'Alice' } },
+});
 
 // Template: '{message} by {metadata.user.name}'
 // Output: 'User action by Alice'
@@ -288,8 +292,8 @@ node app.js > output.log
 
 ```javascript
 // Template: '{message} ({metadata.userId})'
-logger.info('Action', { userId: 123 }); // ✅ Works
-logger.info('Action', { id: 123 }); // ❌ {metadata.userId} stays literal
+logger.info('Action', { metadata: { userId: 123 } }); // ✅ Works
+logger.info('Action', { metadata: { id: 123 } }); // ❌ {metadata.userId} stays literal
 ```
 
 ---
@@ -384,7 +388,7 @@ if (logger.threshold >= LOG_LEVELS.debug) {
 
 ```javascript
 // ❌ Expensive: Entire object serialized
-logger.debug('State', { hugeObject: veryLargeDataStructure });
+logger.debug('State', { metadata: { hugeObject: veryLargeDataStructure } });
 ```
 
 **Prefer**: Log only relevant fields:
@@ -392,8 +396,10 @@ logger.debug('State', { hugeObject: veryLargeDataStructure });
 ```javascript
 // ✅ Efficient: Extract key fields
 logger.debug('State', {
-  itemCount: veryLargeDataStructure.items.length,
-  status: veryLargeDataStructure.status,
+  metadata: {
+    itemCount: veryLargeDataStructure.items.length,
+    status: veryLargeDataStructure.status,
+  },
 });
 ```
 

@@ -62,6 +62,14 @@ export type LogOverrides = Partial<
 };
 
 /**
+ * Structured options supported by each public logging method.
+ */
+export interface LogMethodOptions {
+  metadata?: unknown;
+  overrides?: LogOverrides;
+}
+
+/**
  * Context object passed to placeholder substitution in format templates.
  */
 export interface LogContext {

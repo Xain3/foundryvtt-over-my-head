@@ -36,7 +36,9 @@ describe('Logger performance characteristics', () => {
     const start = performance.now();
 
     for (let index = 0; index < iterations; index += 1) {
-      logger.debug('Performance probe', { iteration: index });
+      logger.debug('Performance probe', {
+        metadata: { iteration: index },
+      });
     }
 
     const totalDuration = performance.now() - start;

@@ -151,7 +151,10 @@ describe('Logger integration', () => {
       },
     };
 
-    logger.info('Override message', { step: 'alpha' }, overrides);
+    logger.info('Override message', {
+      metadata: { step: 'alpha' },
+      overrides,
+    });
 
     expect(consoleInfoSpy).toHaveBeenCalledTimes(2);
     expect(consoleInfoSpy.mock.calls[1][0]).toBe(

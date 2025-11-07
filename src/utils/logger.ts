@@ -6,53 +6,17 @@
 
 import chalk from 'chalk';
 import type { Config } from '#/config/config.ts';
-
-export type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
-
-export const LOG_LEVELS: Record<LogLevel, number> = {
-  error: 0,
-  warn: 1,
-  info: 2,
-  verbose: 3,
-  debug: 4,
-};
-
-export interface TimestampConfig {
-  enabled: boolean;
-  format: 'iso' | 'locale';
-}
-
-export interface FormatTemplates {
-  error?: string;
-  warn?: string;
-  info?: string;
-  verbose?: string;
-  debug?: string;
-}
-
-export interface LogConfigurationObject {
-  moduleName: string;
-  level: LogLevel;
-  debugMode?: boolean;
-  colorize?: boolean;
-  timestamp?: TimestampConfig;
-  format?: FormatTemplates;
-}
-
-export type LogOverrides = Partial<
-  Omit<LogConfigurationObject, 'moduleName' | 'timestamp' | 'format'>
-> & {
-  timestamp?: Partial<TimestampConfig>;
-  format?: FormatTemplates;
-};
-
-export interface LogContext {
-  module: string;
-  level: string;
-  timestamp: string;
-  message: string;
-  metadata?: unknown;
-}
+import type {
+  LogLevel,
+  TimestampConfig,
+  FormatTemplates,
+  LogConfigurationObject,
+  LogOverrides,
+  LogContext,
+  NormalizedConfig,
+  PlaceholderContext,
+} from './logger-types.ts';
+import { LOG_LEVELS } from './logger-types.ts';
 
 const MODULE_PREFIX = '[OMH]';
 
@@ -69,19 +33,6 @@ const DEFAULT_FORMAT_TEMPLATES: Required<FormatTemplates> = {
   info: '[{module}] {message}',
   verbose: '[{module}] VERBOSE | {message}',
   debug: '[{module}] DEBUG | {timestamp} | {message} | {metadata}',
-};
-
-type NormalizedConfig = {
-  moduleName: string;
-  level: LogLevel;
-  debugMode: boolean;
-  colorize: boolean;
-  timestamp: TimestampConfig;
-  format: Required<FormatTemplates>;
-};
-
-type PlaceholderContext = LogContext & {
-  metadata?: unknown;
 };
 
 /**
@@ -870,3 +821,13 @@ export class Logger {
     return String(value);
   }
 }
+
+export type {
+  LogLevel,
+  TimestampConfig,
+  FormatTemplates,
+  LogConfigurationObject,
+  LogOverrides,
+  LogContext,
+} from './logger-types.ts';
+export { LOG_LEVELS } from './logger-types.ts';

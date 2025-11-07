@@ -4,20 +4,10 @@
  * @path src/utils/static/moduleNameResolver.ts
  */
 
-const MODULE_PREFIX = '[OMH]';
-
-interface ModuleDescriptor {
-  id?: string;
-  title?: string;
-  shortName?: string;
-}
-
-interface ModuleNameResolverConfig {
-  moduleManagement?: {
-    referToModuleBy?: string;
-  };
-  module?: ModuleDescriptor;
-}
+import type {
+  ModuleDescriptor,
+  ModuleNameResolverConfig,
+} from './moduleNameResolver-types.ts';
 
 /**
  * Resolves the module display name from configuration data.
@@ -44,7 +34,7 @@ export function resolveModuleName(config?: ModuleNameResolverConfig): string {
     }
 
     console.warn(
-      `${MODULE_PREFIX} Missing module.title while referToModuleBy='title', falling back to default identifier`
+      `${fallback} Missing module.title while referToModuleBy='title', falling back to default identifier`
     );
     return fallback;
   }
@@ -55,13 +45,13 @@ export function resolveModuleName(config?: ModuleNameResolverConfig): string {
     }
 
     console.warn(
-      `${MODULE_PREFIX} Missing module.shortName while referToModuleBy='shortName', falling back to default identifier`
+      `${fallback} Missing module.shortName while referToModuleBy='shortName', falling back to default identifier`
     );
     return fallback;
   }
 
   console.warn(
-    `${MODULE_PREFIX} Unknown referToModuleBy strategy: ${strategy}, using 'id' as fallback`
+    `${fallback} Unknown referToModuleBy strategy: ${strategy}, using 'id' as fallback`
   );
   return moduleData.id ?? fallback;
 }

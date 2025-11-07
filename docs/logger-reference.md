@@ -53,89 +53,102 @@ LogConfigurationObject {
 
 ## Public API Methods
 
-| Method      | Parameters                         | Threshold   | Description                      |
-| ----------- | ---------------------------------- | ----------- | -------------------------------- |
-| `error()`   | `(message, metadata?, overrides?)` | Always      | Critical failure                 |
-| `warn()`    | `(message, metadata?, overrides?)` | ≥ warn      | Warning issue                    |
-| `info()`    | `(message, metadata?, overrides?)` | ≥ info      | Important event                  |
-| `log()`     | `(message, metadata?, overrides?)` | ≥ info      | Generic alias for `info()` level |
-| `verbose()` | `(message, metadata?, overrides?)` | ≥ verbose\* | Detailed trace                   |
-| `debug()`   | `(message, metadata?, overrides?)` | ≥ debug\*   | Internal diagnostic              |
+| Method      | Parameters            | Threshold   | Description                      |
+| ----------- | --------------------- | ----------- | -------------------------------- |
+| `error()`   | `(message, options?)` | Always      | Critical failure                 |
+| `warn()`    | `(message, options?)` | ≥ warn      | Warning issue                    |
+| `info()`    | `(message, options?)` | ≥ info      | Important event                  |
+| `log()`     | `(message, options?)` | ≥ info      | Generic alias for `info()` level |
+| `verbose()` | `(message, options?)` | ≥ verbose\* | Detailed trace                   |
+| `debug()`   | `(message, options?)` | ≥ debug\*   | Internal diagnostic              |
+
+`options` is an object with the shape `{ metadata?: unknown, overrides?: LogOverrides }`. Provide `metadata` to surface structured context inside placeholder templates, and `overrides` for per-call configuration. Both keys are optional.
 
 _\*verbose and debug only emit if `debugMode: true` in effective config._
-_\*\*log() is a public alias that functionally routes to the info level._
+_\*\*log() remains a public alias that routes to the `info` level._
 
 ---
 
 ## Logging Flow Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  logger.info("User signed in", { userId: 123 })                 │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │
-                           ▼
-          ┌─────────────────────────────────────┐
-          │ resolveCallParameters()             │
-          │ Distinguish metadata vs overrides   │
-          └────────────────────┬────────────────┘
-                               │
-                    ┌──────────┴──────────┐
-                    │                     │
-            ┌───────▼────────┐    ┌──────▼─────────┐
-            │ metadata       │    │ overrides      │
-            │ { userId: 123 }│    │ { level: ... } │
-            └────────────────┘    └────────────────┘
-                    │                     │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-          ┌────────────────────────────────────┐
-          │ mergeConfig(overrides)             │
-          │ Shallow merge with base config     │
-          └────────────────────┬───────────────┘
-                               │
-                               ▼
-          ┌────────────────────────────────────┐
-          │ shouldLog(level, config, threshold)│
-          │ Check if meets threshold           │
-          └───────┬──────────────────┬─────────┘
-                  │                  │
-         (emit)   │                  │  (skip)
-                  ▼                  ▼
-          ┌──────────────┐    ┌──────────────┐
-          │ formatMessage│    │ Return early │
-          └──────┬───────┘    └──────────────┘
-                 │
-                 ▼
-    ┌────────────────────────────────┐
-    │ Build LogContext:              │
-    │  - module: "OMH"               │
-    │  - level: "INFO"               │
-    │  - timestamp: "2025-11-03..."  │
-    │  - message: "User signed in"   │
-    │  - metadata: { userId: 123 }   │
-    └────────┬───────────────────────┘
-             │
-             ▼
-    ┌────────────────────────────────┐
-    │ applyPlaceholders()            │
-    │ Substitute {module}, {message},│
-    │ {timestamp}, {metadata.*}      │
-    │ in template string             │
-    └────────┬───────────────────────┘
-             │
-             ▼
-    ┌────────────────────────────────┐
-    │ applyColor(level, message)     │
-    │ Add ANSI color codes if enabled│
-    └────────┬───────────────────────┘
-             │
-             ▼
-    ┌────────────────────────────────┐
-    │ emit(level, formatted)         │
-    │ Call console.log/error/warn... │
-    └────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  logger.info("User signed in", { metadata: { userId: 123 }, overrides })    │
+└───────────────────────────────┬─────────────────────────────────────────────┘
+                                │
+                                ▼
+                  ┌──────────────────────────────┐
+                  │ Public method (info/error/   │
+                  │ warn/verbose/debug/log)      │
+                  │ Destructures options object  │
+                  └──────────────┬───────────────┘
+                                 │
+                                 ▼
+                  ┌──────────────────────────────┐
+                  │ _log(level, message,         │
+                  │      metadata?, overrides?)  │
+                  └──────────────┬───────────────┘
+                                 │
+                                 ▼
+                  ┌──────────────────────────────┐
+                  │ mergeConfig(overrides)       │
+                  │ Shallow merge with base      │
+                  └──────────────┬───────────────┘
+                                 │
+                                 ▼
+                  ┌──────────────────────────────┐
+                  │ resolveThreshold(config)     │
+                  │ Calculate numeric threshold  │
+                  └──────────────┬───────────────┘
+                                 │
+                                 ▼
+                  ┌──────────────────────────────┐
+                  │ shouldLog(level, config,     │
+                  │           threshold)         │
+                  │ Check emission criteria      │
+                  └───────┬──────────────┬───────┘
+                          │              │
+                 (emit)   │              │  (skip)
+                          ▼              ▼
+              ┌────────────────┐   ┌──────────────┐
+              │ formatMessage  │   │ Return early │
+              └────────┬───────┘   └──────────────┘
+                       │
+                       ▼
+      ┌─────────────────────────────────────┐
+      │ Build PlaceholderContext:           │
+      │  - module: "OMH"                    │
+      │  - level: "INFO"                    │
+      │  - timestamp: "2025-11-07..."       │
+      │  - message: "User signed in"        │
+      │  - metadata: { userId: 123 }        │
+      └─────────────┬───────────────────────┘
+                    │
+                    ▼
+      ┌─────────────────────────────────────┐
+      │ serializeMetadata(metadata)         │
+      │ JSON.stringify with circular check  │
+      └─────────────┬───────────────────────┘
+                    │
+                    ▼
+      ┌─────────────────────────────────────┐
+      │ applyPlaceholders(template,         │
+      │   context, serializedMetadata)      │
+      │ Substitute {module}, {message},     │
+      │ {timestamp}, {metadata.*}           │
+      └─────────────┬───────────────────────┘
+                    │
+                    ▼
+      ┌─────────────────────────────────────┐
+      │ applyColor(level, message)          │
+      │ Add ANSI color codes if enabled     │
+      └─────────────┬───────────────────────┘
+                    │
+                    ▼
+      ┌─────────────────────────────────────┐
+      │ emit(level, formatted)              │
+      │ Call console.error/warn/info/log... │
+      └─────────────────────────────────────┘
 ```
 
 ---
@@ -175,13 +188,20 @@ const logger = new Logger({
   timestamp: { enabled: true, format: 'iso' },
 });
 
-logger.info('Login successful', { userId: 42, username: 'alice' });
+logger.info('Login successful', {
+  metadata: { userId: 42, username: 'alice' },
+});
 // Output: [OMH] Login successful
 
-logger.debug('Checking permissions', { userId: 42 });
+logger.debug('Checking permissions', {
+  metadata: { userId: 42 },
+});
 // Output: (nothing - debug mode off)
 
-logger.debug('Checking permissions', { userId: 42 }, { debugMode: true });
+logger.debug('Checking permissions', {
+  metadata: { userId: 42 },
+  overrides: { debugMode: true },
+});
 // Output: [OMH] DEBUG | 2025-11-03T10:45:23Z | Checking permissions | {"userId":42}
 ```
 
@@ -237,7 +257,7 @@ Metadata containing circular references is safely serialized with `[Circular]` t
 const obj = { name: 'Alice' };
 obj.self = obj; // Circular reference
 
-logger.info('User object', obj);
+logger.info('User object', { metadata: obj });
 // Serializes as: {"name":"Alice","self":"[Circular]"}
 ```
 
@@ -252,7 +272,7 @@ logger.debug('Not emitted'); // ✗ Skipped
 logger.verbose('Not emitted'); // ✗ Skipped
 
 // But with override:
-logger.debug('Emitted!', {}, { debugMode: true }); // ✓ Logged
+logger.debug('Emitted!', { overrides: { debugMode: true } }); // ✓ Logged
 ```
 
 ### 3. **Metadata Serialization**
@@ -286,7 +306,7 @@ Colorization is **disabled in tests** via config to prevent brittle assertions.
 
 | Method                             | Purpose                                                              |
 | ---------------------------------- | -------------------------------------------------------------------- |
-| `log()`                            | Central router; evaluates overrides, threshold, and decides to emit  |
+| `_log()`                           | Central router; evaluates overrides, threshold, and decides to emit  |
 | `shouldLog()`                      | Determines if level passes threshold (respects debugMode)            |
 | `mergeConfig()`                    | Shallow merges per-call overrides with base config                   |
 | `formatMessage()`                  | Constructs formatted string with placeholders and color              |
@@ -340,18 +360,23 @@ logger.log('Module initialized');
 // Output: [OMH] ℹ️  Module initialized
 
 // 3. With metadata
-logger.info('User action', { action: 'login', userId: 42 });
+logger.info('User action', {
+  metadata: { action: 'login', userId: 42 },
+});
 // Output: [OMH] ℹ️  User action
 
 // 4. With per-call override (enable debug temporarily)
-logger.debug('Internal state check', { cache: 'hit' }, { debugMode: true });
+logger.debug('Internal state check', {
+  metadata: { cache: 'hit' },
+  overrides: { debugMode: true },
+});
 // Output: [OMH] DEBUG | 2025-11-03T... | Internal state check | {"cache":"hit"}
 
 // 5. Error handling
 try {
   riskyOperation();
 } catch (error) {
-  logger.error('Operation failed', error);
+  logger.error('Operation failed', { metadata: error });
   // Output: [OMH] ❌ Error: operation failed
   //         (with full stack trace)
 }

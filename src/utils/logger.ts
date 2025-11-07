@@ -12,6 +12,7 @@ import type {
   FormatTemplates,
   LogConfigurationObject,
   LogOverrides,
+  LogMethodOptions,
   LogContext,
   NormalizedConfig,
   PlaceholderContext,
@@ -19,8 +20,6 @@ import type {
 import { LOG_LEVELS } from './logger-types.ts';
 
 const MODULE_PREFIX = '[OMH]';
-
-const OVERRIDE_KEYS = ['level', 'debugMode', 'colorize', 'timestamp', 'format'];
 
 const DEFAULT_TIMESTAMP_CONFIG: TimestampConfig = {
   enabled: true,
@@ -213,11 +212,10 @@ export class Logger {
    * Logs an error-level message. Always emitted regardless of threshold.
    *
    * @param {string} message - Message content to log.
-   * @param {unknown} [metadata] - Optional contextual data to include in the log entry.
-   * @param {LogOverrides} [overrides] - Optional configuration overrides applied to this log call only.
+   * @param {LogMethodOptions} [options] - Optional metadata and override payload for this log invocation.
    * @returns {void}
    */
-  error(message: string, metadata?: unknown, overrides?: LogOverrides): void {
+  error(message: string, { metadata, overrides }: LogMethodOptions = {}): void {
     this._log('error', message, metadata, overrides);
   }
 
@@ -225,11 +223,10 @@ export class Logger {
    * Logs a warn-level message when threshold permits.
    *
    * @param {string} message - Message content to log.
-   * @param {unknown} [metadata] - Optional contextual data to include in the log entry.
-   * @param {LogOverrides} [overrides] - Optional configuration overrides applied to this log call only.
+   * @param {LogMethodOptions} [options] - Optional metadata and override payload for this log invocation.
    * @returns {void}
    */
-  warn(message: string, metadata?: unknown, overrides?: LogOverrides): void {
+  warn(message: string, { metadata, overrides }: LogMethodOptions = {}): void {
     this._log('warn', message, metadata, overrides);
   }
 
@@ -237,11 +234,10 @@ export class Logger {
    * Logs an info-level message when threshold permits.
    *
    * @param {string} message - Message content to log.
-   * @param {unknown} [metadata] - Optional contextual data to include in the log entry.
-   * @param {LogOverrides} [overrides] - Optional configuration overrides applied to this log call only.
+   * @param {LogMethodOptions} [options] - Optional metadata and override payload for this log invocation.
    * @returns {void}
    */
-  info(message: string, metadata?: unknown, overrides?: LogOverrides): void {
+  info(message: string, { metadata, overrides }: LogMethodOptions = {}): void {
     this._log('info', message, metadata, overrides);
   }
 
@@ -249,11 +245,13 @@ export class Logger {
    * Logs a verbose-level message when threshold permits.
    *
    * @param {string} message - Message content to log.
-   * @param {unknown} [metadata] - Optional contextual data to include in the log entry.
-   * @param {LogOverrides} [overrides] - Optional configuration overrides applied to this log call only.
+   * @param {LogMethodOptions} [options] - Optional metadata and override payload for this log invocation.
    * @returns {void}
    */
-  verbose(message: string, metadata?: unknown, overrides?: LogOverrides): void {
+  verbose(
+    message: string,
+    { metadata, overrides }: LogMethodOptions = {}
+  ): void {
     this._log('verbose', message, metadata, overrides);
   }
 
@@ -261,11 +259,10 @@ export class Logger {
    * Logs a debug-level message when threshold permits or debug mode is active.
    *
    * @param {string} message - Message content to log.
-   * @param {unknown} [metadata] - Optional contextual data to include in the log entry.
-   * @param {LogOverrides} [overrides] - Optional configuration overrides applied to this log call only.
+   * @param {LogMethodOptions} [options] - Optional metadata and override payload for this log invocation.
    * @returns {void}
    */
-  debug(message: string, metadata?: unknown, overrides?: LogOverrides): void {
+  debug(message: string, { metadata, overrides }: LogMethodOptions = {}): void {
     this._log('debug', message, metadata, overrides);
   }
 
@@ -274,14 +271,13 @@ export class Logger {
    * Provided as a generic alias for compatibility with standard logging conventions.
    *
    * @param {string} message - Message content to log.
-   * @param {unknown} [metadata] - Optional contextual data to include in the log entry.
-   * @param {LogOverrides} [overrides] - Optional configuration overrides applied to this log call only.
+   * @param {LogMethodOptions} [options] - Optional metadata and override payload for this log invocation.
    * @returns {void}
    *
    * @example
    * logger.log('Application started'); // Same as logger.info('Application started')
    */
-  log(message: string, metadata?: unknown, overrides?: LogOverrides): void {
+  log(message: string, { metadata, overrides }: LogMethodOptions = {}): void {
     this._log('info', message, metadata, overrides);
   }
 
@@ -293,19 +289,17 @@ export class Logger {
    * @private
    * @param {LogLevel} level - Severity level for the log event.
    * @param {string} message - Message content to log.
-   * @param {unknown} [metadataOrOverrides] - Metadata payload or an overrides object when a third argument is omitted.
+   * @param {unknown} [metadata] - Optional metadata payload associated with the log invocation.
    * @param {LogOverrides} [overrides] - Explicit configuration overrides merged against the base logger settings.
    * @returns {void}
    */
   private _log(
     level: LogLevel,
     message: string,
-    metadataOrOverrides?: unknown,
+    metadata?: unknown,
     overrides?: LogOverrides
   ): void {
-    const { metadata, overrides: resolvedOverrides } =
-      this.resolveCallParameters(metadataOrOverrides, overrides);
-    const effectiveConfig = this.mergeConfig(resolvedOverrides);
+    const effectiveConfig = this.mergeConfig(overrides);
     const threshold =
       effectiveConfig === this.baseConfig
         ? this.baseThreshold
@@ -322,37 +316,6 @@ export class Logger {
       effectiveConfig
     );
     this.emit(level, formatted);
-  }
-
-  /**
-   * Distinguishes between metadata and overrides based on the optional arguments supplied to a log method.
-   *
-   * @param {unknown} metadataOrOverrides - Second argument passed to a logging method.
-   * @param {LogOverrides} [overrides] - Third argument containing explicit overrides, when provided.
-   * @returns {{ metadata?: unknown; overrides?: LogOverrides }} Normalized metadata and overrides payload.
-   */
-  private resolveCallParameters(
-    metadataOrOverrides?: unknown,
-    overrides?: LogOverrides
-  ): { metadata?: unknown; overrides?: LogOverrides } {
-    if (overrides !== undefined) {
-      return {
-        metadata: metadataOrOverrides,
-        overrides,
-      };
-    }
-
-    if (this.isOverrideCandidate(metadataOrOverrides)) {
-      return {
-        metadata: undefined,
-        overrides: metadataOrOverrides,
-      };
-    }
-
-    return {
-      metadata: metadataOrOverrides,
-      overrides: undefined,
-    };
   }
 
   /**
@@ -593,27 +556,6 @@ export class Logger {
     };
 
     return Object.freeze(mergedConfig) as NormalizedConfig;
-  }
-
-  /**
-   * Determines whether the provided value should be interpreted as a overrides object instead of metadata.
-   *
-   * @param {unknown} candidate - Value passed in place of metadata.
-   * @returns {boolean} True when the value matches the expected override shape.
-   */
-  private isOverrideCandidate(candidate: unknown): candidate is LogOverrides {
-    if (candidate === null || candidate === undefined) {
-      return false;
-    }
-
-    if (typeof candidate !== 'object' || Array.isArray(candidate)) {
-      return false;
-    }
-
-    const record = candidate as Record<string, unknown>;
-    return OVERRIDE_KEYS.some((key) =>
-      Object.prototype.hasOwnProperty.call(record, key)
-    );
   }
 
   /**

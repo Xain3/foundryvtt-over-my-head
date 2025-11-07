@@ -4,6 +4,11 @@
 
 This folder contains static utility classes that provide common functionality for data validation, object manipulation, configuration parsing, and other utility operations. All utilities are designed to be stateless and can be used throughout the application without instantiation (except where noted).
 
+## Files
+
+- `devModeParser.ts` - Development/debug mode status evaluation
+- `devModeParser-types.ts` - Type definitions for DevModeParser (separate from implementation)
+
 ## Public API
 
 **Import the StaticUtils class** from the centralized entrypoint (`src/utils/static.ts`):

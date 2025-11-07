@@ -33,6 +33,7 @@ The module MUST maintain clear separation of concerns with a view toward reuse a
   configs
 - Composition over inheritance preferred where technically feasible
 - Each module component MUST have explicitly defined responsibility and dependencies
+- Type definitions MUST be declared in separate `*-types.ts` files to avoid cluttering implementation logic
 - Code MUST follow established FoundryVTT coding standards and best practices
 - Error and log messages MUST be prepended by a configurable prefix for easy filtering and identification
 - Imports MUST use aliasing where available to ensure portability and clarity

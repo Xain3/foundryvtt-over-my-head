@@ -28,6 +28,7 @@ The singleton config is:
 ```
 src/config/
 ├── config.ts               # Config singleton class (main entry point)
+├── config-types.ts         # Type definitions for Config interface
 ├── README.md               # This file
 ├── helpers/
 │   ├── configHelpers.ts   # Helper functions for loading/parsing

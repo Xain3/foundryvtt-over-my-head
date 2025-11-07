@@ -89,14 +89,18 @@ describe('Logger', () => {
     logger.log('User authenticated via log method');
 
     expect(infoSpy).toHaveBeenCalledTimes(1);
-    expect(infoSpy.mock.calls[0][0]).toBe('[OMH] User authenticated via log method');
+    expect(infoSpy.mock.calls[0][0]).toBe(
+      '[OMH] User authenticated via log method'
+    );
   });
 
   it('log method accepts metadata parameter like info method', () => {
     const infoSpy = setUpConsoleSpy('info');
     const logger = createLogger({ colorize: false });
 
-    logger.log('Log with metadata', { userId: 123, action: 'login' });
+    logger.log('Log with metadata', {
+      metadata: { userId: 123, action: 'login' },
+    });
 
     expect(infoSpy).toHaveBeenCalledTimes(1);
     expect(infoSpy.mock.calls[0][0]).toBe('[OMH] Log with metadata');
@@ -106,9 +110,11 @@ describe('Logger', () => {
     const infoSpy = setUpConsoleSpy('info');
     const logger = createLogger({ colorize: false });
 
-    logger.log('Log with override', undefined, {
-      format: {
-        info: 'OVERRIDE: {message}',
+    logger.log('Log with override', {
+      overrides: {
+        format: {
+          info: 'OVERRIDE: {message}',
+        },
       },
     });
 
@@ -148,12 +154,17 @@ describe('Logger', () => {
 
     // Test all combinations
     logger.log('Message only');
-    logger.log('Message with metadata', { key: 'value' });
-    logger.log('Message with overrides', undefined, {
-      format: { info: 'CUSTOM: {message}' },
+    logger.log('Message with metadata', {
+      metadata: { key: 'value' },
     });
-    logger.log('All parameters', { data: true }, {
-      format: { info: 'FULL: {message} ({metadata.data})' },
+    logger.log('Message with overrides', {
+      overrides: { format: { info: 'CUSTOM: {message}' } },
+    });
+    logger.log('All parameters', {
+      metadata: { data: true },
+      overrides: {
+        format: { info: 'FULL: {message} ({metadata.data})' },
+      },
     });
 
     expect(infoSpy).toHaveBeenCalledTimes(4);
@@ -179,7 +190,9 @@ describe('Logger', () => {
     const debugSpy = setUpConsoleSpy('debug');
     const logger = createLogger({ colorize: false, debugMode: true });
 
-    logger.debug('Debug details', { feature: 'logger', enabled: true });
+    logger.debug('Debug details', {
+      metadata: { feature: 'logger', enabled: true },
+    });
 
     expect(debugSpy).toHaveBeenCalledTimes(1);
     expect(debugSpy.mock.calls[0][0]).toBe(
@@ -219,7 +232,9 @@ describe('Logger', () => {
       },
     });
 
-    logger.info('Metadata test', { user: { id: 123 } });
+    logger.info('Metadata test', {
+      metadata: { user: { id: 123 } },
+    });
 
     expect(infoSpy.mock.calls[0][0]).toBe('OMH::123');
   });
@@ -276,9 +291,11 @@ describe('Logger', () => {
     const errorSpy = setUpConsoleSpy('error');
     const logger = createLogger({ colorize: false });
 
-    logger.error('Override error', undefined, {
-      format: {
-        error: '!!! {message} !!!',
+    logger.error('Override error', {
+      overrides: {
+        format: {
+          error: '!!! {message} !!!',
+        },
       },
     });
 
@@ -290,9 +307,11 @@ describe('Logger', () => {
     const warnSpy = setUpConsoleSpy('warn');
     const logger = createLogger({ colorize: false });
 
-    logger.warn('Override warn', undefined, {
-      format: {
-        warn: '<WARN> {message}',
+    logger.warn('Override warn', {
+      overrides: {
+        format: {
+          warn: '<WARN> {message}',
+        },
       },
     });
 
@@ -304,9 +323,11 @@ describe('Logger', () => {
     const infoSpy = setUpConsoleSpy('info');
     const logger = createLogger({ colorize: false });
 
-    logger.info('Override info', undefined, {
-      format: {
-        info: 'INFO :: {message}',
+    logger.info('Override info', {
+      overrides: {
+        format: {
+          info: 'INFO :: {message}',
+        },
       },
     });
 
@@ -318,9 +339,11 @@ describe('Logger', () => {
     const infoSpy = setUpConsoleSpy('info');
     const logger = createLogger({ colorize: false });
 
-    logger.log('Override log', undefined, {
-      format: {
-        info: 'LOG :: {message}',
+    logger.log('Override log', {
+      overrides: {
+        format: {
+          info: 'LOG :: {message}',
+        },
       },
     });
 
@@ -332,9 +355,11 @@ describe('Logger', () => {
     const logSpy = setUpConsoleSpy('log');
     const logger = createLogger({ colorize: false, debugMode: true });
 
-    logger.verbose('Override verbose', undefined, {
-      format: {
-        verbose: 'VERBOSE => {message}',
+    logger.verbose('Override verbose', {
+      overrides: {
+        format: {
+          verbose: 'VERBOSE => {message}',
+        },
       },
     });
 
@@ -346,15 +371,14 @@ describe('Logger', () => {
     const debugSpy = setUpConsoleSpy('debug');
     const logger = createLogger({ colorize: false, debugMode: true });
 
-    logger.debug(
-      'Override debug',
-      { flag: true },
-      {
+    logger.debug('Override debug', {
+      metadata: { flag: true },
+      overrides: {
         format: {
           debug: 'DEBUG => {message} :: {metadata.flag}',
         },
-      }
-    );
+      },
+    });
 
     expect(debugSpy).toHaveBeenCalledTimes(1);
     expect(debugSpy.mock.calls[0][0]).toBe('DEBUG => Override debug :: true');
@@ -364,10 +388,12 @@ describe('Logger', () => {
     const errorSpy = setUpConsoleSpy('error');
     const logger = createLogger();
 
-    logger.error('No timestamp', undefined, {
-      timestamp: {
-        enabled: false,
-        format: 'iso',
+    logger.error('No timestamp', {
+      overrides: {
+        timestamp: {
+          enabled: false,
+          format: 'iso',
+        },
       },
     });
 
@@ -382,10 +408,12 @@ describe('Logger', () => {
       '11/02/2025, 15:30:45'
     );
 
-    logger.warn('Locale timestamp', undefined, {
-      timestamp: {
-        enabled: true,
-        format: 'locale',
+    logger.warn('Locale timestamp', {
+      overrides: {
+        timestamp: {
+          enabled: true,
+          format: 'locale',
+        },
       },
     });
 
@@ -397,10 +425,9 @@ describe('Logger', () => {
     const infoSpy = setUpConsoleSpy('info');
     const logger = createLogger({ colorize: false });
 
-    logger.info(
-      'Composite override',
-      { value: 42 },
-      {
+    logger.info('Composite override', {
+      metadata: { value: 42 },
+      overrides: {
         colorize: false,
         timestamp: {
           enabled: false,
@@ -409,8 +436,8 @@ describe('Logger', () => {
         format: {
           info: 'Composite => {message} ({metadata.value})',
         },
-      }
-    );
+      },
+    });
 
     expect(infoSpy).toHaveBeenCalledTimes(1);
     expect(infoSpy.mock.calls[0][0]).toBe(
@@ -431,7 +458,7 @@ describe('Logger', () => {
       },
     };
 
-    logger.info('Immutable test', undefined, overrides);
+    logger.info('Immutable test', { overrides });
 
     expect(infoSpy).toHaveBeenCalledTimes(1);
     expect(infoSpy.mock.calls[0][0]).toBe('IMMUTABLE => Immutable test');
@@ -467,7 +494,9 @@ describe('Logger', () => {
       },
     });
 
-    expect(() => logger.error('Circular test', circular)).not.toThrow();
+    expect(() =>
+      logger.error('Circular test', { metadata: circular })
+    ).not.toThrow();
     expect(errorSpy.mock.calls[0][0]).toContain('[Circular]');
     expect(warnSpy).toHaveBeenCalled();
   });

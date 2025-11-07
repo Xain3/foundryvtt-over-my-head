@@ -53,15 +53,17 @@ LogConfigurationObject {
 
 ## Public API Methods
 
-| Method      | Parameters                         | Threshold   | Description         |
-| ----------- | ---------------------------------- | ----------- | ------------------- |
-| `error()`   | `(message, metadata?, overrides?)` | Always      | Critical failure    |
-| `warn()`    | `(message, metadata?, overrides?)` | ≥ warn      | Warning issue       |
-| `info()`    | `(message, metadata?, overrides?)` | ≥ info      | Important event     |
-| `verbose()` | `(message, metadata?, overrides?)` | ≥ verbose\* | Detailed trace      |
-| `debug()`   | `(message, metadata?, overrides?)` | ≥ debug\*   | Internal diagnostic |
+| Method      | Parameters                         | Threshold   | Description                      |
+| ----------- | ---------------------------------- | ----------- | -------------------------------- |
+| `error()`   | `(message, metadata?, overrides?)` | Always      | Critical failure                 |
+| `warn()`    | `(message, metadata?, overrides?)` | ≥ warn      | Warning issue                    |
+| `info()`    | `(message, metadata?, overrides?)` | ≥ info      | Important event                  |
+| `log()`     | `(message, metadata?, overrides?)` | ≥ info      | Generic alias for `info()` level |
+| `verbose()` | `(message, metadata?, overrides?)` | ≥ verbose\* | Detailed trace                   |
+| `debug()`   | `(message, metadata?, overrides?)` | ≥ debug\*   | Internal diagnostic              |
 
-_\*These only emit if `debugMode: true` in effective config._
+_\*verbose and debug only emit if `debugMode: true` in effective config._
+_\*\*log() is a public alias that functionally routes to the info level._
 
 ---
 
@@ -331,6 +333,10 @@ const logger = new Logger({
 
 // 2. Standard logging
 logger.info('Module initialized');
+// Output: [OMH] ℹ️  Module initialized
+
+// 2b. Using generic log() method (same as info())
+logger.log('Module initialized');
 // Output: [OMH] ℹ️  Module initialized
 
 // 3. With metadata

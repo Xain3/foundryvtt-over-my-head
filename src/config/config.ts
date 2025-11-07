@@ -35,8 +35,8 @@ import type { Config } from './config-types.ts';
  * console.log(config.module.id); // "vision-with-fade"
  * console.log(config.constants.errors.separator); // " || "
  *
- * // Config is immutable
- * config.module.id = 'modified'; // Throws or fails silently
+ * // ConfigService instance is immutable
+ * config.module.id = 'modified'; // Fails silently with warning logged
  */
 class ConfigService {
   /** @type {Record<string, unknown>} Merged YAML constants */
@@ -61,8 +61,8 @@ class ConfigService {
   private static instance: ConfigService | null = null;
 
   /**
-   * Create and initialize a new Config instance
-   * This is called once on first import; subsequent imports return cached instance
+   * Create and initialize a new ConfigService instance.
+   * This is called once on first import; subsequent imports return cached instance.
    *
    * @constructor
    * @throws {Error} If any configuration file fails to load or parse
@@ -124,7 +124,7 @@ class ConfigService {
       );
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      const errorMessage = `[OMH] CONFIG INITIALIZATION FAILED: ${errorMsg}`;
+      const errorMessage = `[${this.#prefix}] CONFIG INITIALIZATION FAILED: ${errorMsg}`;
       console.error(errorMessage);
       throw new Error(errorMessage);
     }
@@ -393,10 +393,10 @@ class ConfigService {
 let cachedProxy: Config | null = null;
 
 /**
- * Wrap config in a Proxy to ignore direct mutation attempts at top-level
- * Proxy is created once and cached to optimize repeated access
- * @param {ConfigService} instance Config singleton instance
- * @returns {Config} Proxy instance presented to consumers
+ * Wrap ConfigService instance in a Proxy to ignore direct mutation attempts at top-level.
+ * Proxy is created once and cached to optimize repeated access.
+ * @param {ConfigService} instance ConfigService singleton instance to wrap
+ * @returns {Config} Proxy typed as Config interface presented to consumers
  */
 function createConfigProxy(instance: ConfigService): Config {
   // Return cached proxy if already created

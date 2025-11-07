@@ -48,20 +48,21 @@ const logger = new Logger({
 
 All log methods share the same signature pattern.
 
-#### `error(message, metadata?)`
+#### `error(message, options?)`
 
 **Signature**:
 
 ```typescript
-error(message: string, metadata?: unknown): void
+error(message: string, options?: LogMethodOptions): void
 ```
 
 **Parameters**:
 
-| Name       | Type      | Required | Description                          |
-| ---------- | --------- | -------- | ------------------------------------ |
-| `message`  | `string`  | Yes      | Log message content                  |
-| `metadata` | `unknown` | No       | Optional metadata object for context |
+| Name                | Type           | Required | Description                                    |
+| ------------------- | -------------- | -------- | ---------------------------------------------- |
+| `message`           | `string`       | Yes      | Log message content                            |
+| `options.metadata`  | `unknown`      | No       | Optional metadata object surfaced to templates |
+| `options.overrides` | `LogOverrides` | No       | Optional per-call configuration overrides      |
 
 **Behavior**:
 
@@ -73,18 +74,20 @@ error(message: string, metadata?: unknown): void
 **Example**:
 
 ```typescript
-logger.error('Database connection failed', { host: 'localhost', port: 5432 });
+logger.error('Database connection failed', {
+  metadata: { host: 'localhost', port: 5432 },
+});
 // Output: [OMH] ERROR | 2025-11-02T14:30:45.123Z | Database connection failed
 ```
 
 ---
 
-#### `warn(message, metadata?)`
+#### `warn(message, options?)`
 
 **Signature**:
 
 ```typescript
-warn(message: string, metadata?: unknown): void
+warn(message: string, options?: LogMethodOptions): void
 ```
 
 **Parameters**: Same as `error()`
@@ -98,18 +101,25 @@ warn(message: string, metadata?: unknown): void
 **Example**:
 
 ```typescript
-logger.warn('API rate limit approaching', { remaining: 10 });
+logger.warn('API rate limit approaching', {
+  metadata: { remaining: 10 },
+});
 // Output: [OMH] WARN | 2025-11-02T14:30:45.123Z | API rate limit approaching
+
+logger.debug('This is a debug message', {
+  metadata: { detail: 'extra debug info' },
+});
+// Output: [OMH] DEBUG | 2025-11-02T14:30:45.123Z | This is a debug message | {"detail":"extra debug info"}
 ```
 
 ---
 
-#### `info(message, metadata?)`
+#### `info(message, options?)`
 
 **Signature**:
 
 ```typescript
-info(message: string, metadata?: unknown): void
+info(message: string, options?: LogMethodOptions): void
 ```
 
 **Parameters**: Same as `error()`
@@ -123,18 +133,18 @@ info(message: string, metadata?: unknown): void
 **Example**:
 
 ```typescript
-logger.info('User logged in', { userId: 123 });
+logger.info('User logged in', { metadata: { userId: 123 } });
 // Output: [OMH] User logged in
 ```
 
 ---
 
-#### `verbose(message, metadata?)`
+#### `verbose(message, options?)`
 
 **Signature**:
 
 ```typescript
-verbose(message: string, metadata?: unknown): void
+verbose(message: string, options?: LogMethodOptions): void
 ```
 
 **Parameters**: Same as `error()`
@@ -154,12 +164,12 @@ logger.verbose('Cache miss, fetching from database');
 
 ---
 
-#### `debug(message, metadata?)`
+#### `debug(message, options?)`
 
 **Signature**:
 
 ```typescript
-debug(message: string, metadata?: unknown): void
+debug(message: string, options?: LogMethodOptions): void
 ```
 
 **Parameters**: Same as `error()`
@@ -174,7 +184,9 @@ debug(message: string, metadata?: unknown): void
 **Example**:
 
 ```typescript
-logger.debug('Request headers', { headers: { 'User-Agent': 'Chrome' } });
+logger.debug('Request headers', {
+  metadata: { headers: { 'User-Agent': 'Chrome' } },
+});
 // Output: [OMH] DEBUG | 2025-11-02T14:30:45.123Z | Request headers | {"headers":{"User-Agent":"Chrome"}}
 ```
 
@@ -445,9 +457,11 @@ logger.info('Custom format');
 
 ```typescript
 logger.error('Payment failed', {
-  userId: 123,
-  amount: 99.99,
-  reason: 'Insufficient funds',
+  metadata: {
+    userId: 123,
+    amount: 99.99,
+    reason: 'Insufficient funds',
+  },
 });
 // Output: [OMH] ERROR | 2025-11-02T14:30:45.123Z | Payment failed
 // (Metadata available in {metadata} placeholder)

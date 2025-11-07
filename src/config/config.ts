@@ -13,16 +13,7 @@ import {
   loadEnvironmentVariables,
 } from './helpers/configHelpers.ts';
 import { cloneDeep } from 'lodash';
-
-/**
- * Configuration interface
- * @typedef {Object} Config
- * @property {Record<string, unknown>} constants - Merged YAML constants from all constant files
- * @property {unknown} settings - Settings definitions array
- * @property {Record<string, unknown>} module - Module manifest from module.json
- * @property {Record<string, string>} env - Environment variables matching prefix pattern
- * @property {string} toString - Method to serialize config to string
- */
+import type { Config } from './config-types.ts';
 
 /**
  * Centralized Configuration Service (Singleton)
@@ -36,7 +27,7 @@ import { cloneDeep } from 'lodash';
  * The singleton is frozen after initialization to prevent runtime modifications.
  * Fail-fast error handling ensures configuration issues are caught immediately.
  *
- * @class Config
+ * @class ConfigService
  * @example
  * import { config } from './config.ts';
  *
@@ -44,10 +35,10 @@ import { cloneDeep } from 'lodash';
  * console.log(config.module.id); // "vision-with-fade"
  * console.log(config.constants.errors.separator); // " || "
  *
- * // Config is immutable
- * config.module.id = 'modified'; // Throws or fails silently
+ * // ConfigService instance is immutable
+ * config.module.id = 'modified'; // Fails silently with warning logged
  */
-class Config {
+class ConfigService {
   /** @type {Record<string, unknown>} Merged YAML constants */
   #yamlConstants: Record<string, unknown> = {};
 
@@ -66,12 +57,12 @@ class Config {
   /** @type {string} Configuration prefix from module shortName */
   #prefix: string = 'OMH';
 
-  /** @type {Config | null} Singleton instance */
-  private static instance: Config | null = null;
+  /** @type {ConfigService | null} Singleton instance */
+  private static instance: ConfigService | null = null;
 
   /**
-   * Create and initialize a new Config instance
-   * This is called once on first import; subsequent imports return cached instance
+   * Create and initialize a new ConfigService instance.
+   * This is called once on first import; subsequent imports return cached instance.
    *
    * @constructor
    * @throws {Error} If any configuration file fails to load or parse
@@ -133,7 +124,7 @@ class Config {
       );
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      const errorMessage = `[OMH] CONFIG INITIALIZATION FAILED: ${errorMsg}`;
+      const errorMessage = `[${this.#prefix}] CONFIG INITIALIZATION FAILED: ${errorMsg}`;
       console.error(errorMessage);
       throw new Error(errorMessage);
     }
@@ -180,18 +171,18 @@ class Config {
    * Get the singleton Config instance
    * Creates and caches the instance on first call; returns cached instance thereafter
    *
-   * @returns {Config} The singleton Config instance
+   * @returns {ConfigService} The singleton Config instance
    * @throws {Error} If initialization fails
    * @example
-   * const config = Config.getInstance();
+   * const config = ConfigService.getInstance();
    * // Or use direct import:
    * import { config } from './config.ts';
    */
-  static getInstance(): Config {
-    if (!Config.instance) {
-      Config.instance = new Config();
+  static getInstance(): ConfigService {
+    if (!ConfigService.instance) {
+      ConfigService.instance = new ConfigService();
     }
-    return Config.instance;
+    return ConfigService.instance;
   }
 
   /**
@@ -402,12 +393,12 @@ class Config {
 let cachedProxy: Config | null = null;
 
 /**
- * Wrap config in a Proxy to ignore direct mutation attempts at top-level
- * Proxy is created once and cached to optimize repeated access
- * @param {Config} instance Config singleton instance
- * @returns {Config} Proxy instance presented to consumers
+ * Wrap ConfigService instance in a Proxy to ignore direct mutation attempts at top-level.
+ * Proxy is created once and cached to optimize repeated access.
+ * @param {ConfigService} instance ConfigService singleton instance to wrap
+ * @returns {Config} Proxy typed as Config interface presented to consumers
  */
-function createConfigProxy(instance: Config): Config {
+function createConfigProxy(instance: ConfigService): Config {
   // Return cached proxy if already created
   if (cachedProxy) {
     return cachedProxy;
@@ -449,10 +440,10 @@ function createConfigProxy(instance: Config): Config {
 /**
  * Raw Config singleton instance
  * Created eagerly to ensure initialization before proxy wrapping
- * @type {Config}
+ * @type {ConfigService}
  * @private
  */
-const _rawConfigInstance: Config = Config.getInstance();
+const _rawConfigInstance: ConfigService = ConfigService.getInstance();
 
 /**
  * Singleton config instance exported for application-wide use
@@ -470,6 +461,7 @@ const _rawConfigInstance: Config = Config.getInstance();
 const proxiedConfig: Config = createConfigProxy(_rawConfigInstance);
 
 export { proxiedConfig as config };
+export { ConfigService };
 
 export type { Config };
 export default proxiedConfig;

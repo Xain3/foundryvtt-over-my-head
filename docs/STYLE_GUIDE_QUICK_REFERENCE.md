@@ -28,17 +28,18 @@
 
 ## Naming Conventions
 
-| Type           | Convention                  | Example          |
-| -------------- | --------------------------- | ---------------- |
-| Class          | PascalCase                  | `ConfigManager`  |
-| Function       | camelCase                   | `loadConfig()`   |
-| Variable       | camelCase                   | `isReady`        |
-| Constant       | SCREAMING_SNAKE_CASE        | `MAX_RETRIES`    |
-| Env Variable   | PREFIX_SCREAMING_SNAKE_CASE | `VWF_DEBUG_MODE` |
-| Hook           | PascalCase                  | `SettingsReady`  |
-| File (JS)      | camelCase.mjs               | `config.mjs`     |
-| File (TS)      | camelCase.mts               | `config.ts`     |
-| Private member | `_name` or `#name`          | `_internal`      |
+| Type           | Convention                  | Example           |
+| -------------- | --------------------------- | ----------------- |
+| Class          | PascalCase                  | `ConfigManager`   |
+| Function       | camelCase                   | `loadConfig()`    |
+| Variable       | camelCase                   | `isReady`         |
+| Constant       | SCREAMING_SNAKE_CASE        | `MAX_RETRIES`     |
+| Env Variable   | PREFIX_SCREAMING_SNAKE_CASE | `VWF_DEBUG_MODE`  |
+| Hook           | PascalCase                  | `SettingsReady`   |
+| File (JS)      | camelCase.mjs               | `config.mjs`      |
+| File (TS)      | camelCase.mts               | `config.ts`       |
+| Type file      | `*-types.ts`                | `logger-types.ts` |
+| Private member | `_name` or `#name`          | `_internal`       |
 
 ---
 
@@ -207,6 +208,7 @@ import { Config } from './config.ts';
 - [ ] File has `@file`, `@description`, `@path` header
 - [ ] Functions/classes have JSDoc comments
 - [ ] Naming follows conventions
+- [ ] Types live in dedicated `*-types.ts` files
 - [ ] 2-space indentation
 - [ ] Errors include `[VWF]` prefix
 - [ ] No FoundryVTT monkey-patching (hooks only)

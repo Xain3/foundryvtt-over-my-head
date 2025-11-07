@@ -14,7 +14,7 @@ export type {
   HierarchyKey,
   ModeEvaluationOptions,
   ConfigSingleton,
-} from './static/devModeParser.ts';
+} from './static-types.ts';
 
 /**
  * StaticUtils provides a centralized interface to all static utility functionality.

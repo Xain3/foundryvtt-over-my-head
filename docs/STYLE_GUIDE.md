@@ -187,7 +187,9 @@ Every directory MUST contain a `README.md` explaining its purpose. The README is
 
 ---
 
-## Naming Conventions
+### Naming Conventions
+
+- Type definitions MUST be placed in dedicated `*-types.ts` files separate from implementation files.
 
 ### Configuration Keys
 

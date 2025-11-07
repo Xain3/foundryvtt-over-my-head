@@ -62,6 +62,7 @@ Shebangs must appear **before** the header comment if present.
 | Private fields           | `#field` or `_field`                   | `#singleton`, `_cache`               |
 | Hook/event names         | PascalCase                             | `SettingsReady`, `ConfigUpdated`     |
 | Environment vars         | `OMH_*` prefix in SCREAMING_SNAKE_CASE | `OMH_DEBUG_MODE`, `OMH_MAX_TOKENS`   |
+| Type files               | `*-types.ts` (separate from logic)     | `logger-types.ts`, `config-types.ts` |
 
 **Module Lifecycle**:
 
@@ -283,10 +284,11 @@ npm run dev
 
 1. **Plan**: Document in `specs/00X-feature-name/tasks.md` if part of planned work
 2. **Write code**: Follow style guide, add file headers, comprehensive JSDoc
-3. **Write tests**: Unit tests for logic, integration tests for FoundryVTT interaction
-4. **Verify**: Run `npm test` (80%+ coverage), `npm run lint`, `npm run build` (no errors)
-5. **Document**: Update folder README if adding files or changing features; inline comments for complex logic
-6. **Commit**: Use conventional format (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`)
+3. **Extract types**: Declare all interfaces and types in a separate `module-types.ts` file; import into implementation
+4. **Write tests**: Unit tests for logic, integration tests for FoundryVTT interaction
+5. **Verify**: Run `npm test` (80%+ coverage), `npm run lint`, `npm run build` (no errors)
+6. **Document**: Update folder README if adding files or changing features; inline comments for complex logic
+7. **Commit**: Use conventional format (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`)
 
 ## Key Imports (Module Aliases)
 
@@ -354,6 +356,7 @@ Before submitting a pull request:
 - [ ] All files have `@file`, `@description`, `@path` headers
 - [ ] All functions/classes have JSDoc with `@param`, `@returns`, `@throws`
 - [ ] Naming follows conventions (PascalCase, camelCase, SCREAMING_SNAKE_CASE)
+- [ ] Types declared in separate `*-types.ts` file (not mixed with implementation)
 - [ ] Tests added/updated; coverage ≥80%
 - [ ] No FoundryVTT monkey-patching; hooks-only integration
 - [ ] Error messages include `[OMH]` prefix

@@ -33,6 +33,13 @@ This design provides:
 - Easy addition of new static utilities
 - Protection from internal refactoring
 
+### Files
+
+- `static.ts` - Centralized entrypoint for all static utilities
+- `static-types.ts` - Type definitions for static utilities (re-exported from submodules)
+- `static/devModeParser.ts` - Development/debug mode status evaluation
+- `static/devModeParser-types.ts` - Type definitions for DevModeParser
+
 ## Changelog
 
 ### 0.1.0 (2025-10-20)

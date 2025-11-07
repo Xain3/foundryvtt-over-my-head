@@ -5,25 +5,14 @@
  * @path src/utils/static/devModeParser.ts
  */
 
-export type ConfigSource = string | boolean | undefined | null;
-
-export type ModeStatus = boolean;
-
-export type ConfigResult = {
-  devMode: ModeStatus;
-  debugMode: ModeStatus;
-};
-
-export type HierarchyKey = 'env' | 'module' | 'setting';
-
-export type ModeEvaluationOptions = {
-  hierarchy?: readonly HierarchyKey[];
-};
-
-export interface ConfigSingleton {
-  get(key: string, source: 'env' | 'module' | 'setting'): ConfigSource;
-  prefix?: string;
-}
+import type {
+  ConfigSource,
+  ModeStatus,
+  ConfigResult,
+  HierarchyKey,
+  ModeEvaluationOptions,
+  ConfigSingleton,
+} from './devModeParser-types.ts';
 
 const LOG_PREFIX = '[DevModeParser]';
 
@@ -287,3 +276,12 @@ class DevModeParser {
 }
 
 export default DevModeParser;
+
+export type {
+  ConfigSource,
+  ModeStatus,
+  ConfigResult,
+  HierarchyKey,
+  ModeEvaluationOptions,
+  ConfigSingleton,
+} from './devModeParser-types.ts';

@@ -82,6 +82,87 @@ describe('Logger', () => {
     expect(infoSpy.mock.calls[0][0]).toBe('[OMH] User authenticated');
   });
 
+  it('formats log messages identically to info messages', () => {
+    const infoSpy = setUpConsoleSpy('info');
+    const logger = createLogger({ colorize: false });
+
+    logger.log('User authenticated via log method');
+
+    expect(infoSpy).toHaveBeenCalledTimes(1);
+    expect(infoSpy.mock.calls[0][0]).toBe('[OMH] User authenticated via log method');
+  });
+
+  it('log method accepts metadata parameter like info method', () => {
+    const infoSpy = setUpConsoleSpy('info');
+    const logger = createLogger({ colorize: false });
+
+    logger.log('Log with metadata', { userId: 123, action: 'login' });
+
+    expect(infoSpy).toHaveBeenCalledTimes(1);
+    expect(infoSpy.mock.calls[0][0]).toBe('[OMH] Log with metadata');
+  });
+
+  it('log method accepts overrides parameter like info method', () => {
+    const infoSpy = setUpConsoleSpy('info');
+    const logger = createLogger({ colorize: false });
+
+    logger.log('Log with override', undefined, {
+      format: {
+        info: 'OVERRIDE: {message}',
+      },
+    });
+
+    expect(infoSpy).toHaveBeenCalledTimes(1);
+    expect(infoSpy.mock.calls[0][0]).toBe('OVERRIDE: Log with override');
+  });
+
+  it('log method respects same threshold as info method', () => {
+    const infoSpy = setUpConsoleSpy('info');
+    const logger = createLogger({
+      level: 'warn', // Below info threshold
+      colorize: false,
+    });
+
+    logger.log('Should not appear');
+    logger.info('Should also not appear');
+
+    expect(infoSpy).not.toHaveBeenCalled();
+  });
+
+  it('log method emits when info level is at threshold', () => {
+    const infoSpy = setUpConsoleSpy('info');
+    const logger = createLogger({
+      level: 'info', // At info threshold
+      colorize: false,
+    });
+
+    logger.log('Should appear');
+    logger.info('Should also appear');
+
+    expect(infoSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('log method works with all parameter combinations like info method', () => {
+    const infoSpy = setUpConsoleSpy('info');
+    const logger = createLogger({ colorize: false });
+
+    // Test all combinations
+    logger.log('Message only');
+    logger.log('Message with metadata', { key: 'value' });
+    logger.log('Message with overrides', undefined, {
+      format: { info: 'CUSTOM: {message}' },
+    });
+    logger.log('All parameters', { data: true }, {
+      format: { info: 'FULL: {message} ({metadata.data})' },
+    });
+
+    expect(infoSpy).toHaveBeenCalledTimes(4);
+    expect(infoSpy.mock.calls[0][0]).toBe('[OMH] Message only');
+    expect(infoSpy.mock.calls[1][0]).toBe('[OMH] Message with metadata');
+    expect(infoSpy.mock.calls[2][0]).toBe('CUSTOM: Message with overrides');
+    expect(infoSpy.mock.calls[3][0]).toBe('FULL: All parameters (true)');
+  });
+
   it('formats verbose messages with module name and message', () => {
     const logSpy = setUpConsoleSpy('log');
     const logger = createLogger({ colorize: false, debugMode: true });
@@ -231,6 +312,20 @@ describe('Logger', () => {
 
     expect(infoSpy).toHaveBeenCalledTimes(1);
     expect(infoSpy.mock.calls[0][0]).toBe('INFO :: Override info');
+  });
+
+  it('allows overriding log format on a per-call basis (same as info)', () => {
+    const infoSpy = setUpConsoleSpy('info');
+    const logger = createLogger({ colorize: false });
+
+    logger.log('Override log', undefined, {
+      format: {
+        info: 'LOG :: {message}',
+      },
+    });
+
+    expect(infoSpy).toHaveBeenCalledTimes(1);
+    expect(infoSpy.mock.calls[0][0]).toBe('LOG :: Override log');
   });
 
   it('allows overriding verbose format on a per-call basis', () => {

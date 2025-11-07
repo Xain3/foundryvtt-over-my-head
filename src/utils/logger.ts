@@ -202,8 +202,8 @@ export class Logger {
     this.colors = {
       error: (text: string) => chalk.red(text),
       warn: (text: string) => chalk.yellow(text),
-      info: (text: string) => chalk.blue(text),
-      verbose: (text: string) => chalk.cyan(text),
+      info: (text: string) => chalk.black(text),
+      verbose: (text: string) => chalk.blue(text),
       debug: (text: string) => chalk.gray(text),
     };
     this.baseThreshold = this.resolveThreshold(this.baseConfig);
@@ -218,7 +218,7 @@ export class Logger {
    * @returns {void}
    */
   error(message: string, metadata?: unknown, overrides?: LogOverrides): void {
-    this.log('error', message, metadata, overrides);
+    this._log('error', message, metadata, overrides);
   }
 
   /**
@@ -230,7 +230,7 @@ export class Logger {
    * @returns {void}
    */
   warn(message: string, metadata?: unknown, overrides?: LogOverrides): void {
-    this.log('warn', message, metadata, overrides);
+    this._log('warn', message, metadata, overrides);
   }
 
   /**
@@ -242,7 +242,7 @@ export class Logger {
    * @returns {void}
    */
   info(message: string, metadata?: unknown, overrides?: LogOverrides): void {
-    this.log('info', message, metadata, overrides);
+    this._log('info', message, metadata, overrides);
   }
 
   /**
@@ -254,7 +254,7 @@ export class Logger {
    * @returns {void}
    */
   verbose(message: string, metadata?: unknown, overrides?: LogOverrides): void {
-    this.log('verbose', message, metadata, overrides);
+    this._log('verbose', message, metadata, overrides);
   }
 
   /**
@@ -266,19 +266,38 @@ export class Logger {
    * @returns {void}
    */
   debug(message: string, metadata?: unknown, overrides?: LogOverrides): void {
-    this.log('debug', message, metadata, overrides);
+    this._log('debug', message, metadata, overrides);
   }
 
   /**
-   * Routes a log event through formatting and emission pipelines when allowed by threshold.
+   * Logs a message at info level. Functionally identical to the {@link info} method.
+   * Provided as a generic alias for compatibility with standard logging conventions.
    *
+   * @param {string} message - Message content to log.
+   * @param {unknown} [metadata] - Optional contextual data to include in the log entry.
+   * @param {LogOverrides} [overrides] - Optional configuration overrides applied to this log call only.
+   * @returns {void}
+   *
+   * @example
+   * logger.log('Application started'); // Same as logger.info('Application started')
+   */
+  log(message: string, metadata?: unknown, overrides?: LogOverrides): void {
+    this._log('info', message, metadata, overrides);
+  }
+
+  /**
+   * Internal routing method that coordinates log event processing through formatting and emission pipelines.
+   * This private method is used by all public logging methods (error, warn, info, verbose, debug, log).
+   * It handles threshold evaluation, config merging, message formatting, and console emission.
+   *
+   * @private
    * @param {LogLevel} level - Severity level for the log event.
    * @param {string} message - Message content to log.
    * @param {unknown} [metadataOrOverrides] - Metadata payload or an overrides object when a third argument is omitted.
    * @param {LogOverrides} [overrides] - Explicit configuration overrides merged against the base logger settings.
    * @returns {void}
    */
-  private log(
+  private _log(
     level: LogLevel,
     message: string,
     metadataOrOverrides?: unknown,

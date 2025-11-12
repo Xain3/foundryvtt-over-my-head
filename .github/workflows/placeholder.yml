@@ -9,6 +9,8 @@ on:
 jobs:
   placeholder:
     name: Placeholder Job
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

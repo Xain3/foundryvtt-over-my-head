@@ -8,6 +8,7 @@
 ## Summary
 
 Create a two-layer utility system for string formatting and Foundry VTT hook name generation:
+
 1. **Base Layer (P1)**: Pure string formatter with prefix/suffix support - zero dependencies, pure utility function
 2. **Integration Layer (P2)**: Hook name generator using hooks.yaml patterns and moduleNameResolver for standardized module-scoped hook names
 3. **Extension Layer (P3)**: Parameterized hook patterns supporting dynamic placeholders for setting-specific and other contextual hooks
@@ -17,34 +18,36 @@ Create a two-layer utility system for string formatting and Foundry VTT hook nam
 ## Technical Context
 
 **Language/Version**: TypeScript 5.x / JavaScript ES2022 with ESM modules (.mts/.mjs extensions)
-**Primary Dependencies**: 
-  - Existing: `resolveModuleName` from `src/utils/static/moduleNameResolver.ts`
-  - Existing: Centralized config system (`src/config/config.ts`)
-  - Existing: `hooks.yaml` constants (`src/config/constants/hooks.yaml`)
-  - New: None (pure utility functions)
-**Storage**: N/A (stateless utilities)
-**Testing**: Vitest (existing project test framework)
-  - Unit tests: `tests/unit/stringFormatter.unit.test.mjs` and `tests/unit/hookFormatter.unit.test.mjs`
-  - Integration tests: `tests/integration/hookFormatter.int.test.mjs`
-**Target Platform**: FoundryVTT v12+ module (Node.js-like environment in browser)
-**Project Type**: Single project (FoundryVTT module with utilities in `src/utils/`)
-**Performance Goals**: <1ms per formatting operation (string operations only, no I/O)
-**Constraints**: 
-  - Zero dependencies for P1 (pure function)
-  - P2/P3 depend only on existing config infrastructure
-  - Must follow module style guide (file headers, JSDoc, type separation)
-  - Error messages prefixed with `[OMH]`
-  - Must use import aliasing (`#/utils/`, `#config`)
-**Scale/Scope**: Small utility feature (~3 files, ~200 LOC, 15-20 tests)
+**Primary Dependencies**:
+
+- Existing: `resolveModuleName` from `src/utils/static/moduleNameResolver.ts`
+- Existing: Centralized config system (`src/config/config.ts`)
+- Existing: `hooks.yaml` constants (`src/config/constants/hooks.yaml`)
+- New: None (pure utility functions)
+  **Storage**: N/A (stateless utilities)
+  **Testing**: Vitest (existing project test framework)
+- Unit tests: `tests/unit/stringFormatter.unit.test.mjs` and `tests/unit/hookFormatter.unit.test.mjs`
+- Integration tests: `tests/integration/hookFormatter.int.test.mjs`
+  **Target Platform**: FoundryVTT v12+ module (Node.js-like environment in browser)
+  **Project Type**: Single project (FoundryVTT module with utilities in `src/utils/`)
+  **Performance Goals**: <1ms per formatting operation (string operations only, no I/O)
+  **Constraints**:
+- Zero dependencies for P1 (pure function)
+- P2/P3 depend only on existing config infrastructure
+- Must follow module style guide (file headers, JSDoc, type separation)
+- Error messages prefixed with `[OMH]`
+- Must use import aliasing (`#/utils/`, `#config`)
+  **Scale/Scope**: Small utility feature (~3 files, ~200 LOC, 15-20 tests)
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 ### Principle I: Modular Architecture ✅
+
 - **Single point of entry**: Uses existing config singleton, no new entry points
 - **Composition over inheritance**: Pure functions, no inheritance
-- **Explicit responsibilities**: 
+- **Explicit responsibilities**:
   - `formatString`: Pure string manipulation (P1)
   - `formatHookName`: Config-aware hook generation (P2/P3)
 - **Type separation**: `stringFormatter-types.ts` and `hookFormatter-types.ts` separate from implementation
@@ -55,6 +58,7 @@ Create a two-layer utility system for string formatting and Foundry VTT hook nam
 **Status**: ✅ PASS - No violations. Pure utilities align perfectly with modular architecture principles.
 
 ### Principle II: FoundryVTT Integration ✅
+
 - **Hooks-only integration**: This feature generates hook names but doesn't register hooks (consumers do that)
 - **No monkey-patching**: Zero modifications to FoundryVTT core
 - **No interference**: Utilities are module-internal, no global pollution
@@ -63,6 +67,7 @@ Create a two-layer utility system for string formatting and Foundry VTT hook nam
 **Status**: ✅ PASS - Feature is a utility that supports hooks-based integration, doesn't directly integrate with Foundry.
 
 ### Principle III: Configuration Management ✅
+
 - **Centralized config**: Uses existing config singleton via `config.constants.hooks`
 - **Separate dev/runtime configs**: N/A (no dev config needed)
 - **Immediate reflection**: Stateless functions always use current config
@@ -72,6 +77,7 @@ Create a two-layer utility system for string formatting and Foundry VTT hook nam
 **Status**: ✅ PASS - Consumes existing configuration, no new config management needed.
 
 ### Principle IV: Documentation Excellence ✅
+
 - **JSDoc comments**: Required for all functions, including private helpers
 - **Folder README**: Will update `src/utils/README.md` with new utilities
 - **Main README**: Will document hook formatter usage in module README if needed
@@ -82,6 +88,7 @@ Create a two-layer utility system for string formatting and Foundry VTT hook nam
 **Status**: ✅ PASS - Documentation requirements are clear and will be met.
 
 ### Principle V: Quality & Maintainability ✅
+
 - **Best practices**: TypeScript, ESM modules, style guide compliance
 - **Easy enable/disable**: N/A (utility functions, not toggleable feature)
 - **80% test coverage**: Target met (SC-002 in spec)
@@ -94,6 +101,7 @@ Create a two-layer utility system for string formatting and Foundry VTT hook nam
 **Status**: ✅ PASS - All quality requirements will be met.
 
 ### Summary
+
 **Overall Gate Status**: ✅ **PASS** - All five constitutional principles satisfied with zero violations.
 
 **Justification**: This is a pure utility feature that enhances existing infrastructure without introducing architectural complexity. No complexity tracking needed.
@@ -122,17 +130,19 @@ specs/005-short-name-hook/
 ```text
 src/
 ├── utils/
-│   ├── stringFormatter-types.ts     # NEW - P1 types (FormatOptions)
-│   ├── stringFormatter.ts           # NEW - P1 implementation
-│   ├── hookFormatter-types.ts       # NEW - P2/P3 types (HookFormatterConfig, etc.)
-│   ├── hookFormatter.ts             # NEW - P2/P3 implementation
-│   ├── README.md                    # UPDATE - Document new utilities
-│   └── static/
-│       └── moduleNameResolver.ts    # EXISTING - Used by hookFormatter
+│   ├── static/
+│   │   ├── stringFormatter-types.ts     # NEW - P1 types (FormatOptions)
+│   │   ├── stringFormatter.ts           # NEW - P1 implementation (pure utility)
+│   │   ├── moduleNameResolver.ts        # EXISTING - Used by hookFormatter
+│   │   └── README.md                    # UPDATE - Document new utilities
+│   ├── hookFormatter-types.ts           # NEW - P2/P3 types (HookFormatterConfig, etc.)
+│   ├── hookFormatter.ts                 # NEW - P2/P3 implementation
+│   ├── static.ts                        # UPDATE - Export new static utilities
+│   └── README.md                        # UPDATE - Document new utilities
 ├── config/
-│   ├── config.ts                    # EXISTING - Config singleton
+│   ├── config.ts                        # EXISTING - Config singleton
 │   └── constants/
-│       └── hooks.yaml               # EXISTING - Hook patterns and definitions
+│       └── hooks.yaml                   # EXISTING - Hook patterns and definitions
 
 tests/
 ├── unit/
@@ -142,7 +152,7 @@ tests/
     └── hookFormatter.int.test.mjs       # NEW - Integration with real config
 ```
 
-**Structure Decision**: Single project structure (FoundryVTT module). All new utilities go in `src/utils/` following existing pattern. Type definitions separated per constitutional requirement. Tests organized by type (unit vs integration) per existing project conventions.
+**Structure Decision**: Single project structure (FoundryVTT module). All new utilities go in `src/utils/` following existing pattern. **String formatter** placed in `src/utils/static/` (pure stateless utility) per project conventions. **Hook formatter** in `src/utils/` (stateless but config-aware). Type definitions separated per constitutional requirement. Tests organized by type (unit vs integration) per existing project conventions.
 
 ## Complexity Tracking
 

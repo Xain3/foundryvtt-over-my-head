@@ -1,11 +1,11 @@
 # Feature Specification: Hook Formatter Utility
 
-**Feature Branch**: `005-short-name-hook`  
-**Created**: 2025-01-21  
-**Status**: Draft  
+**Feature Branch**: `005-short-name-hook`
+**Created**: 2025-01-21
+**Status**: Draft
 **Input**: User description: "Create a simple static util that formats a string by either prepending a prefix, appending a suffix, or both. On top of that, build a hookFormatter.ts that uses the string formatter and leverages the moduleName resolver to build hook names from the hooks.yaml template. Users can call it with the hook key to get back the formatted hook name."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - String Formatting with Prefix/Suffix (Priority: P1)
 
@@ -65,11 +65,12 @@ Developers need to generate hook names with dynamic parameters (e.g., `"OMH.sett
 - What happens when separator is undefined in `hooks.yaml`? Should use a sensible default (e.g., `"."`).
 - What happens when `formatHookName()` is called without config? Should throw an error indicating missing config.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 #### String Formatter (P1)
+
 - **FR-001**: System MUST provide a `formatString(base: string, options?: FormatOptions)` function that accepts a base string and optional formatting options
 - **FR-002**: System MUST support `prefix` option that prepends a string to the base
 - **FR-003**: System MUST support `suffix` option that appends a string to the base
@@ -78,6 +79,7 @@ Developers need to generate hook names with dynamic parameters (e.g., `"OMH.sett
 - **FR-006**: System MUST handle empty strings gracefully (return prefix + suffix concatenation)
 
 #### Hook Formatter (P2)
+
 - **FR-007**: System MUST provide a `formatHookName(hookKey: string, config: Config)` function that generates Foundry hook names
 - **FR-008**: System MUST read hook definitions from `config.constants.hooks.hooks` object
 - **FR-009**: System MUST read hook patterns from `config.constants.hooks.hookPatterns` object
@@ -89,6 +91,7 @@ Developers need to generate hook names with dynamic parameters (e.g., `"OMH.sett
 - **FR-015**: System MUST use the `hookPatterns.module` pattern for simple hook name generation
 
 #### Parameterized Hook Formatter (P3)
+
 - **FR-016**: System MUST provide a `formatHookName(patternKey: string, params: Record<string, string>, config: Config)` overload for parameterized hooks
 - **FR-017**: System MUST read pattern template from `config.constants.hooks.hookPatterns[patternKey]`
 - **FR-018**: System MUST replace all placeholders in the pattern with provided parameters
@@ -98,6 +101,7 @@ Developers need to generate hook names with dynamic parameters (e.g., `"OMH.sett
 - **FR-022**: System MUST ignore extra parameters not used in the pattern template
 
 #### Error Handling
+
 - **FR-023**: System MUST throw descriptive errors prefixed with `[OMH]`
 - **FR-024**: System MUST include available options in error messages when keys are not found
 - **FR-025**: System MUST validate config structure before attempting to format
@@ -109,7 +113,7 @@ Developers need to generate hook names with dynamic parameters (e.g., `"OMH.sett
 - **HookPattern**: Template string from `hookPatterns` containing placeholders like `{moduleReference}`, `{separator}`, `{hook}`, `{settingKey}`, etc.
 - **Config**: Centralized configuration object containing `constants.hooks` with `hooks`, `hookPatterns`, and `hookPatternSeparator`
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

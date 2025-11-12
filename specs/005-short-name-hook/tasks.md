@@ -268,9 +268,9 @@ Phase 2: Foundational
 
 ### Tasks
 
-- [ ] T052 Verify all stringFormatter and hookFormatter files have proper `@file`, `@description`, `@path` headers in `src/utils/static/stringFormatter-types.ts`, `src/utils/static/stringFormatter.ts`, `src/utils/hookFormatter-types.ts`, `src/utils/hookFormatter.ts`
-- [ ] T053 Review and validate all JSDoc comments follow project style guide (param types, return values, examples) across all implementation files
-- [ ] T054 Final validation: Run `npm test` (all tests), `npm run lint`, and `npm run build` to verify zero errors and warnings before committing
+- [x] T052 Verify all stringFormatter and hookFormatter files have proper `@file`, `@description`, `@path` headers in `src/utils/static/stringFormatter-types.ts`, `src/utils/static/stringFormatter.ts`, `src/utils/hookFormatter-types.ts`, `src/utils/hookFormatter.ts`
+- [x] T053 Review and validate all JSDoc comments follow project style guide (param types, return values, examples) across all implementation files
+- [x] T054 Final validation: Run `npm test` (all tests), `npm run lint`, and `npm run build` to verify zero errors and warnings before committing
 
 ---
 

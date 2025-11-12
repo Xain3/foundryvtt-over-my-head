@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 
 describe('hookFormatter (P2 - Module-Scoped Hook Names)', () => {
   // Mock config matching the structure in hooks.yaml

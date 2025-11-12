@@ -6,7 +6,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { config } from '#/config/config.ts';
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 
 describe('hookFormatter (Integration - Real Config)', () => {
   // T034: Integration test with actual config.constants.hooks values

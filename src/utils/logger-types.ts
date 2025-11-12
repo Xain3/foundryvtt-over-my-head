@@ -29,6 +29,14 @@ export interface TimestampConfig {
 }
 
 /**
+ * Configuration for separator handling in log messages.
+ */
+export interface SeparatorConfig {
+  separator: string;
+  keepSeparatorIfFieldEmpty?: boolean;
+}
+
+/**
  * Custom format templates for each log level.
  */
 export interface FormatTemplates {
@@ -48,6 +56,7 @@ export interface LogConfigurationObject {
   debugMode?: boolean;
   colorize?: boolean;
   timestamp?: TimestampConfig;
+  separator?: SeparatorConfig;
   format?: FormatTemplates;
 }
 
@@ -55,9 +64,13 @@ export interface LogConfigurationObject {
  * Per-call configuration overrides for logging methods.
  */
 export type LogOverrides = Partial<
-  Omit<LogConfigurationObject, 'moduleName' | 'timestamp' | 'format'>
+  Omit<
+    LogConfigurationObject,
+    'moduleName' | 'timestamp' | 'separator' | 'format'
+  >
 > & {
   timestamp?: Partial<TimestampConfig>;
+  separator?: Partial<SeparatorConfig>;
   format?: FormatTemplates;
 };
 
@@ -90,6 +103,7 @@ export type NormalizedConfig = {
   debugMode: boolean;
   colorize: boolean;
   timestamp: TimestampConfig;
+  separator: SeparatorConfig;
   format: Required<FormatTemplates>;
 };
 

@@ -10,6 +10,8 @@ This folder contains static utility classes that provide common functionality fo
 - `devModeParser-types.ts` - Type definitions for DevModeParser (separate from implementation)
 - `moduleNameResolver.ts` - Module display name resolution based on configuration strategies
 - `moduleNameResolver-types.ts` - Type definitions for ModuleNameResolver (separate from implementation)
+- `stringFormatter.ts` - Pure string formatting utility with prefix/suffix support
+- `stringFormatter-types.ts` - Type definitions for stringFormatter (separate from implementation)
 
 ## Public API
 
@@ -27,6 +29,24 @@ const isDev = StaticUtils.DevModeParser.isDevMode(env, module, setting);
 The `StaticUtils` class provides a stable, documented public API that shields consumers from internal folder structure changes.
 
 ## Available Utilities
+
+### StringFormatter
+
+`StringFormatter` provides simple string formatting with optional prefix and suffix support. Zero dependencies, pure utility function.
+
+```ts
+import StaticUtils from '#/utils/static.ts';
+
+const result = StaticUtils.StringFormatter.formatString('world', {
+  prefix: 'hello-',
+  suffix: '!'
+}); // 'hello-world!'
+```
+
+Use cases:
+- CSS class name generation: `formatString('modal', { prefix: 'omh-', suffix: '--active' })` → `'omh-modal--active'`
+- Log message prefixing: `formatString('Config loaded', { prefix: '[OMH] ' })` → `'[OMH] Config loaded'`
+- File path construction: `formatString('config', { prefix: 'src/', suffix: '.yaml' })` → `'src/config.yaml'`
 
 ### DevModeParser
 
@@ -72,6 +92,12 @@ const result = StaticUtils.DevModeParser.fromConfig(config, undefined, {
 The parser only evaluates the sources included in the hierarchy array. When an array is omitted or empty, the default order (`env → module → setting`) is applied automatically.
 
 ## Changelog
+
+### [0.3.0] - 2025-11-12
+
+- Added `stringFormatter` utility for simple string formatting with prefix/suffix support
+- Pure utility function with zero external dependencies
+- Perfect for CSS class generation, log prefixing, and file path construction
 
 ### [0.2.0] - 2025-10-30
 

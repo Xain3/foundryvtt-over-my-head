@@ -37,6 +37,7 @@ Implementation roadmap for creating a two-layer utility system for string format
 **Minimum Viable Product**: Complete Phase 1 (Setup) + Phase 2 (Foundational) + Phase 3 (User Story 1 P1 only)
 
 This provides:
+
 - ✅ Pure string formatter utility fully tested
 - ✅ Project structure established with proper typing and documentation
 - ✅ Zero-dependency building block ready for integration
@@ -49,6 +50,7 @@ This provides:
 ### Incremental Expansion
 
 After MVP:
+
 1. **Phase 4 (P2)**: Add module-scoped hook formatting (3-4 additional hours)
 2. **Phase 5 (P3)**: Add parameterized hook patterns (3-4 additional hours)
 3. **Phase 6**: Polish, documentation, and integration (1-2 hours)
@@ -73,7 +75,8 @@ Phase 2: Foundational
 
 **Critical Path**: Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 6
 
-**Independent Tracks**: 
+**Independent Tracks**:
+
 - P2 can start after Phase 2 (uses existing config)
 - P3 can start after Phase 2 (uses existing config)
 - P1 is prerequisite for P2 (P2 depends on formatString)
@@ -86,6 +89,7 @@ Phase 2: Foundational
 **Dependencies**: None
 **Duration**: 30 minutes
 **Independent Test Criteria**:
+
 - ✅ Project structure matches planned layout
 - ✅ All import aliases resolve correctly
 - ✅ Existing config and moduleNameResolver are accessible
@@ -93,8 +97,8 @@ Phase 2: Foundational
 
 ### Tasks
 
-- [ ] T001 Create `src/utils/static/stringFormatter-types.ts` file header with JSDoc and empty FormatOptions interface definition in `src/utils/static/stringFormatter-types.ts`
-- [ ] T002 Create `src/utils/hookFormatter-types.ts` file header with JSDoc and empty HookFormatterConfig interface definition in `src/utils/hookFormatter-types.ts`
+- [X] T001 Create `src/utils/static/stringFormatter-types.ts` file header with JSDoc and empty FormatOptions interface definition in `src/utils/static/stringFormatter-types.ts`
+- [X] T002 Create `src/utils/hookFormatter-types.ts` file header with JSDoc and empty HookFormatterConfig interface definition in `src/utils/hookFormatter-types.ts`
 
 ---
 
@@ -104,6 +108,7 @@ Phase 2: Foundational
 **Dependencies**: Phase 1
 **Duration**: 45 minutes
 **Independent Test Criteria**:
+
 - ✅ Module exports are correctly wired
 - ✅ Test harness initializes without errors
 - ✅ Existing config and resolver are accessible in tests
@@ -111,10 +116,10 @@ Phase 2: Foundational
 
 ### Tasks
 
-- [ ] T003 Create `src/utils/static/stringFormatter.ts` stub with file header and empty `formatString()` function in `src/utils/static/stringFormatter.ts`
-- [ ] T004 Create `src/utils/hookFormatter.ts` stub with file header and empty `formatHookName()` function overloads in `src/utils/hookFormatter.ts`
-- [ ] T005 [P] Update `src/utils/static/README.md` to document stringFormatter placement and purpose
-- [ ] T006 Update `src/utils/README.md` to document hookFormatter and update imports section with new utilities
+- [X] T003 Create `src/utils/static/stringFormatter.ts` stub with file header and empty `formatString()` function in `src/utils/static/stringFormatter.ts`
+- [X] T004 Create `src/utils/hookFormatter.ts` stub with file header and empty `formatHookName()` function overloads in `src/utils/hookFormatter.ts`
+- [X] T005 [P] Update `src/utils/static/README.md` to document stringFormatter placement and purpose
+- [X] T006 Update `src/utils/README.md` to document hookFormatter and update imports section with new utilities
 
 ---
 
@@ -125,6 +130,7 @@ Phase 2: Foundational
 **Dependencies**: Phase 2
 **Duration**: 2-2.5 hours
 **Independent Test Criteria**:
+
 - ✅ `formatString("world", { prefix: "hello-" })` returns `"hello-world"`
 - ✅ `formatString("world", { suffix: "!" })` returns `"world!"`
 - ✅ `formatString("world", { prefix: "hello-", suffix: "-!" })` returns `"hello-world-!"`
@@ -166,6 +172,7 @@ Phase 2: Foundational
 **Dependencies**: Phase 2 (foundational), Phase 3 (P1 complete)
 **Duration**: 3-3.5 hours
 **Independent Test Criteria**:
+
 - ✅ `formatHookName("settingsReady")` with config returns `"OMH.SettingsReady"`
 - ✅ `formatHookName("contextReady")` with config returns `"OMH.ContextReady"`
 - ✅ `formatHookName("unknownHook")` throws error with available keys listed
@@ -213,6 +220,7 @@ Phase 2: Foundational
 **Dependencies**: Phase 4 (P2 complete)
 **Duration**: 3-3.5 hours
 **Independent Test Criteria**:
+
 - ✅ `formatHookName("setting", { settingKey: "debugMode" })` returns `"OMH.setting.debugMode"`
 - ✅ Missing required params throw descriptive error
 - ✅ Extra unused params are ignored
@@ -251,6 +259,7 @@ Phase 2: Foundational
 **Dependencies**: Phases 3-5 (all user stories complete)
 **Duration**: 1-1.5 hours
 **Independent Test Criteria**:
+
 - ✅ All file headers present and properly formatted (`@file`, `@description`, `@path`)
 - ✅ JSDoc complete on all functions and exported types
 - ✅ All folder READMEs updated with new utilities
@@ -270,6 +279,7 @@ Phase 2: Foundational
 ### Within Phase 3 (P1 - String Formatter)
 
 **Can execute in parallel** (all use same file, so serialize):
+
 - T007, T008, T009, T010 (Implementation) — serialize (same file, sequential)
 - T011-T016 (Unit tests) — parallelize (independent test cases)
 
@@ -280,6 +290,7 @@ Phase 2: Foundational
 ### Within Phase 4 (P2 - Module-Scoped Hooks)
 
 **Can execute in parallel**:
+
 - T021-T024 (Types) — serialize (same file, sequential)
 - T025-T028 (Implementation) — serialize (same file, sequential)
 - T029-T034 (Unit + integration tests) — parallelize (T029-T032 in parallel, then T033-T034)
@@ -291,6 +302,7 @@ Phase 2: Foundational
 ### Within Phase 5 (P3 - Parameterized Hooks)
 
 **Can execute in parallel**:
+
 - T039-T042 (Implementation) — serialize (same file, sequential)
 - T043-T048 (Tests) — parallelize (T043-T046 in parallel, then T047-T048)
 
@@ -303,6 +315,7 @@ Phase 2: Foundational
 **Total parallel savings**: ~2 hours (from 8-12 hours down to 6-10 hours if fully parallelized)
 
 **Key dependencies to respect**:
+
 - Phase 1 must complete before Phase 2
 - Phase 2 must complete before Phases 3, 4, or 5
 - P1 (Phase 3) should complete before P2 (Phase 4) for logical flow
@@ -316,10 +329,12 @@ Phase 2: Foundational
 ### Unit Testing (Vitest)
 
 **Files**:
+
 - `tests/unit/stringFormatter.unit.test.mjs` (6 tests, ~20 LOC)
 - `tests/unit/hookFormatter.unit.test.mjs` (10 tests, ~40 LOC)
 
 **Approach**:
+
 - Pure unit tests with no external dependencies
 - Mock config object for P2/P3 tests
 - Each test case maps to a specific FR (functional requirement)
@@ -329,9 +344,11 @@ Phase 2: Foundational
 ### Integration Testing (Vitest)
 
 **Files**:
+
 - `tests/integration/hookFormatter.int.test.mjs` (2 tests, ~15 LOC)
 
 **Approach**:
+
 - Use real `config` singleton from `src/config/config.ts`
 - Verify hook patterns work with actual `hooks.yaml` constants
 - Validate integration with `resolveModuleName()`
@@ -341,6 +358,7 @@ Phase 2: Foundational
 ### Performance Testing (Optional)
 
 **Approach** (if implemented):
+
 - Benchmark formatString() with various string lengths
 - Benchmark formatHookName() with typical patterns
 - Verify all operations complete in <1ms (SC-007)
@@ -349,18 +367,18 @@ Phase 2: Foundational
 
 ## Success Criteria Validation
 
-| Criterion | Tasks Validating | Status |
-| --- | --- | --- |
+| Criterion                                       | Tasks Validating                | Status                            |
+| ----------------------------------------------- | ------------------------------- | --------------------------------- |
 | SC-001: All user stories independently testable | T012-T016, T030-T032, T043-T046 | Covered by unit/integration tests |
-| SC-002: String formatter ≥80% coverage | T019 | Validation task T019 |
-| SC-003: Hook names correct from hooks.yaml | T034, T037 | Integration test T034 |
-| SC-004: Parameterized patterns work correctly | T047, T050 | Integration test T047 |
-| SC-005: Descriptive `[OMH]` error messages | T032, T046 | Error test cases |
-| SC-006: Integration with Hooks.on/call works | T034 | Integration test T034 |
-| SC-007: <1ms performance | T054 | Final validation T054 |
-| SC-008: Documentation with examples | T017, T035, T049 | Doc tasks with examples |
-| SC-009: Zero regressions | T020, T038, T051 | Full test suite validation |
-| SC-010: Style guide compliance | T052-T053 | Header and JSDoc validation |
+| SC-002: String formatter ≥80% coverage          | T019                            | Validation task T019              |
+| SC-003: Hook names correct from hooks.yaml      | T034, T037                      | Integration test T034             |
+| SC-004: Parameterized patterns work correctly   | T047, T050                      | Integration test T047             |
+| SC-005: Descriptive `[OMH]` error messages      | T032, T046                      | Error test cases                  |
+| SC-006: Integration with Hooks.on/call works    | T034                            | Integration test T034             |
+| SC-007: <1ms performance                        | T054                            | Final validation T054             |
+| SC-008: Documentation with examples             | T017, T035, T049                | Doc tasks with examples           |
+| SC-009: Zero regressions                        | T020, T038, T051                | Full test suite validation        |
+| SC-010: Style guide compliance                  | T052-T053                       | Header and JSDoc validation       |
 
 ---
 
@@ -368,15 +386,15 @@ Phase 2: Foundational
 
 **Total**: 54 tasks across 6 phases
 
-| Phase | Count | Parallelizable | Est. Hours |
-| --- | --- | --- | --- |
-| Phase 1: Setup | 2 | Yes (1 hr if parallel) | 0.5 |
-| Phase 2: Foundational | 4 | Yes (2 tasks can parallel) | 0.75 |
-| Phase 3: P1 String Formatter | 14 | Yes (6 tests can parallel) | 2.5 |
-| Phase 4: P2 Hook Names | 18 | Yes (4 tests can parallel) | 3.5 |
-| Phase 5: P3 Parameterized | 12 | Yes (4 tests can parallel) | 3.0 |
-| Phase 6: Polish | 3 | No (sequential validation) | 1.0 |
-| **Total** | **54** | **75% parallelizable** | **11.25 hrs** |
+| Phase                        | Count  | Parallelizable             | Est. Hours    |
+| ---------------------------- | ------ | -------------------------- | ------------- |
+| Phase 1: Setup               | 2      | Yes (1 hr if parallel)     | 0.5           |
+| Phase 2: Foundational        | 4      | Yes (2 tasks can parallel) | 0.75          |
+| Phase 3: P1 String Formatter | 14     | Yes (6 tests can parallel) | 2.5           |
+| Phase 4: P2 Hook Names       | 18     | Yes (4 tests can parallel) | 3.5           |
+| Phase 5: P3 Parameterized    | 12     | Yes (4 tests can parallel) | 3.0           |
+| Phase 6: Polish              | 3      | No (sequential validation) | 1.0           |
+| **Total**                    | **54** | **75% parallelizable**     | **11.25 hrs** |
 
 **Optimized Timeline** (with parallelization): **6-8 hours**
 

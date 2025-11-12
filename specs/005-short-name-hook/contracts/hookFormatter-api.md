@@ -1,6 +1,6 @@
 # API Contract: Hook Formatter
 
-**Module**: `src/utils/hookFormatter.ts`
+**Module**: `src/utils/static/hookFormatter.ts`
 **Priority**: P2 (Simple hooks), P3 (Parameterized hooks)
 **Version**: 1.0.0
 
@@ -94,7 +94,7 @@ export interface HookFormatterConfig {
 #### Example 1: Settings Ready Hook
 
 ```typescript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#config';
 
 const hookName = formatHookName('settingsReady', config);
@@ -114,7 +114,7 @@ Hooks.on(hookName, () => {
 #### Example 2: Context Ready Hook
 
 ```typescript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#config';
 
 const hookName = formatHookName('contextReady', config);
@@ -129,7 +129,7 @@ console.log(hookName);
 #### Example 3: Error - Unknown Hook Key
 
 ```typescript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#config';
 
 try {
@@ -149,7 +149,7 @@ try {
 #### Example 4: Setting Change Hook
 
 ```typescript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#config';
 
 const hookName = formatHookName('setting', { settingKey: 'debugMode' }, config);
@@ -169,7 +169,7 @@ Hooks.on(hookName, (newValue) => {
 #### Example 5: Error - Missing Required Parameter
 
 ```typescript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#config';
 
 try {
@@ -187,7 +187,7 @@ try {
 #### Example 6: Extra Parameters Ignored
 
 ```typescript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#config';
 
 const hookName = formatHookName(
@@ -210,7 +210,7 @@ console.log(hookName);
 #### Example 7: Error - Unknown Pattern Key
 
 ```typescript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#config';
 
 try {
@@ -464,7 +464,7 @@ console.log(`Average time per operation: ${avgTime.toFixed(4)}ms`);
 ### Calling Hooks
 
 ```typescript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#config';
 
 const hookName = formatHookName('settingsReady', config);
@@ -476,7 +476,7 @@ Hooks.call(hookName, additionalData);
 ### Listening to Hooks
 
 ```typescript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#config';
 
 const hookName = formatHookName('settingsReady', config);
@@ -490,7 +490,7 @@ Hooks.on(hookName, (data) => {
 ### One-Time Hook Listeners
 
 ```typescript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#config';
 
 const hookName = formatHookName('settingsReady', config);
@@ -581,8 +581,8 @@ All extensions would be backward-compatible.
 
 ## File Locations
 
-**Implementation**: `src/utils/hookFormatter.ts`
-**Types**: `src/utils/hookFormatter-types.ts`
+**Implementation**: `src/utils/static/hookFormatter.ts`
+**Types**: `src/utils/static/hookFormatter-types.ts`
 **Tests**:
 
 - `tests/unit/hookFormatter.unit.test.mjs`

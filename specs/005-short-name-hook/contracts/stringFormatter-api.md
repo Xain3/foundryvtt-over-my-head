@@ -57,7 +57,7 @@ console.log(result);
 ### Example 2: Suffix Only
 
 ```typescript
-import { formatString } from '#/utils/stringFormatter.ts';
+import { formatString } from '#/utils/static/stringFormatter.ts';
 
 const result = formatString('world', { suffix: '-!' });
 console.log(result);
@@ -71,7 +71,7 @@ console.log(result);
 ### Example 3: Both Prefix and Suffix
 
 ```typescript
-import { formatString } from '#/utils/stringFormatter.ts';
+import { formatString } from '#/utils/static/stringFormatter.ts';
 
 const result = formatString('world', { prefix: 'hello-', suffix: '-!' });
 console.log(result);
@@ -85,7 +85,7 @@ console.log(result);
 ### Example 4: No Options (Identity)
 
 ```typescript
-import { formatString } from '#/utils/stringFormatter.ts';
+import { formatString } from '#/utils/static/stringFormatter.ts';
 
 const result = formatString('world');
 console.log(result);
@@ -99,7 +99,7 @@ console.log(result);
 ### Example 5: Empty String Handling
 
 ```typescript
-import { formatString } from '#/utils/stringFormatter.ts';
+import { formatString } from '#/utils/static/stringFormatter.ts';
 
 const result1 = formatString('', { prefix: 'hello-', suffix: '-!' });
 console.log(result1);

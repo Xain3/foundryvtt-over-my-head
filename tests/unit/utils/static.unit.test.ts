@@ -10,6 +10,9 @@ import StaticUtils, {
   type ConfigResult,
   type ConfigSource,
   type ConfigSingleton,
+  type FormatOptions,
+  type HookFormatterConfig,
+  type PlaceholderValues,
 } from '#/utils/static.ts';
 
 describe('StaticUtils', () => {
@@ -153,6 +156,159 @@ describe('StaticUtils', () => {
         get: (key: string, source: 'env' | 'module' | 'setting') => undefined,
       };
       expect(typeof config.get).toBe('function');
+    });
+  });
+
+  describe('formatString utilities (P1)', () => {
+    it('should have formatString property', () => {
+      expect(StaticUtils.formatString).toBeDefined();
+      expect(typeof StaticUtils.formatString).toBe('object');
+    });
+
+    it('should have format method on formatString', () => {
+      expect(StaticUtils.formatString.format).toBeDefined();
+      expect(typeof StaticUtils.formatString.format).toBe('function');
+    });
+
+    it('should format string with prefix only', () => {
+      const result = StaticUtils.formatString.format('world', {
+        prefix: 'hello-',
+      });
+      expect(result).toBe('hello-world');
+    });
+
+    it('should format string with suffix only', () => {
+      const result = StaticUtils.formatString.format('world', {
+        suffix: '!',
+      });
+      expect(result).toBe('world!');
+    });
+
+    it('should format string with both prefix and suffix', () => {
+      const result = StaticUtils.formatString.format('world', {
+        prefix: 'hello-',
+        suffix: '!',
+      });
+      expect(result).toBe('hello-world!');
+    });
+
+    it('should return base string when no options provided', () => {
+      const result = StaticUtils.formatString.format('world');
+      expect(result).toBe('world');
+    });
+
+    it('should handle empty prefix/suffix gracefully', () => {
+      const result = StaticUtils.formatString.format('world', {
+        prefix: '',
+        suffix: '',
+      });
+      expect(result).toBe('world');
+    });
+
+    it('should export FormatOptions type', () => {
+      const options: FormatOptions = { prefix: 'pre-', suffix: '-suf' };
+      expect(options.prefix).toBe('pre-');
+      expect(options.suffix).toBe('-suf');
+    });
+  });
+
+  describe('formatHookName utilities (P2/P3)', () => {
+    it('should have formatHookName property', () => {
+      expect(StaticUtils.formatHookName).toBeDefined();
+      expect(typeof StaticUtils.formatHookName).toBe('object');
+    });
+
+    it('should have format method on formatHookName', () => {
+      expect(StaticUtils.formatHookName.format).toBeDefined();
+      expect(typeof StaticUtils.formatHookName.format).toBe('function');
+    });
+
+    it('should format simple hook name (P2)', () => {
+      const mockConfig: HookFormatterConfig = {
+        hooks: {
+          settingsReady: 'SettingsReady',
+          contextReady: 'ContextReady',
+        },
+        hookPatterns: {
+          module: '{moduleReference}{separator}{hook}',
+          setting: '{moduleReference}{separator}setting{separator}{settingKey}',
+        },
+        hookPatternSeparator: '.',
+      };
+
+      const result = StaticUtils.formatHookName.format(
+        'settingsReady',
+        mockConfig
+      );
+      expect(result).toBe('OMH.SettingsReady');
+    });
+
+    it('should format parameterized hook name (P3)', () => {
+      const mockConfig: HookFormatterConfig = {
+        hooks: {
+          settingsReady: 'SettingsReady',
+        },
+        hookPatterns: {
+          module: '{moduleReference}{separator}{hook}',
+          setting: '{moduleReference}{separator}setting{separator}{settingKey}',
+        },
+        hookPatternSeparator: '.',
+      };
+
+      const result = StaticUtils.formatHookName.format(
+        'setting',
+        { settingKey: 'debugMode' },
+        mockConfig
+      );
+      expect(result).toBe('OMH.setting.debugMode');
+    });
+
+    it('should throw error for missing hook key (P2)', () => {
+      const mockConfig: HookFormatterConfig = {
+        hooks: {
+          settingsReady: 'SettingsReady',
+        },
+        hookPatterns: {
+          module: '{moduleReference}{separator}{hook}',
+        },
+        hookPatternSeparator: '.',
+      };
+
+      expect(() => {
+        StaticUtils.formatHookName.format('unknownHook', mockConfig);
+      }).toThrow('[OMH] Hook key "unknownHook" not found in config');
+    });
+
+    it('should throw error for missing required parameter (P3)', () => {
+      const mockConfig: HookFormatterConfig = {
+        hooks: {},
+        hookPatterns: {
+          setting: '{moduleReference}{separator}setting{separator}{settingKey}',
+        },
+        hookPatternSeparator: '.',
+      };
+
+      expect(() => {
+        StaticUtils.formatHookName.format('setting', {}, mockConfig);
+      }).toThrow('[OMH] Missing required parameter "settingKey"');
+    });
+
+    it('should export HookFormatterConfig type', () => {
+      const config: HookFormatterConfig = {
+        hooks: { test: 'Test' },
+        hookPatterns: { module: '{moduleReference}' },
+        hookPatternSeparator: '.',
+      };
+      expect(config.hookPatternSeparator).toBe('.');
+    });
+
+    it('should export PlaceholderValues type', () => {
+      const values: PlaceholderValues = {
+        moduleReference: 'OMH',
+        separator: '.',
+        hook: 'Test',
+      };
+      expect(values.moduleReference).toBe('OMH');
     });
   });
 });

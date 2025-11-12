@@ -374,6 +374,8 @@ Before submitting a pull request:
 **Reference**: See [docs/STYLE_GUIDE.md](../docs/STYLE_GUIDE.md), [Constitution](../.specify/memory/constitution.md)
 
 ## Active Technologies
+- TypeScript 5.x / JavaScript ES2022 with ESM modules (.mts/.mjs extensions) (005-short-name-hook)
+- N/A (stateless utilities) (005-short-name-hook)
 
 - JavaScript ES2022 / TypeScript with ESM modules (.mjs/.mts extensions) (004-parametrable-logger)
 - N/A (logger is stateless; configuration passed as object) (004-parametrable-logger)

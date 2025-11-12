@@ -1,17 +1,18 @@
 # Quickstart: Hook Formatter Utility
 
-**Feature**: Hook Formatter Utility  
-**Branch**: `005-short-name-hook`  
+**Feature**: Hook Formatter Utility
+**Branch**: `005-short-name-hook`
 **For**: Developers implementing or using this feature
 
 ## 🚀 TL;DR
 
 Three utilities in one feature:
+
 1. **`formatString()`** - Pure string formatter (prefix/suffix)
 2. **`formatHookName(hookKey, config)`** - Simple module-scoped hooks
 3. **`formatHookName(patternKey, params, config)`** - Parameterized hooks
 
-**Install**: No installation needed - utilities are part of module  
+**Install**: No installation needed - utilities are part of module
 **Dependencies**: Zero external, uses existing config system
 
 ---
@@ -23,10 +24,10 @@ Three utilities in one feature:
 ```typescript
 import { formatString } from '#/utils/stringFormatter.ts';
 
-formatString("world", { prefix: "hello-" });              // → "hello-world"
-formatString("world", { suffix: "!" });                   // → "world!"
-formatString("world", { prefix: "hello-", suffix: "!" }); // → "hello-world!"
-formatString("world");                                     // → "world"
+formatString('world', { prefix: 'hello-' }); // → "hello-world"
+formatString('world', { suffix: '!' }); // → "world!"
+formatString('world', { prefix: 'hello-', suffix: '!' }); // → "hello-world!"
+formatString('world'); // → "world"
 ```
 
 ### Hook Formatter (P2/P3)
@@ -36,11 +37,11 @@ import { formatHookName } from '#/utils/hookFormatter.ts';
 import { config } from '#config';
 
 // Simple hooks (P2)
-formatHookName('settingsReady', config);  // → "OMH.SettingsReady"
-formatHookName('contextReady', config);   // → "OMH.ContextReady"
+formatHookName('settingsReady', config); // → "OMH.SettingsReady"
+formatHookName('contextReady', config); // → "OMH.ContextReady"
 
 // Parameterized hooks (P3)
-formatHookName('setting', { settingKey: 'debugMode' }, config);  // → "OMH.setting.debugMode"
+formatHookName('setting', { settingKey: 'debugMode' }, config); // → "OMH.setting.debugMode"
 ```
 
 ---
@@ -78,7 +79,7 @@ import { config } from '#config';
 // Register a listener for a specific setting
 function watchSetting(settingKey: string, callback: (value: any) => void) {
   const hookName = formatHookName('setting', { settingKey }, config);
-  
+
   Hooks.on(hookName, callback);
 }
 
@@ -104,15 +105,15 @@ function onSettingChange(settingKey: string, newValue: any) {
 import { formatString } from '#/utils/stringFormatter.ts';
 
 // Generate CSS class names
-const className = formatString("modal", { prefix: "omh-", suffix: "--active" });
+const className = formatString('modal', { prefix: 'omh-', suffix: '--active' });
 // → "omh-modal--active"
 
 // Generate log prefixes
-const logMessage = formatString("Config loaded", { prefix: "[OMH] " });
+const logMessage = formatString('Config loaded', { prefix: '[OMH] ' });
 // → "[OMH] Config loaded"
 
 // Generate file paths
-const filePath = formatString("config", { prefix: "src/", suffix: ".yaml" });
+const filePath = formatString('config', { prefix: 'src/', suffix: '.yaml' });
 // → "src/config.yaml"
 ```
 
@@ -124,12 +125,13 @@ const filePath = formatString("config", { prefix: "src/", suffix: ".yaml" });
 
 ### Step 1: Implement String Formatter (P1)
 
-**File**: `src/utils/stringFormatter-types.ts`
+**File**: `src/utils/static/stringFormatter-types.ts`
+
 ```typescript
 /**
  * @file stringFormatter-types.ts
  * @description Type definitions for string formatting utility
- * @path src/utils/stringFormatter-types.ts
+ * @path src/utils/static/stringFormatter-types.ts
  */
 
 export interface FormatOptions {
@@ -138,15 +140,16 @@ export interface FormatOptions {
 }
 ```
 
-**File**: `src/utils/stringFormatter.ts`
+**File**: `src/utils/static/stringFormatter.ts`
+
 ```typescript
 /**
  * @file stringFormatter.ts
  * @description Pure string formatting utility with prefix/suffix support
- * @path src/utils/stringFormatter.ts
+ * @path src/utils/static/stringFormatter.ts
  */
 
-import type { FormatOptions } from './stringFormatter-types.ts';
+import type { FormatOptions } from '#/utils/static/stringFormatter-types.ts';
 
 /**
  * Formats a string by prepending an optional prefix and/or appending an optional suffix.
@@ -167,6 +170,7 @@ export function formatString(base: string, options?: FormatOptions): string {
 ```
 
 **Test**: `tests/unit/stringFormatter.unit.test.mjs`
+
 ```javascript
 /**
  * @file stringFormatter.unit.test.mjs
@@ -175,27 +179,29 @@ export function formatString(base: string, options?: FormatOptions): string {
  */
 
 import { describe, it, expect } from 'vitest';
-import { formatString } from '#/utils/stringFormatter.ts';
+import { formatString } from '#/utils/static/stringFormatter.ts';
 
 describe('formatString', () => {
   it('should prepend prefix', () => {
-    expect(formatString("world", { prefix: "hello-" })).toBe("hello-world");
+    expect(formatString('world', { prefix: 'hello-' })).toBe('hello-world');
   });
 
   it('should append suffix', () => {
-    expect(formatString("world", { suffix: "!" })).toBe("world!");
+    expect(formatString('world', { suffix: '!' })).toBe('world!');
   });
 
   it('should handle both prefix and suffix', () => {
-    expect(formatString("world", { prefix: "hello-", suffix: "!" })).toBe("hello-world!");
+    expect(formatString('world', { prefix: 'hello-', suffix: '!' })).toBe(
+      'hello-world!'
+    );
   });
 
   it('should return unchanged when no options', () => {
-    expect(formatString("world")).toBe("world");
+    expect(formatString('world')).toBe('world');
   });
 
   it('should handle empty string', () => {
-    expect(formatString("", { prefix: "a", suffix: "b" })).toBe("ab");
+    expect(formatString('', { prefix: 'a', suffix: 'b' })).toBe('ab');
   });
 });
 ```
@@ -207,6 +213,7 @@ describe('formatString', () => {
 ### Step 2: Implement Hook Formatter (P2/P3)
 
 **File**: `src/utils/hookFormatter-types.ts`
+
 ```typescript
 /**
  * @file hookFormatter-types.ts
@@ -234,6 +241,7 @@ export interface HookFormatterConfig {
 ```
 
 **File**: `src/utils/hookFormatter.ts`
+
 ```typescript
 /**
  * @file hookFormatter.ts
@@ -245,7 +253,10 @@ import type { HookFormatterConfig } from './hookFormatter-types.ts';
 import { resolveModuleName } from './static/moduleNameResolver.ts';
 
 // P2: Simple hook overload
-export function formatHookName(hookKey: string, config: HookFormatterConfig): string;
+export function formatHookName(
+  hookKey: string,
+  config: HookFormatterConfig
+): string;
 
 // P3: Parameterized hook overload
 export function formatHookName(
@@ -262,49 +273,58 @@ export function formatHookName(
 ): string {
   // Determine which overload was called
   const isParameterized = maybeConfig !== undefined;
-  
+
   if (isParameterized) {
     // P3: Parameterized hook
     const patternKey = keyOrPattern;
     const params = configOrParams as Record<string, string>;
     const config = maybeConfig!;
-    
+
     return formatParameterizedHook(patternKey, params, config);
   } else {
     // P2: Simple hook
     const hookKey = keyOrPattern;
     const config = configOrParams as HookFormatterConfig;
-    
+
     return formatSimpleHook(hookKey, config);
   }
 }
 
-function formatSimpleHook(hookKey: string, config: HookFormatterConfig): string {
+function formatSimpleHook(
+  hookKey: string,
+  config: HookFormatterConfig
+): string {
   validateConfig(config);
-  
-  const { hooks, hookPatterns, hookPatternSeparator = '.' } = config.constants.hooks;
-  
+
+  const {
+    hooks,
+    hookPatterns,
+    hookPatternSeparator = '.',
+  } = config.constants.hooks;
+
   // Look up hook value
   const hookValue = hooks[hookKey];
   if (hookValue === undefined) {
     const available = Object.keys(hooks).join(', ');
-    throw new Error(`[OMH] Hook key "${hookKey}" not found in hooks.yaml. Available keys: ${available}`);
+    throw new Error(
+      `[OMH] Hook key "${hookKey}" not found in hooks.yaml. Available keys: ${available}`
+    );
   }
-  
+
   // Get pattern template
   const template = hookPatterns.module;
   if (!template) {
     throw new Error('[OMH] Missing required pattern: hookPatterns.module');
   }
-  
+
   // Resolve placeholders
   const moduleRef = resolveModuleName(config);
   const placeholders = {
     moduleReference: moduleRef,
     separator: hookPatternSeparator,
-    hook: hookValue
+    hook: hookValue,
   };
-  
+
   return replacePlaceholders(template, placeholders);
 }
 
@@ -314,27 +334,29 @@ function formatParameterizedHook(
   config: HookFormatterConfig
 ): string {
   validateConfig(config);
-  
+
   const { hookPatterns, hookPatternSeparator = '.' } = config.constants.hooks;
-  
+
   // Look up pattern template
   const template = hookPatterns[patternKey];
   if (template === undefined) {
     const available = Object.keys(hookPatterns).join(', ');
-    throw new Error(`[OMH] Pattern key "${patternKey}" not found in hookPatterns. Available patterns: ${available}`);
+    throw new Error(
+      `[OMH] Pattern key "${patternKey}" not found in hookPatterns. Available patterns: ${available}`
+    );
   }
-  
+
   // Extract required placeholders
   const required = extractPlaceholders(template);
-  
+
   // Resolve special placeholders
   const moduleRef = resolveModuleName(config);
   const allValues = {
     moduleReference: moduleRef,
     separator: hookPatternSeparator,
-    ...params
+    ...params,
   };
-  
+
   // Validate all required placeholders provided
   for (const placeholder of required) {
     if (allValues[placeholder] === undefined) {
@@ -343,7 +365,7 @@ function formatParameterizedHook(
       );
     }
   }
-  
+
   return replacePlaceholders(template, allValues);
 }
 
@@ -351,23 +373,30 @@ function validateConfig(config: HookFormatterConfig): void {
   if (!config?.constants?.hooks) {
     throw new Error('[OMH] Invalid config: missing constants.hooks');
   }
-  
+
   if (typeof config.constants.hooks.hooks !== 'object') {
-    throw new Error('[OMH] Invalid config: constants.hooks.hooks must be an object');
+    throw new Error(
+      '[OMH] Invalid config: constants.hooks.hooks must be an object'
+    );
   }
-  
+
   if (typeof config.constants.hooks.hookPatterns !== 'object') {
-    throw new Error('[OMH] Invalid config: constants.hooks.hookPatterns must be an object');
+    throw new Error(
+      '[OMH] Invalid config: constants.hooks.hookPatterns must be an object'
+    );
   }
 }
 
 function extractPlaceholders(template: string): string[] {
   const matches = template.match(/\{([^}]+)\}/g);
   if (!matches) return [];
-  return matches.map(m => m.slice(1, -1)); // Remove braces
+  return matches.map((m) => m.slice(1, -1)); // Remove braces
 }
 
-function replacePlaceholders(template: string, values: Record<string, string>): string {
+function replacePlaceholders(
+  template: string,
+  values: Record<string, string>
+): string {
   let result = template;
   for (const [key, value] of Object.entries(values)) {
     result = result.replaceAll(`{${key}}`, value);
@@ -385,7 +414,8 @@ function replacePlaceholders(template: string, values: Record<string, string>): 
 ### Step 3: Update Documentation
 
 **Update**: `src/utils/README.md`
-```markdown
+
+````markdown
 # Utilities
 
 ## String Formatter
@@ -393,10 +423,12 @@ function replacePlaceholders(template: string, values: Record<string, string>): 
 Pure string formatting utility with prefix/suffix support.
 
 **Usage**:
+
 ```typescript
 import { formatString } from '#/utils/stringFormatter.ts';
-formatString("base", { prefix: "pre-", suffix: "-post" });
+formatString('base', { prefix: 'pre-', suffix: '-post' });
 ```
+````
 
 See: [API Contract](../../specs/005-short-name-hook/contracts/stringFormatter-api.md)
 
@@ -405,6 +437,7 @@ See: [API Contract](../../specs/005-short-name-hook/contracts/stringFormatter-ap
 Generates Foundry VTT hook names from config patterns.
 
 **Usage**:
+
 ```typescript
 import { formatHookName } from '#/utils/hookFormatter.ts';
 import { config } from '#config';
@@ -414,7 +447,8 @@ formatHookName('setting', { settingKey: 'debugMode' }, config);
 ```
 
 See: [API Contract](../../specs/005-short-name-hook/contracts/hookFormatter-api.md)
-```
+
+````
 
 ---
 
@@ -452,7 +486,7 @@ npm test -- hookFormatter.unit.test
 
 # Run all unit tests
 npm test -- --project unit
-```
+````
 
 ### Integration Tests (Real Config)
 
@@ -544,6 +578,6 @@ const hookName = formatHookName('settingsReady', config);
 
 ---
 
-**Document Version**: 1.0.0  
-**Last Updated**: 2025-11-12  
+**Document Version**: 1.0.0
+**Last Updated**: 2025-11-12
 **Status**: Ready for implementation

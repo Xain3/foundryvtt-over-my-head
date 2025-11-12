@@ -1,7 +1,7 @@
 # API Contract: String Formatter
 
-**Module**: `src/utils/stringFormatter.ts`  
-**Priority**: P1 (MVP - Zero Dependencies)  
+**Module**: `src/utils/static/stringFormatter.ts`
+**Priority**: P1 (MVP - Zero Dependencies)
 **Version**: 1.0.0
 
 ## Public API
@@ -11,11 +11,13 @@
 Formats a string by prepending an optional prefix and/or appending an optional suffix.
 
 **Signature**:
+
 ```typescript
-function formatString(base: string, options?: FormatOptions): string
+function formatString(base: string, options?: FormatOptions): string;
 ```
 
 **Type Definitions**:
+
 ```typescript
 interface FormatOptions {
   prefix?: string;
@@ -24,6 +26,7 @@ interface FormatOptions {
 ```
 
 **Parameters**:
+
 - `base` (string, required): The base string to format
 - `options` (FormatOptions, optional): Formatting options
   - `options.prefix` (string, optional): String to prepend
@@ -40,9 +43,9 @@ interface FormatOptions {
 ### Example 1: Prefix Only
 
 ```typescript
-import { formatString } from '#/utils/stringFormatter.ts';
+import { formatString } from '#/utils/static/stringFormatter.ts';
 
-const result = formatString("world", { prefix: "hello-" });
+const result = formatString('world', { prefix: 'hello-' });
 console.log(result);
 // Output: "hello-world"
 ```
@@ -56,7 +59,7 @@ console.log(result);
 ```typescript
 import { formatString } from '#/utils/stringFormatter.ts';
 
-const result = formatString("world", { suffix: "-!" });
+const result = formatString('world', { suffix: '-!' });
 console.log(result);
 // Output: "world-!"
 ```
@@ -70,7 +73,7 @@ console.log(result);
 ```typescript
 import { formatString } from '#/utils/stringFormatter.ts';
 
-const result = formatString("world", { prefix: "hello-", suffix: "-!" });
+const result = formatString('world', { prefix: 'hello-', suffix: '-!' });
 console.log(result);
 // Output: "hello-world-!"
 ```
@@ -84,7 +87,7 @@ console.log(result);
 ```typescript
 import { formatString } from '#/utils/stringFormatter.ts';
 
-const result = formatString("world");
+const result = formatString('world');
 console.log(result);
 // Output: "world"
 ```
@@ -98,11 +101,11 @@ console.log(result);
 ```typescript
 import { formatString } from '#/utils/stringFormatter.ts';
 
-const result1 = formatString("", { prefix: "hello-", suffix: "-!" });
+const result1 = formatString('', { prefix: 'hello-', suffix: '-!' });
 console.log(result1);
 // Output: "hello--!"
 
-const result2 = formatString("");
+const result2 = formatString('');
 console.log(result2);
 // Output: ""
 ```
@@ -113,14 +116,14 @@ console.log(result2);
 
 ## Functional Requirements Coverage
 
-| Requirement | Status | Test Case |
-|-------------|--------|-----------|
-| FR-001: Provide formatString function | ✅ | API exists with correct signature |
-| FR-002: Support prefix option | ✅ | Example 1 |
-| FR-003: Support suffix option | ✅ | Example 2 |
-| FR-004: Support both options | ✅ | Example 3 |
-| FR-005: Return unchanged when no options | ✅ | Example 4 |
-| FR-006: Handle empty strings | ✅ | Example 5 |
+| Requirement                              | Status | Test Case                         |
+| ---------------------------------------- | ------ | --------------------------------- |
+| FR-001: Provide formatString function    | ✅     | API exists with correct signature |
+| FR-002: Support prefix option            | ✅     | Example 1                         |
+| FR-003: Support suffix option            | ✅     | Example 2                         |
+| FR-004: Support both options             | ✅     | Example 3                         |
+| FR-005: Return unchanged when no options | ✅     | Example 4                         |
+| FR-006: Handle empty strings             | ✅     | Example 5                         |
 
 ---
 
@@ -131,7 +134,7 @@ console.log(result2);
 ```typescript
 // TypeScript will catch this at compile time
 formatString(undefined); // TS Error: Argument of type 'undefined' is not assignable to parameter of type 'string'
-formatString(null);      // TS Error: Argument of type 'null' is not assignable to parameter of type 'string'
+formatString(null); // TS Error: Argument of type 'null' is not assignable to parameter of type 'string'
 ```
 
 **Behavior**: TypeScript prevents calling with non-string base
@@ -141,7 +144,7 @@ formatString(null);      // TS Error: Argument of type 'null' is not assignable 
 ### Empty Prefix/Suffix
 
 ```typescript
-const result = formatString("world", { prefix: "", suffix: "" });
+const result = formatString('world', { prefix: '', suffix: '' });
 // Output: "world"
 ```
 
@@ -152,7 +155,7 @@ const result = formatString("world", { prefix: "", suffix: "" });
 ### Only Prefix/Suffix Provided (No Base)
 
 ```typescript
-const result = formatString("", { prefix: "prefix-", suffix: "-suffix" });
+const result = formatString('', { prefix: 'prefix-', suffix: '-suffix' });
 // Output: "prefix--suffix"
 ```
 
@@ -165,12 +168,13 @@ const result = formatString("", { prefix: "prefix-", suffix: "-suffix" });
 **Target**: <1ms per operation (SC-007)
 
 **Benchmark**:
+
 ```typescript
 const iterations = 1000;
 const start = performance.now();
 
 for (let i = 0; i < iterations; i++) {
-  formatString("test", { prefix: "pre-", suffix: "-post" });
+  formatString('test', { prefix: 'pre-', suffix: '-post' });
 }
 
 const duration = performance.now() - start;
@@ -180,6 +184,7 @@ console.log(`Average time per operation: ${avgTime.toFixed(4)}ms`);
 ```
 
 **Complexity**:
+
 - Time: O(n) where n = length(prefix) + length(base) + length(suffix)
 - Space: O(n) for result string
 
@@ -190,20 +195,20 @@ console.log(`Average time per operation: ${avgTime.toFixed(4)}ms`);
 ### Valid Usage (Type-Safe)
 
 ```typescript
-formatString("base");                               // ✅ Valid
-formatString("base", {});                           // ✅ Valid
-formatString("base", { prefix: "p" });              // ✅ Valid
-formatString("base", { suffix: "s" });              // ✅ Valid
-formatString("base", { prefix: "p", suffix: "s" }); // ✅ Valid
+formatString('base'); // ✅ Valid
+formatString('base', {}); // ✅ Valid
+formatString('base', { prefix: 'p' }); // ✅ Valid
+formatString('base', { suffix: 's' }); // ✅ Valid
+formatString('base', { prefix: 'p', suffix: 's' }); // ✅ Valid
 ```
 
 ### Invalid Usage (Caught by TypeScript)
 
 ```typescript
-formatString();                                  // ❌ TS Error: Expected 1-2 arguments, but got 0
-formatString(123);                               // ❌ TS Error: Argument of type 'number' is not assignable
-formatString("base", { prefix: 123 });           // ❌ TS Error: Type 'number' is not assignable to type 'string'
-formatString("base", { invalid: "option" });     // ❌ TS Error: Object literal may only specify known properties
+formatString(); // ❌ TS Error: Expected 1-2 arguments, but got 0
+formatString(123); // ❌ TS Error: Argument of type 'number' is not assignable
+formatString('base', { prefix: 123 }); // ❌ TS Error: Type 'number' is not assignable to type 'string'
+formatString('base', { invalid: 'option' }); // ❌ TS Error: Object literal may only specify known properties
 ```
 
 ---
@@ -213,6 +218,7 @@ formatString("base", { invalid: "option" });     // ❌ TS Error: Object literal
 **Unit Tests** (`tests/unit/stringFormatter.unit.test.mjs`):
 
 Required test cases (from acceptance scenarios):
+
 1. ✅ Prefix only: `formatString("world", { prefix: "hello-" })` → `"hello-world"`
 2. ✅ Suffix only: `formatString("world", { suffix: "-!" })` → `"world-!"`
 3. ✅ Both prefix and suffix: `formatString("world", { prefix: "hello-", suffix: "-!" })` → `"hello-world-!"`
@@ -227,7 +233,7 @@ Required test cases (from acceptance scenarios):
 
 ## Dependencies
 
-**External**: None  
+**External**: None
 **Internal**: None
 
 **Justification**: P1 is designed as a zero-dependency pure utility function.
@@ -240,7 +246,8 @@ Required test cases (from acceptance scenarios):
 
 **Backward Compatibility**: N/A (new feature)
 
-**Future Extensions**: 
+**Future Extensions**:
+
 - Could add optional `transform` function to modify base string before formatting
 - Could add optional `repeat` count for prefix/suffix
 - Could add validation options (e.g., `maxLength`)
@@ -251,23 +258,23 @@ All extensions would be backward-compatible (add optional parameters).
 
 ## Success Criteria Alignment
 
-| Criterion | Status | Evidence |
-|-----------|--------|----------|
-| SC-001: Independently testable | ✅ | Zero dependencies, pure function |
-| SC-002: ≥80% test coverage | ✅ | Target 100% (simple pure function) |
-| SC-007: <1ms performance | ✅ | String operations only, O(n) complexity |
-| SC-010: Style guide compliance | ✅ | Will have file header, JSDoc, type separation |
+| Criterion                      | Status | Evidence                                      |
+| ------------------------------ | ------ | --------------------------------------------- |
+| SC-001: Independently testable | ✅     | Zero dependencies, pure function              |
+| SC-002: ≥80% test coverage     | ✅     | Target 100% (simple pure function)            |
+| SC-007: <1ms performance       | ✅     | String operations only, O(n) complexity       |
+| SC-010: Style guide compliance | ✅     | Will have file header, JSDoc, type separation |
 
 ---
 
 ## File Locations
 
-**Implementation**: `src/utils/stringFormatter.ts`  
-**Types**: `src/utils/stringFormatter-types.ts`  
+**Implementation**: `src/utils/static/stringFormatter.ts`
+**Types**: `src/utils/static/stringFormatter-types.ts`
 **Tests**: `tests/unit/stringFormatter.unit.test.mjs`
 
 ---
 
-**Contract Version**: 1.0.0  
-**Last Updated**: 2025-11-12  
+**Contract Version**: 1.0.0
+**Last Updated**: 2025-11-12
 **Status**: Ready for implementation

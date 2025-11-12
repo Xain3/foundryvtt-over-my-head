@@ -9,6 +9,7 @@ import type { Config } from '#/config/config.ts';
 import type {
   LogLevel,
   TimestampConfig,
+  SeparatorConfig,
   FormatTemplates,
   LogConfigurationObject,
   LogOverrides,
@@ -26,16 +27,22 @@ const DEFAULT_TIMESTAMP_CONFIG: TimestampConfig = {
   format: 'iso',
 };
 
+const DEFAULT_SEPARATOR_CONFIG: SeparatorConfig = {
+  separator: ' | ',
+  keepSeparatorIfFieldEmpty: false,
+};
+
 const DEFAULT_FORMAT_TEMPLATES: Required<FormatTemplates> = {
-  error: '[{module}] ERROR | {timestamp} | {message}',
-  warn: '[{module}] WARN | {timestamp} | {message}',
+  error: '[{module}] {level} | {timestamp} | {message}',
+  warn: '[{module}] {level} | {timestamp} | {message}',
   info: '[{module}] {message}',
-  verbose: '[{module}] VERBOSE | {message}',
-  debug: '[{module}] DEBUG | {timestamp} | {message} | {metadata}',
+  verbose: '[{module}] {level} | {message}',
+  debug: '[{module}] {level} | {timestamp} | {message} | {metadata}',
 };
 
 /**
  * Default configuration path in Config.constants for logger settings.
+ * When logging.yaml is loaded into constants, this can be changed to 'logging.console'.
  * @private
  */
 const DEFAULT_CONFIG_PATH = 'defaults.logging';
@@ -44,7 +51,7 @@ const DEFAULT_CONFIG_PATH = 'defaults.logging';
  * Extracts LogConfigurationObject from a Config instance using a configuration path.
  *
  * @param {Config} config - Config singleton instance containing logging configuration.
- * @param {string} [configPath='configs.logging'] - Dot-separated path to logging config in Config.constants.
+ * @param {string} [configPath='defaults.logging'] - Dot-separated path to logging config in Config.constants.
  * @returns {LogConfigurationObject} Extracted logging configuration.
  * @throws {Error} If the configuration path is not properly structured.
  *
@@ -53,8 +60,8 @@ const DEFAULT_CONFIG_PATH = 'defaults.logging';
  * const logConfig = extractLogConfigFromConfig(config);
  *
  * @example
- * // Using custom path (config.constants.myapp.logger)
- * const logConfig = extractLogConfigFromConfig(config, 'myapp.logger');
+ * // Using logging.yaml path once loaded (config.constants.logging.console)
+ * const logConfig = extractLogConfigFromConfig(config, 'logging.console');
  */
 function extractLogConfigFromConfig(
   config: Config,
@@ -391,7 +398,8 @@ export class Logger {
     const substituted = this.applyPlaceholders(
       template,
       context,
-      serializedMetadata
+      serializedMetadata,
+      config.separator
     );
     return this.applyColor(level, substituted, config);
   }
@@ -417,51 +425,131 @@ export class Logger {
   }
 
   /**
-   * Applies context-aware placeholder replacement for message templates.
+   * Applies context-aware placeholder replacement for message templates with smart separator handling.
    *
-   * @param {string} template - Template string containing `{placeholder}` tokens.
+   * Separator logic:
+   * - {separator} is replaced only when immediately adjacent to non-empty field placeholders
+   * - Literal text between {separator} and a placeholder breaks adjacency
+   * - If keepSeparatorIfFieldEmpty is false (default): both adjacent fields must be non-empty
+   * - If keepSeparatorIfFieldEmpty is true: at least one adjacent field must be non-empty
+   *
+   * @param {string} template - Template string containing `{placeholder}` and `{separator}` tokens.
    * @param {PlaceholderContext} context - Core context values exposed to placeholders.
    * @param {string} serializedMetadata - Pre-serialized metadata string used for `{metadata}` token.
-   * @returns {string} Template with placeholders substituted.
+   * @param {SeparatorConfig} separatorConfig - Configuration for separator behavior.
+   * @returns {string} Template with placeholders substituted and separators intelligently applied.
    */
   private applyPlaceholders(
     template: string,
     context: PlaceholderContext,
-    serializedMetadata: string
+    serializedMetadata: string,
+    separatorConfig: SeparatorConfig
   ): string {
-    // Single-pass regex handles all placeholders, including nested metadata paths (`metadata.user.id`).
-    return template.replace(/\{([^}]+)\}/g, (_match, key: string) => {
-      if (key === 'metadata') {
-        return serializedMetadata;
+    // Step 1: Build a map of placeholder resolutions
+    const placeholderResolutions = new Map<string, string>();
+
+    // Pre-resolve all placeholders to determine which ones are empty
+    const placeholderPattern = /\{([^}]+)\}/g;
+    let match;
+    while ((match = placeholderPattern.exec(template)) !== null) {
+      const key = match[1];
+
+      if (key === 'separator') {
+        continue; // Handle separators in step 2
       }
 
-      if (key.startsWith('metadata.')) {
+      if (placeholderResolutions.has(key)) {
+        continue; // Already resolved
+      }
+
+      let resolved = '';
+
+      if (key === 'metadata') {
+        resolved = serializedMetadata;
+      } else if (key.startsWith('metadata.')) {
         const path = key.split('.').slice(1);
         let current: unknown = context.metadata;
 
         for (const segment of path) {
           if (current === null || current === undefined) {
-            return '';
+            resolved = '';
+            break;
           }
 
           if (typeof current !== 'object') {
-            return '';
+            resolved = '';
+            break;
           }
 
           current = (current as Record<string, unknown>)[segment];
         }
 
-        return current === undefined ? '' : this.stringifyScalar(current);
+        if (resolved === '') {
+          // Didn't break early
+          resolved = current === undefined ? '' : this.stringifyScalar(current);
+        }
+      } else {
+        const contextRecord = context as unknown as Record<string, unknown>;
+        const value = contextRecord[key];
+        resolved =
+          value === undefined || value === null
+            ? ''
+            : this.stringifyScalar(value);
       }
 
-      const contextRecord = context as unknown as Record<string, unknown>;
-      const value = contextRecord[key];
-      if (value === undefined || value === null) {
-        return '';
-      }
+      placeholderResolutions.set(key, resolved);
+    }
 
-      return this.stringifyScalar(value);
+    // Step 2: Apply smart separator logic
+    // Only process {separator} when **immediately** adjacent to placeholders (no literal text between)
+    // Pattern: {placeholder}{separator}{placeholder}
+
+    let result = template;
+
+    // Find direct adjacency: {key1}{separator}{key2}
+    const adjacentPattern = /\{([^}]+)\}\{separator\}\{([^}]+)\}/g;
+
+    result = result.replace(
+      adjacentPattern,
+      (_match, beforeKey: string, afterKey: string) => {
+        if (beforeKey === 'separator' || afterKey === 'separator') {
+          // Edge case: nested separator
+          return '';
+        }
+
+        const beforeValue = placeholderResolutions.get(beforeKey) ?? '';
+        const afterValue = placeholderResolutions.get(afterKey) ?? '';
+
+        // Determine if separator should be included based on configuration
+        let shouldInclude = false;
+
+        if (separatorConfig.keepSeparatorIfFieldEmpty) {
+          // Include if at least one is non-empty
+          shouldInclude = beforeValue !== '' || afterValue !== '';
+        } else {
+          // Include only if both are non-empty
+          shouldInclude = beforeValue !== '' && afterValue !== '';
+        }
+
+        if (shouldInclude) {
+          return `{${beforeKey}}${separatorConfig.separator}{${afterKey}}`;
+        }
+
+        // Don't include separator
+        return `{${beforeKey}}{${afterKey}}`;
+      }
+    );
+
+    // Step 3: Remove any remaining {separator} placeholders
+    // These are not immediately adjacent to placeholders (have literal text between)
+    result = result.replace(/\{separator\}/g, '');
+
+    // Step 4: Replace all placeholders with their resolved values
+    result = result.replace(/\{([^}]+)\}/g, (_match, key: string) => {
+      return placeholderResolutions.get(key) ?? '';
     });
+
+    return result;
   }
 
   /**
@@ -541,6 +629,14 @@ export class Logger {
       } as TimestampConfig);
     }
 
+    let mergedSeparator = this.baseConfig.separator;
+    if (overrides.separator !== undefined) {
+      mergedSeparator = this.normalizeSeparator({
+        ...this.baseConfig.separator,
+        ...overrides.separator,
+      } as SeparatorConfig);
+    }
+
     let mergedFormat = this.baseConfig.format;
     if (overrides.format !== undefined) {
       mergedFormat = this.normalizeFormat(overrides.format);
@@ -552,6 +648,7 @@ export class Logger {
       debugMode: mergedDebugMode,
       colorize: mergedColorize,
       timestamp: mergedTimestamp,
+      separator: mergedSeparator,
       format: mergedFormat,
     };
 
@@ -587,6 +684,7 @@ export class Logger {
 
     const normalizedLevel = this.normalizeLevel(config.level);
     const timestamp = this.normalizeTimestamp(config.timestamp);
+    const separator = this.normalizeSeparator(config.separator);
     const format = this.normalizeFormat(config.format);
 
     return Object.freeze({
@@ -595,6 +693,7 @@ export class Logger {
       debugMode: Boolean(config.debugMode),
       colorize: config.colorize !== undefined ? Boolean(config.colorize) : true,
       timestamp,
+      separator,
       format,
     });
   }
@@ -630,6 +729,25 @@ export class Logger {
     return {
       enabled: custom.enabled ?? DEFAULT_TIMESTAMP_CONFIG.enabled,
       format: custom.format ?? DEFAULT_TIMESTAMP_CONFIG.format,
+    };
+  }
+
+  /**
+   * Produces a separator configuration with defaults for omitted fields.
+   *
+   * @param {SeparatorConfig} [custom] - Optional overrides for separator behavior.
+   * @returns {SeparatorConfig} Populated separator configuration.
+   */
+  private normalizeSeparator(custom?: SeparatorConfig): SeparatorConfig {
+    if (!custom) {
+      return { ...DEFAULT_SEPARATOR_CONFIG };
+    }
+
+    return {
+      separator: custom.separator ?? DEFAULT_SEPARATOR_CONFIG.separator,
+      keepSeparatorIfFieldEmpty:
+        custom.keepSeparatorIfFieldEmpty ??
+        DEFAULT_SEPARATOR_CONFIG.keepSeparatorIfFieldEmpty,
     };
   }
 

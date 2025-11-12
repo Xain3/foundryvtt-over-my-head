@@ -145,6 +145,55 @@ description: 'Task list for parametrable logger implementation'
 
 ---
 
+## Phase 7: User Story 4 - Smart Separator Handling (Priority: P4)
+
+**Goal**: Developer can use `{separator}` placeholder in format templates with context-aware behavior (only appear between non-empty fields)
+
+**Independent Test**: Create logger with separator config, use format `'{module}{separator}{level}'`, verify separator appears only when both module and level are non-empty
+
+### Tests for User Story 4 (Write these tests FIRST, ensure they FAIL before implementation) ⚠️
+
+- [x] T072 [P] [US4] Unit test: {separator} appears when both adjacent fields are non-empty in tests/unit/logger.unit.test.mjs
+- [x] T073 [P] [US4] Unit test: {separator} is removed when one adjacent field is empty (default: keepSeparatorIfFieldEmpty=false) in tests/unit/logger.unit.test.mjs
+- [x] T074 [P] [US4] Unit test: {separator} is removed when both adjacent fields are empty in tests/unit/logger.unit.test.mjs
+- [x] T075 [P] [US4] Unit test: {separator} is preserved when one field empty with keepSeparatorIfFieldEmpty=true in tests/unit/logger.unit.test.mjs
+- [x] T076 [P] [US4] Unit test: {separator} is removed from non-adjacent positions (next to literal text) in tests/unit/logger.unit.test.mjs
+- [x] T077 [P] [US4] Unit test: Multiple {separator} tokens in same template handled correctly in tests/unit/logger.unit.test.mjs
+- [x] T078 [P] [US4] Unit test: Override separator config per call in tests/unit/logger.unit.test.mjs
+- [x] T079 [P] [US4] Integration test: End-to-end separator behavior with real format templates in tests/integration/logger.int.test.mjs
+
+### Implementation for User Story 4
+
+- [x] T080 [US4] Define SeparatorConfig interface in src/utils/logger-types.ts with separator string and keepSeparatorIfFieldEmpty boolean
+- [x] T081 [US4] Add separator field to LogConfigurationObject interface in src/utils/logger-types.ts
+- [x] T082 [US4] Add default SeparatorConfig constant to src/utils/logger.ts (separator: ' | ', keepSeparatorIfFieldEmpty: false)
+- [x] T083 [US4] Implement private normalizeSeparator() method in src/utils/logger.ts (merge custom config with defaults)
+- [x] T084 [US4] Update \_mergeConfig() method to include separator config merging
+- [x] T085 [US4] Update \_normalizeConfig() method to call normalizeSeparator()
+- [x] T086 [US4] Rewrite \_applyPlaceholders() method to implement smart separator logic:
+  - Pre-resolve all placeholders to determine empty vs non-empty
+  - Find {placeholder}{separator}{placeholder} patterns (direct adjacency only)
+  - Check if adjacent fields are non-empty
+  - Include separator based on keepSeparatorIfFieldEmpty setting
+  - Remove remaining standalone {separator} tokens
+  - Replace all placeholders with resolved values
+- [x] T087 [US4] Update \_formatMessage() to pass separator config to applyPlaceholders()
+- [x] T088 [US4] Update Logger type exports to include SeparatorConfig in src/utils/logger-types.ts
+- [x] T089 [US4] Add JSDoc comments to SeparatorConfig, normalizeSeparator(), and updated \_applyPlaceholders()
+- [x] T090 [US4] Add inline comments explaining direct-adjacency detection and separator logic
+
+### Documentation for User Story 4
+
+- [x] T091 [US4] Update docs/logger-reference.md to add Smart Separator Handling section
+- [x] T092 [US4] Update docs/logger-reference.md with complete flow example using {separator}
+- [x] T093 [US4] Update specs/004-parametrable-logger/contracts/logger-api.md to document SeparatorConfig type
+- [x] T094 [US4] Add SeparatorConfig examples and behavior table to contracts/logger-api.md
+- [x] T095 [US4] Update type exports in contracts/logger-api.md to include SeparatorConfig
+
+**Checkpoint**: All user stories (1-4) should now be independently functional
+
+---
+
 ## Phase 6: Polish & Cross-Cutting Concerns
 
 **Purpose**: Improvements that affect multiple user stories
@@ -169,9 +218,9 @@ description: 'Task list for parametrable logger implementation'
 
 - **Setup (Phase 1)**: No dependencies - can start immediately
 - **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
-- **User Stories (Phase 3-5)**: All depend on Foundational phase completion
+- **User Stories (Phase 3-7)**: All depend on Foundational phase completion
   - User stories can then proceed in parallel (if staffed)
-  - Or sequentially in priority order (US1-P1 → US2-P2 → US3-P3)
+  - Or sequentially in priority order (US1-P1 → US2-P2 → US3-P3 → US4-P4)
 - **Polish (Phase 6)**: Depends on all desired user stories being complete
 
 ### User Story Dependencies
@@ -179,6 +228,7 @@ description: 'Task list for parametrable logger implementation'
 - **User Story 1 (P1) - Basic Logging**: Can start after Foundational (Phase 2) - No dependencies on other stories
 - **User Story 2 (P2) - Debug Mode**: Can start after Foundational (Phase 2) - No dependencies on other stories (but logically builds on US1)
 - **User Story 3 (P3) - Overrides**: Depends on US1 implementation (\_formatMessage needs to exist to be augmented with merge logic)
+- **User Story 4 (P4) - Smart Separator**: Depends on US1 implementation (\_applyPlaceholders already exists; we enhance it)
 
 ### Within Each User Story
 
@@ -197,6 +247,9 @@ description: 'Task list for parametrable logger implementation'
 - **US2 Tests**: T036-T039 can all run in parallel
 - **US3 Tests**: T043-T052 can all run in parallel
 - **US3 Implementation**: T054-T058 (updating log methods with overrides) can run in parallel after T053 complete
+- **US4 Tests**: T072-T079 can all run in parallel
+- **US4 Implementation**: T083-T090 can run in parallel (different methods) after T080-T082 (types) complete
+- **US4 Documentation**: T091-T095 can all run in parallel after implementation is done
 - **Polish**: T061, T066, T067, T068, T071 can all run in parallel
 
 ---
@@ -213,13 +266,24 @@ description: 'Task list for parametrable logger implementation'
 6. **STOP and VALIDATE**: Test User Stories 1+2 together
 7. Deploy/demo basic logging with debug mode control
 
+### Full Implementation (All User Stories)
+
+1. Complete Phase 1-2: Setup + Foundational (T001-T013)
+2. Complete Phase 3: User Story 1 (T014-T035)
+3. Complete Phase 4: User Story 2 (T036-T042)
+4. Complete Phase 5: User Story 3 (T043-T060)
+5. Complete Phase 7: User Story 4 (T072-T095)
+6. Complete Phase 6: Polish (T061-T071)
+7. **FINAL VALIDATION**: All stories work together, 100% coverage, all tests pass
+
 ### Incremental Delivery
 
 1. Complete Setup + Foundational → Foundation ready
 2. Add User Story 1 → Test independently → **MVP: Basic logging works!**
 3. Add User Story 2 → Test independently → **v1.1: Debug mode control!**
 4. Add User Story 3 → Test independently → **v1.2: Configuration overrides!**
-5. Complete Polish → **v1.3: Production-ready!**
+5. Add User Story 4 → Test independently → **v1.3: Smart separators!**
+6. Complete Polish → **v1.4: Production-ready!**
 
 ### Parallel Team Strategy
 
@@ -231,8 +295,9 @@ With multiple developers:
    - Developer B: User Story 2 (T036-T042) - Debug mode (can start early but integrates with US1)
 3. After US1 complete:
    - Developer A: User Story 3 (T043-T060) - Overrides (depends on US1)
-   - Developer B: Polish tasks (T061-T071)
-4. Team converges on remaining Polish tasks
+   - Developer B: User Story 4 (T072-T095) - Separators (depends on US1)
+4. After US3/US4 complete:
+   - Team: Polish tasks (T061-T071)
 
 ---
 
@@ -251,11 +316,11 @@ T024-T028 (US1 private methods)
   ↓
 T029-T035 (US1 public methods + docs)
   ↓
-T043-T052 (US3 tests written, must FAIL)
+T072-T079 (US4 tests written, must FAIL)
   ↓
-T053 (US3 merge logic)
+T080-T090 (US4 implementation)
   ↓
-T054-T060 (US3 override parameters + docs)
+T091-T095 (US4 documentation)
   ↓
 T061-T071 (Polish)
 ```
@@ -267,9 +332,10 @@ T061-T071 (Polish)
 - US1: 6-8 hours (tests + implementation)
 - US2: 2-3 hours (straightforward flag check)
 - US3: 4-5 hours (merge logic + parameter updates)
+- US4: 4-6 hours (smart separator algorithm + tests + docs)
 - Polish: 2-3 hours (validation + cleanup)
 
-**Total**: ~18-24 hours for complete implementation
+**Total**: ~22-30 hours for complete implementation
 
 ---
 

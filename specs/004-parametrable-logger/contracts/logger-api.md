@@ -245,6 +245,7 @@ interface LogConfigurationObject {
   debugMode?: boolean;
   colorize?: boolean;
   timestamp?: TimestampConfig;
+  separator?: SeparatorConfig;
   format?: FormatTemplates;
 }
 ```
@@ -258,12 +259,75 @@ interface LogConfigurationObject {
 
 **Optional Fields** (with defaults):
 
-| Field       | Type              | Default                            | Description                       |
-| ----------- | ----------------- | ---------------------------------- | --------------------------------- |
-| `debugMode` | `boolean`         | `false`                            | Override level to 'debug' if true |
-| `colorize`  | `boolean`         | `true`                             | Enable ANSI color output          |
-| `timestamp` | `TimestampConfig` | `{ enabled: true, format: 'iso' }` | Timestamp settings                |
-| `format`    | `FormatTemplates` | Default templates                  | Custom format strings per level   |
+| Field       | Type              | Default                                                   | Description                       |
+| ----------- | ----------------- | --------------------------------------------------------- | --------------------------------- |
+| `debugMode` | `boolean`         | `false`                                                   | Override level to 'debug' if true |
+| `colorize`  | `boolean`         | `true`                                                    | Enable ANSI color output          |
+| `timestamp` | `TimestampConfig` | `{ enabled: true, format: 'iso' }`                        | Timestamp settings                |
+| `separator` | `SeparatorConfig` | `{ separator: ' \| ', keepSeparatorIfFieldEmpty: false }` | Smart separator settings          |
+| `format`    | `FormatTemplates` | Default templates                                         | Custom format strings per level   |
+
+---
+
+### SeparatorConfig
+
+**Type**:
+
+```typescript
+interface SeparatorConfig {
+  separator: string;
+  keepSeparatorIfFieldEmpty?: boolean;
+}
+```
+
+**Fields**:
+
+| Field                       | Type      | Default | Description                                                        |
+| --------------------------- | --------- | ------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| `separator`                 | `string`  | `'      | '`                                                                 | String to insert between adjacent non-empty fields when using `{separator}` token |
+| `keepSeparatorIfFieldEmpty` | `boolean` | `false` | If `true`, include separator even when one adjacent field is empty |
+
+**How It Works**:
+
+- The `{separator}` placeholder is used in custom format templates
+- `{separator}` only applies when **immediately between two placeholders** (e.g., `{module}{separator}{level}`)
+- Literal text between a placeholder and separator breaks adjacency (e.g., in `[{module}]{separator}`, the `]` causes separator removal)
+- When both adjacent fields are non-empty, separator is included
+- When one or both fields are empty:
+  - If `keepSeparatorIfFieldEmpty: false` (default): separator is removed
+  - If `keepSeparatorIfFieldEmpty: true`: separator is kept if at least one field is non-empty
+
+**Examples**:
+
+```typescript
+// Example 1: Default behavior (keepSeparatorIfFieldEmpty: false)
+const config = {
+  moduleName: 'OMH',
+  separator: { separator: ' | ', keepSeparatorIfFieldEmpty: false },
+  format: {
+    error:
+      '{module}{separator}{level}{separator}{timestamp}{separator}{message}',
+  },
+};
+
+// All fields present:
+// Input: module='OMH', level='ERROR', timestamp='2025...', message='Failed'
+// Output: 'OMH | ERROR | 2025... | Failed'
+
+// One field empty (timestamp disabled):
+// Input: module='OMH', level='ERROR', timestamp='', message='Failed'
+// Output: 'OMH | ERROR | Failed' (separator between timestamp and message removed)
+
+// Example 2: Preserve separator (keepSeparatorIfFieldEmpty: true)
+const config = {
+  separator: { separator: ' - ', keepSeparatorIfFieldEmpty: true },
+  format: { error: '{timestamp}{separator}{message}' },
+};
+
+// Even if timestamp is empty:
+// Input: timestamp='', message='Failed'
+// Output: ' - Failed' (separator preserved)
+```
 
 ---
 
@@ -318,17 +382,22 @@ interface FormatTemplates {
 
 ## Type Exports
 
-### From `logger.ts`
+### From `logger-types.ts`
 
 ```typescript
 export type {
   LogLevel,
   LogConfigurationObject,
+  SeparatorConfig,
   TimestampConfig,
   FormatTemplates,
   LogContext,
 };
+```
 
+### From `logger.ts`
+
+```typescript
 export { Logger, LOG_LEVELS };
 ```
 

@@ -286,7 +286,63 @@ Different input types are handled specially:
 | `object`         | JSON-serialized with circular detection |
 | `null/undefined` | Empty string                            |
 
-### 4. **Colorization**
+### 4. **Smart Separator Handling**
+
+The logger supports context-aware separators via the `{separator}` placeholder in custom format templates. This is useful for dynamically including separators only when needed.
+
+#### How `{separator}` Works
+
+- **Direct Adjacency**: `{separator}` only processes when **immediately between two placeholders** (e.g., `{module}{separator}{level}`)
+- **Smart Removal**: If literal text appears between a placeholder and separator, the separator is removed (e.g., in `[{module}]{separator}`, the `]` breaks adjacency)
+- **Configuration**: Use `SeparatorConfig` to control behavior:
+  ```typescript
+  {
+    separator: string;              // The separator string (e.g., ' | ' or ' - ')
+    keepSeparatorIfFieldEmpty?: boolean;  // Default: false
+  }
+  ```
+
+#### Separator Behavior
+
+| Config                                       | Both Fields Non-Empty | One Field Empty     | Both Fields Empty  |
+| -------------------------------------------- | --------------------- | ------------------- | ------------------ |
+| `keepSeparatorIfFieldEmpty: false` (default) | ✓ Include separator   | ✗ Remove separator  | ✗ Remove separator |
+| `keepSeparatorIfFieldEmpty: true`            | ✓ Include separator   | ✓ Include separator | ✗ Remove separator |
+
+#### Example: Custom Format with `{separator}`
+
+```javascript
+const logger = new Logger({
+  moduleName: 'OMH',
+  separator: { separator: ' | ', keepSeparatorIfFieldEmpty: false },
+  format: {
+    error: '[{module}] {level}{separator}{timestamp}{separator}{message}',
+  },
+});
+
+logger.error('Database connection failed');
+// If timestamp is enabled: "[OMH] ERROR | 2025-11-03T10:45:23Z | Database connection failed"
+// If timestamp is disabled: "[OMH] ERROR | Database connection failed"
+```
+
+#### When to Use `{separator}`
+
+- **Use `{separator}`** when you want conditional separators based on field presence
+- **Use hardcoded separators** for fixed formats (e.g., `'[{module}] {level} | {message}'`)
+- The **default format templates** use hardcoded separators for predictable output
+
+#### SeparatorConfig Type
+
+```typescript
+interface SeparatorConfig {
+  separator: string; // String to use as separator (e.g., ' | ')
+  keepSeparatorIfFieldEmpty?: boolean; // Include if one field is empty? (default: false)
+}
+```
+
+---
+
+## 4. **Colorization**
 
 ANSI color codes are applied based on level when `colorize: true`:
 
@@ -380,6 +436,26 @@ try {
   // Output: [OMH] ❌ Error: operation failed
   //         (with full stack trace)
 }
+
+// 6. Using smart separators for conditional formatting
+const loggerWithSeparators = new Logger({
+  moduleName: 'OMH',
+  level: 'info',
+  separator: { separator: ' | ', keepSeparatorIfFieldEmpty: false },
+  timestamp: { enabled: true, format: 'iso' },
+  format: {
+    // Separators only appear between non-empty adjacent fields
+    error: '[{module}] {level}{separator}{timestamp}{separator}{message}',
+    warn: '[{module}] {level}{separator}{timestamp}{separator}{message}',
+    info: '[{module}]{separator}{message}', // No {level}, so first separator removed
+  },
+});
+
+loggerWithSeparators.error('Critical error');
+// Output: [OMH] ERROR | 2025-11-03T... | Critical error
+
+loggerWithSeparators.info('User logged in');
+// Output: [OMH] User logged in (separator removed since no {level})
 ```
 
 ---

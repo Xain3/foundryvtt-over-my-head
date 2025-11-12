@@ -123,3 +123,5 @@ docker/foundry-cache/
 docker/secrets.json
 docker/.env
 old-handlers/
+.tmp/
+!.tmp/README.md

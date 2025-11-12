@@ -98,7 +98,7 @@ Phase 2: Foundational
 ### Tasks
 
 - [x] T001 Create `src/utils/static/stringFormatter-types.ts` file header with JSDoc and empty FormatOptions interface definition in `src/utils/static/stringFormatter-types.ts`
-- [x] T002 Create `src/utils/hookFormatter-types.ts` file header with JSDoc and empty HookFormatterConfig interface definition in `src/utils/hookFormatter-types.ts`
+- [x] T002 Create `src/utils/static/hookFormatter-types.ts` file header with JSDoc and empty HookFormatterConfig interface definition in `src/utils/static/hookFormatter-types.ts`
 
 ---
 
@@ -117,7 +117,7 @@ Phase 2: Foundational
 ### Tasks
 
 - [x] T003 Create `src/utils/static/stringFormatter.ts` stub with file header and empty `formatString()` function in `src/utils/static/stringFormatter.ts`
-- [x] T004 Create `src/utils/hookFormatter.ts` stub with file header and empty `formatHookName()` function overloads in `src/utils/hookFormatter.ts`
+- [x] T004 Create `src/utils/static/hookFormatter.ts` stub with file header and empty `formatHookName()` function overloads in `src/utils/static/hookFormatter.ts`
 - [x] T005 [P] Update `src/utils/static/README.md` to document stringFormatter placement and purpose
 - [x] T006 Update `src/utils/README.md` to document hookFormatter and update imports section with new utilities
 
@@ -183,17 +183,17 @@ Phase 2: Foundational
 
 **Implementation (Types)**
 
-- [x] T021 [P] [US2] Define HookFormatterConfig interface with hooks, hookPatterns, hookPatternSeparator structure in `src/utils/hookFormatter-types.ts`
-- [x] T022 [P] [US2] Define PlaceholderValues internal type for placeholder replacement in `src/utils/hookFormatter-types.ts`
-- [x] T023 [P] [US2] Add validation assertion function `assertValidConfig()` to validate config structure in `src/utils/hookFormatter-types.ts`
-- [x] T024 [P] [US2] Export HookFormatterConfig and assertion function from `src/utils/hookFormatter-types.ts`
+- [x] T021 [P] [US2] Define HookFormatterConfig interface with hooks, hookPatterns, hookPatternSeparator structure in `src/utils/static/hookFormatter-types.ts`
+- [x] T022 [P] [US2] Define PlaceholderValues internal type for placeholder replacement in `src/utils/static/hookFormatter-types.ts`
+- [x] T023 [P] [US2] Add validation assertion function `assertValidConfig()` to validate config structure in `src/utils/static/hookFormatter-types.ts`
+- [x] T024 [P] [US2] Export HookFormatterConfig and assertion function from `src/utils/static/hookFormatter-types.ts`
 
 **Implementation (Simple Hook Formatter - P2)**
 
-- [x] T025 [P] [US2] Create helper function to extract placeholders from pattern template string in `src/utils/hookFormatter.ts`
-- [x] T026 [P] [US2] Create helper function to resolve placeholder values (moduleReference, separator, hook) in `src/utils/hookFormatter.ts`
-- [x] T027 [P] [US2] Implement simple `formatHookName(hookKey, config)` function for P2 use cases in `src/utils/hookFormatter.ts`
-- [x] T028 [US2] Add comprehensive JSDoc to simple formatHookName with examples in `src/utils/hookFormatter.ts`
+- [x] T025 [P] [US2] Create helper function to extract placeholders from pattern template string in `src/utils/static/hookFormatter.ts`
+- [x] T026 [P] [US2] Create helper function to resolve placeholder values (moduleReference, separator, hook) in `src/utils/static/hookFormatter.ts`
+- [x] T027 [P] [US2] Implement simple `formatHookName(hookKey, config)` function for P2 use cases in `src/utils/static/hookFormatter.ts`
+- [x] T028 [US2] Add comprehensive JSDoc to simple formatHookName with examples in `src/utils/static/hookFormatter.ts`
 
 **Testing (P2)**
 
@@ -207,7 +207,7 @@ Phase 2: Foundational
 **Documentation & Verification**
 
 - [x] T035 [US2] Update `src/utils/README.md` with hookFormatter documentation and P2 usage examples
-- [x] T036 [US2] Add hookFormatter exports to `src/utils/hookFormatter.ts` and verify they're accessible via import aliases
+- [x] T036 [US2] Add hookFormatter exports to `src/utils/static/hookFormatter.ts` and verify they're accessible via import aliases
 - [x] T037 [US2] Verify all 5 P2 unit tests pass and 1 integration test passes
 - [x] T038 [US2] Run full test suite and verify ≥90% cumulative coverage (P1 + P2)
 
@@ -231,10 +231,10 @@ Phase 2: Foundational
 
 **Implementation (Parameterized Hook Formatter - P3)**
 
-- [x] T039 [P] [US3] Create helper function to extract parameter placeholders from pattern template in `src/utils/hookFormatter.ts`
-- [x] T040 [P] [US3] Create helper function to validate all required parameters are provided in `src/utils/hookFormatter.ts`
-- [x] T041 [P] [US3] Implement parameterized `formatHookName(patternKey, params, config)` function overload in `src/utils/hookFormatter.ts`
-- [x] T042 [US3] Add comprehensive JSDoc to parameterized formatHookName with 3+ usage examples in `src/utils/hookFormatter.ts`
+- [x] T039 [P] [US3] Create helper function to extract parameter placeholders from pattern template in `src/utils/static/hookFormatter.ts`
+- [x] T040 [P] [US3] Create helper function to validate all required parameters are provided in `src/utils/static/hookFormatter.ts`
+- [x] T041 [P] [US3] Implement parameterized `formatHookName(patternKey, params, config)` function overload in `src/utils/static/hookFormatter.ts`
+- [x] T042 [US3] Add comprehensive JSDoc to parameterized formatHookName with 3+ usage examples in `src/utils/static/hookFormatter.ts`
 
 **Testing (P3)**
 
@@ -268,7 +268,7 @@ Phase 2: Foundational
 
 ### Tasks
 
-- [x] T052 Verify all stringFormatter and hookFormatter files have proper `@file`, `@description`, `@path` headers in `src/utils/static/stringFormatter-types.ts`, `src/utils/static/stringFormatter.ts`, `src/utils/hookFormatter-types.ts`, `src/utils/hookFormatter.ts`
+- [x] T052 Verify all stringFormatter and hookFormatter files have proper `@file`, `@description`, `@path` headers in `src/utils/static/stringFormatter-types.ts`, `src/utils/static/stringFormatter.ts`, `src/utils/static/hookFormatter-types.ts`, `src/utils/static/hookFormatter.ts`
 - [x] T053 Review and validate all JSDoc comments follow project style guide (param types, return values, examples) across all implementation files
 - [x] T054 Final validation: Run `npm test` (all tests), `npm run lint`, and `npm run build` to verify zero errors and warnings before committing
 
@@ -437,7 +437,7 @@ Phase 2: Foundational
 
 - [ ] T001, T002 completed and files created
 - [ ] `src/utils/static/` directory exists with files in place
-- [ ] `src/utils/hookFormatter-types.ts` file created
+- [ ] `src/utils/static/hookFormatter-types.ts` file created
 
 ### Phase 2 Complete When
 

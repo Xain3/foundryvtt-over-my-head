@@ -1,6 +1,6 @@
 /**
  * @file hookFormatter.unit.test.mjs
- * @description Unit tests for the hook formatter utility (P2 - module-scoped hook names)
+ * @description Unit tests for the hook formatter utility (P2/P3 - module-scoped and parameterized hook names)
  * @path tests/unit/hookFormatter.unit.test.mjs
  */
 
@@ -93,6 +93,127 @@ describe('hookFormatter (P2 - Module-Scoped Hook Names)', () => {
 
       const result = formatHookName('settingsReady', customConfig);
       expect(result).toBe('OMH:SettingsReady');
+    });
+  });
+});
+
+describe('hookFormatter (P3 - Parameterized Hook Names)', () => {
+  // Mock config with parameterized patterns
+  const mockConfig = {
+    hooks: {
+      settingsReady: 'SettingsReady',
+      contextReady: 'ContextReady',
+    },
+    hookPatterns: {
+      module: '{moduleReference}{separator}{hook}',
+      setting: '{moduleReference}{separator}setting{separator}{settingKey}',
+    },
+    hookPatternSeparator: '.',
+  };
+
+  describe('Parameterized hook name generation', () => {
+    // T043: Test formatHookName('setting', { settingKey: 'debugMode' })
+    it('should format parameterized setting hook with settingKey parameter', () => {
+      const result = formatHookName(
+        'setting',
+        { settingKey: 'debugMode' },
+        mockConfig
+      );
+      expect(result).toBe('OMH.setting.debugMode');
+    });
+
+    it('should format parameterized setting hook with different setting keys', () => {
+      const result1 = formatHookName(
+        'setting',
+        { settingKey: 'enableFeature' },
+        mockConfig
+      );
+      expect(result1).toBe('OMH.setting.enableFeature');
+
+      const result2 = formatHookName(
+        'setting',
+        { settingKey: 'maxTokens' },
+        mockConfig
+      );
+      expect(result2).toBe('OMH.setting.maxTokens');
+    });
+
+    // T044: Test missing required parameter error
+    it('should throw error when required parameter is missing', () => {
+      expect(() => {
+        formatHookName('setting', {}, mockConfig);
+      }).toThrow('[OMH] Missing required parameter');
+
+      expect(() => {
+        formatHookName('setting', {}, mockConfig);
+      }).toThrow(/settingKey/);
+    });
+
+    // T045: Test extra unused parameters are ignored
+    it('should ignore extra unused parameters in parameterized hooks', () => {
+      const result = formatHookName(
+        'setting',
+        { settingKey: 'debugMode', extra: 'ignored', another: 'unused' },
+        mockConfig
+      );
+      expect(result).toBe('OMH.setting.debugMode');
+    });
+
+    // T046: Test error when pattern key not found
+    it('should throw error when pattern key is not found', () => {
+      expect(() => {
+        formatHookName('unknownPattern', { someParam: 'value' }, mockConfig);
+      }).toThrow('[OMH] Pattern key "unknownPattern" not found in config');
+
+      expect(() => {
+        formatHookName('unknownPattern', { someParam: 'value' }, mockConfig);
+      }).toThrow(/Available patterns:/);
+    });
+  });
+
+  describe('P3 Edge cases', () => {
+    it('should throw error with list of available patterns when pattern not found', () => {
+      const error = expect(() => {
+        formatHookName('invalid', { key: 'value' }, mockConfig);
+      });
+
+      error.toThrow('[OMH] Pattern key "invalid" not found in config');
+    });
+
+    it('should handle multiple parameter placeholders in a single pattern', () => {
+      const configWithMultiParams = {
+        hooks: {},
+        hookPatterns: {
+          module: '{moduleReference}{separator}{hook}',
+          setting: '{moduleReference}{separator}setting{separator}{settingKey}',
+          custom:
+            '{moduleReference}{separator}custom{separator}{entityId}{separator}{action}',
+        },
+        hookPatternSeparator: '.',
+      };
+
+      const result = formatHookName(
+        'custom',
+        { entityId: 'abc123', action: 'update' },
+        configWithMultiParams
+      );
+      expect(result).toBe('OMH.custom.abc123.update');
+    });
+
+    it('should validate all required parameters are present before substitution', () => {
+      const configWithMultiParams = {
+        hooks: {},
+        hookPatterns: {
+          custom:
+            '{moduleReference}{separator}custom{separator}{entityId}{separator}{action}',
+        },
+        hookPatternSeparator: '.',
+      };
+
+      // Missing 'action' parameter
+      expect(() => {
+        formatHookName('custom', { entityId: 'abc123' }, configWithMultiParams);
+      }).toThrow('[OMH] Missing required parameter');
     });
   });
 });

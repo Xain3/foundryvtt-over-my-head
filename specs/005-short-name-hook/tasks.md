@@ -231,25 +231,25 @@ Phase 2: Foundational
 
 **Implementation (Parameterized Hook Formatter - P3)**
 
-- [ ] T039 [P] [US3] Create helper function to extract parameter placeholders from pattern template in `src/utils/hookFormatter.ts`
-- [ ] T040 [P] [US3] Create helper function to validate all required parameters are provided in `src/utils/hookFormatter.ts`
-- [ ] T041 [P] [US3] Implement parameterized `formatHookName(patternKey, params, config)` function overload in `src/utils/hookFormatter.ts`
-- [ ] T042 [US3] Add comprehensive JSDoc to parameterized formatHookName with 3+ usage examples in `src/utils/hookFormatter.ts`
+- [x] T039 [P] [US3] Create helper function to extract parameter placeholders from pattern template in `src/utils/hookFormatter.ts`
+- [x] T040 [P] [US3] Create helper function to validate all required parameters are provided in `src/utils/hookFormatter.ts`
+- [x] T041 [P] [US3] Implement parameterized `formatHookName(patternKey, params, config)` function overload in `src/utils/hookFormatter.ts`
+- [x] T042 [US3] Add comprehensive JSDoc to parameterized formatHookName with 3+ usage examples in `src/utils/hookFormatter.ts`
 
 **Testing (P3)**
 
-- [ ] T043 [P] [US3] Implement test for `formatHookName("setting", { settingKey: "debugMode" })` in `tests/unit/hookFormatter.unit.test.mjs`
-- [ ] T044 [P] [US3] Implement test for missing required parameter error case in `tests/unit/hookFormatter.unit.test.mjs`
-- [ ] T045 [P] [US3] Implement test for extra unused parameters being ignored in `tests/unit/hookFormatter.unit.test.mjs`
-- [ ] T046 [US3] Implement test for unknown pattern key error in `tests/unit/hookFormatter.unit.test.mjs`
-- [ ] T047 [US3] Add integration test for P3 with real config patterns in `tests/integration/hookFormatter.int.test.mjs`
-- [ ] T048 [US3] Verify all 5 P3 unit tests and 1 P3 integration test pass
+- [x] T043 [P] [US3] Implement test for `formatHookName("setting", { settingKey: "debugMode" })` in `tests/unit/hookFormatter.unit.test.mjs`
+- [x] T044 [P] [US3] Implement test for missing required parameter error case in `tests/unit/hookFormatter.unit.test.mjs`
+- [x] T045 [P] [US3] Implement test for extra unused parameters being ignored in `tests/unit/hookFormatter.unit.test.mjs`
+- [x] T046 [US3] Implement test for unknown pattern key error in `tests/unit/hookFormatter.unit.test.mjs`
+- [x] T047 [US3] Add integration test for P3 with real config patterns in `tests/integration/hookFormatter.int.test.mjs`
+- [x] T048 [US3] Verify all 5 P3 unit tests and 1 P3 integration test pass
 
 **Documentation & Verification**
 
-- [ ] T049 [US3] Update `src/utils/README.md` with P3 parameterized hook examples and best practices
-- [ ] T050 [US3] Verify cumulative test coverage ≥90% across P1, P2, and P3 (all 463+ existing tests still passing)
-- [ ] T051 [US3] Run full test suite and confirm zero regressions
+- [x] T049 [US3] Update `src/utils/README.md` with P3 parameterized hook examples and best practices
+- [x] T050 [US3] Verify cumulative test coverage ≥90% across P1, P2, and P3 (all 463+ existing tests still passing)
+- [x] T051 [US3] Run full test suite and confirm zero regressions
 
 ---
 

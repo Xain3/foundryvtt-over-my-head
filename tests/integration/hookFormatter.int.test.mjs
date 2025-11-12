@@ -10,7 +10,7 @@ import { formatHookName } from '#/utils/hookFormatter.ts';
 
 describe('hookFormatter (Integration - Real Config)', () => {
   // T034: Integration test with actual config.constants.hooks values
-  describe('Hook formatting with real config', () => {
+  describe('Hook formatting with real config (P2)', () => {
     it('should format hooks using real config.constants.hooks', () => {
       // Verify config structure is accessible
       expect(config.constants.hooks).toBeDefined();
@@ -37,6 +37,41 @@ describe('hookFormatter (Integration - Real Config)', () => {
         expect(result).toBeTruthy();
         expect(result).toContain('OMH');
       }
+    });
+  });
+
+  // T047: Integration test for P3 with real config patterns
+  describe('Parameterized hook formatting with real config (P3)', () => {
+    it('should format parameterized setting hook using real config', () => {
+      const result = formatHookName(
+        'setting',
+        { settingKey: 'debugMode' },
+        config.constants.hooks
+      );
+      expect(result).toBe('OMH.setting.debugMode');
+    });
+
+    it('should format multiple parameterized hooks with different settings', () => {
+      const result1 = formatHookName(
+        'setting',
+        { settingKey: 'enableFeature' },
+        config.constants.hooks
+      );
+      expect(result1).toBe('OMH.setting.enableFeature');
+
+      const result2 = formatHookName(
+        'setting',
+        { settingKey: 'maxTokens' },
+        config.constants.hooks
+      );
+      expect(result2).toBe('OMH.setting.maxTokens');
+    });
+
+    it('should verify parameterized pattern exists in real config', () => {
+      expect(config.constants.hooks.hookPatterns.setting).toBeDefined();
+      expect(config.constants.hooks.hookPatterns.setting).toContain(
+        '{settingKey}'
+      );
     });
   });
 });

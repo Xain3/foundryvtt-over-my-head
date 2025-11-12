@@ -1,4 +1,4 @@
-**Version**: 0.2.0
+**Version**: 0.3.0
 
 # Utils
 
@@ -69,16 +69,34 @@ formatHookName('settingsReady', config.constants.hooks); // 'OMH.SettingsReady'
 formatHookName('contextReady', config.constants.hooks); // 'OMH.ContextReady'
 ```
 
+### Usage (P3 - Parameterized Hooks)
+
+```javascript
+import { formatHookName } from '#/utils/hookFormatter.ts';
+import { config } from '#/config/config.ts';
+
+// Format parameterized hooks with dynamic parameters
+formatHookName('setting', { settingKey: 'debugMode' }, config.constants.hooks);
+// 'OMH.setting.debugMode'
+
+// Works with multiple parameters in patterns
+formatHookName('setting', { settingKey: 'maxTokens' }, config.constants.hooks);
+// 'OMH.setting.maxTokens'
+```
+
 ### Tests
 
 - **Unit Tests**: [`tests/unit/hookFormatter.unit.test.mjs`](../../tests/unit/hookFormatter.unit.test.mjs)
   - P2 simple hooks: 3 tests (settingsReady, contextReady, error case)
+  - P3 parameterized hooks: 8 tests (setting pattern, missing params, extra params, unknown pattern)
   - Error handling: 4 tests (missing config properties, custom separator)
-  - Total: 7 tests, 100% P2 coverage
+  - Total: 15 tests, 100% P2+P3 coverage
 
 - **Integration Tests**: [`tests/integration/hookFormatter.int.test.mjs`](../../tests/integration/hookFormatter.int.test.mjs)
-  - Real config integration: 4 tests
-  - Verifies all hooks in config work correctly
+  - P2 real config integration: 4 tests
+  - P3 real config patterns: 3 tests
+  - Verifies all hooks and patterns work correctly with actual config
+  - Total: 7 tests
 
 ## 📁 Folder Structure
 
@@ -115,6 +133,31 @@ This design provides:
 - `logger-types.ts` - Type definitions for Logger (separate from implementation)
 
 ## Changelog
+
+### 0.3.0 (2025-11-12) - HookFormatter P3 Implementation Complete
+
+- Added parameterized hook name generation (P3)
+  - Support for dynamic parameters: `formatHookName('setting', { settingKey: 'debugMode' }, config)` → `'OMH.setting.debugMode'`
+  - Parameter validation: All required parameters must be provided
+  - Extra parameters ignored: Unused parameters don't cause errors
+  - Comprehensive error messages with available patterns listed
+
+- Added 8 P3 unit tests
+  - Parameterized hook formatting with single and multiple parameters
+  - Missing required parameter error handling
+  - Extra unused parameter handling
+  - Unknown pattern key error handling
+  - Multiple parameter placeholders in complex patterns
+  - 100% P3 code coverage
+
+- Added 3 P3 integration tests with real config
+  - Parameterized setting hook with real config patterns
+  - Multiple different setting keys
+  - Pattern verification in config
+
+- All 3 user stories (P1, P2, P3) now fully implemented and tested
+- Total tests passing: 491 (was 480, +11 P3 tests)
+- Cumulative coverage: P1 + P2 + P3 = 100% of all implemented functionality
 
 ### 0.2.0 (2025-11-12) - HookFormatter P2 Implementation
 

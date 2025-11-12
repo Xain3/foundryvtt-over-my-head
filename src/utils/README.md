@@ -1,4 +1,4 @@
-**Version**: 0.3.0
+**Version**: 0.4.0
 
 # Utils
 
@@ -61,7 +61,7 @@ Generates Foundry hook names following the module's naming convention using hook
 ### Usage (P2 - Module-Scoped Hooks)
 
 ```javascript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#/config/config.ts';
 
 // Format module-scoped hooks (from hooks.yaml)
@@ -72,7 +72,7 @@ formatHookName('contextReady', config.constants.hooks); // 'OMH.ContextReady'
 ### Usage (P3 - Parameterized Hooks)
 
 ```javascript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#/config/config.ts';
 
 // Format parameterized hooks with dynamic parameters
@@ -110,6 +110,13 @@ import StaticUtils from '#/utils/static.ts';
 // Access DevModeParser functionality
 const result = StaticUtils.DevModeParser.fromConfig(config);
 const isDev = StaticUtils.DevModeParser.isDevMode(env, module, setting);
+
+// Access formatter utilities via StaticUtils aggregations
+const prefixed = StaticUtils.formatString.format('world', { prefix: 'hello-' });
+const hook = StaticUtils.formatHookName.format(
+  'settingsReady',
+  config.constants.hooks
+);
 ```
 
 This design provides:
@@ -127,12 +134,18 @@ This design provides:
 - `static/devModeParser-types.ts` - Type definitions for DevModeParser
 - `static/stringFormatter.ts` - Pure string formatting utility with prefix/suffix support
 - `static/stringFormatter-types.ts` - Type definitions for stringFormatter
-- `hookFormatter.ts` - Hook name formatter for module-scoped and parameterized hooks
-- `hookFormatter-types.ts` - Type definitions for hookFormatter (separate from implementation)
+- `static/hookFormatter.ts` - Hook name formatter for module-scoped and parameterized hooks
+- `static/hookFormatter-types.ts` - Type definitions for hookFormatter (separate from implementation)
 - `logger.ts` - Configurable logger implementation
 - `logger-types.ts` - Type definitions for Logger (separate from implementation)
 
 ## Changelog
+
+### 0.4.0 (2025-11-12) - HookFormatter relocated to Static utilities
+
+- Moved hook formatter implementation and type definitions into `src/utils/static/`
+- Updated `StaticUtils` aggregator documentation to highlight formatter accessors
+- Refreshed usage examples to reference the new import paths
 
 ### 0.3.0 (2025-11-12) - HookFormatter P3 Implementation Complete
 

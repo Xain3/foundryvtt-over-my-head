@@ -6,7 +6,7 @@
 
 import DevModeParser from './static/devModeParser.ts';
 import { formatString } from './static/stringFormatter.ts';
-import { formatHookName } from './hookFormatter.ts';
+import { formatHookName } from './static/hookFormatter.ts';
 
 // Re-export public type definitions for external use
 export type {
@@ -25,7 +25,7 @@ export type { FormatOptions } from './static/stringFormatter-types.ts';
 export type {
   HookFormatterConfig,
   PlaceholderValues,
-} from './hookFormatter-types.ts';
+} from './static/hookFormatter-types.ts';
 
 /**
  * StaticUtils provides a centralized interface to all static utility functionality.

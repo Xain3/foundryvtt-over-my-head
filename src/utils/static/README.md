@@ -39,11 +39,12 @@ import StaticUtils from '#/utils/static.ts';
 
 const result = StaticUtils.StringFormatter.formatString('world', {
   prefix: 'hello-',
-  suffix: '!'
+  suffix: '!',
 }); // 'hello-world!'
 ```
 
 Use cases:
+
 - CSS class name generation: `formatString('modal', { prefix: 'omh-', suffix: '--active' })` → `'omh-modal--active'`
 - Log message prefixing: `formatString('Config loaded', { prefix: '[OMH] ' })` → `'[OMH] Config loaded'`
 - File path construction: `formatString('config', { prefix: 'src/', suffix: '.yaml' })` → `'src/config.yaml'`

@@ -97,8 +97,8 @@ Phase 2: Foundational
 
 ### Tasks
 
-- [X] T001 Create `src/utils/static/stringFormatter-types.ts` file header with JSDoc and empty FormatOptions interface definition in `src/utils/static/stringFormatter-types.ts`
-- [X] T002 Create `src/utils/hookFormatter-types.ts` file header with JSDoc and empty HookFormatterConfig interface definition in `src/utils/hookFormatter-types.ts`
+- [x] T001 Create `src/utils/static/stringFormatter-types.ts` file header with JSDoc and empty FormatOptions interface definition in `src/utils/static/stringFormatter-types.ts`
+- [x] T002 Create `src/utils/hookFormatter-types.ts` file header with JSDoc and empty HookFormatterConfig interface definition in `src/utils/hookFormatter-types.ts`
 
 ---
 
@@ -116,10 +116,10 @@ Phase 2: Foundational
 
 ### Tasks
 
-- [X] T003 Create `src/utils/static/stringFormatter.ts` stub with file header and empty `formatString()` function in `src/utils/static/stringFormatter.ts`
-- [X] T004 Create `src/utils/hookFormatter.ts` stub with file header and empty `formatHookName()` function overloads in `src/utils/hookFormatter.ts`
-- [X] T005 [P] Update `src/utils/static/README.md` to document stringFormatter placement and purpose
-- [X] T006 Update `src/utils/README.md` to document hookFormatter and update imports section with new utilities
+- [x] T003 Create `src/utils/static/stringFormatter.ts` stub with file header and empty `formatString()` function in `src/utils/static/stringFormatter.ts`
+- [x] T004 Create `src/utils/hookFormatter.ts` stub with file header and empty `formatHookName()` function overloads in `src/utils/hookFormatter.ts`
+- [x] T005 [P] Update `src/utils/static/README.md` to document stringFormatter placement and purpose
+- [x] T006 Update `src/utils/README.md` to document hookFormatter and update imports section with new utilities
 
 ---
 
@@ -142,26 +142,26 @@ Phase 2: Foundational
 
 **Implementation (Core)**
 
-- [X] T007 [P] [US1] Define FormatOptions interface with `prefix?` and `suffix?` optional string properties in `src/utils/static/stringFormatter-types.ts`
-- [X] T008 [P] [US1] Implement `formatString()` function with parameter validation and prefix/suffix logic in `src/utils/static/stringFormatter.ts`
-- [X] T009 [P] [US1] Add comprehensive JSDoc to `formatString()` with examples of all four use cases in `src/utils/static/stringFormatter.ts`
-- [X] T010 [P] [US1] Export FormatOptions and formatString from `src/utils/static/stringFormatter-types.ts` and `src/utils/static/stringFormatter.ts`
+- [x] T007 [P] [US1] Define FormatOptions interface with `prefix?` and `suffix?` optional string properties in `src/utils/static/stringFormatter-types.ts`
+- [x] T008 [P] [US1] Implement `formatString()` function with parameter validation and prefix/suffix logic in `src/utils/static/stringFormatter.ts`
+- [x] T009 [P] [US1] Add comprehensive JSDoc to `formatString()` with examples of all four use cases in `src/utils/static/stringFormatter.ts`
+- [x] T010 [P] [US1] Export FormatOptions and formatString from `src/utils/static/stringFormatter-types.ts` and `src/utils/static/stringFormatter.ts`
 
 **Testing (Core)**
 
-- [X] T011 [P] [US1] Create test file `tests/unit/stringFormatter.unit.test.mjs` with describe block and setup in `tests/unit/stringFormatter.unit.test.mjs`
-- [X] T012 [P] [US1] Implement test for prefix-only formatting: `formatString("world", { prefix: "hello-" })` in `tests/unit/stringFormatter.unit.test.mjs`
-- [X] T013 [P] [US1] Implement test for suffix-only formatting: `formatString("world", { suffix: "!" })` in `tests/unit/stringFormatter.unit.test.mjs`
-- [X] T014 [P] [US1] Implement test for both prefix and suffix: `formatString("world", { prefix: "hello-", suffix: "-!" })` in `tests/unit/stringFormatter.unit.test.mjs`
-- [X] T015 [P] [US1] Implement test for no options (identity operation): `formatString("world")` in `tests/unit/stringFormatter.unit.test.mjs`
-- [X] T016 [P] [US1] Implement test for empty string with options: `formatString("", { prefix: "p", suffix: "s" })` in `tests/unit/stringFormatter.unit.test.mjs`
+- [x] T011 [P] [US1] Create test file `tests/unit/stringFormatter.unit.test.mjs` with describe block and setup in `tests/unit/stringFormatter.unit.test.mjs`
+- [x] T012 [P] [US1] Implement test for prefix-only formatting: `formatString("world", { prefix: "hello-" })` in `tests/unit/stringFormatter.unit.test.mjs`
+- [x] T013 [P] [US1] Implement test for suffix-only formatting: `formatString("world", { suffix: "!" })` in `tests/unit/stringFormatter.unit.test.mjs`
+- [x] T014 [P] [US1] Implement test for both prefix and suffix: `formatString("world", { prefix: "hello-", suffix: "-!" })` in `tests/unit/stringFormatter.unit.test.mjs`
+- [x] T015 [P] [US1] Implement test for no options (identity operation): `formatString("world")` in `tests/unit/stringFormatter.unit.test.mjs`
+- [x] T016 [P] [US1] Implement test for empty string with options: `formatString("", { prefix: "p", suffix: "s" })` in `tests/unit/stringFormatter.unit.test.mjs`
 
 **Documentation & Integration**
 
-- [X] T017 [US1] Update `src/utils/static/README.md` with stringFormatter documentation, usage examples, and test references
-- [X] T018 [US1] Add stringFormatter exports to `src/utils/static.ts` or create it if missing with proper re-exports in `src/utils/static.ts`
-- [X] T019 [US1] Verify all 6 P1 unit tests pass and coverage meets ≥80% requirement
-- [X] T020 [US1] Run full test suite to verify zero regressions in existing code (all 463+ tests should still pass)
+- [x] T017 [US1] Update `src/utils/static/README.md` with stringFormatter documentation, usage examples, and test references
+- [x] T018 [US1] Add stringFormatter exports to `src/utils/static.ts` or create it if missing with proper re-exports in `src/utils/static.ts`
+- [x] T019 [US1] Verify all 6 P1 unit tests pass and coverage meets ≥80% requirement
+- [x] T020 [US1] Run full test suite to verify zero regressions in existing code (all 463+ tests should still pass)
 
 ---
 
@@ -183,33 +183,33 @@ Phase 2: Foundational
 
 **Implementation (Types)**
 
-- [ ] T021 [P] [US2] Define HookFormatterConfig interface with hooks, hookPatterns, hookPatternSeparator structure in `src/utils/hookFormatter-types.ts`
-- [ ] T022 [P] [US2] Define PlaceholderValues internal type for placeholder replacement in `src/utils/hookFormatter-types.ts`
-- [ ] T023 [P] [US2] Add validation assertion function `assertValidConfig()` to validate config structure in `src/utils/hookFormatter-types.ts`
-- [ ] T024 [P] [US2] Export HookFormatterConfig and assertion function from `src/utils/hookFormatter-types.ts`
+- [x] T021 [P] [US2] Define HookFormatterConfig interface with hooks, hookPatterns, hookPatternSeparator structure in `src/utils/hookFormatter-types.ts`
+- [x] T022 [P] [US2] Define PlaceholderValues internal type for placeholder replacement in `src/utils/hookFormatter-types.ts`
+- [x] T023 [P] [US2] Add validation assertion function `assertValidConfig()` to validate config structure in `src/utils/hookFormatter-types.ts`
+- [x] T024 [P] [US2] Export HookFormatterConfig and assertion function from `src/utils/hookFormatter-types.ts`
 
 **Implementation (Simple Hook Formatter - P2)**
 
-- [ ] T025 [P] [US2] Create helper function to extract placeholders from pattern template string in `src/utils/hookFormatter.ts`
-- [ ] T026 [P] [US2] Create helper function to resolve placeholder values (moduleReference, separator, hook) in `src/utils/hookFormatter.ts`
-- [ ] T027 [P] [US2] Implement simple `formatHookName(hookKey, config)` function for P2 use cases in `src/utils/hookFormatter.ts`
-- [ ] T028 [US2] Add comprehensive JSDoc to simple formatHookName with examples in `src/utils/hookFormatter.ts`
+- [x] T025 [P] [US2] Create helper function to extract placeholders from pattern template string in `src/utils/hookFormatter.ts`
+- [x] T026 [P] [US2] Create helper function to resolve placeholder values (moduleReference, separator, hook) in `src/utils/hookFormatter.ts`
+- [x] T027 [P] [US2] Implement simple `formatHookName(hookKey, config)` function for P2 use cases in `src/utils/hookFormatter.ts`
+- [x] T028 [US2] Add comprehensive JSDoc to simple formatHookName with examples in `src/utils/hookFormatter.ts`
 
 **Testing (P2)**
 
-- [ ] T029 [P] [US2] Create test file `tests/unit/hookFormatter.unit.test.mjs` with describe block and mock config setup in `tests/unit/hookFormatter.unit.test.mjs`
-- [ ] T030 [P] [US2] Implement test for `formatHookName("settingsReady")` returning `"OMH.SettingsReady"` in `tests/unit/hookFormatter.unit.test.mjs`
-- [ ] T031 [P] [US2] Implement test for `formatHookName("contextReady")` returning `"OMH.ContextReady"` in `tests/unit/hookFormatter.unit.test.mjs`
-- [ ] T032 [US2] Implement test for error case when hook key is not found in `tests/unit/hookFormatter.unit.test.mjs`
-- [ ] T033 [US2] Create integration test file `tests/integration/hookFormatter.int.test.mjs` with real config in `tests/integration/hookFormatter.int.test.mjs`
-- [ ] T034 [US2] Implement integration test with actual `config.constants.hooks` values in `tests/integration/hookFormatter.int.test.mjs`
+- [x] T029 [P] [US2] Create test file `tests/unit/hookFormatter.unit.test.mjs` with describe block and mock config setup in `tests/unit/hookFormatter.unit.test.mjs`
+- [x] T030 [P] [US2] Implement test for `formatHookName("settingsReady")` returning `"OMH.SettingsReady"` in `tests/unit/hookFormatter.unit.test.mjs`
+- [x] T031 [P] [US2] Implement test for `formatHookName("contextReady")` returning `"OMH.ContextReady"` in `tests/unit/hookFormatter.unit.test.mjs`
+- [x] T032 [US2] Implement test for error case when hook key is not found in `tests/unit/hookFormatter.unit.test.mjs`
+- [x] T033 [US2] Create integration test file `tests/integration/hookFormatter.int.test.mjs` with real config in `tests/integration/hookFormatter.int.test.mjs`
+- [x] T034 [US2] Implement integration test with actual `config.constants.hooks` values in `tests/integration/hookFormatter.int.test.mjs`
 
 **Documentation & Verification**
 
-- [ ] T035 [US2] Update `src/utils/README.md` with hookFormatter documentation and P2 usage examples
-- [ ] T036 [US2] Add hookFormatter exports to `src/utils/hookFormatter.ts` and verify they're accessible via import aliases
-- [ ] T037 [US2] Verify all 5 P2 unit tests pass and 1 integration test passes
-- [ ] T038 [US2] Run full test suite and verify ≥90% cumulative coverage (P1 + P2)
+- [x] T035 [US2] Update `src/utils/README.md` with hookFormatter documentation and P2 usage examples
+- [x] T036 [US2] Add hookFormatter exports to `src/utils/hookFormatter.ts` and verify they're accessible via import aliases
+- [x] T037 [US2] Verify all 5 P2 unit tests pass and 1 integration test passes
+- [x] T038 [US2] Run full test suite and verify ≥90% cumulative coverage (P1 + P2)
 
 ---
 

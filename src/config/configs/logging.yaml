@@ -1,0 +1,50 @@
+# WIP: Logging Configuration
+
+logfiles:
+  directory: ./.log
+
+loggingLevels:
+  error: 0
+  warn: 1
+  info: 2
+  verbose: 3
+  debug: 4
+
+console:
+  defaultLevel: info
+  separator: ' | '
+  keepSeparatorIfFieldEmpty: false
+  format:
+    error: '{module}{separator}{message} (error code: {code})'
+    warn: '{module}{separator}{message} '
+    info: '{module}{separator}{message} '
+    verbose: '{module}{separator}{timestamp}{separator}{message} '
+    debug: '{module}{separator}{timestamp}{separator}{message}{separator}{meta}'
+  toConsole: true
+  timestamp: true # If false, '{timestamp}' is omitted
+  timestampFormat: 'YYYY-MM-DD HH:mm:ss'
+  colorize: ['error', 'warn']
+
+file:
+  defaultLevel: debug
+  separator: ' - '
+  keepSeparatorIfFieldEmpty: true
+  format: '{timestamp}{separator}[{level}]{separator}{message}'
+  toConsole: false
+  timestamp: true # If false, '{timestamp}' is omitted
+  timestampFormat: 'YYYY-MM-DD HH:mm:ss'
+  colorize: ['error', 'warn', 'debug'] # Only applies if toConsole is true
+  maxSize: 10485760 # 10 MB
+  maxFiles: 5
+
+json:
+  defaultLevel: debug
+  separator: '' # Not used in JSON format
+  keepSeparatorIfFieldEmpty: false
+  format: json
+  timestamp: true # If false, 'timestamp' field is omitted
+  timestampFormat: 'YYYY-MM-DD HH:mm:ss'
+  toConsole: false
+  colorize: ['error', 'warn', 'debug'] # Only applies if toConsole is true
+  maxSize: 10485760 # 10 MB
+  maxFiles: 5

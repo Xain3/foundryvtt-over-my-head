@@ -6,6 +6,7 @@
 
 import {
   loadYamlFiles,
+  loadConfigFiles,
   mergeConstants,
   extractConfigPrefix,
   loadSettings,
@@ -19,7 +20,8 @@ import type { Config } from './config-types.ts';
  * Centralized Configuration Service (Singleton)
  *
  * Loads and aggregates:
- * - YAML constant files from src/config/constants/
+ * - YAML constant files from src/config/constants/ (fixed values)
+ * - YAML config files from src/config/configs/ (behavioral settings)
  * - Settings definitions from src/config/settings/settings.yaml
  * - Module manifest from module.json
  * - Environment variables matching the module prefix pattern
@@ -34,6 +36,7 @@ import type { Config } from './config-types.ts';
  * // All configuration is accessible immediately
  * console.log(config.module.id); // "vision-with-fade"
  * console.log(config.constants.errors.separator); // " || "
+ * console.log(config.configs.logging.console.defaultLevel); // "info"
  *
  * // ConfigService instance is immutable
  * config.module.id = 'modified'; // Fails silently with warning logged
@@ -41,6 +44,9 @@ import type { Config } from './config-types.ts';
 class ConfigService {
   /** @type {Record<string, unknown>} Merged YAML constants */
   #yamlConstants: Record<string, unknown> = {};
+
+  /** @type {Record<string, unknown>} Merged YAML configs */
+  #yamlConfigs: Record<string, unknown> = {};
 
   /** @type {unknown[]} Settings definitions array */
   #settings: unknown[] = [];
@@ -82,6 +88,14 @@ class ConfigService {
       this.#yamlConstants = this._deepFreeze(mergeConstants(yamlFiles));
       console.debug(
         `[${this.#prefix}] Loaded YAML constants with ${Object.keys(this.#yamlConstants).length} namespaces`
+      );
+
+      // Load YAML configs
+      console.debug(`[${this.#prefix}] Loading YAML config files...`);
+      const configFiles = loadConfigFiles();
+      this.#yamlConfigs = this._deepFreeze(mergeConstants(configFiles));
+      console.debug(
+        `[${this.#prefix}] Loaded YAML configs with ${Object.keys(this.#yamlConfigs).length} namespaces`
       );
 
       // Load settings
@@ -199,6 +213,19 @@ class ConfigService {
   }
 
   /**
+   * Get merged YAML configs from all config files
+   * Each file maintains its own namespace key
+   *
+   * @returns {Record<string, unknown>} Namespace-keyed configs
+   * @example
+   * const logLevel = config.configs.logging.console.defaultLevel;
+   * const shortName = config.configs.moduleManagement.shortName;
+   */
+  get configs(): Record<string, unknown> {
+    return this.#yamlConfigs;
+  }
+
+  /**
    * Get settings definitions array
    * Contains all in-game user-adjustable settings
    *
@@ -254,17 +281,18 @@ class ConfigService {
    * @returns {string} String representation of config
    * @example
    * console.log(config.toString());
-   * // Output: Config[OMH] { constants: [...], settings: [...], module: ..., env: [...] }
+   * // Output: Config[OMH] { constants: [...], configs: [...], settings: [...], module: ..., env: [...] }
    */
   toString(): string {
     const constantsKeys = Object.keys(this.#yamlConstants);
+    const configsKeys = Object.keys(this.#yamlConfigs);
     const envKeys = Object.keys(this.#env);
     const settingsCount = Array.isArray(this.#settings)
       ? this.#settings.length
       : 0;
     const moduleId = this.#moduleData.id || 'unknown';
 
-    return `Config[${this.#prefix}] { constants: [${constantsKeys.length}], settings: [${settingsCount}], module: ${moduleId}, env: [${envKeys.length}] }`;
+    return `Config[${this.#prefix}] { constants: [${constantsKeys.length}], configs: [${configsKeys.length}], settings: [${settingsCount}], module: ${moduleId}, env: [${envKeys.length}] }`;
   }
 
   /**

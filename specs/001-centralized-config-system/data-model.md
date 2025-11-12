@@ -151,7 +151,7 @@ interface PlaceablesConfig {
 const separator = config.constants.errors.separator;
 const i18n = config.constants.foundry.defaults.i18nLocation;
 const settingsHook = config.constants.hooks.hooks.settingsReady;
-const prefix = config.constants.moduleManagement.shortName;
+const prefix = config.configs.moduleManagement.shortName;
 ```
 
 ### Validation Rules
@@ -356,7 +356,7 @@ interface EnvironmentConfig {
 
 **Pattern**: `PREFIX_SETTING_NAME`
 
-**Prefix Source**: `config.constants.moduleManagement.shortName`
+**Prefix Source**: `config.configs.moduleManagement.shortName`
 
 - Current: `OMH`
 - Converts to SCREAMING*SNAKE_CASE: `OMH*`
@@ -431,9 +431,9 @@ Environment variables **override** YAML-based settings:
 4. Load errors.yaml → constants.errors
 5. Load foundry.yaml → constants.foundry
 6. Load hooks.yaml → constants.hooks
-7. Load moduleManagement.yaml → constants.moduleManagement
-8. Load occlusion.yaml → constants.occlusion
-9. Load placeables.yaml → constants.placeables
+7. Load moduleManagement.yaml → configs.moduleManagement
+8. Load occlusion.yaml → configs.occlusion
+9. Load placeables.yaml → configs.placeables
    (Namespace-keyed merge into constants object)
    ↓
 10. Load settings.yaml → settings array
@@ -487,10 +487,10 @@ Config (Singleton)
 
 ### Cross-References
 
-- `module.id` and `constants.moduleManagement.shortName` identify the same module
+- `module.id` and `configs.moduleManagement.shortName` identify the same module
 - `settings[].config.scope` aligns with FoundryVTT's setting registration
 - `constants.hooks.hookPatterns.setting` references setting keys from `settings[].key`
-- `env` keys derived from `constants.moduleManagement.shortName` prefix
+- `env` keys derived from `configs.moduleManagement.shortName` prefix
 
 ---
 

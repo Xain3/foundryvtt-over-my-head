@@ -10,7 +10,8 @@
 
 The Config module provides centralized, immutable configuration management for the Vision with Fade module. It aggregates:
 
-- **Constants** from YAML files in `src/config/constants/` (namespace-keyed)
+- **Constants** from YAML files in `src/config/constants/` (fixed values, namespace-keyed)
+- **Configs** from YAML files in `src/config/configs/` (behavioral settings, namespace-keyed)
 - **Settings** from `src/config/settings/settings.yaml` (user-adjustable)
 - **Module Manifest** from `module.json` (metadata)
 - **Environment Variables** with the `OMH_*` prefix pattern
@@ -32,10 +33,12 @@ src/config/
 ├── helpers/
 │   ├── configHelpers.ts   # Helper functions for loading/parsing
 │   └── README.md           # Helpers documentation
-├── constants/
+├── constants/              # Fixed values
 │   ├── errors.yaml
 │   ├── foundry.yaml
 │   ├── hooks.yaml
+│   └── README.md
+├── configs/                # Behavioral settings
 │   ├── logging.yaml
 │   ├── moduleManagement.yaml
 │   ├── occlusion.yaml
@@ -56,25 +59,35 @@ import { config } from './config/config.ts';
 // Access all configuration properties
 console.log(config.module.id); // "vision-with-fade"
 console.log(config.constants.errors); // { separator: " || ", ... }
+console.log(config.configs.logging); // { console: {...}, file: {...}, ... }
 console.log(config.settings); // Array of setting definitions
 console.log(config.env); // Environment variables with OMH_ prefix
 ```
 
 ### Constants Structure
 
-Each YAML file becomes a namespace under `config.constants`:
+Each YAML file in `constants/` becomes a namespace under `config.constants`:
 
 ```typescript
-config.constants.errors; // From errors.yaml
-config.constants.foundry; // From foundry.yaml
-config.constants.hooks; // From hooks.yaml
-config.constants.logging; // From logging.yaml
-config.constants.moduleManagement; // From moduleManagement.yaml
-config.constants.occlusion; // From occlusion.yaml
-config.constants.placeables; // From placeables.yaml
+config.constants.errors; // From errors.yaml - fixed error patterns
+config.constants.foundry; // From foundry.yaml - fixed Foundry paths
+config.constants.hooks; // From hooks.yaml - fixed hook names
 ```
 
 **Rationale**: Namespace-keyed merge prevents collisions between files and makes the source of each value obvious.
+
+### Configs Structure
+
+Each YAML file in `configs/` becomes a namespace under `config.configs`:
+
+```typescript
+config.configs.logging; // From logging.yaml - logging configuration
+config.configs.moduleManagement; // From moduleManagement.yaml - module settings
+config.configs.occlusion; // From occlusion.yaml - occlusion behavior
+config.configs.placeables; // From placeables.yaml - placeable settings
+```
+
+**Distinction**: Constants are truly fixed values, while configs are behavioral settings that define how the module operates.
 
 ### Settings Access
 
@@ -262,14 +275,33 @@ const env = config.env as Record<string, string>;
 
 **Note**: Values are typed as `unknown` to allow flexibility. Type assertions may be needed for strict type checking.
 
+## Constants vs Configs
+
+The config system distinguishes between two types of YAML data:
+
+**Constants** (`src/config/constants/`):
+- **Purpose**: Fixed values that never change
+- **Examples**: Error separators, hook names, default Foundry paths
+- **Access**: `config.constants.*`
+- **Files**: errors.yaml, foundry.yaml, hooks.yaml
+
+**Configs** (`src/config/configs/`):
+- **Purpose**: Behavioral settings that define module operation
+- **Examples**: Logging levels, occlusion triggers, placeable settings
+- **Access**: `config.configs.*`
+- **Files**: logging.yaml, moduleManagement.yaml, occlusion.yaml, placeables.yaml
+
+Both are immutable at runtime, but the distinction helps organize the codebase and makes intent clear.
+
 ## Configuration Customization
 
 To customize the config:
 
 1. **Add YAML constant file**: Create `src/config/constants/myfile.yaml` → loads as `config.constants.myfile` namespace
-2. **Add setting**: Edit `src/config/settings/settings.yaml` (add to `settingsList` array) → loads in `config.settings` array
-3. **Set environment variable**: Export `OMH_SETTING_NAME=value` in your environment → loads in `config.env.OMH_SETTING_NAME`
-4. **Change prefix**: Edit `src/config/constants/moduleManagement.yaml` and set the `shortName` field → used for logging and environment variable prefix
+2. **Add YAML config file**: Create `src/config/configs/myconfig.yaml` → loads as `config.configs.myconfig` namespace
+3. **Add setting**: Edit `src/config/settings/settings.yaml` (add to `settingsList` array) → loads in `config.settings` array
+4. **Set environment variable**: Export `OMH_SETTING_NAME=value` in your environment → loads in `config.env.OMH_SETTING_NAME`
+5. **Change prefix**: Edit `src/config/configs/moduleManagement.yaml` and set the `shortName` field → used for logging and environment variable prefix
 
 **Important**: Config is loaded once on first import. Changes to files require module reload.
 
@@ -277,9 +309,9 @@ To customize the config:
 
 ### Config not initializing
 
-- **Syntax errors in YAML**: Check for invalid YAML syntax in `src/config/constants/*.yaml`
+- **Syntax errors in YAML**: Check for invalid YAML syntax in `src/config/constants/*.yaml` and `src/config/configs/*.yaml`
 - **Invalid JSON**: Ensure `module.json` is valid JSON and has required properties
-- **Missing files**: Ensure all 7 constant YAML files exist and `settings.yaml` exists
+- **Missing files**: Ensure all constant and config YAML files exist and `settings.yaml` exists
 - **Settings array issue**: If `settings.yaml` has nested structure, ensure `settingsList` key exists
 
 ### Mutations not being prevented
@@ -306,16 +338,41 @@ To customize the config:
 - [Data Model](../specs/001-centralized-config-system/data-model.md) - Entity definitions and structure
 - [API Specification](../specs/001-centralized-config-system/config-api.md) - Full Config API and methods
 - [Quickstart Guide](../specs/001-centralized-config-system/quickstart.md) - Quick setup and usage examples
+- [Constants](./constants/README.md) - Fixed value constants
+- [Configs](./configs/README.md) - Behavioral configuration files
 - [Helper Functions](./helpers/README.md) - Detailed helper function documentation
 - [Style Guide](../STYLE_GUIDE.md) - Code style and naming conventions
 
 ---
 
 **Status**: Complete ✅
-**Last Updated**: October 29, 2025
+**Last Updated**: November 3, 2025
 **Maintainer**: Vision with Fade Team
 
 ## Changelog
+
+### 0.3.0 (2025-11-03)
+
+**Major Changes**:
+
+- Separated constants and configs into two directories
+- Added `config.configs` property for behavioral settings
+- Moved logging.yaml, moduleManagement.yaml, occlusion.yaml, placeables.yaml to `configs/`
+- Kept errors.yaml, foundry.yaml, hooks.yaml in `constants/`
+
+**Features**:
+
+- New `loadConfigFiles()` helper function to load config files
+- New `REQUIRED_CONSTANT_FILES` and `REQUIRED_CONFIG_FILES` arrays
+- Added comprehensive README for `configs/` directory
+- Updated all documentation to reflect the new structure
+
+**Rationale**:
+
+- Better organization separating fixed values from behavioral settings
+- Backward compatibility maintained - constants directory name unchanged
+- Clear intent: constants are truly immutable, configs define behavior
+- Each directory has its own README for clarity
 
 ### 0.2.0 (2025-10-29)
 

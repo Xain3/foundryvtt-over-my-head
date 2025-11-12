@@ -9,14 +9,24 @@ import { dirname, resolve } from 'path';
 import { parse as parseYaml } from 'yaml';
 import { fileURLToPath } from 'url';
 
-export const REQUIRED_YAML_FILES = [
+export const REQUIRED_CONSTANT_FILES = [
+  'defaults.yaml',
   'errors.yaml',
   'foundry.yaml',
   'hooks.yaml',
+];
+
+export const REQUIRED_CONFIG_FILES = [
   'logging.yaml',
   'moduleManagement.yaml',
   'occlusion.yaml',
   'placeables.yaml',
+];
+
+// Backward compatibility: combined list
+export const REQUIRED_YAML_FILES = [
+  ...REQUIRED_CONSTANT_FILES,
+  ...REQUIRED_CONFIG_FILES,
 ];
 
 /**
@@ -51,27 +61,30 @@ function extractYamlContext(content: string, lineNumber?: number): string {
 }
 
 /**
- * Load and parse all YAML constant files from src/config/constants/
+ * Load and parse YAML files from a specified directory
  * Each file is loaded into a namespace under the returned object
- * @param {string[]} [files=REQUIRED_YAML_FILES] List of YAML files to load
+ * @param {string} directory Directory path (e.g., 'src/config/constants' or 'src/config/configs')
+ * @param {string[]} files List of YAML files to load
  * @returns {Record<string, unknown>} Namespace-keyed YAML data
  * @throws {Error} If any YAML file cannot be parsed
+ * @private
  * @example
- * const constants = loadYamlFiles();
- * // Returns { errors: {...}, foundry: {...}, hooks: {...}, ... }
+ * const data = loadYamlFilesFromDirectory('src/config/constants', ['errors.yaml']);
+ * // Returns { errors: {...} }
  */
-export function loadYamlFiles(
-  files = REQUIRED_YAML_FILES
+function loadYamlFilesFromDirectory(
+  directory: string,
+  files: string[]
 ): Record<string, unknown> {
   const moduleRoot = getModuleRoot();
-  const constantsDir = resolve(moduleRoot, 'src/config/constants');
+  const targetDir = resolve(moduleRoot, directory);
 
   const yamlFiles = [...files];
 
   const result: Record<string, unknown> = {};
 
   for (const fileName of yamlFiles) {
-    const filePath = resolve(constantsDir, fileName);
+    const filePath = resolve(targetDir, fileName);
     try {
       const content = readFileSync(filePath, 'utf-8');
       if (!content.trim()) {
@@ -89,6 +102,38 @@ export function loadYamlFiles(
   }
 
   return result;
+}
+
+/**
+ * Load and parse all YAML constant files from src/config/constants/
+ * Each file is loaded into a namespace under the returned object
+ * @param {string[]} [files=REQUIRED_CONSTANT_FILES] List of YAML files to load
+ * @returns {Record<string, unknown>} Namespace-keyed YAML data
+ * @throws {Error} If any YAML file cannot be parsed
+ * @example
+ * const constants = loadYamlFiles();
+ * // Returns { errors: {...}, foundry: {...}, hooks: {...} }
+ */
+export function loadYamlFiles(
+  files = REQUIRED_CONSTANT_FILES
+): Record<string, unknown> {
+  return loadYamlFilesFromDirectory('src/config/constants', files);
+}
+
+/**
+ * Load and parse all YAML config files from src/config/configs/
+ * Each file is loaded into a namespace under the returned object
+ * @param {string[]} [files=REQUIRED_CONFIG_FILES] List of YAML files to load
+ * @returns {Record<string, unknown>} Namespace-keyed YAML data
+ * @throws {Error} If any YAML file cannot be parsed
+ * @example
+ * const configs = loadConfigFiles();
+ * // Returns { logging: {...}, moduleManagement: {...}, occlusion: {...}, placeables: {...} }
+ */
+export function loadConfigFiles(
+  files = REQUIRED_CONFIG_FILES
+): Record<string, unknown> {
+  return loadYamlFilesFromDirectory('src/config/configs', files);
 }
 
 /**

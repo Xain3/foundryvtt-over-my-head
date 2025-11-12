@@ -8,6 +8,8 @@ This folder contains static utility classes that provide common functionality fo
 
 - `devModeParser.ts` - Development/debug mode status evaluation
 - `devModeParser-types.ts` - Type definitions for DevModeParser (separate from implementation)
+- `moduleNameResolver.ts` - Module display name resolution based on configuration strategies
+- `moduleNameResolver-types.ts` - Type definitions for ModuleNameResolver (separate from implementation)
 
 ## Public API
 

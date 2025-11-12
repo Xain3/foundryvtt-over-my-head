@@ -1,0 +1,20 @@
+name: Placeholder Workflow
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  placeholder:
+    name: Placeholder Job
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Placeholder step
+        run: echo "Placeholder workflow for CodeQL scanning"

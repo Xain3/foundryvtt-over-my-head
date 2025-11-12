@@ -444,6 +444,14 @@ console.error(`[${MODULE_PREFIX}] Fatal error during initialization:`, error);
 
 **Note**: Console logging is enabled to support debugging and FoundryVTT integration. Use appropriately and consider using log levels for development vs. production.
 
+### Logger Utility
+
+- Prefer the shared `Logger` class from `#/utils/logger.ts` (accesed via utils.ts) when implementing new logging behavior; it enforces prefixes, level filtering, placeholder substitution, and debug-mode overrides consistently across the module.
+- Always resolve the module name via `resolveModuleName(config)` before constructing a logger so that `{module}` placeholders render the correct identifier in every environment.
+- Keep console spies aligned with their log level: `console.error` for errors, `console.warn` for warnings, `console.info` for informational output, `console.log` for verbose traces, and `console.debug` for debug statements.
+- When extending formatting, rely on configuration templates instead of string concatenation. Use per-call overrides for temporary diagnostics rather than mutating shared configuration objects.
+- Disable colorization (`colorize: false`) within tests to avoid brittle assertions while leaving runtime instances free to use ANSI styling.
+
 ### Fail-Fast Philosophy
 
 The config system follows fail-fast principles:

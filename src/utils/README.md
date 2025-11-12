@@ -39,6 +39,8 @@ This design provides:
 - `static-types.ts` - Type definitions for static utilities (re-exported from submodules)
 - `static/devModeParser.ts` - Development/debug mode status evaluation
 - `static/devModeParser-types.ts` - Type definitions for DevModeParser
+- `logger.ts` - Configurable logger implementation
+- `logger-types.ts` - Type definitions for Logger (separate from implementation)
 
 ## Changelog
 

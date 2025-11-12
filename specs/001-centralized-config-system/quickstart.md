@@ -121,7 +121,7 @@ import config from './src/config/config.ts';
 
 // Get module identifier
 const moduleId = config.module.id; // "vision-with-fade"
-const shortName = config.constants.moduleManagement.shortName; // "OMH"
+const shortName = config.configs.moduleManagement.shortName; // "OMH"
 
 // Use for logging prefix
 console.log(`[${shortName}] Module loaded: ${moduleId}`);
@@ -134,7 +134,7 @@ console.log(`[${shortName}] Module loaded: ${moduleId}`);
 import config from './src/config/config.ts';
 
 // Get the environment variable prefix
-const prefix = config.constants.moduleManagement.shortName; // "OMH"
+const prefix = config.configs.moduleManagement.shortName; // "OMH"
 
 // Environment variables follow this pattern:
 // OMH_DEBUG_MODE
@@ -373,7 +373,7 @@ Hooks.on(config.constants.hooks.hooks.settingsReady, (loadedConfig) => {
 import config from './src/config/config.ts';
 
 function logWithPrefix(message: string) {
-  const prefix = config.constants.moduleManagement.shortName;
+  const prefix = config.configs.moduleManagement.shortName;
   console.log(`[${prefix}] ${message}`);
 }
 

@@ -1,7 +1,7 @@
 # Data Model: Hook Formatter Utility
 
-**Feature**: Hook Formatter Utility  
-**Branch**: `005-short-name-hook`  
+**Feature**: Hook Formatter Utility
+**Branch**: `005-short-name-hook`
 **Date**: 2025-11-12
 
 ## Overview
@@ -36,12 +36,14 @@ export interface FormatOptions {
 ```
 
 **Validation Rules**:
+
 - Both `prefix` and `suffix` are optional
 - If both omitted, function returns base string unchanged (identity operation)
 - Empty strings are valid values (FR-006)
 - No maximum length constraints (performance target <1ms handles typical cases)
 
 **Usage Examples**:
+
 ```typescript
 // Prefix only
 { prefix: "hello-" }
@@ -111,6 +113,7 @@ export interface HookFormatterConfig {
 ```
 
 **Validation Rules**:
+
 - `config.constants.hooks` MUST exist (FR-025)
 - `config.constants.hooks.hooks` MUST be an object (FR-008)
 - `config.constants.hooks.hookPatterns` MUST be an object (FR-009)
@@ -118,8 +121,11 @@ export interface HookFormatterConfig {
 - `module` and `moduleManagement` are optional (defaults provided by moduleNameResolver)
 
 **Structure Validation**:
+
 ```typescript
-function validateConfig(config: unknown): asserts config is HookFormatterConfig {
+function validateConfig(
+  config: unknown
+): asserts config is HookFormatterConfig {
   if (!config || typeof config !== 'object') {
     throw new Error('[OMH] Invalid config: expected object');
   }
@@ -130,11 +136,15 @@ function validateConfig(config: unknown): asserts config is HookFormatterConfig 
   }
 
   if (typeof c.constants.hooks.hooks !== 'object') {
-    throw new Error('[OMH] Invalid config: constants.hooks.hooks must be an object');
+    throw new Error(
+      '[OMH] Invalid config: constants.hooks.hooks must be an object'
+    );
   }
 
   if (typeof c.constants.hooks.hookPatterns !== 'object') {
-    throw new Error('[OMH] Invalid config: constants.hooks.hookPatterns must be an object');
+    throw new Error(
+      '[OMH] Invalid config: constants.hooks.hookPatterns must be an object'
+    );
   }
 }
 ```
@@ -155,6 +165,7 @@ export type PlaceholderValues = Record<string, string>;
 ```
 
 **Usage Context**:
+
 - Internal to hookFormatter implementation
 - Not exported in public API
 - Used during pattern template replacement
@@ -195,6 +206,7 @@ export type PlaceholderValues = Record<string, string>;
 ```
 
 **Dependencies Flow**:
+
 1. Consumer calls `formatHookName` with config
 2. Function validates config structure (FR-025)
 3. For P2: Looks up `hookKey` in `config.constants.hooks.hooks`
@@ -208,8 +220,8 @@ export type PlaceholderValues = Record<string, string>;
 
 ### P1: String Formatter
 
-**Input**: `base: string`, `options?: FormatOptions`  
-**Processing**: Simple string concatenation  
+**Input**: `base: string`, `options?: FormatOptions`
+**Processing**: Simple string concatenation
 **Output**: `string`
 
 ```
@@ -224,15 +236,15 @@ Processing:
 Output: "hello-world!"
 ```
 
-**State**: None (stateless pure function)  
+**State**: None (stateless pure function)
 **Side Effects**: None
 
 ---
 
 ### P2: Simple Hook Name Generation
 
-**Input**: `hookKey: string`, `config: HookFormatterConfig`  
-**Processing**: Config lookup + placeholder replacement  
+**Input**: `hookKey: string`, `config: HookFormatterConfig`
+**Processing**: Config lookup + placeholder replacement
 **Output**: `string`
 
 ```
@@ -261,15 +273,15 @@ Step 5: Replace placeholders
 Output: "OMH.SettingsReady"
 ```
 
-**State**: None (stateless function)  
+**State**: None (stateless function)
 **Side Effects**: None (reads config, doesn't modify)
 
 ---
 
 ### P3: Parameterized Hook Name Generation
 
-**Input**: `patternKey: string`, `params: Record<string, string>`, `config: HookFormatterConfig`  
-**Processing**: Pattern lookup + multi-placeholder replacement  
+**Input**: `patternKey: string`, `params: Record<string, string>`, `config: HookFormatterConfig`
+**Processing**: Pattern lookup + multi-placeholder replacement
 **Output**: `string`
 
 ```
@@ -303,7 +315,7 @@ Step 6: Replace all placeholders
 Output: "OMH.setting.debugMode"
 ```
 
-**State**: None (stateless function)  
+**State**: None (stateless function)
 **Side Effects**: None
 
 ---
@@ -368,15 +380,16 @@ Error: "[OMH] Invalid config: expected object"
 
 ## Performance Characteristics
 
-| Operation | Time Complexity | Space Complexity | Notes |
-|-----------|----------------|------------------|-------|
-| formatString | O(n) | O(n) | n = total string length |
-| formatHookName (P2) | O(m) | O(m) | m = template length (~20-50 chars) |
-| formatHookName (P3) | O(m + k) | O(m) | k = number of parameters (~2-5) |
-| Config validation | O(1) | O(1) | Fixed structure checks |
-| Placeholder extraction | O(m) | O(p) | p = number of placeholders (~3-5) |
+| Operation              | Time Complexity | Space Complexity | Notes                              |
+| ---------------------- | --------------- | ---------------- | ---------------------------------- |
+| formatString           | O(n)            | O(n)             | n = total string length            |
+| formatHookName (P2)    | O(m)            | O(m)             | m = template length (~20-50 chars) |
+| formatHookName (P3)    | O(m + k)        | O(m)             | k = number of parameters (~2-5)    |
+| Config validation      | O(1)            | O(1)             | Fixed structure checks             |
+| Placeholder extraction | O(m)            | O(p)             | p = number of placeholders (~3-5)  |
 
 **Expected Performance**:
+
 - All operations <1ms for typical inputs (SC-007)
 - No I/O, no network, no file system access
 - Pure string manipulation only
@@ -386,6 +399,7 @@ Error: "[OMH] Invalid config: expected object"
 ## Immutability Constraints
 
 All functions are **pure** and **stateless**:
+
 - ✅ No global state
 - ✅ No mutation of input parameters
 - ✅ No side effects
@@ -399,6 +413,7 @@ All functions are **pure** and **stateless**:
 ## Summary
 
 This data model defines:
+
 1. ✅ **FormatOptions**: Simple interface for P1 string formatting
 2. ✅ **HookFormatterConfig**: Type-safe config structure for P2/P3
 3. ✅ **PlaceholderValues**: Internal type for replacement logic

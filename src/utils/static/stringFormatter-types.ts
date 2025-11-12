@@ -4,6 +4,19 @@
  * @path src/utils/static/stringFormatter-types.ts
  */
 
+/**
+ * Options for formatting a string with optional prefix and/or suffix.
+ */
 export interface FormatOptions {
-  // Placeholder for implementation in upcoming tasks.
+  /**
+   * String to prepend to the base string.
+   * @optional
+   */
+  prefix?: string;
+
+  /**
+   * String to append to the base string.
+   * @optional
+   */
+  suffix?: string;
 }

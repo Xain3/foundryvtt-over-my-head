@@ -142,26 +142,26 @@ Phase 2: Foundational
 
 **Implementation (Core)**
 
-- [ ] T007 [P] [US1] Define FormatOptions interface with `prefix?` and `suffix?` optional string properties in `src/utils/static/stringFormatter-types.ts`
-- [ ] T008 [P] [US1] Implement `formatString()` function with parameter validation and prefix/suffix logic in `src/utils/static/stringFormatter.ts`
-- [ ] T009 [P] [US1] Add comprehensive JSDoc to `formatString()` with examples of all four use cases in `src/utils/static/stringFormatter.ts`
-- [ ] T010 [P] [US1] Export FormatOptions and formatString from `src/utils/static/stringFormatter-types.ts` and `src/utils/static/stringFormatter.ts`
+- [X] T007 [P] [US1] Define FormatOptions interface with `prefix?` and `suffix?` optional string properties in `src/utils/static/stringFormatter-types.ts`
+- [X] T008 [P] [US1] Implement `formatString()` function with parameter validation and prefix/suffix logic in `src/utils/static/stringFormatter.ts`
+- [X] T009 [P] [US1] Add comprehensive JSDoc to `formatString()` with examples of all four use cases in `src/utils/static/stringFormatter.ts`
+- [X] T010 [P] [US1] Export FormatOptions and formatString from `src/utils/static/stringFormatter-types.ts` and `src/utils/static/stringFormatter.ts`
 
 **Testing (Core)**
 
-- [ ] T011 [P] [US1] Create test file `tests/unit/stringFormatter.unit.test.mjs` with describe block and setup in `tests/unit/stringFormatter.unit.test.mjs`
-- [ ] T012 [P] [US1] Implement test for prefix-only formatting: `formatString("world", { prefix: "hello-" })` in `tests/unit/stringFormatter.unit.test.mjs`
-- [ ] T013 [P] [US1] Implement test for suffix-only formatting: `formatString("world", { suffix: "!" })` in `tests/unit/stringFormatter.unit.test.mjs`
-- [ ] T014 [P] [US1] Implement test for both prefix and suffix: `formatString("world", { prefix: "hello-", suffix: "-!" })` in `tests/unit/stringFormatter.unit.test.mjs`
-- [ ] T015 [P] [US1] Implement test for no options (identity operation): `formatString("world")` in `tests/unit/stringFormatter.unit.test.mjs`
-- [ ] T016 [P] [US1] Implement test for empty string with options: `formatString("", { prefix: "p", suffix: "s" })` in `tests/unit/stringFormatter.unit.test.mjs`
+- [X] T011 [P] [US1] Create test file `tests/unit/stringFormatter.unit.test.mjs` with describe block and setup in `tests/unit/stringFormatter.unit.test.mjs`
+- [X] T012 [P] [US1] Implement test for prefix-only formatting: `formatString("world", { prefix: "hello-" })` in `tests/unit/stringFormatter.unit.test.mjs`
+- [X] T013 [P] [US1] Implement test for suffix-only formatting: `formatString("world", { suffix: "!" })` in `tests/unit/stringFormatter.unit.test.mjs`
+- [X] T014 [P] [US1] Implement test for both prefix and suffix: `formatString("world", { prefix: "hello-", suffix: "-!" })` in `tests/unit/stringFormatter.unit.test.mjs`
+- [X] T015 [P] [US1] Implement test for no options (identity operation): `formatString("world")` in `tests/unit/stringFormatter.unit.test.mjs`
+- [X] T016 [P] [US1] Implement test for empty string with options: `formatString("", { prefix: "p", suffix: "s" })` in `tests/unit/stringFormatter.unit.test.mjs`
 
 **Documentation & Integration**
 
-- [ ] T017 [US1] Update `src/utils/static/README.md` with stringFormatter documentation, usage examples, and test references
-- [ ] T018 [US1] Add stringFormatter exports to `src/utils/static.ts` or create it if missing with proper re-exports in `src/utils/static.ts`
-- [ ] T019 [US1] Verify all 6 P1 unit tests pass and coverage meets ≥80% requirement
-- [ ] T020 [US1] Run full test suite to verify zero regressions in existing code (all 463+ tests should still pass)
+- [X] T017 [US1] Update `src/utils/static/README.md` with stringFormatter documentation, usage examples, and test references
+- [X] T018 [US1] Add stringFormatter exports to `src/utils/static.ts` or create it if missing with proper re-exports in `src/utils/static.ts`
+- [X] T019 [US1] Verify all 6 P1 unit tests pass and coverage meets ≥80% requirement
+- [X] T020 [US1] Run full test suite to verify zero regressions in existing code (all 463+ tests should still pass)
 
 ---
 

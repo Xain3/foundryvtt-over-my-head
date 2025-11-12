@@ -22,7 +22,7 @@ Three utilities in one feature:
 ### String Formatter (P1)
 
 ```typescript
-import { formatString } from '#/utils/stringFormatter.ts';
+import { formatString } from '#/utils/static/stringFormatter.ts';
 
 formatString('world', { prefix: 'hello-' }); // → "hello-world"
 formatString('world', { suffix: '!' }); // → "world!"
@@ -33,7 +33,7 @@ formatString('world'); // → "world"
 ### Hook Formatter (P2/P3)
 
 ```typescript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#config';
 
 // Simple hooks (P2)
@@ -51,7 +51,7 @@ formatHookName('setting', { settingKey: 'debugMode' }, config); // → "OMH.sett
 ### Use Case 1: Generate Hook Name for Foundry
 
 ```typescript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#config';
 
 // Generate the hook name
@@ -73,7 +73,7 @@ Hooks.call(hookName);
 ### Use Case 2: Dynamic Setting Hooks
 
 ```typescript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#config';
 
 // Register a listener for a specific setting
@@ -102,7 +102,7 @@ function onSettingChange(settingKey: string, newValue: any) {
 ### Use Case 3: Prefix/Suffix String Formatting
 
 ```typescript
-import { formatString } from '#/utils/stringFormatter.ts';
+import { formatString } from '#/utils/static/stringFormatter.ts';
 
 // Generate CSS class names
 const className = formatString('modal', { prefix: 'omh-', suffix: '--active' });
@@ -212,13 +212,13 @@ describe('formatString', () => {
 
 ### Step 2: Implement Hook Formatter (P2/P3)
 
-**File**: `src/utils/hookFormatter-types.ts`
+**File**: `src/utils/static/hookFormatter-types.ts`
 
 ```typescript
 /**
  * @file hookFormatter-types.ts
  * @description Type definitions for hook formatter utility
- * @path src/utils/hookFormatter-types.ts
+ * @path src/utils/static/hookFormatter-types.ts
  */
 
 export interface HookFormatterConfig {
@@ -240,13 +240,13 @@ export interface HookFormatterConfig {
 }
 ```
 
-**File**: `src/utils/hookFormatter.ts`
+**File**: `src/utils/static/hookFormatter.ts`
 
 ```typescript
 /**
  * @file hookFormatter.ts
  * @description Hook name formatter using config and patterns
- * @path src/utils/hookFormatter.ts
+ * @path src/utils/static/hookFormatter.ts
  */
 
 import type { HookFormatterConfig } from './hookFormatter-types.ts';
@@ -425,7 +425,7 @@ Pure string formatting utility with prefix/suffix support.
 **Usage**:
 
 ```typescript
-import { formatString } from '#/utils/stringFormatter.ts';
+import { formatString } from '#/utils/static/stringFormatter.ts';
 formatString('base', { prefix: 'pre-', suffix: '-post' });
 ```
 ````
@@ -439,7 +439,7 @@ Generates Foundry VTT hook names from config patterns.
 **Usage**:
 
 ```typescript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#config';
 
 formatHookName('settingsReady', config);

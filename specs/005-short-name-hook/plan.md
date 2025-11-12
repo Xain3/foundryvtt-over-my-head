@@ -50,7 +50,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 - **Explicit responsibilities**:
   - `formatString`: Pure string manipulation (P1)
   - `formatHookName`: Config-aware hook generation (P2/P3)
-- **Type separation**: `stringFormatter-types.ts` and `hookFormatter-types.ts` separate from implementation
+- **Type separation**: `stringFormatter-types.ts` and `hookFormatter-types.ts` separate from implementation (both in `src/utils/static/`)
 - **Coding standards**: Will follow FoundryVTT best practices and style guide
 - **Message prefixes**: Error messages will use `[OMH]` prefix
 - **Import aliasing**: Will use `#/utils/` and `#config` aliases
@@ -135,8 +135,8 @@ src/
 │   │   ├── stringFormatter.ts           # NEW - P1 implementation (pure utility)
 │   │   ├── moduleNameResolver.ts        # EXISTING - Used by hookFormatter
 │   │   └── README.md                    # UPDATE - Document new utilities
-│   ├── hookFormatter-types.ts           # NEW - P2/P3 types (HookFormatterConfig, etc.)
-│   ├── hookFormatter.ts                 # NEW - P2/P3 implementation
+│   ├── static/hookFormatter-types.ts    # NEW - P2/P3 types (HookFormatterConfig, etc.)
+│   ├── static/hookFormatter.ts          # NEW - P2/P3 implementation
 │   ├── static.ts                        # UPDATE - Export new static utilities
 │   └── README.md                        # UPDATE - Document new utilities
 ├── config/

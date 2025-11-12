@@ -273,7 +273,7 @@ None. All technical decisions have been made and documented above.
 For reference, this is how generated hook names will be used:
 
 ```javascript
-import { formatHookName } from '#/utils/hookFormatter.ts';
+import { formatHookName } from '#/utils/static/hookFormatter.ts';
 import { config } from '#config';
 
 // P2: Simple hook

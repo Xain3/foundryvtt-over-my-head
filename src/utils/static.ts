@@ -5,6 +5,8 @@
  */
 
 import DevModeParser from './static/devModeParser.ts';
+import { formatString } from './static/stringFormatter.ts';
+import { formatHookName } from './hookFormatter.ts';
 
 // Re-export public type definitions for external use
 export type {
@@ -15,6 +17,15 @@ export type {
   ModeEvaluationOptions,
   ConfigSingleton,
 } from './static-types.ts';
+
+// Re-export string formatter types
+export type { FormatOptions } from './static/stringFormatter-types.ts';
+
+// Re-export hook formatter types
+export type {
+  HookFormatterConfig,
+  PlaceholderValues,
+} from './hookFormatter-types.ts';
 
 /**
  * StaticUtils provides a centralized interface to all static utility functionality.
@@ -30,6 +41,12 @@ export type {
  * // Use DevModeParser functionality
  * const result = StaticUtils.DevModeParser.fromConfig(config);
  * const isDev = StaticUtils.DevModeParser.isDevMode(env, module, setting);
+ *
+ * // Use formatString functionality
+ * const formatted = StaticUtils.formatString('world', { prefix: 'hello-' });
+ *
+ * // Use formatHookName functionality
+ * const hookName = StaticUtils.formatHookName('settingsReady', config);
  */
 class StaticUtils {
   private constructor() {
@@ -71,6 +88,35 @@ class StaticUtils {
      * @returns Object describing dev and debug mode status derived from the supplied config
      */
     fromConfig: DevModeParser.fromConfig.bind(DevModeParser),
+  };
+
+  /**
+   * formatString provides a pure utility for prefixing and/or suffixing strings.
+   * Zero external dependencies, deterministic behavior.
+   */
+  static readonly formatString = {
+    /**
+     * Formats a string by prepending an optional prefix and/or appending an optional suffix.
+     * @param base - The base string to format
+     * @param options - Optional formatting configuration
+     * @returns The formatted string with prefix and/or suffix applied
+     */
+    format: formatString,
+  };
+
+  /**
+   * formatHookName provides utilities for generating FoundryVTT hook names.
+   * Supports both simple module-scoped names and parameterized patterns.
+   */
+  static readonly formatHookName = {
+    /**
+     * Generates a module-scoped hook name or a parameterized hook name based on arguments.
+     * @param keyOrPattern - Hook key (P2) or pattern key (P3)
+     * @param configOrParams - Config object (P2) or parameters object (P3)
+     * @param config - Optional config for P3 overload
+     * @returns The formatted hook name
+     */
+    format: formatHookName,
   };
 }
 

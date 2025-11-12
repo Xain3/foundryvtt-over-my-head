@@ -8,5 +8,9 @@ hooks:
   settingsReady: 'SettingsReady' # The hook called when settings are ready
   contextReady: 'ContextReady' # The hook called when context is ready
 
+hookPatternSeparator: '.'
 hookPatterns:
-  setting: '.setting.{settingKey}' # Base hook for setting changes
+  # Base hook for module runtime hooks such as SettingsReady
+  module: '{moduleReference}{separator}{hook}'
+  # Base hook for setting changes
+  setting: '{moduleReference}{separator}setting{separator}{settingKey}'

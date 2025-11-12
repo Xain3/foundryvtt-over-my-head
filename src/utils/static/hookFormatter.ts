@@ -1,7 +1,7 @@
 /**
  * @file hookFormatter.ts
  * @description Hook name formatter utility for FoundryVTT hooks with config support.
- * @path src/utils/hookFormatter.ts
+ * @path src/utils/static/hookFormatter.ts
  */
 
 import type {
@@ -9,7 +9,7 @@ import type {
   PlaceholderValues,
 } from './hookFormatter-types.ts';
 import { assertValidConfig } from './hookFormatter-types.ts';
-import { formatString } from './static/stringFormatter.ts';
+import { formatString } from './stringFormatter.ts';
 
 /**
  * Extracts all placeholder names from a pattern template string.

@@ -1,7 +1,7 @@
 /**
  * @file hookFormatter-types.ts
  * @description Type definitions for the hook formatter utility.
- * @path src/utils/hookFormatter-types.ts
+ * @path src/utils/static/hookFormatter-types.ts
  */
 
 /**

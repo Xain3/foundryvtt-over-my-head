@@ -1,4 +1,4 @@
-**Version**: 0.2.0
+**Version**: 0.4.0
 
 # Static Utilities
 
@@ -12,6 +12,8 @@ This folder contains static utility classes that provide common functionality fo
 - `moduleNameResolver-types.ts` - Type definitions for ModuleNameResolver (separate from implementation)
 - `stringFormatter.ts` - Pure string formatting utility with prefix/suffix support
 - `stringFormatter-types.ts` - Type definitions for stringFormatter (separate from implementation)
+- `hookFormatter.ts` - FoundryVTT hook name formatter (module-scoped and parameterized)
+- `hookFormatter-types.ts` - Type definitions for hookFormatter (separate from implementation)
 
 ## Public API
 
@@ -24,6 +26,13 @@ import StaticUtils from '#/utils/static.ts';
 // Use the aggregated utilities
 const result = StaticUtils.DevModeParser.fromConfig(config);
 const isDev = StaticUtils.DevModeParser.isDevMode(env, module, setting);
+const hook = StaticUtils.formatHookName.format(
+  'settingsReady',
+  config.constants.hooks
+);
+const formatted = StaticUtils.formatString.format('world', {
+  prefix: 'hello-',
+});
 ```
 
 The `StaticUtils` class provides a stable, documented public API that shields consumers from internal folder structure changes.
@@ -32,12 +41,12 @@ The `StaticUtils` class provides a stable, documented public API that shields co
 
 ### StringFormatter
 
-`StringFormatter` provides simple string formatting with optional prefix and suffix support. Zero dependencies, pure utility function.
+`formatString` provides simple string formatting with optional prefix and suffix support. Zero dependencies, pure utility function.
 
 ```ts
 import StaticUtils from '#/utils/static.ts';
 
-const result = StaticUtils.StringFormatter.formatString('world', {
+const result = StaticUtils.formatString.format('world', {
   prefix: 'hello-',
   suffix: '!',
 }); // 'hello-world!'
@@ -92,7 +101,41 @@ const result = StaticUtils.DevModeParser.fromConfig(config, undefined, {
 
 The parser only evaluates the sources included in the hierarchy array. When an array is omitted or empty, the default order (`env → module → setting`) is applied automatically.
 
+### HookFormatter
+
+`formatHookName` generates FoundryVTT hook names using module metadata and parameterized patterns from `hooks.yaml`.
+
+```ts
+import StaticUtils from '#/utils/static.ts';
+import { config } from '#/config/config.ts';
+
+// Module-scoped hook (P2)
+const readyHook = StaticUtils.formatHookName.format(
+  'settingsReady',
+  config.constants.hooks
+); // 'OMH.SettingsReady'
+
+// Parameterized hook (P3)
+const settingHook = StaticUtils.formatHookName.format(
+  'setting',
+  { settingKey: 'debugMode' },
+  config.constants.hooks
+); // 'OMH.setting.debugMode'
+```
+
+Use cases:
+
+- Emit namespaced Foundry hooks without repeating string literals
+- Generate setting-specific hook channels (e.g., `OMH.setting.maxTokens`)
+- Surface friendly error messages when configuration is incomplete
+
 ## Changelog
+
+### [0.4.0] - 2025-11-12
+
+- Moved hook formatter implementation and types into the static utilities directory
+- Updated `StaticUtils` aggregator to expose `formatHookName` and `formatString` consistently
+- Documented hook formatter usage alongside existing static utilities
 
 ### [0.3.0] - 2025-11-12
 

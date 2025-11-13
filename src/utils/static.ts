@@ -7,6 +7,11 @@
 import DevModeParser from './static/devModeParser.ts';
 import { formatString } from './static/stringFormatter.ts';
 import { formatHookName } from './static/hookFormatter.ts';
+import {
+  findFoundryDataDir,
+  findFoundryDataDirPath,
+  getFoundryDataDirPaths,
+} from './static/foundryDataDirFinder.ts';
 
 // Re-export public type definitions for external use
 export type {
@@ -27,6 +32,13 @@ export type {
   PlaceholderValues,
 } from './static/hookFormatter-types.ts';
 
+// Re-export foundry data dir finder types
+export type {
+  PlatformType,
+  FinderOptions,
+  FindResult,
+} from './static/foundryDataDirFinder-types.ts';
+
 /**
  * StaticUtils provides a centralized interface to all static utility functionality.
  * This class aggregates static methods from various utility classes for convenient access.
@@ -43,10 +55,16 @@ export type {
  * const isDev = StaticUtils.DevModeParser.isDevMode(env, module, setting);
  *
  * // Use formatString functionality
- * const formatted = StaticUtils.formatString('world', { prefix: 'hello-' });
+ * const formatted = StaticUtils.formatString.format('world', { prefix: 'hello-' });
  *
  * // Use formatHookName functionality
- * const hookName = StaticUtils.formatHookName('settingsReady', config);
+ * const hookName = StaticUtils.formatHookName.format('settingsReady', config);
+ *
+ * // Use findFoundryDataDir functionality (Node.js/development only)
+ * const dataDir = StaticUtils.findFoundryDataDir.find();
+ * if (dataDir.found) {
+ *   console.log(`Found Foundry at: ${dataDir.path}`);
+ * }
  */
 class StaticUtils {
   private constructor() {
@@ -117,6 +135,33 @@ class StaticUtils {
      * @returns The formatted hook name
      */
     format: formatHookName,
+  };
+
+  /**
+   * findFoundryDataDir provides utilities for locating the FoundryVTT data directory.
+   * Useful for development and deployment scripts in Node.js environments.
+   */
+  static readonly findFoundryDataDir = {
+    /**
+     * Finds the FoundryVTT data directory using platform-specific paths.
+     * @param options - Configuration options for the search
+     * @returns Result object containing the found path and search metadata
+     */
+    find: findFoundryDataDir,
+
+    /**
+     * Convenience method that returns just the path string or empty string if not found.
+     * @param options - Configuration options for the search
+     * @returns The found path or empty string
+     */
+    findPath: findFoundryDataDirPath,
+
+    /**
+     * Gets platform-specific paths without checking if they exist.
+     * @param options - Configuration options
+     * @returns Array of potential paths for the platform
+     */
+    getPaths: getFoundryDataDirPaths,
   };
 }
 

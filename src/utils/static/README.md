@@ -14,6 +14,8 @@ This folder contains static utility classes that provide common functionality fo
 - `stringFormatter-types.ts` - Type definitions for stringFormatter (separate from implementation)
 - `hookFormatter.ts` - FoundryVTT hook name formatter (module-scoped and parameterized)
 - `hookFormatter-types.ts` - Type definitions for hookFormatter (separate from implementation)
+- `foundryDataDirFinder.ts` - FoundryVTT data directory finder for cross-platform development
+- `foundryDataDirFinder-types.ts` - Type definitions for foundryDataDirFinder (separate from implementation)
 
 ## Public API
 
@@ -129,7 +131,58 @@ Use cases:
 - Generate setting-specific hook channels (e.g., `OMH.setting.maxTokens`)
 - Surface friendly error messages when configuration is incomplete
 
+### FoundryDataDirFinder
+
+`findFoundryDataDir` locates the FoundryVTT data directory across different platforms (Linux, macOS, Windows). This utility is designed for Node.js/development contexts such as build scripts and deployment tools.
+
+```ts
+import StaticUtils from '#/utils/static.ts';
+
+// Simple usage - find with defaults
+const result = StaticUtils.findFoundryDataDir.find();
+if (result.found) {
+  console.log(`Found Foundry at: ${result.path}`);
+  console.log(`Checked paths:`, result.checkedPaths);
+}
+
+// Just get the path string
+const path = StaticUtils.findFoundryDataDir.findPath();
+if (path) {
+  console.log(`Found at: ${path}`);
+}
+
+// Custom platform/user with verbose logging
+const customResult = StaticUtils.findFoundryDataDir.find({
+  platform: 'linux',
+  user: 'developer',
+  verbose: true,
+});
+
+// Get potential paths without checking
+const paths = StaticUtils.findFoundryDataDir.getPaths({
+  platform: 'win32',
+  user: 'testuser',
+});
+```
+
+**Important**: This utility is for development/deployment scripts only. In-browser FoundryVTT code should use `game.data.path` or `CONFIG.path` APIs instead.
+
+Use cases:
+
+- Build and deployment scripts that need to copy module files to Foundry
+- Development tools that need to locate Foundry's data directory
+- Testing utilities that need to verify Foundry installation paths
+- Cross-platform module development workflows
+
 ## Changelog
+
+### [0.5.0] - 2025-11-13
+
+- Added `foundryDataDirFinder` utility for locating FoundryVTT data directory
+- Supports Linux, macOS, and Windows platforms
+- Provides three convenience methods: `find()`, `findPath()`, and `getPaths()`
+- Designed for Node.js/development contexts (build scripts, deployment tools)
+- Includes verbose logging option for debugging path resolution
 
 ### [0.4.0] - 2025-11-12
 

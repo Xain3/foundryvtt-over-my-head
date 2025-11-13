@@ -10,9 +10,30 @@
 export type PlatformType = 'linux' | 'darwin' | 'win32';
 
 /**
+ * Minimal configuration shape for resolving Foundry data directory overrides.
+ */
+export interface FinderConfig {
+  prefix?: string;
+  env?: Record<string, string>;
+  constants?: Record<string, unknown>;
+}
+
+/**
  * Configuration options for FoundryDataDirFinder
  */
 export interface FinderOptions {
+  /**
+   * Explicit path to use for the Foundry data directory.
+   * When provided, this takes highest precedence.
+   */
+  path?: string;
+
+  /**
+   * Optional config object providing env and constant overrides.
+   * Defaults to the module config when available.
+   */
+  config?: FinderConfig;
+
   /**
    * The platform identifier ('linux', 'darwin', 'win32')
    * @default Detected from os.platform()

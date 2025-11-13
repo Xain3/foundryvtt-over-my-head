@@ -8,7 +8,10 @@ import type {
   PlatformType,
   FinderOptions,
   FindResult,
+  FinderConfig,
 } from './foundryDataDirFinder-types.ts';
+
+const ENV_OVERRIDE_KEY = 'FOUNDRY_DATA_DIR';
 
 /**
  * FoundryDataDirFinder provides static methods for locating the FoundryVTT data directory
@@ -103,7 +106,7 @@ function detectUser(): string {
     // Try os.userInfo() if available
     try {
       // Dynamic import to handle environments without 'os'
-      const os = require('os');
+      const os = require('node:os');
       const info = os.userInfo?.();
       if (info?.username) return info.username;
     } catch {
@@ -128,7 +131,7 @@ function dirExists(path: string): boolean {
 
   try {
     // Dynamic import to handle environments without 'fs'
-    const fs = require('fs');
+    const fs = require('node:fs');
     if (!fs.existsSync(path)) return false;
 
     const stat = fs.statSync(path);
@@ -177,9 +180,79 @@ export function findFoundryDataDir(options: FinderOptions = {}): FindResult {
   const platform = options.platform || detectPlatform();
   const user = options.user || detectUser();
   const verbose = options.verbose || false;
+  const configRef = options.config ?? null;
+  const checkedPaths: string[] = [];
+  const seenCandidates = new Set<string>();
 
   log(`Searching for FoundryVTT data directory`, verbose);
   log(`Platform: ${platform}, User: ${user}`, verbose);
+
+  const attemptCandidate = (
+    candidate: string | undefined,
+    source: string
+  ): FindResult | null => {
+    const normalized = normalizeCandidate(candidate);
+    if (!normalized || seenCandidates.has(normalized)) {
+      return null;
+    }
+
+    seenCandidates.add(normalized);
+    checkedPaths.push(normalized);
+    log(`Checking (${source}): ${normalized}`, verbose);
+
+    if (dirExists(normalized)) {
+      log(`Found (${source}): ${normalized}`, verbose);
+      return {
+        path: normalized,
+        found: true,
+        platform,
+        checkedPaths,
+      };
+    }
+
+    return null;
+  };
+
+  const explicitResult = attemptCandidate(options.path, 'argument');
+  if (explicitResult) {
+    return explicitResult;
+  }
+
+  const envResult = attemptCandidate(
+    getEnvironmentOverride(configRef),
+    'environment'
+  );
+  if (envResult) {
+    return envResult;
+  }
+
+  const configEnvResult = attemptCandidate(
+    getConfigEnvOverride(configRef),
+    'config.env'
+  );
+  if (configEnvResult) {
+    return configEnvResult;
+  }
+
+  const configConstantResult = attemptCandidate(
+    getConfigConstantOverride(configRef),
+    'config.constants'
+  );
+  if (configConstantResult) {
+    return configConstantResult;
+  }
+
+  const configDefaultCandidates = getConfigDefaultPaths(
+    configRef,
+    platform,
+    user
+  );
+  for (const candidate of configDefaultCandidates) {
+    const result = attemptCandidate(candidate, 'config.defaults');
+    if (result) {
+      return result;
+    }
+  }
 
   const pathGenerator = PLATFORM_PATHS[platform];
   if (!pathGenerator) {
@@ -188,25 +261,15 @@ export function findFoundryDataDir(options: FinderOptions = {}): FindResult {
       path: '',
       found: false,
       platform,
-      checkedPaths: [],
+      checkedPaths,
     };
   }
 
-  const paths = pathGenerator(user);
-  const checkedPaths: string[] = [];
-
-  for (const path of paths) {
-    checkedPaths.push(path);
-    log(`Checking: ${path}`, verbose);
-
-    if (dirExists(path)) {
-      log(`Found: ${path}`, verbose);
-      return {
-        path,
-        found: true,
-        platform,
-        checkedPaths,
-      };
+  const defaults = pathGenerator(user);
+  for (const candidate of defaults) {
+    const result = attemptCandidate(candidate, 'defaults');
+    if (result) {
+      return result;
     }
   }
 
@@ -252,11 +315,206 @@ export function findFoundryDataDirPath(options: FinderOptions = {}): string {
 export function getFoundryDataDirPaths(options: FinderOptions = {}): string[] {
   const platform = options.platform || detectPlatform();
   const user = options.user || detectUser();
+  const configRef = options.config ?? null;
+  const paths: string[] = [];
+  const seen = new Set<string>();
+
+  const addPath = (candidate?: string) => {
+    const normalized = normalizeCandidate(candidate);
+    if (!normalized || seen.has(normalized)) {
+      return;
+    }
+    seen.add(normalized);
+    paths.push(normalized);
+  };
+
+  addPath(options.path);
+  addPath(getEnvironmentOverride(configRef));
+  addPath(getConfigEnvOverride(configRef));
+  addPath(getConfigConstantOverride(configRef));
+
+  const configDefaults = getConfigDefaultPaths(configRef, platform, user);
+  configDefaults.forEach((candidate) => addPath(candidate));
 
   const pathGenerator = PLATFORM_PATHS[platform];
   if (!pathGenerator) {
+    return paths;
+  }
+
+  for (const candidate of pathGenerator(user)) {
+    addPath(candidate);
+  }
+
+  return paths;
+}
+
+function normalizeCandidate(candidate?: string | null): string {
+  if (typeof candidate !== 'string') {
+    return '';
+  }
+  const trimmed = candidate.trim();
+  return trimmed.length > 0 ? trimmed : '';
+}
+
+function getEnvironmentOverride(configRef: FinderConfig | null): string {
+  if (typeof process === 'undefined' || !process.env) {
+    return '';
+  }
+
+  const direct = normalizeCandidate(process.env[ENV_OVERRIDE_KEY]);
+  if (direct) {
+    return direct;
+  }
+
+  const prefix = configRef?.prefix;
+  if (prefix) {
+    const prefixedKey = `${prefix}_${ENV_OVERRIDE_KEY}`;
+    const prefixed = normalizeCandidate(process.env[prefixedKey]);
+    if (prefixed) {
+      return prefixed;
+    }
+  }
+
+  for (const [key, value] of Object.entries(process.env)) {
+    if (key.toUpperCase().endsWith(`_${ENV_OVERRIDE_KEY}`)) {
+      const resolved = normalizeCandidate(value);
+      if (resolved) {
+        return resolved;
+      }
+    }
+  }
+
+  return '';
+}
+
+function getConfigEnvOverride(configRef: FinderConfig | null): string {
+  if (!configRef || !configRef.env) {
+    return '';
+  }
+
+  const envEntries = configRef.env as Record<string, string>;
+
+  const direct = normalizeCandidate(envEntries[ENV_OVERRIDE_KEY]);
+  if (direct) {
+    return direct;
+  }
+
+  const prefix = configRef.prefix;
+  if (prefix) {
+    const prefixedKey = `${prefix}_${ENV_OVERRIDE_KEY}`;
+    const prefixed = normalizeCandidate(envEntries[prefixedKey]);
+    if (prefixed) {
+      return prefixed;
+    }
+  }
+
+  for (const [key, value] of Object.entries(envEntries)) {
+    if (key.toUpperCase().endsWith(`_${ENV_OVERRIDE_KEY}`)) {
+      const resolved = normalizeCandidate(value);
+      if (resolved) {
+        return resolved;
+      }
+    }
+  }
+
+  return '';
+}
+
+function getConfigConstantOverride(configRef: FinderConfig | null): string {
+  if (!configRef || !configRef.constants) {
+    return '';
+  }
+
+  const constants = configRef.constants as Record<string, unknown>;
+  const pathsNamespace = constants.paths as Record<string, unknown> | undefined;
+  const candidate = pathsNamespace?.foundryDataDirPath;
+
+  if (typeof candidate === 'string') {
+    return normalizeCandidate(candidate);
+  }
+
+  return '';
+}
+
+function getConfigDefaultPaths(
+  configRef: FinderConfig | null,
+  platform: PlatformType,
+  user: string
+): string[] {
+  if (!configRef || !configRef.constants) {
     return [];
   }
 
-  return pathGenerator(user);
+  const constants = configRef.constants as Record<string, unknown>;
+  const defaultsNamespace = constants.defaults as
+    | Record<string, unknown>
+    | undefined;
+  const pathsNamespace = defaultsNamespace?.paths as
+    | Record<string, unknown>
+    | undefined;
+  if (!pathsNamespace) {
+    return [];
+  }
+
+  const platformCandidates = extractPlatformDefaults(pathsNamespace, platform);
+  if (!platformCandidates.length) {
+    return [];
+  }
+
+  return platformCandidates
+    .map((candidate) => resolveDefaultTemplate(candidate, user))
+    .map((resolved) => normalizeCandidate(resolved))
+    .filter((candidate) => candidate.length > 0);
+}
+
+function extractPlatformDefaults(
+  pathsNamespace: Record<string, unknown>,
+  platform: PlatformType
+): string[] {
+  const foundryDataDirPath = pathsNamespace.foundryDataDirPath as
+    | Record<string, unknown>
+    | string
+    | string[]
+    | undefined;
+
+  const candidates: string[] = [];
+
+  if (Array.isArray(foundryDataDirPath)) {
+    candidates.push(...(foundryDataDirPath as string[]));
+  } else if (typeof foundryDataDirPath === 'string') {
+    candidates.push(foundryDataDirPath);
+  } else if (foundryDataDirPath && typeof foundryDataDirPath === 'object') {
+    const perPlatform = (foundryDataDirPath as Record<string, unknown>)[
+      platform
+    ];
+    if (Array.isArray(perPlatform)) {
+      candidates.push(
+        ...perPlatform.filter(
+          (value): value is string => typeof value === 'string'
+        )
+      );
+    } else if (typeof perPlatform === 'string') {
+      candidates.push(perPlatform);
+    }
+  }
+
+  const directPlatform = pathsNamespace[platform];
+  if (Array.isArray(directPlatform)) {
+    candidates.push(
+      ...(directPlatform.filter(
+        (value): value is string => typeof value === 'string'
+      ) as string[])
+    );
+  } else if (typeof directPlatform === 'string') {
+    candidates.push(directPlatform);
+  }
+
+  return candidates;
+}
+
+function resolveDefaultTemplate(template: string, user: string): string {
+  return template
+    .replace(/\$\{user\}/g, user)
+    .replace(/\$\{getHomeDir\(user\)\}/g, getHomeDir(user))
+    .replace(/\$\{getLocalAppData\(\)\}/g, getLocalAppData());
 }

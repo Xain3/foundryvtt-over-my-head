@@ -5,13 +5,13 @@
 **Status**: Draft
 **Input**: User description: "Add error formatting utility with module context, stack trace, and caller support"
 
+## Clarifications
+
+### Session 2025-11-13
+
+- Q: What happens when caller context includes template placeholders like `{{module}}`? → A: Escape braces so caller renders literally (e.g., `{{module}}` becomes `\{\{module\}\}`) and avoid interpreting the sequences as additional placeholders
+
 ## User Scenarios & Testing _(mandatory)_
-
-### User Story 1 - Basic Error Formatting with Module Context (Priority: P1)
-
-A developer needs to format error messages consistently across the module with the module name automatically prepended to every error message, making it easy to identify which module generated the error in FoundryVTT's console.
-
-**Why this priority**: This is the core functionality that provides immediate value. Without consistent error prefixing, debugging becomes significantly harder in FoundryVTT environments where multiple modules log simultaneously.
 
 **Independent Test**: Can be fully tested by calling the formatter with a simple error and verifying the output contains the module name prefix. Delivers immediate value by making all module errors identifiable.
 
@@ -36,6 +36,7 @@ A developer debugging a complex issue needs to see the full stack trace in forma
 1. **Given** a developer has an Error object, **When** they format it with `includeStack: false` (default), **Then** the output does not contain stack trace information
 2. **Given** a developer has an Error object, **When** they format it with `includeStack: true`, **Then** the output includes a formatted stack trace section
 3. **Given** an error has a multi-line stack trace, **When** formatted with stack enabled, **Then** the stack trace is properly formatted with line breaks and indentation
+4. **Given** an error has a stack trace exceeding 20 lines, **When** formatted with stack enabled, **Then** the output shows first 20 lines and includes a reference to a temporary log file containing the full trace
 
 ---
 
@@ -73,10 +74,12 @@ Module maintainers need to customize the error message format (order of module, 
 
 ### Edge Cases
 
-- What happens when an error message is empty or undefined?
-- How does the formatter handle errors that lack a stack property?
-- What happens when module name cannot be resolved from configuration?
-- How does the formatter handle very long error messages or stack traces (e.g., 10,000+ characters)?
+- When an error message is empty or undefined, output module name with placeholder: "[Module Name]: [No error message provided]"
+- When errors lack a stack property, omit stack trace from output (no error thrown)
+- When module name cannot be resolved from configuration, use "Unknown Module" as fallback
+- When configuration singleton is unavailable or fails, use hardcoded defaults (pattern: "{{module}}{{caller}}{{error}}{{stack}}", separator: " || ", module: "Unknown Module")
+- When stack traces exceed 20 lines, truncate to first 20 lines, write full trace to temporary log file, and append log file path reference to formatted output (e.g., "... [Full trace: /tmp/omh-error-12345.log]")
+- When error messages exceed reasonable length, output them in full (no truncation for error message text)
 - What happens when caller name contains special characters or placeholders like `{{module}}`?
 - How does the formatter behave when configuration is missing or malformed?
 
@@ -92,11 +95,12 @@ Module maintainers need to customize the error message format (order of module, 
 - **FR-006**: System MUST coerce string inputs to Error objects before formatting
 - **FR-007**: System MUST validate input arguments and throw TypeError for invalid inputs
 - **FR-008**: System MUST use configured separators when joining multiple error components
-- **FR-009**: System MUST handle missing or undefined error components gracefully (empty string substitution)
+- **FR-009**: System MUST handle missing or undefined error components gracefully (for empty/undefined error messages, output module name + generic placeholder text "[No error message provided]")
 - **FR-010**: System MUST integrate with existing module name resolution strategy (id/title/shortName)
-- **FR-011**: System MUST use configuration from the centralized config singleton
+- **FR-011**: System MUST use configuration from the centralized config singleton; if config is unavailable, use hardcoded fallback values (default pattern: "{{module}}{{caller}}{{error}}{{stack}}", separator: " || ", module name: "Unknown Module")
 - **FR-012**: System MUST not modify global state or have side effects when formatting errors
 - **FR-013**: System MUST be usable through multiple import patterns for flexibility
+- **FR-014**: System MUST truncate stack traces exceeding 20 lines and write the full trace to a temporary log file, appending a reference to the log file path in the formatted output
 
 ### Key Entities _(include if feature involves data)_
 

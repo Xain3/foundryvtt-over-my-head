@@ -4,6 +4,7 @@
  * @path src/utils/static.ts
  */
 
+import { config as defaultConfig } from '#/config/config.ts';
 import DevModeParser from './static/devModeParser.ts';
 import { formatString } from './static/stringFormatter.ts';
 import { formatHookName } from './static/hookFormatter.ts';
@@ -12,6 +13,12 @@ import {
   findFoundryDataDirPath,
   getFoundryDataDirPaths,
 } from './static/foundryDataDirFinder.ts';
+import type {
+  FinderOptions,
+  FinderConfig,
+} from './static/foundryDataDirFinder-types.ts';
+
+const DEFAULT_FINDER_CONFIG = defaultConfig as FinderConfig;
 
 // Re-export public type definitions for external use
 export type {
@@ -147,21 +154,39 @@ class StaticUtils {
      * @param options - Configuration options for the search
      * @returns Result object containing the found path and search metadata
      */
-    find: findFoundryDataDir,
+    find: (options?: FinderOptions) => {
+      const mergedOptions: FinderOptions = {
+        ...options,
+        config: options?.config ?? DEFAULT_FINDER_CONFIG,
+      };
+      return findFoundryDataDir(mergedOptions);
+    },
 
     /**
      * Convenience method that returns just the path string or empty string if not found.
      * @param options - Configuration options for the search
      * @returns The found path or empty string
      */
-    findPath: findFoundryDataDirPath,
+    findPath: (options?: FinderOptions) => {
+      const mergedOptions: FinderOptions = {
+        ...options,
+        config: options?.config ?? DEFAULT_FINDER_CONFIG,
+      };
+      return findFoundryDataDirPath(mergedOptions);
+    },
 
     /**
      * Gets platform-specific paths without checking if they exist.
      * @param options - Configuration options
      * @returns Array of potential paths for the platform
      */
-    getPaths: getFoundryDataDirPaths,
+    getPaths: (options?: FinderOptions) => {
+      const mergedOptions: FinderOptions = {
+        ...options,
+        config: options?.config ?? DEFAULT_FINDER_CONFIG,
+      };
+      return getFoundryDataDirPaths(mergedOptions);
+    },
   };
 }
 

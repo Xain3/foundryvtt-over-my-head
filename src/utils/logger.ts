@@ -156,6 +156,7 @@ function isConfig(value: Config | LogConfigurationObject): value is Config {
 
 /**
  * Configurable logger that formats console output based on runtime configuration.
+ * @export
  */
 export class Logger {
   private readonly baseConfig: NormalizedConfig;

@@ -6,6 +6,7 @@
 
 /**
  * Options for formatting a string with optional prefix and/or suffix.
+ * @export
  */
 export interface FormatOptions {
   /**

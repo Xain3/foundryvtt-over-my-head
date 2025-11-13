@@ -18,26 +18,53 @@ const ENV_OVERRIDE_KEY = 'FOUNDRY_DATA_DIR';
  * across different platforms (Linux, macOS, Windows). This is primarily useful for
  * development and deployment scripts running in Node.js environments.
  *
- * Note: This utility is designed for Node.js/development contexts. In-browser FoundryVTT
+ * **Note**: This module is internal. Use the public API through `StaticUtils` (see below).
+ *
+ * **Note**: This utility is designed for Node.js/development contexts. In-browser FoundryVTT
  * code should use the game.data.path or CONFIG.path APIs instead.
  *
- * @example
+ * ## Public API (Recommended)
+ *
+ * Access this utility through the `StaticUtils` class for a consistent, versioned public interface:
+ *
  * ```typescript
  * import StaticUtils from '#/utils/static.ts';
  *
  * // Simple usage - find with defaults
- * const result = StaticUtils.findFoundryDataDir();
+ * const result = StaticUtils.findFoundryDataDir.find();
  * if (result.found) {
  *   console.log(`Found Foundry at: ${result.path}`);
  * }
  *
- * // Custom platform/user
- * const customResult = StaticUtils.findFoundryDataDir({
+ * // Get just the path string
+ * const path = StaticUtils.findFoundryDataDir.findPath();
+ *
+ * // Get all potential paths without checking existence
+ * const allPaths = StaticUtils.findFoundryDataDir.getPaths({
  *   platform: 'linux',
  *   user: 'developer',
- *   verbose: true
+ * });
+ *
+ * // Custom platform/user with verbose logging
+ * const customResult = StaticUtils.findFoundryDataDir.find({
+ *   platform: 'linux',
+ *   user: 'developer',
+ *   verbose: true,
+ *   config: customConfig,
  * });
  * ```
+ *
+ * ## Internal API (Do not use directly)
+ *
+ * Direct imports from this module are for internal use only:
+ *
+ * ```typescript
+ * // NOT RECOMMENDED - use StaticUtils instead
+ * import { findFoundryDataDir } from '#/utils/static/foundryDataDirFinder.ts';
+ * const result = findFoundryDataDir();
+ * ```
+ *
+ * Direct imports bypass version management and public API contracts. Use `StaticUtils` instead.
  */
 
 /**

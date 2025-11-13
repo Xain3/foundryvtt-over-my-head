@@ -133,26 +133,28 @@ Use cases:
 
 ### FoundryDataDirFinder
 
-`findFoundryDataDir` locates the FoundryVTT data directory across different platforms (Linux, macOS, Windows). This utility is designed for Node.js/development contexts such as build scripts and deployment tools.
+`findFoundryDataDir` locates the FoundryVTT data directory across different platforms (Linux, macOS, Windows). This utility is designed for Node.js/development contexts such as build scripts and deployment tools and now supports layered overrides.
 
 ```ts
 import StaticUtils from '#/utils/static.ts';
+import { config } from '#/config/config.ts';
 
 // Simple usage - find with defaults
-const result = StaticUtils.findFoundryDataDir.find();
+const result = StaticUtils.findFoundryDataDir.find({ config });
 if (result.found) {
   console.log(`Found Foundry at: ${result.path}`);
   console.log(`Checked paths:`, result.checkedPaths);
 }
 
 // Just get the path string
-const path = StaticUtils.findFoundryDataDir.findPath();
+const path = StaticUtils.findFoundryDataDir.findPath({ config });
 if (path) {
   console.log(`Found at: ${path}`);
 }
 
 // Custom platform/user with verbose logging
 const customResult = StaticUtils.findFoundryDataDir.find({
+  config,
   platform: 'linux',
   user: 'developer',
   verbose: true,
@@ -160,10 +162,27 @@ const customResult = StaticUtils.findFoundryDataDir.find({
 
 // Get potential paths without checking
 const paths = StaticUtils.findFoundryDataDir.getPaths({
+  config,
   platform: 'win32',
   user: 'testuser',
 });
+
+// Highest-precedence explicit override
+const explicit = StaticUtils.findFoundryDataDir.find({
+  config,
+  path: '/custom/foundry/data',
+});
 ```
+
+**Override hierarchy**:
+
+1. Explicit `path` argument (highest priority)
+2. `process.env.FOUNDRY_DATA_DIR` (or prefixed variant)
+3. `config.env` entry (direct or prefixed)
+4. `config.constants.paths.foundryDataDirPath`
+5. Platform defaults (`~/.local/share/FoundryVTT`, etc.)
+
+Provide the config singleton when available to leverage configuration-managed overrides. When no config is provided, the finder falls back to environment variables and platform defaults.
 
 **Important**: This utility is for development/deployment scripts only. In-browser FoundryVTT code should use `game.data.path` or `CONFIG.path` APIs instead.
 
@@ -173,8 +192,17 @@ Use cases:
 - Development tools that need to locate Foundry's data directory
 - Testing utilities that need to verify Foundry installation paths
 - Cross-platform module development workflows
+- CI/CD pipelines that specify Foundry locations via environment variables
+- Automation scripts that persist canonical data paths in config files
 
 ## Changelog
+
+### [0.6.0] - 2025-11-13
+
+- Added explicit `path` override with highest precedence
+- Added config-aware overrides (environment + constants) when provided
+- Documented hierarchy and updated usage examples
+- Expanded tests for override scenarios
 
 ### [0.5.0] - 2025-11-13
 

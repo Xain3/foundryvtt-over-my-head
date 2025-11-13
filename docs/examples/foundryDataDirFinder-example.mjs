@@ -1,7 +1,7 @@
 /**
  * @file foundryDataDirFinder-example.mjs
  * @description Example usage of the foundryDataDirFinder utility
- * @path examples/foundryDataDirFinder-example.mjs
+ * @path docs/examples/foundryDataDirFinder-example.mjs
  */
 
 // This example shows how to use the foundryDataDirFinder utility

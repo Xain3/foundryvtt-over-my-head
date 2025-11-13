@@ -1,0 +1,9 @@
+# @file paths.yaml
+# @description Configuration file for path constants
+# @path src/config/constants/paths.yaml
+
+# Path to the Foundry VTT data directory
+# Overrides the search paths in defaults.yaml if specified
+# If left empty, the default path or the one specified in environment variables
+# will be used
+foundryDataDirPath: ''

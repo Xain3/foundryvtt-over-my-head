@@ -16,3 +16,14 @@ logging:
     info: '[{module}] {message}'
     verbose: '[{module}] VERBOSE | {message}'
     debug: '[{module}] DEBUG | {timestamp} | {message} | {metadata}'
+
+paths:
+  foundryDataDirPath:
+    linux:
+      - '/home/${user}/.local/share/FoundryVTT'
+      - '/home/${user}/FoundryVTT'
+      - '/local/FoundryVTT'
+  darwin: # macOS path construction requires proper joining
+    - '${getHomeDir(user)}/Library/Application Support/FoundryVTT'
+  win32: # Windows uses LOCALAPPDATA environment variable
+    - '${getLocalAppData()}/FoundryVTT'

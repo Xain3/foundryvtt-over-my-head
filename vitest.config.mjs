@@ -12,6 +12,7 @@ const defaultExcludePatterns = [
   '**/node_modules/**',
   '**/dist/**',
   '**/coverage/**',
+  '**/.tmp/**',
 ];
 
 const integrationTestsPatterns = [

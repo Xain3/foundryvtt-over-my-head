@@ -188,6 +188,7 @@ function log(message: string, verbose: boolean): void {
  *
  * @param options - Configuration options for the search
  * @returns Result object containing the found path and search metadata
+ * @export
  *
  * @example
  * ```typescript
@@ -314,6 +315,7 @@ export function findFoundryDataDir(options: FinderOptions = {}): FindResult {
  *
  * @param options - Configuration options for the search
  * @returns The found path or empty string
+ * @export
  *
  * @example
  * ```typescript
@@ -332,6 +334,7 @@ export function findFoundryDataDirPath(options: FinderOptions = {}): string {
  *
  * @param options - Configuration options
  * @returns Array of potential paths for the platform
+ * @export
  *
  * @example
  * ```typescript

@@ -6,16 +6,19 @@
 
 /**
  * Configuration source value that can be evaluated as a mode status.
+ * @export
  */
 export type ConfigSource = string | boolean | undefined | null;
 
 /**
  * Boolean representation of a mode's activation status.
+ * @export
  */
 export type ModeStatus = boolean;
 
 /**
  * Result object containing both development and debug mode status.
+ * @export
  */
 export type ConfigResult = {
   devMode: ModeStatus;
@@ -24,11 +27,13 @@ export type ConfigResult = {
 
 /**
  * Key identifying a configuration source within the evaluation hierarchy.
+ * @export
  */
 export type HierarchyKey = 'env' | 'module' | 'setting';
 
 /**
  * Options for customizing mode evaluation behavior.
+ * @export
  */
 export type ModeEvaluationOptions = {
   hierarchy?: readonly HierarchyKey[];
@@ -36,6 +41,7 @@ export type ModeEvaluationOptions = {
 
 /**
  * Configuration singleton interface for reading mode values from multiple sources.
+ * @export
  */
 export interface ConfigSingleton {
   get(key: string, source: 'env' | 'module' | 'setting'): ConfigSource;

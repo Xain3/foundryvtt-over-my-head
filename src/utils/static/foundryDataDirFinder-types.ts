@@ -6,11 +6,13 @@
 
 /**
  * Supported platform identifiers for directory finding
+ * @export
  */
 export type PlatformType = 'linux' | 'darwin' | 'win32';
 
 /**
  * Minimal configuration shape for resolving Foundry data directory overrides.
+ * @export
  */
 export interface FinderConfig {
   prefix?: string;
@@ -20,6 +22,7 @@ export interface FinderConfig {
 
 /**
  * Configuration options for FoundryDataDirFinder
+ * @export
  */
 export interface FinderOptions {
   /**
@@ -55,6 +58,7 @@ export interface FinderOptions {
 
 /**
  * Result of a directory search operation
+ * @export
  */
 export interface FindResult {
   /**

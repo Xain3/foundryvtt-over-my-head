@@ -11,6 +11,7 @@
  * extracted from hooks.yaml and used to generate properly-formatted hook names.
  *
  * @interface HookFormatterConfig
+ * @export
  *
  * @property {Record<string, string>} hooks - Mapping of hook keys to their display names
  *   Example: { settingsReady: "SettingsReady", contextReady: "ContextReady" }
@@ -47,6 +48,7 @@ export type PlaceholderValues = Record<string, string>;
  *
  * @param {unknown} config - The config object to validate
  * @throws {Error} If config is missing required properties or has incorrect types
+ * @export
  *
  * @example
  * try {

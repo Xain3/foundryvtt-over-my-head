@@ -12,6 +12,7 @@
  * @property {Record<string, unknown>} module - Module manifest from module.json
  * @property {Record<string, string>} env - Environment variables matching prefix pattern
  * @property {string} toString - Method to serialize config to string
+ * @export
  */
 export interface Config {
   constants: Record<string, unknown>;

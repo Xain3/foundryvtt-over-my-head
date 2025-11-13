@@ -6,6 +6,7 @@
 
 /**
  * Descriptor containing module metadata fields.
+ * @export
  */
 export interface ModuleDescriptor {
   id?: string;
@@ -15,6 +16,7 @@ export interface ModuleDescriptor {
 
 /**
  * Configuration object for module name resolution strategies.
+ * @export
  */
 export interface ModuleNameResolverConfig {
   moduleManagement?: {

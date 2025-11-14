@@ -17,6 +17,8 @@
 
 ## Basic Usage
 
+⚠️ **Important**: `StaticUtils.findFoundryDataDir` methods are pure exports—**you must provide a `config` object explicitly**. There are no built-in defaults. For convenient automatic config initialization, consider using a wrapper utility (e.g., `utils.ts`) in your project.
+
 ### Find the FoundryVTT Data Directory
 
 ```javascript
@@ -24,6 +26,7 @@ import StaticUtils from '#/utils/static.ts';
 import { config } from '#/config/config.ts';
 
 // Simple usage - returns a result object
+// Note: config must be provided explicitly
 const result = StaticUtils.findFoundryDataDir.find({ config });
 
 if (result.found) {
@@ -345,7 +348,7 @@ config.env.OMH_FOUNDRY_DATA_DIR;
 config.constants.paths.foundryDataDirPath;
 ```
 
-These are automatically evaluated in precedence order—no special configuration needed.
+These are automatically evaluated in precedence order by the finder. **Important**: You must pass your config object to the finder; it does not inject defaults.
 
 ---
 
@@ -407,7 +410,39 @@ deployModule();
 - **Examples**: See `docs/examples/foundryDataDirFinder-example.mjs`
 - **Specification**: See `specs/007-foundry-data-dir-finder/spec.md`
 
+## About Pure Exports & Wrappers
+
+**As of this update**, `StaticUtils.findFoundryDataDir` methods are pure re-exports of the finder functions. They:
+
+- ✓ Do not inject default config
+- ✓ Require explicit `config` parameter
+- ✓ Allow full control over which config instance is used
+- ✗ Do not auto-wire with the global config singleton
+
+If you prefer automatic config initialization, create a wrapper utility (e.g., `utils.ts`) that provides the config defaults:
+
+```typescript
+// Example: src/utils.ts (future wrapper)
+import StaticUtils from '#/utils/static.ts';
+import { config } from '#/config/config.ts';
+
+export const Utils = {
+  findFoundryDataDir: {
+    find: (options) =>
+      StaticUtils.findFoundryDataDir.find({ ...options, config }),
+    findPath: (options) =>
+      StaticUtils.findFoundryDataDir.findPath({ ...options, config }),
+    getPaths: (options) =>
+      StaticUtils.findFoundryDataDir.getPaths({ ...options, config }),
+  },
+};
+
+// Usage: Utils.findFoundryDataDir.find() — config is auto-injected
+```
+
+This approach separates concerns: `StaticUtils` remains pure, while your wrapper handles dependency injection.
+
 ---
 
-**Last Updated**: November 13, 2025
+**Last Updated**: November 14, 2025
 **Module Version**: 12.1.0

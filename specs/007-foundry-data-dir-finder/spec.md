@@ -139,6 +139,7 @@ A developer or CI/CD system has FoundryVTT installed in a non-standard location 
 5. **User Detection**: Assumes `os.userInfo()` or fallback environment variables (`USER`, `USERNAME`) are available
 6. **Priority Order**: Returns the first valid path following the documented precedence (explicit argument → environment → config env → config constants → platform defaults)
 7. **Config Availability**: Assumes consumers that need configuration-driven overrides provide the config singleton; utility operates without it by falling back to other sources
+8. **Pure Exports**: `StaticUtils.findFoundryDataDir` exports are pure re-exports without default config injection. Callers must provide config explicitly or use a wrapper utility.
 
 ## Out of Scope
 

@@ -4,7 +4,6 @@
  * @path src/utils/static.ts
  */
 
-import { config as defaultConfig } from '#/config/config.ts';
 import DevModeParser from './static/devModeParser.ts';
 import { formatString } from './static/stringFormatter.ts';
 import { formatHookName } from './static/hookFormatter.ts';
@@ -17,8 +16,6 @@ import type {
   FinderOptions,
   FinderConfig,
 } from './static/foundryDataDirFinder-types.ts';
-
-const DEFAULT_FINDER_CONFIG = defaultConfig as FinderConfig;
 
 // Re-export public type definitions for external use
 export type {
@@ -68,7 +65,8 @@ export type {
  * const hookName = StaticUtils.formatHookName.format('settingsReady', config);
  *
  * // Use findFoundryDataDir functionality (Node.js/development only)
- * const dataDir = StaticUtils.findFoundryDataDir.find();
+ * // Pass your config explicitly (this export does not inject defaults).
+ * const dataDir = StaticUtils.findFoundryDataDir.find({ config });
  * if (dataDir.found) {
  *   console.log(`Found Foundry at: ${dataDir.path}`);
  * }
@@ -147,6 +145,9 @@ class StaticUtils {
   /**
    * findFoundryDataDir provides utilities for locating the FoundryVTT data directory.
    * Useful for development and deployment scripts in Node.js environments.
+   *
+   * Note: These methods are pure exports without config defaults.
+   * Initialize with config at call or via a wrapper utility if needed.
    */
   static readonly findFoundryDataDir = {
     /**
@@ -154,39 +155,21 @@ class StaticUtils {
      * @param options - Configuration options for the search
      * @returns Result object containing the found path and search metadata
      */
-    find: (options?: FinderOptions) => {
-      const mergedOptions: FinderOptions = {
-        ...options,
-        config: options?.config ?? DEFAULT_FINDER_CONFIG,
-      };
-      return findFoundryDataDir(mergedOptions);
-    },
+    find: findFoundryDataDir,
 
     /**
      * Convenience method that returns just the path string or empty string if not found.
      * @param options - Configuration options for the search
      * @returns The found path or empty string
      */
-    findPath: (options?: FinderOptions) => {
-      const mergedOptions: FinderOptions = {
-        ...options,
-        config: options?.config ?? DEFAULT_FINDER_CONFIG,
-      };
-      return findFoundryDataDirPath(mergedOptions);
-    },
+    findPath: findFoundryDataDirPath,
 
     /**
      * Gets platform-specific paths without checking if they exist.
      * @param options - Configuration options
      * @returns Array of potential paths for the platform
      */
-    getPaths: (options?: FinderOptions) => {
-      const mergedOptions: FinderOptions = {
-        ...options,
-        config: options?.config ?? DEFAULT_FINDER_CONFIG,
-      };
-      return getFoundryDataDirPaths(mergedOptions);
-    },
+    getPaths: getFoundryDataDirPaths,
   };
 }
 

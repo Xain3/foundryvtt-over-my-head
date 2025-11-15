@@ -68,25 +68,6 @@ const ENV_OVERRIDE_KEY = 'FOUNDRY_DATA_DIR';
  */
 
 /**
- * Default platform-specific paths for FoundryVTT installation
- */
-const PLATFORM_PATHS: Record<PlatformType, (user: string) => string[]> = {
-  linux: (user: string) => [
-    `/home/${user}/.local/share/FoundryVTT`,
-    `/home/${user}/FoundryVTT`,
-    `/local/FoundryVTT`,
-  ],
-  darwin: (user: string) => [
-    // macOS path construction requires proper joining
-    `${getHomeDir(user)}/Library/Application Support/FoundryVTT`,
-  ],
-  win32: (_user: string) => [
-    // Windows uses LOCALAPPDATA environment variable
-    `${getLocalAppData()}/FoundryVTT`,
-  ],
-};
-
-/**
  * Gets the home directory for a given user
  * @param user - The username
  * @returns The home directory path
@@ -108,6 +89,25 @@ function getLocalAppData(): string {
     return process.env.LOCALAPPDATA || '';
   }
   return '';
+}
+
+/**
+ * Default platform-specific paths for FoundryVTT installation
+ */
+const PLATFORM_PATHS: Record<PlatformType, (user: string) => string[]> = {
+  linux: (user: string) => [
+    `/home/${user}/.local/share/FoundryVTT`,
+    `/home/${user}/FoundryVTT`,
+    `/local/FoundryVTT`,
+  ],
+  darwin: (user: string) => [
+    // macOS path construction requires proper joining
+    `${getHomeDir(user)}/Library/Application Support/FoundryVTT`,
+  ],
+  win32: (_user: string) => [
+    // Windows uses LOCALAPPDATA environment variable
+    `${getLocalAppData()}/FoundryVTT`,
+  ],
 }
 
 /**

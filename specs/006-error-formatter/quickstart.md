@@ -24,7 +24,7 @@
 
    When `includeStack` is `true`, the stack prints up to 20 lines (configurable via `maxStackLines`) and adds `[Full trace: /tmp/omh-error-XXX.log]` if truncated, persisting the complete trace under the configured `tempLogFilePrefix` in `os.tmpdir()`.
 
-4. **Customize the pattern** via configuration (e.g., `config.constants.errorFormatter.pattern`). The template accepts `{{module}}`, `{{caller}}`, `{{error}}`, and `{{stack}}` placeholders, and the formatter joins populated segments with the configured separator.
+4. **Customize the pattern** via configuration (e.g., `config.constants.errors.pattern`). The template accepts `{{module}}`, `{{caller}}`, `{{error}}`, and `{{stack}}` placeholders, and the formatter joins populated segments with the configured separator.
 
 5. **Handle missing config** by relying on the documented defaults: pattern `"{{module}}{{caller}}{{error}}{{stack}}"`, separator `" || "`, and module `"Unknown Module"`. The formatter never throws just because the config singleton is unavailable.
 

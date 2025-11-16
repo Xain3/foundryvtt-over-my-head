@@ -319,11 +319,16 @@ export function findFoundryDataDir(options: FinderOptions = {}): FindResult {
  *
  * @example
  * ```typescript
- * const path = findFoundryDataDirPath();
+ * import StaticUtils from '#/utils/static.ts';
+ *
+ * // Recommended: use the public API via the facade
+ * const path = StaticUtils.findFoundryDataDir.findPath();
  * if (path) {
  *   console.log(`Found at: ${path}`);
  * }
  * ```
+ * // Internal usage (for development scripts only):
+ * // const path = findFoundryDataDirPath();
  */
 export function findFoundryDataDirPath(options: FinderOptions = {}): string {
   return findFoundryDataDir(options).path;

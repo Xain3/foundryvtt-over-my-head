@@ -6,11 +6,13 @@
 
 /**
  * Supported log severity levels.
+ * @export
  */
 export type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
 
 /**
  * Numeric mapping of log levels for threshold comparison.
+ * @export
  */
 export const LOG_LEVELS: Record<LogLevel, number> = {
   error: 0,
@@ -22,6 +24,7 @@ export const LOG_LEVELS: Record<LogLevel, number> = {
 
 /**
  * Configuration for timestamp formatting in log messages.
+ * @export
  */
 export interface TimestampConfig {
   enabled: boolean;
@@ -30,6 +33,7 @@ export interface TimestampConfig {
 
 /**
  * Configuration for separator handling in log messages.
+ * @export
  */
 export interface SeparatorConfig {
   separator: string;
@@ -38,6 +42,7 @@ export interface SeparatorConfig {
 
 /**
  * Custom format templates for each log level.
+ * @export
  */
 export interface FormatTemplates {
   error?: string;
@@ -49,6 +54,7 @@ export interface FormatTemplates {
 
 /**
  * Complete logger configuration object.
+ * @export
  */
 export interface LogConfigurationObject {
   moduleName: string;
@@ -62,6 +68,7 @@ export interface LogConfigurationObject {
 
 /**
  * Per-call configuration overrides for logging methods.
+ * @export
  */
 export type LogOverrides = Partial<
   Omit<
@@ -76,6 +83,7 @@ export type LogOverrides = Partial<
 
 /**
  * Structured options supported by each public logging method.
+ * @export
  */
 export interface LogMethodOptions {
   metadata?: unknown;
@@ -84,6 +92,7 @@ export interface LogMethodOptions {
 
 /**
  * Context object passed to placeholder substitution in format templates.
+ * @export
  */
 export interface LogContext {
   module: string;

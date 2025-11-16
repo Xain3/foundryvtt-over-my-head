@@ -14,6 +14,7 @@ import type {
  *
  * @param {ModuleNameResolverConfig} config - Parsed configuration object containing module metadata.
  * @returns {string} Resolved module name string following the configured strategy.
+ * @export
  */
 export function resolveModuleName(config?: ModuleNameResolverConfig): string {
   const moduleData: ModuleDescriptor = config?.module ?? {};

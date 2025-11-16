@@ -114,6 +114,7 @@ function replacePlaceholders(
  * @returns {string} The formatted hook name (e.g., "OMH.SettingsReady")
  * @throws {Error} If hookKey is not found in config.hooks
  * @throws {Error} If config is invalid or missing required properties
+ * @export
  *
  * @example
  * formatHookName('settingsReady', config); // 'OMH.SettingsReady'

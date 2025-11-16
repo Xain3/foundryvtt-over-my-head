@@ -43,6 +43,10 @@ export const aliasEntries = [
     replacement: resolve(cwd, 'src/utils/logger.ts'),
   },
   {
+    find: '#/utils/errorFormatter',
+    replacement: resolve(cwd, 'src/utils/errorFormatter.mts'),
+  },
+  {
     find: '#tests',
     replacement: resolve(cwd, 'tests'),
   },

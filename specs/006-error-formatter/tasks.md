@@ -31,8 +31,9 @@
 - [ ] T003 Create `src/utils/errorFormatter-types.ts` defining `ErrorContext`, `FormatOptions`, and `ErrorPattern` interfaces plus exported type guards.
 - [ ] T004 [P] Scaffold `src/utils/errorFormatter.mts` with the exported `formatError()` stub, default config resolution, and TODO markers for the upcoming stories.
 - [ ] T005 [P] Add shared helpers in `src/utils/helpers/errorFormatterHelpers.mts` for stack truncation, temp log file writing, and brace escaping utilities.
-- [ ] T006 Update default constants in `src/config/constants/errors.yaml` and document them in `src/config/README.md` (pattern, separator, fallback module, temp log location expectations).
-- [ ] T007 [P] Re-export the formatter entry point through `src/utils/static.ts` and ensure `src/main.mjs` (or equivalent barrel) exposes it for other modules and tests.
+- [ ] T006 Ensure the fallback pattern/separator/module entries in `src/config/constants/errors.yaml` match the documented defaults required by User Story 1.
+- [ ] T007 [P] Document the formatter defaults and override workflow in `src/config/README.md`, referencing the `errors.yaml` entries updated in T006.
+- [ ] T008 [P] Re-export the formatter entry point through `src/utils/static.ts` and ensure `src/main.mjs` (or equivalent barrel) exposes it for other modules and tests.
 
 **Checkpoint**: Once these tasks are complete, user stories can proceed in parallel.
 
@@ -46,9 +47,10 @@
 
 ### Implementation
 
-- [ ] T008 [P] [US1] Create baseline unit tests covering module prefix resolution, string coercion, and invalid input handling in `tests/unit/errorFormatter-basic.unit.test.mjs`.
-- [ ] T009 [US1] Implement normalization, module resolution (id/title/shortName), placeholder substitution, and separator joins inside `src/utils/errorFormatter.mts`.
-- [ ] T010 [P] [US1] Update developer docs with the basic usage example by editing `docs/logger-reference.md` and `specs/006-error-formatter/quickstart.md`.
+- [ ] T009 [P] [US1] Create baseline unit tests covering module prefix resolution, string coercion, and invalid input handling in `tests/unit/errorFormatter-basic.unit.test.mjs`.
+- [ ] T010 [US1] Implement normalization, module resolution (id/title/shortName), placeholder substitution, and separator joins inside `src/utils/errorFormatter.mts`.
+- [ ] T011 [P] [US1] Update developer docs with the basic usage example by editing `docs/logger-reference.md` and `specs/006-error-formatter/quickstart.md`.
+- [ ] T012 [P] [US1] Add regression tests in `tests/unit/errorFormatter-sideEffects.unit.test.mjs` proving `formatError()` leaves console methods, config objects, and static singletons unchanged.
 
 **Checkpoint**: Formatting simple errors now works end-to-end and is independently testable.
 
@@ -62,9 +64,9 @@
 
 ### Implementation
 
-- [ ] T011 [P] [US2] Add stack-option unit tests in `tests/unit/errorFormatter-stack.unit.test.mjs` validating includeStack toggles, truncation counts, and temp-file references.
-- [ ] T012 [US2] Implement stack capture, 20-line truncation, and `[Full trace: path]` annotations using helpers inside `src/utils/errorFormatter.mts`.
-- [ ] T013 [P] [US2] Write an integration test in `tests/integration/errorFormatter.int.test.mjs` that asserts temp log files are created under `os.tmpdir()` and cleaned up per spec.
+- [ ] T013 [P] [US2] Add stack-option unit tests in `tests/unit/errorFormatter-stack.unit.test.mjs` validating includeStack toggles, truncation counts, and temp-file references.
+- [ ] T014 [US2] Implement stack capture, 20-line truncation, and `[Full trace: path]` annotations using helpers inside `src/utils/errorFormatter.mts`.
+- [ ] T015 [P] [US2] Write an integration test in `tests/integration/errorFormatter.int.test.mjs` that asserts temp log files are created under `os.tmpdir()` and cleaned up per spec.
 
 **Checkpoint**: Stack-enabled formatting is independently testable without impacting US1 behaviors.
 
@@ -78,8 +80,8 @@
 
 ### Implementation
 
-- [ ] T014 [P] [US3] Write caller-context unit tests in `tests/unit/errorFormatter-caller.unit.test.mjs` covering includeCaller gating and brace escaping behavior.
-- [ ] T015 [US3] Implement caller injection and brace escaping within `src/utils/errorFormatter.mts`, ensuring ordering respects the active pattern and default separator.
+- [ ] T016 [P] [US3] Write caller-context unit tests in `tests/unit/errorFormatter-caller.unit.test.mjs` covering includeCaller gating and brace escaping behavior.
+- [ ] T017 [US3] Implement caller injection and brace escaping within `src/utils/errorFormatter.mts`, ensuring ordering respects the active pattern and default separator.
 
 **Checkpoint**: Caller metadata can now be toggled independently of stack traces.
 
@@ -93,9 +95,9 @@
 
 ### Implementation
 
-- [ ] T016 [P] [US4] Author pattern customisation unit tests in `tests/unit/errorFormatter-pattern.unit.test.mjs` verifying order/separator overrides and omission behavior.
-- [ ] T017 [US4] Implement full pattern parsing, placeholder resolution, and config override handling inside `src/utils/errorFormatter.mts`, including fallback defaults when settings are unavailable.
-- [ ] T018 [P] [US4] Document the configuration workflow for custom patterns in `docs/config-quickstart.md` and update `docs/README.md` with references to the new formatter.
+- [ ] T018 [P] [US4] Author pattern customisation unit tests in `tests/unit/errorFormatter-pattern.unit.test.mjs` verifying order/separator overrides and omission behavior.
+- [ ] T019 [US4] Implement full pattern parsing, placeholder resolution, and config override handling inside `src/utils/errorFormatter.mts`, including fallback defaults when settings are unavailable.
+- [ ] T020 [P] [US4] Document the configuration workflow for custom patterns in `docs/config-quickstart.md` and update `docs/README.md` with references to the new formatter.
 
 **Checkpoint**: All user stories (US1–US4) operate independently and respect custom configuration.
 
@@ -105,8 +107,9 @@
 
 **Purpose**: Final documentation, validation, and cross-story cleanup.
 
-- [ ] T019 [P] Refresh `README.md` and `docs/logger-reference.md` with release notes, known limitations, and links to the formatter’s advanced options.
-- [ ] T020 Execute repository-wide validation from `/workspaces/foundryvtt-over-my-head/` (`npm run lint` and `npm test -- --project unit`) and record pass/fail notes in `specs/006-error-formatter/tasks.md`.
+- [ ] T021 [P] Refresh `README.md` and `docs/logger-reference.md` with release notes, known limitations, and links to the formatter’s advanced options.
+- [ ] T022 Execute repository-wide validation from `/workspaces/foundryvtt-over-my-head/` (`npm run lint` and `npm test -- --project unit`) and record pass/fail notes in `specs/006-error-formatter/tasks.md`.
+- [ ] T023 [P] Add a micro-benchmark in `tests/performance/errorFormatter.performance.test.mjs` ensuring `formatError()` stays under 1 ms for the default options on average.
 
 ---
 
@@ -124,20 +127,20 @@
 
 - **Setup**: T001 and T002 touch different files; T002 is explicitly marked `[P]`.
 - **Foundational**: T004, T005, and T007 are parallel-safe once T003 is underway because they modify separate files.
-- **US1**: T008 and T010 can run alongside T009 after the scaffolds exist.
-- **US2**: T011 and T013 can proceed in parallel while T012 focuses on implementation.
-- **US3**: T014 can run while T015 is in progress (tests-first workflow).
-- **US4**: T016 and T018 are parallel-friendly alongside T017’s implementation work.
-- **Polish**: T019 and T020 can run concurrently once all stories close.
+- **US1**: T009 and T011 can run alongside T010 after the scaffolds exist, while T012 guards against regression.
+- **US2**: T013 and T015 can proceed in parallel while T014 focuses on implementation.
+- **US3**: T016 can run while T017 is in progress (tests-first workflow).
+- **US4**: T018 and T020 are parallel-friendly alongside T019’s implementation work.
+- **Polish**: T021, T022, and T023 can run concurrently once all stories close.
 
 ---
 
 ## Parallel Examples per User Story
 
-- **US1**: Run T008 (tests) and T010 (docs) concurrently while T009 implements the formatter core.
-- **US2**: Run T011 (unit tests) and T013 (integration test) in parallel, both targeting separate files, while T012 evolves the implementation.
-- **US3**: Execute T014 (tests) alongside T015 (implementation) since the files differ and tests guide the behavior.
-- **US4**: Work on T016 (tests) and T018 (docs) concurrently; T017 integrates the parser logic once tests define expectations.
+- **US1**: Run T009 (tests) and T011 (docs) concurrently while T010 implements the formatter core; add T012 once regression scaffolds are ready.
+- **US2**: Run T013 (unit tests) and T015 (integration test) in parallel, both targeting separate files, while T014 evolves the implementation.
+- **US3**: Execute T016 (tests) alongside T017 (implementation) since the files differ and tests guide the behavior.
+- **US4**: Work on T018 (tests) and T020 (docs) concurrently; T019 integrates the parser logic once tests define expectations.
 
 ---
 

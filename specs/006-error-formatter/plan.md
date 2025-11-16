@@ -20,6 +20,7 @@ Add a configurable error formatter that centralizes module-aware prefixes, optio
 **Performance Goals**: Keep formatting latency under 1ms while capping stack trace output at 20 lines and storing extras in temp logs
 **Constraints**: Hooks-only integration, immutable config singleton, alias imports, strict headers/JSDoc style, no global mutations from the formatter
 **Scale/Scope**: Serves the single module instance used across worlds/scenes but must remain performant under frequent concurrent error logging
+**Default Config**: Baseline pattern/separator/module fallbacks live in `src/config/constants/errors.yaml`, ensuring User Story 1 works without extra setup
 
 ## Constitution Check
 
@@ -50,7 +51,9 @@ src/
 │   └── helpers/
 ├── utils/
 │   ├── logger.ts
-│   └── static.ts
+│   ├── static.ts
+│   └── helpers/
+│       └── errorFormatterHelpers.mts
 └── baseClasses/
 
 tests/

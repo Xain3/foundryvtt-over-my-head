@@ -13,7 +13,11 @@
 
 ## User Scenarios & Testing _(mandatory)_
 
-**Independent Test**: Can be fully tested by calling the formatter with a simple error and verifying the output contains the module name prefix. Delivers immediate value by making all module errors identifiable.
+### User Story 1 - Basic Error Formatting with Module Context (Priority: P1)
+
+A developer needs a single formatter helper that coerces string inputs, prepends the module name, and outputs a predictable message so errors from Over My Head can be distinguished instantly in Foundry’s console.
+
+**Independent Test**: Call the formatter with both `Error` objects and plain strings and verify the output always starts with the configured module identifier (id/title/shortName) while throwing `TypeError` for invalid inputs.
 
 **Acceptance Scenarios**:
 
@@ -80,8 +84,8 @@ Module maintainers need to customize the error message format (order of module, 
 - When configuration singleton is unavailable or fails, use hardcoded defaults (pattern: "{{module}}{{caller}}{{error}}{{stack}}", separator: " || ", module: "Unknown Module")
 - When stack traces exceed 20 lines, truncate to first 20 lines, write full trace to temporary log file, and append log file path reference to formatted output (e.g., "... [Full trace: /tmp/omh-error-12345.log]")
 - When error messages exceed reasonable length, output them in full (no truncation for error message text)
-- What happens when caller name contains special characters or placeholders like `{{module}}`?
-- How does the formatter behave when configuration is missing or malformed?
+- When caller names contain template placeholders such as `{{module}}`, escape the braces (`\{\{module\}\}`) so the caller label renders literally instead of being treated as a pattern token
+- When configuration is missing or malformed, fall back to the documented defaults (pattern `"{{module}}{{caller}}{{error}}{{stack}}"`, separator `" || "`, module name `"Unknown Module"`) and continue formatting
 
 ## Requirements _(mandatory)_
 

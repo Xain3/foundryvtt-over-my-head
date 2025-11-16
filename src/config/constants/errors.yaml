@@ -8,3 +8,12 @@ separator: ' || '
 # The pattern used to format error messages.
 # Not all elements are guaranteed to be present.
 pattern: '{{module}}{{caller}}{{error}}{{stack}}'
+
+# Fallback module identifier when config/module resolution fails
+fallbackModuleName: 'Unknown Module'
+
+# Maximum number of stack trace lines displayed inline before truncation
+maxStackLines: 20
+
+# Prefix used when writing full stack traces to temporary files
+tempLogFilePrefix: 'omh-error'

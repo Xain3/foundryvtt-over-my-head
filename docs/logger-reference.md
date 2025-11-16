@@ -11,6 +11,29 @@
 
 The `Logger` class is a **configurable, stateless logging utility** for the Over My Head module. It formats and emits console output with context awareness, placeholder substitution, colorization, and metadata handling—all controlled by configuration objects rather than global state.
 
+### Error Formatter Helper
+
+Pair the logger with the shared error formatter to keep diagnostic output consistent everywhere:
+
+```javascript
+import { formatError } from '#/utils/errorFormatter.mts';
+import { Logger } from '#/utils/logger.ts';
+
+const logger = new Logger({ moduleName: 'OMH', level: 'info' });
+
+try {
+  throw new Error('Configuration failed');
+} catch (error) {
+  const formatted = formatError(error);
+  logger.error(formatted);
+}
+```
+
+- The formatter automatically coerces strings, prefixes the module name, and applies the pattern defined in `src/config/constants/errors.yaml` (`"{{module}}{{caller}}{{error}}{{stack}}"` with separator `" || "`).
+- Passing `formatError('text message')` returns a fully formatted string; invalid inputs raise `TypeError` so misuse is caught immediately.
+- Enable stack traces by passing `{ includeStack: true }`; the formatter prints up to `maxStackLines` lines (defaults to 20) and, when truncated, appends `[Full trace: <path>]` while writing the complete trace to `os.tmpdir()` using the configured `tempLogFilePrefix`.
+- Advanced scenarios (caller labels, stack traces, custom patterns) build on the same helper as additional user stories land.
+
 ---
 
 ## Core Concepts

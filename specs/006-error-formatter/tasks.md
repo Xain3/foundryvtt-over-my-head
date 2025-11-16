@@ -19,8 +19,8 @@
 
 **Purpose**: Prepare repository-wide scaffolding so later tasks can reference the formatter without path or documentation blockers.
 
-- [ ] T001 Update alias mappings for the formatter in `alias.config.mjs`, `tsconfig.json`, and `vite.config.mjs` to expose `#/utils/errorFormatter` for root-relative imports.
-- [ ] T002 [P] Document the upcoming error formatter responsibilities and constraints in `src/utils/README.md` so contributors understand scope and invariants.
+- [x] T001 Update alias mappings for the formatter in `alias.config.mjs`, `tsconfig.json`, and `vite.config.mjs` to expose `#/utils/errorFormatter` for root-relative imports.
+- [x] T002 [P] Document the upcoming error formatter responsibilities and constraints in `src/utils/README.md` so contributors understand scope and invariants.
 
 ---
 
@@ -28,12 +28,12 @@
 
 **Purpose**: Core infrastructure that MUST exist before any user story implementation begins.
 
-- [ ] T003 Create `src/utils/errorFormatter-types.ts` defining `ErrorContext`, `FormatOptions`, and `ErrorPattern` interfaces plus exported type guards.
-- [ ] T004 [P] Scaffold `src/utils/errorFormatter.mts` with the exported `formatError()` stub, default config resolution, and TODO markers for the upcoming stories.
-- [ ] T005 [P] Add shared helpers in `src/utils/helpers/errorFormatterHelpers.mts` for stack truncation, temp log file writing, and brace escaping utilities.
-- [ ] T006 Ensure the fallback pattern/separator/module entries in `src/config/constants/errors.yaml` match the documented defaults required by User Story 1.
-- [ ] T007 [P] Document the formatter defaults and override workflow in `src/config/README.md`, referencing the `errors.yaml` entries updated in T006.
-- [ ] T008 [P] Re-export the formatter entry point through `src/utils/static.ts` and ensure `src/main.mjs` (or equivalent barrel) exposes it for other modules and tests.
+- [x] T003 Create `src/utils/errorFormatter-types.ts` defining `ErrorContext`, `FormatOptions`, and `ErrorPattern` interfaces plus exported type guards.
+- [x] T004 [P] Scaffold `src/utils/errorFormatter.mts` with the exported `formatError()` stub, default config resolution, and TODO markers for the upcoming stories.
+- [x] T005 [P] Add shared helpers in `src/utils/helpers/errorFormatterHelpers.mts` for stack truncation, temp log file writing, and brace escaping utilities.
+- [x] T006 Ensure the fallback pattern/separator/module entries in `src/config/constants/errors.yaml` match the documented defaults required by User Story 1.
+- [x] T007 [P] Document the formatter defaults and override workflow in `src/config/README.md`, referencing the `errors.yaml` entries updated in T006.
+- [x] T008 [P] Re-export the formatter entry point through `src/utils/static.ts` and ensure `src/main.mjs` (or equivalent barrel) exposes it for other modules and tests.
 
 **Checkpoint**: Once these tasks are complete, user stories can proceed in parallel.
 
@@ -47,10 +47,10 @@
 
 ### Implementation
 
-- [ ] T009 [P] [US1] Create baseline unit tests covering module prefix resolution, string coercion, and invalid input handling in `tests/unit/errorFormatter-basic.unit.test.mjs`.
-- [ ] T010 [US1] Implement normalization, module resolution (id/title/shortName), placeholder substitution, and separator joins inside `src/utils/errorFormatter.mts`.
-- [ ] T011 [P] [US1] Update developer docs with the basic usage example by editing `docs/logger-reference.md` and `specs/006-error-formatter/quickstart.md`.
-- [ ] T012 [P] [US1] Add regression tests in `tests/unit/errorFormatter-sideEffects.unit.test.mjs` proving `formatError()` leaves console methods, config objects, and static singletons unchanged.
+- [x] T009 [P] [US1] Create baseline unit tests covering module prefix resolution, string coercion, and invalid input handling in `tests/unit/errorFormatter-basic.unit.test.mjs`.
+- [x] T010 [US1] Implement normalization, module resolution (id/title/shortName), placeholder substitution, and separator joins inside `src/utils/errorFormatter.mts`.
+- [x] T011 [P] [US1] Update developer docs with the basic usage example by editing `docs/logger-reference.md` and `specs/006-error-formatter/quickstart.md`.
+- [x] T012 [P] [US1] Add regression tests in `tests/unit/errorFormatter-sideEffects.unit.test.mjs` proving `formatError()` leaves console methods, config objects, and static singletons unchanged.
 
 **Checkpoint**: Formatting simple errors now works end-to-end and is independently testable.
 
@@ -64,9 +64,9 @@
 
 ### Implementation
 
-- [ ] T013 [P] [US2] Add stack-option unit tests in `tests/unit/errorFormatter-stack.unit.test.mjs` validating includeStack toggles, truncation counts, and temp-file references.
-- [ ] T014 [US2] Implement stack capture, 20-line truncation, and `[Full trace: path]` annotations using helpers inside `src/utils/errorFormatter.mts`.
-- [ ] T015 [P] [US2] Write an integration test in `tests/integration/errorFormatter.int.test.mjs` that asserts temp log files are created under `os.tmpdir()` and cleaned up per spec.
+- [x] T013 [P] [US2] Add stack-option unit tests in `tests/unit/errorFormatter-stack.unit.test.mjs` validating includeStack toggles, truncation counts, and temp-file references. (Verified via `npm run test -- --project unit tests/unit/errorFormatter-basic.unit.test.mjs tests/unit/errorFormatter-stack.unit.test.mjs`)
+- [x] T014 [US2] Implement stack capture, 20-line truncation, and `[Full trace: path]` annotations using helpers inside `src/utils/errorFormatter.mts`.
+- [x] T015 [P] [US2] Write an integration test in `tests/integration/errorFormatter.int.test.mjs` that asserts temp log files are created under `os.tmpdir()` and cleaned up per spec. (Verified via `npm run test -- --project integration tests/integration/errorFormatter.int.test.mjs`)
 
 **Checkpoint**: Stack-enabled formatting is independently testable without impacting US1 behaviors.
 

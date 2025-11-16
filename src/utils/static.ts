@@ -62,7 +62,17 @@ export type {
  * const formatted = StaticUtils.formatString.format('world', { prefix: 'hello-' });
  *
  * // Use formatHookName functionality
+ * // Simple hook (P2): module-scoped hook name
  * const hookName = StaticUtils.formatHookName.format('settingsReady', config);
+ * // Returns: 'OMH.SettingsReady'
+ *
+ * // Parameterized hook (P3): pattern-based hook name with parameters
+ * const settingHook = StaticUtils.formatHookName.format(
+ *   'setting',
+ *   { settingKey: 'debugMode' },
+ *   config
+ * );
+ * // Returns: 'OMH.setting.debugMode'
  *
  * // Use findFoundryDataDir functionality (Node.js/development only)
  * // Pass your config explicitly (this export does not inject defaults).
@@ -134,10 +144,39 @@ class StaticUtils {
   static readonly formatHookName = {
     /**
      * Generates a module-scoped hook name or a parameterized hook name based on arguments.
-     * @param keyOrPattern - Hook key (P2) or pattern key (P3)
-     * @param configOrParams - Config object (P2) or parameters object (P3)
-     * @param config - Optional config for P3 overload
-     * @returns The formatted hook name
+     *
+     * This function has two overloads:
+     *
+     * **Overload 1 (P2): Simple module-scoped hook**
+     * - Generates a hook name from a hook key defined in config.hooks
+     * - Applies the module pattern from config.hookPatterns.module
+     * - Example: `format('settingsReady', config)` → `'OMH.SettingsReady'`
+     *
+     * **Overload 2 (P3): Parameterized pattern-based hook**
+     * - Generates a hook name from a pattern template with custom parameters
+     * - Allows dynamic placeholder substitution beyond standard module/separator/hook
+     * - Example: `format('setting', { settingKey: 'debugMode' }, config)` → `'OMH.setting.debugMode'`
+     *
+     * @param keyOrPattern - Hook key from config.hooks (P2) or pattern key from config.hookPatterns (P3)
+     * @param configOrParams - Config object (P2) or parameters object for placeholder substitution (P3)
+     * @param config - Config object (required for P3 overload, omitted for P2)
+     * @returns The formatted hook name with module reference and separators applied
+     * @throws {Error} If hook key or pattern key is not found in config
+     * @throws {Error} If required parameters are missing for P3 overload
+     *
+     * @example
+     * // P2: Simple hook
+     * const readyHook = StaticUtils.formatHookName.format('settingsReady', config);
+     * // 'OMH.SettingsReady'
+     *
+     * @example
+     * // P3: Parameterized hook
+     * const settingHook = StaticUtils.formatHookName.format(
+     *   'setting',
+     *   { settingKey: 'debugMode' },
+     *   config
+     * );
+     * // 'OMH.setting.debugMode'
      */
     format: formatHookName,
   };

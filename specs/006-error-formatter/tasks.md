@@ -80,8 +80,8 @@
 
 ### Implementation
 
-- [ ] T016 [P] [US3] Write caller-context unit tests in `tests/unit/errorFormatter-caller.unit.test.mjs` covering includeCaller gating and brace escaping behavior.
-- [ ] T017 [US3] Implement caller injection and brace escaping within `src/utils/errorFormatter.mts`, ensuring ordering respects the active pattern and default separator.
+- [x] T016 [P] [US3] Write caller-context unit tests in `tests/unit/errorFormatter-caller.unit.test.mjs` covering includeCaller gating and brace escaping behavior.
+- [x] T017 [US3] Implement caller injection and brace escaping within `src/utils/errorFormatter.mts`, ensuring ordering respects the active pattern and default separator.
 
 **Checkpoint**: Caller metadata can now be toggled independently of stack traces.
 
@@ -95,9 +95,9 @@
 
 ### Implementation
 
-- [ ] T018 [P] [US4] Author pattern customisation unit tests in `tests/unit/errorFormatter-pattern.unit.test.mjs` verifying order/separator overrides and omission behavior.
-- [ ] T019 [US4] Implement full pattern parsing, placeholder resolution, and config override handling inside `src/utils/errorFormatter.mts`, including fallback defaults when settings are unavailable.
-- [ ] T020 [P] [US4] Document the configuration workflow for custom patterns in `docs/config-quickstart.md` and update `docs/README.md` with references to the new formatter.
+- [x] T018 [P] [US4] Author pattern customisation unit tests in `tests/unit/errorFormatter-pattern.unit.test.mjs` verifying order/separator overrides and omission behavior.
+- [x] T019 [US4] Implement full pattern parsing, placeholder resolution, and config override handling inside `src/utils/errorFormatter.mts`, including fallback defaults when settings are unavailable.
+- [x] T020 [P] [US4] Document the configuration workflow for custom patterns in `docs/config-quickstart.md` and update `docs/README.md` with references to the new formatter.
 
 **Checkpoint**: All user stories (US1–US4) operate independently and respect custom configuration.
 
@@ -107,9 +107,15 @@
 
 **Purpose**: Final documentation, validation, and cross-story cleanup.
 
-- [ ] T021 [P] Refresh `README.md` and `docs/logger-reference.md` with release notes, known limitations, and links to the formatter’s advanced options.
-- [ ] T022 Execute repository-wide validation from `/workspaces/foundryvtt-over-my-head/` (`npm run lint` and `npm test -- --project unit`) and record pass/fail notes in `specs/006-error-formatter/tasks.md`.
-- [ ] T023 [P] Add a micro-benchmark in `tests/performance/errorFormatter.performance.test.mjs` ensuring `formatError()` stays under 1 ms for the default options on average.
+- [x] T021 [P] Refresh `README.md` and `docs/logger-reference.md` with release notes, known limitations, and links to the formatter's advanced options.
+- [x] T022 Execute repository-wide validation from `/workspaces/foundryvtt-over-my-head/` (`npm run lint` and `npm test -- --project unit`) and record pass/fail notes in `specs/006-error-formatter/tasks.md`.
+- [x] T023 [P] Add a micro-benchmark in `tests/performance/errorFormatter.performance.test.mjs` ensuring `formatError()` stays under 1 ms for the default options on average.
+
+**Validation Results (T022)**:
+
+- ESLint: ✓ PASS (no errors or warnings)
+- Unit Tests: ✓ PASS (474 tests across 29 files, all passing)
+- Performance: ✓ PASS (average < 0.02ms for default options, well under 1ms target)
 
 ---
 

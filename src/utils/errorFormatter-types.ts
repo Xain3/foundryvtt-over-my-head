@@ -33,6 +33,20 @@ export interface ErrorPattern {
   componentOrder: string[];
 }
 
+export type PlaceholderKey = 'module' | 'caller' | 'error' | 'stack';
+
+export interface FormatterDefaults extends ErrorPattern {
+  fallbackModuleName: string;
+  maxStackLines: number;
+  tempLogFilePrefix: string;
+}
+
+export interface NormalizedFormatOptions {
+  includeStack: boolean;
+  includeCaller: boolean;
+  caller?: string;
+}
+
 /**
  * Determines whether the provided value satisfies the {@link FormatOptions} shape.
  *

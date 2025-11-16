@@ -23,7 +23,7 @@ paths:
       - '/home/${user}/.local/share/FoundryVTT'
       - '/home/${user}/FoundryVTT'
       - '/local/FoundryVTT'
-  darwin: # macOS path construction requires proper joining
-    - '${getHomeDir(user)}/Library/Application Support/FoundryVTT'
-  win32: # Windows uses LOCALAPPDATA environment variable
-    - '${getLocalAppData()}/FoundryVTT'
+    darwin: # macOS path construction requires proper joining
+      - '${getHomeDir(user)}/Library/Application Support/FoundryVTT'
+    win32: # Windows uses LOCALAPPDATA environment variable
+      - '${getLocalAppData()}/FoundryVTT'

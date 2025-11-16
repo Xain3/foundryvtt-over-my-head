@@ -220,6 +220,18 @@ describe('foundryDataDirFinder', () => {
       expect(result.checkedPaths[0]).toContain('FoundryVTT');
     });
 
+    it('prioritizes LOCALAPPDATA-backed defaults for Windows', () => {
+      const fakeLocalAppData = createTempDir();
+      process.env.LOCALAPPDATA = fakeLocalAppData;
+
+      const result = findFoundryDataDir({
+        platform: 'win32',
+        user: 'winuser',
+      });
+
+      expect(result.checkedPaths[0]).toBe(`${fakeLocalAppData}/FoundryVTT`);
+    });
+
     it('returns found=false when no directory exists', () => {
       const result = findFoundryDataDir({
         platform: 'linux',
@@ -357,6 +369,31 @@ describe('foundryDataDirFinder', () => {
 
       expect(Array.isArray(paths)).toBe(true);
       expect(paths.length).toBeGreaterThan(0);
+    });
+
+    it('resolves getLocalAppData template placeholders for Windows defaults', () => {
+      const fakeLocalAppData = path.join(tmpdir(), 'omh-local-app-data-win');
+      process.env.LOCALAPPDATA = fakeLocalAppData;
+
+      const configOverride = {
+        constants: {
+          defaults: {
+            paths: {
+              foundryDataDirPath: {
+                win32: ['${getLocalAppData()}/CustomFoundry'],
+              },
+            },
+          },
+        },
+      };
+
+      const paths = getFoundryDataDirPaths({
+        platform: 'win32',
+        user: 'winuser',
+        config: configOverride,
+      });
+
+      expect(paths).toContain(`${fakeLocalAppData}/CustomFoundry`);
     });
 
     it('returns empty array for unsupported platform', () => {

@@ -7,7 +7,10 @@
 import { config } from '#config';
 import { resolveModuleName } from '#/utils/static/moduleNameResolver.ts';
 import type { ModuleNameResolverConfig } from '#/utils/static/moduleNameResolver-types.ts';
-import { prepareStackForOutput } from '#/utils/helpers/errorFormatterHelpers.mts';
+import {
+  prepareStackForOutput,
+  escapeTemplateBraces,
+} from '#/utils/helpers/errorFormatterHelpers.mts';
 
 import type {
   ErrorContext,
@@ -101,7 +104,7 @@ function coerceError(value: Error | string): Error {
 }
 
 /**
- * Normalizes optional format flags into booleans with trimmed caller text.
+ * Normalizes optional format flags into booleans with trimmed and escaped caller text.
  *
  * @param {FormatOptions} [options] - Raw format options.
  * @returns {Required<FormatOptions>} Normalized options object.
@@ -109,8 +112,12 @@ function coerceError(value: Error | string): Error {
 function normalizeOptions(options?: FormatOptions): NormalizedFormatOptions {
   const includeStack = Boolean(options?.includeStack);
   const includeCaller = Boolean(options?.includeCaller);
-  const caller =
-    includeCaller && options?.caller ? options.caller.trim() : undefined;
+  let caller: string | undefined;
+
+  if (includeCaller && options?.caller) {
+    const trimmed = options.caller.trim();
+    caller = trimmed.length > 0 ? escapeTemplateBraces(trimmed) : undefined;
+  }
 
   return {
     includeStack,

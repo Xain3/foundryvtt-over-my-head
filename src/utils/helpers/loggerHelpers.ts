@@ -12,6 +12,7 @@ const MODULE_PREFIX = '[OMH]';
 /**
  * Default configuration path in Config.constants for logger settings.
  * When logging.yaml is loaded into constants, this can be changed to 'logging.console'.
+ * @export
  */
 export const DEFAULT_CONFIG_PATH = 'defaults.logging';
 
@@ -22,6 +23,7 @@ export const DEFAULT_CONFIG_PATH = 'defaults.logging';
  * @param {string} [configPath='defaults.logging'] - Dot-separated path to logging config in Config.constants.
  * @returns {LogConfigurationObject} Extracted logging configuration.
  * @throws {Error} If the configuration path is not properly structured.
+ * @export
  *
  * @example
  * // Using default path (config.constants.defaults.logging)
@@ -103,6 +105,7 @@ export function extractLogConfigFromConfig(
  *
  * @param {Config | LogConfigurationObject} value - Value to check.
  * @returns {boolean} True if value is a Config instance.
+ * @export
  */
 export function isConfig(
   value: Config | LogConfigurationObject

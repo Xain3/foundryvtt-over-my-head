@@ -4,13 +4,20 @@
  * @path tests/performance/errorFormatter.performance.test.mjs
  */
 
-import { describe, it, vi, beforeEach } from 'vitest';
+import { describe, it, vi, beforeEach, expect } from 'vitest';
 
 vi.mock('#/utils/static/moduleNameResolver.ts', () => ({
   resolveModuleName: vi.fn(() => 'Mock Module'),
 }));
 
 const { formatError } = await import('#/utils/errorFormatter');
+
+/**
+ * Performance metrics for reporting.
+ * Stores benchmark results to be included in test output.
+ * @type {Map<string, {avgTime: number, totalTime: number, iterations: number}>}
+ */
+const performanceMetrics = new Map();
 
 describe('formatError – Performance Benchmarks', () => {
   beforeEach(() => {
@@ -30,19 +37,10 @@ describe('formatError – Performance Benchmarks', () => {
     const totalTime = endTime - startTime;
     const avgTime = totalTime / iterations;
 
-    console.log(`Average format time (basic): ${avgTime.toFixed(4)}ms`);
-    console.log(
-      `Total time for ${iterations} iterations: ${totalTime.toFixed(2)}ms`
-    );
+    performanceMetrics.set('basic', { avgTime, totalTime, iterations });
 
-    // Verify average is under 1ms
-    if (avgTime >= 1.0) {
-      console.warn(
-        `⚠️  Performance warning: Average time ${avgTime.toFixed(4)}ms exceeds 1ms target`
-      );
-    } else {
-      console.log(`✓ Performance target met (${avgTime.toFixed(4)}ms < 1ms)`);
-    }
+    // Assertion enforces performance requirement
+    expect(avgTime).toBeLessThan(1.0);
   });
 
   it('formats errors with caller context under 1ms on average', () => {
@@ -61,18 +59,9 @@ describe('formatError – Performance Benchmarks', () => {
     const totalTime = endTime - startTime;
     const avgTime = totalTime / iterations;
 
-    console.log(`Average format time (with caller): ${avgTime.toFixed(4)}ms`);
-    console.log(
-      `Total time for ${iterations} iterations: ${totalTime.toFixed(2)}ms`
-    );
+    performanceMetrics.set('with-caller', { avgTime, totalTime, iterations });
 
-    if (avgTime >= 1.0) {
-      console.warn(
-        `⚠️  Performance warning: Average time ${avgTime.toFixed(4)}ms exceeds 1ms target`
-      );
-    } else {
-      console.log(`✓ Performance target met (${avgTime.toFixed(4)}ms < 1ms)`);
-    }
+    expect(avgTime).toBeLessThan(1.0);
   });
 
   it('formats errors with stack traces efficiently', () => {
@@ -95,21 +84,10 @@ describe('formatError – Performance Benchmarks', () => {
     const totalTime = endTime - startTime;
     const avgTime = totalTime / iterations;
 
-    console.log(`Average format time (with stack): ${avgTime.toFixed(4)}ms`);
-    console.log(
-      `Total time for ${iterations} iterations: ${totalTime.toFixed(2)}ms`
-    );
+    performanceMetrics.set('with-stack', { avgTime, totalTime, iterations });
 
-    // Stack traces may exceed 1ms due to file I/O, so we just log
-    if (avgTime >= 5.0) {
-      console.warn(
-        `⚠️  Performance warning: Average time ${avgTime.toFixed(4)}ms exceeds 5ms (high latency)`
-      );
-    } else {
-      console.log(
-        `✓ Stack performance acceptable (${avgTime.toFixed(4)}ms < 5ms)`
-      );
-    }
+    // Stack traces may exceed 1ms due to file I/O, allow up to 5ms
+    expect(avgTime).toBeLessThan(5.0);
   });
 
   it('handles string coercion efficiently', () => {
@@ -124,20 +102,13 @@ describe('formatError – Performance Benchmarks', () => {
     const totalTime = endTime - startTime;
     const avgTime = totalTime / iterations;
 
-    console.log(
-      `Average format time (string coercion): ${avgTime.toFixed(4)}ms`
-    );
-    console.log(
-      `Total time for ${iterations} iterations: ${totalTime.toFixed(2)}ms`
-    );
+    performanceMetrics.set('string-coercion', {
+      avgTime,
+      totalTime,
+      iterations,
+    });
 
-    if (avgTime >= 1.0) {
-      console.warn(
-        `⚠️  Performance warning: Average time ${avgTime.toFixed(4)}ms exceeds 1ms target`
-      );
-    } else {
-      console.log(`✓ Performance target met (${avgTime.toFixed(4)}ms < 1ms)`);
-    }
+    expect(avgTime).toBeLessThan(1.0);
   });
 
   it('handles brace escaping in caller names efficiently', () => {
@@ -156,19 +127,12 @@ describe('formatError – Performance Benchmarks', () => {
     const totalTime = endTime - startTime;
     const avgTime = totalTime / iterations;
 
-    console.log(
-      `Average format time (brace escaping): ${avgTime.toFixed(4)}ms`
-    );
-    console.log(
-      `Total time for ${iterations} iterations: ${totalTime.toFixed(2)}ms`
-    );
+    performanceMetrics.set('brace-escaping', {
+      avgTime,
+      totalTime,
+      iterations,
+    });
 
-    if (avgTime >= 1.0) {
-      console.warn(
-        `⚠️  Performance warning: Average time ${avgTime.toFixed(4)}ms exceeds 1ms target`
-      );
-    } else {
-      console.log(`✓ Performance target met (${avgTime.toFixed(4)}ms < 1ms)`);
-    }
+    expect(avgTime).toBeLessThan(1.0);
   });
 });

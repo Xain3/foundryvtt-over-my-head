@@ -32,6 +32,20 @@ This folder contains module documentation, including API references, guides, and
   - Testing guidelines
   - Extension checklist
 
+### Module Utilities
+
+- **[logger-reference.md](./logger-reference.md)** - Logger utility documentation
+  - Configuration and usage patterns
+  - Log level management
+  - Placeholder substitution
+  - Module name resolution
+
+- **[config-quickstart.md](./config-quickstart.md)** - Configuration system quickstart
+  - Basic usage examples
+  - Accessing constants, settings, and environment variables
+  - Common patterns including error formatter configuration
+  - FAQs and troubleshooting
+
 ### FoundryVTT API Documentation
 
 - `foundry-vtt-api/`: Comprehensive API references and guides for Foundry VTT version 13

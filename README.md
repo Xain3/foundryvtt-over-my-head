@@ -64,14 +64,16 @@ For more information, see [docs/alias-adapter-interface.md](docs/alias-adapter-i
 
 ## Changelog
 
+### 0.2.0 (2025-11-16)
+
+- Added configurable error formatter utility with module-aware prefixes
+- Supports optional caller context and stack trace inclusion
+- Configurable via `src/config/constants/errors.yaml` pattern/separator
+- Full documentation in `docs/config-quickstart.md` and `docs/logger-reference.md`
+
 ### 0.1.0 (2025-10-20)
 
 - Initial version with core module documentation and structure
-
-## Changelog
-
-### [0.1.0] - 2025-10-20
-
 - Initial release of the Roof Occlusion Vision And Fade module
 - Added support for overhead tiles with "Vision" and "Fade" occlusion modes
 - Implemented tile configuration interface for occlusion settings

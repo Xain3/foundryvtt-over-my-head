@@ -46,6 +46,17 @@ This folder contains module documentation, including API references, guides, and
   - Common patterns including error formatter configuration
   - FAQs and troubleshooting
 
+- **[errorFormatter-quickstart.md](./errorFormatter-quickstart.md)** - Error formatter utility quickstart
+  - Basic error formatting with module context
+  - Stack trace inclusion and caller context
+  - Integration with logger utility
+  - Common patterns and error handling
+
+- **[foundryDataDirFinder-quickstart.md](./foundryDataDirFinder-quickstart.md)** - Foundry data directory finder quickstart
+  - Automatic directory detection across platforms
+  - Override precedence and environment variables
+  - Build script and CI/CD integration examples
+
 ### FoundryVTT API Documentation
 
 - `foundry-vtt-api/`: Comprehensive API references and guides for Foundry VTT version 13
@@ -71,6 +82,12 @@ This folder contains module documentation, including API references, guides, and
 - **Quality & Maintainability**: ≥80% test coverage, clean enable/disable, best practices
 
 ## Changelog
+
+### 1.3.0 (2025-11-16)
+
+- Added errorFormatter-quickstart.md with comprehensive error formatting guide
+- Added foundryDataDirFinder-quickstart.md to module utilities documentation
+- Updated module utilities section with complete quickstart coverage
 
 ### 1.2.0 (2025-10-31)
 

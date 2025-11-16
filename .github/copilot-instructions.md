@@ -376,6 +376,8 @@ Before submitting a pull request:
 ## Active Technologies
 - TypeScript 5.x / JavaScript ES2022 with ESM modules (.mts/.mjs extensions) (005-short-name-hook)
 - N/A (stateless utilities) (005-short-name-hook)
+- TypeScript targeting ES2022 with Node 20+ tooling and Vite builds + Core module helpers (`#/config/config.ts`, `#/utils/logger.ts`), plus existing utilities like `confbox`, `lodash`, and Node built-ins for temporary file handling (006-error-formatter)
+- N/A for runtime formatting (writes temp files under `os.tmpdir()` only when capturing full stack traces) (006-error-formatter)
 
 - JavaScript ES2022 / TypeScript with ESM modules (.mjs/.mts extensions) (004-parametrable-logger)
 - N/A (logger is stateless; configuration passed as object) (004-parametrable-logger)

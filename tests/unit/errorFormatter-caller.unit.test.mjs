@@ -50,22 +50,20 @@ describe('formatError – User Story 3: Caller Context', () => {
     expect(result.split('||').length).toBeLessThanOrEqual(2);
   });
 
-  it('escapes double braces in caller names to prevent template injection', () => {
+  it('safely includes double braces in caller names without template injection', () => {
     const result = formatError(new Error('Test error'), {
       includeCaller: true,
       caller: 'function{{malicious}}name',
     });
 
-    // The formatted output should contain the escaped caller
-    // Depending on implementation, escaped braces might be rendered as literals
-    // or removed. We verify that the pattern doesn't treat them as placeholders.
+    // The formatted output should contain the caller text as-is
+    // Component values are never evaluated as templates, so braces are safe
     expect(result).toContain('Mock Module');
     expect(result).toContain('Test error');
+    expect(result).toContain('function{{malicious}}name');
 
-    // Verify that the caller section appears but doesn't cause placeholder expansion
-    // The exact escaping mechanism may vary (e.g., removing braces, backslash escaping, etc.)
-    // For now, we verify the caller text is present in some form
-    expect(result).toMatch(/function.*malicious.*name/i);
+    // Verify no placeholder expansion occurred - the braces appear literally
+    expect(result).not.toContain('\\{\\{'); // No backslash escaping
   });
 
   it('trims whitespace from caller names', () => {

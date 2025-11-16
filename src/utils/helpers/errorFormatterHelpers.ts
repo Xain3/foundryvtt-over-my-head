@@ -1,7 +1,7 @@
 /**
- * @file errorFormatterHelpers.mts
- * @description Helper utilities for stack truncation, temp log persistence, and brace escaping.
- * @path src/utils/helpers/errorFormatterHelpers.mts
+ * @file errorFormatterHelpers.ts
+ * @description Helper utilities for stack truncation and temp log persistence.
+ * @path src/utils/helpers/errorFormatterHelpers.ts
  */
 
 import { randomUUID } from 'node:crypto';
@@ -12,16 +12,6 @@ import { join } from 'node:path';
 const MODULE_PREFIX = 'OMH';
 const DEFAULT_STACK_LINES = 20;
 const DEFAULT_TEMP_FILE_PREFIX = 'omh-error';
-
-/**
- * Escapes `{{` / `}}` sequences so literal braces render in formatted output.
- *
- * @param {string} value - Input value that may contain template braces.
- * @returns {string} Escaped string safe for placeholder substitution.
- */
-export function escapeTemplateBraces(value: string): string {
-  return value.replaceAll(/{{/g, '\\{\\{').replaceAll(/}}/g, '\\}\\}');
-}
 
 /**
  * Normalizes a stack trace string into trimmed lines and truncates it to the desired length.

@@ -7,10 +7,7 @@
 import { config } from '#config';
 import { resolveModuleName } from '#/utils/static/moduleNameResolver.ts';
 import type { ModuleNameResolverConfig } from '#/utils/static/moduleNameResolver-types.ts';
-import {
-  prepareStackForOutput,
-  escapeTemplateBraces,
-} from '#/utils/helpers/errorFormatterHelpers';
+import { prepareStackForOutput } from '#/utils/helpers/errorFormatterHelpers';
 
 import type {
   ErrorContext,
@@ -104,7 +101,7 @@ function coerceError(value: Error | string): Error {
 }
 
 /**
- * Normalizes optional format flags into booleans with trimmed and escaped caller text.
+ * Normalizes optional format flags into booleans with trimmed caller text.
  *
  * @param {FormatOptions} [options] - Raw format options.
  * @returns {Required<FormatOptions>} Normalized options object.
@@ -116,7 +113,7 @@ function normalizeOptions(options?: FormatOptions): NormalizedFormatOptions {
 
   if (includeCaller && options?.caller) {
     const trimmed = options.caller.trim();
-    caller = trimmed.length > 0 ? escapeTemplateBraces(trimmed) : undefined;
+    caller = trimmed.length > 0 ? trimmed : undefined;
   }
 
   return {
@@ -214,6 +211,10 @@ function resolveModuleNameSafely(fallback: string): string {
 
 /**
  * Parses the configured template into an ordered placeholder array.
+ *
+ * SECURITY NOTE: Only the template string is parsed for placeholders.
+ * Component values (module, caller, error, stack) are treated as literal
+ * strings and never evaluated, so braces in those values are safe.
  *
  * @param {string} template - Template string with placeholders.
  * @returns {PlaceholderKey[]} Ordered placeholder keys.

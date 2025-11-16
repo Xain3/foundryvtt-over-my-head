@@ -1,7 +1,7 @@
 ````markdown
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/gundancer)
 
-**Version**: 0.1.0
+**Version**: 0.2.0
 
 # Roof Occlusion Vision And Fade
 
@@ -73,8 +73,8 @@ For more information, see [docs/alias-adapter-interface.md](docs/alias-adapter-i
 
 ### 0.1.0 (2025-10-20)
 
-- Initial version with core module documentation and structure
 - Initial release of the Roof Occlusion Vision And Fade module
+- Added core module documentation and structure
 - Added support for overhead tiles with "Vision" and "Fade" occlusion modes
 - Implemented tile configuration interface for occlusion settings
 ````

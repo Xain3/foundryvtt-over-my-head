@@ -1,7 +1,8 @@
 <!-- Config Quickstart Guide -->
+
 # Config Quickstart Guide
 
-**Status**: ✅ Complete  
+**Status**: ✅ Complete
 **Path**: `docs/config-quickstart.md`
 
 This quickstart guide provides practical examples for using the centralized config system. For detailed documentation, see the [Config Module README](../src/config/README.md) and [Specification Quickstart](../specs/001-centralized-config-system/quickstart.md).
@@ -74,6 +75,31 @@ const errors = ['Error 1', 'Error 2', 'Error 3'];
 const combined = errors.join(separator);
 console.log(combined);
 // Output: Error 1 || Error 2 || Error 3
+```
+
+### Error Formatter Pattern
+
+```typescript
+import { config } from '../config/config.ts';
+
+// Access error formatter configuration
+const errorPattern = config.constants.errors.pattern;
+const errorSeparator = config.constants.errors.separator;
+const maxStackLines = config.constants.errors.maxStackLines;
+
+console.log(`Pattern: ${errorPattern}`);
+// Output: Pattern: {{module}}{{caller}}{{error}}{{stack}}
+
+console.log(`Separator: ${errorSeparator}`);
+// Output: Separator:  ||
+
+console.log(`Max stack lines: ${maxStackLines}`);
+// Output: Max stack lines: 20
+
+// Custom pattern example:
+// To reorder components, edit src/config/constants/errors.yaml:
+// pattern: '{{error}}{{module}}{{caller}}{{stack}}'
+// This would put error first, then module, then caller, then stack
 ```
 
 ### Foundry Defaults
@@ -239,7 +265,10 @@ initializeModule();
 ```typescript
 import { config } from './config/config.ts';
 
-function logWithPrefix(message: string, level: 'info' | 'debug' | 'warn' | 'error' = 'info') {
+function logWithPrefix(
+  message: string,
+  level: 'info' | 'debug' | 'warn' | 'error' = 'info'
+) {
   const prefix = config.configs.moduleManagement.shortName;
   console[level](`[${prefix}] ${message}`);
 }
@@ -447,5 +476,5 @@ if (config && config.module && config.constants) {
 
 ---
 
-**Status**: Complete ✅  
+**Status**: Complete ✅
 **Last Updated**: October 28, 2025

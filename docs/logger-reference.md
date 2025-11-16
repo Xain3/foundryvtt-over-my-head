@@ -483,4 +483,20 @@ loggerWithSeparators.info('User logged in');
 
 ---
 
-This architecture makes the logger **flexible, testable, and safe** while maintaining strict control over output formatting and behavior.
+## Known Limitations & Advanced Options
+
+### Error Formatter Integration
+
+- **Stack traces**: When `includeStack: true`, the formatter truncates display to `maxStackLines` (default: 20) and writes the full trace to a temp log file under `os.tmpdir()` with prefix `tempLogFilePrefix` (default: `omh-error`).
+- **Caller context**: Enable with `includeCaller: true` and provide a `caller` label. Braces (`{{...}}`) in caller names are escaped to prevent template injection.
+- **Custom patterns**: Modify `src/config/constants/errors.yaml` to reorder or omit placeholders (`{{module}}`, `{{caller}}`, `{{error}}`, `{{stack}}`). Separator defaults to `" || "`.
+- **Fallback behavior**: If config is unavailable, the formatter uses documented defaults: pattern `"{{module}}{{caller}}{{error}}{{stack}}"`, separator `" || "`, module name `"Unknown Module"`.
+
+### Performance Considerations
+
+- Formatting overhead is typically < 1ms for default options; stack trace processing may add latency when writing temp files.
+- For high-frequency logging, consider disabling stack traces or caller context unless debugging.
+
+---
+
+This architecture makes the logger and error formatter **flexible, testable, and safe** while maintaining strict control over output formatting and behavior.

@@ -74,7 +74,7 @@ export function formatError(
 
   const components = buildComponentMap(context, normalizedOptions);
   const orderedPieces = pattern.componentOrder
-    .map((key) => components[key])
+    .map((key) => components[key as PlaceholderKey])
     .filter((value): value is string => Boolean(value && value.length > 0));
 
   if (orderedPieces.length === 0) {

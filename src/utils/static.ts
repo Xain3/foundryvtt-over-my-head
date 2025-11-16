@@ -7,6 +7,7 @@
 import DevModeParser from './static/devModeParser.ts';
 import { formatString } from './static/stringFormatter.ts';
 import { formatHookName } from './static/hookFormatter.ts';
+import { formatError } from './errorFormatter.ts';
 import {
   findFoundryDataDir,
   findFoundryDataDirPath,
@@ -35,6 +36,13 @@ export type {
   HookFormatterConfig,
   PlaceholderValues,
 } from './static/hookFormatter-types.ts';
+
+// Re-export error formatter types
+export type {
+  ErrorContext,
+  FormatOptions as ErrorFormatOptions,
+  ErrorPattern,
+} from './errorFormatter-types.ts';
 
 // Re-export foundry data dir finder types
 export type {
@@ -179,6 +187,19 @@ class StaticUtils {
      * // 'OMH.setting.debugMode'
      */
     format: formatHookName,
+  };
+
+  /**
+   * errorFormatter centralizes module-aware error formatting logic.
+   */
+  static readonly errorFormatter = {
+    /**
+     * Formats errors using the currently configured pattern and separator.
+     * @param errorOrMessage - Error instance or string message to format
+     * @param options - Optional overrides for caller and stack inclusion
+     * @returns Formatted error string with module prefix
+     */
+    format: formatError,
   };
 
   /**

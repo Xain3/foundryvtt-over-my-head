@@ -11,6 +11,29 @@
 
 The `Logger` class is a **configurable, stateless logging utility** for the Over My Head module. It formats and emits console output with context awareness, placeholder substitution, colorization, and metadata handling—all controlled by configuration objects rather than global state.
 
+### Error Formatter Helper
+
+Pair the logger with the shared error formatter to keep diagnostic output consistent everywhere:
+
+```javascript
+import { formatError } from '#/utils/errorFormatter.ts';
+import { Logger } from '#/utils/logger.ts';
+
+const logger = new Logger({ moduleName: 'OMH', level: 'info' });
+
+try {
+  throw new Error('Configuration failed');
+} catch (error) {
+  const formatted = formatError(error);
+  logger.error(formatted);
+}
+```
+
+- The formatter automatically coerces strings, prefixes the module name, and applies the pattern defined in `src/config/constants/errors.yaml` (`"{{module}}{{caller}}{{error}}{{stack}}"` with separator `" || "`).
+- Passing `formatError('text message')` returns a fully formatted string; invalid inputs raise `TypeError` so misuse is caught immediately.
+- Enable stack traces by passing `{ includeStack: true }`; the formatter prints up to `maxStackLines` lines (defaults to 20) and, when truncated, appends `[Full trace: <path>]` while writing the complete trace to `os.tmpdir()` using the configured `tempLogFilePrefix`.
+- Advanced scenarios (caller labels, stack traces, custom patterns) build on the same helper as additional user stories land.
+
 ---
 
 ## Core Concepts
@@ -460,4 +483,20 @@ loggerWithSeparators.info('User logged in');
 
 ---
 
-This architecture makes the logger **flexible, testable, and safe** while maintaining strict control over output formatting and behavior.
+## Known Limitations & Advanced Options
+
+### Error Formatter Integration
+
+- **Stack traces**: When `includeStack: true`, the formatter truncates display to `maxStackLines` (default: 20) and writes the full trace to a temp log file under `os.tmpdir()` with prefix `tempLogFilePrefix` (default: `omh-error`).
+- **Caller context**: Enable with `includeCaller: true` and provide a `caller` label. Braces (`{{...}}`) in caller names are escaped to prevent template injection.
+- **Custom patterns**: Modify `src/config/constants/errors.yaml` to reorder or omit placeholders (`{{module}}`, `{{caller}}`, `{{error}}`, `{{stack}}`). Separator defaults to `" || "`.
+- **Fallback behavior**: If config is unavailable, the formatter uses documented defaults: pattern `"{{module}}{{caller}}{{error}}{{stack}}"`, separator `" || "`, module name `"Unknown Module"`.
+
+### Performance Considerations
+
+- Formatting overhead is typically < 1ms for default options; stack trace processing may add latency when writing temp files.
+- For high-frequency logging, consider disabling stack traces or caller context unless debugging.
+
+---
+
+This architecture makes the logger and error formatter **flexible, testable, and safe** while maintaining strict control over output formatting and behavior.

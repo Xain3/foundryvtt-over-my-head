@@ -76,6 +76,25 @@ config.constants.hooks; // From hooks.yaml - fixed hook names
 
 **Rationale**: Namespace-keyed merge prevents collisions between files and makes the source of each value obvious.
 
+### Error Formatter Defaults (errors.yaml)
+
+The `errors` namespace now exposes the baseline configuration required by the formatter utility:
+
+```yaml
+separator: ' || '
+pattern: '{{module}}{{caller}}{{error}}{{stack}}'
+fallbackModuleName: 'Unknown Module'
+maxStackLines: 20
+tempLogFilePrefix: 'omh-error'
+```
+
+- `separator` / `pattern` – Control ordering and joining of formatter components.
+- `fallbackModuleName` – Displayed when module metadata cannot be resolved (e.g., config unavailable).
+- `maxStackLines` – Inline stack cap before truncation (full trace goes to temp file).
+- `tempLogFilePrefix` – File name prefix for persisted stack traces under `os.tmpdir()`.
+
+These defaults ensure User Story 1 works without any additional configuration, while still allowing overrides via YAML or runtime settings.
+
 ### Configs Structure
 
 Each YAML file in `configs/` becomes a namespace under `config.configs`:
@@ -280,12 +299,14 @@ const env = config.env as Record<string, string>;
 The config system distinguishes between two types of YAML data:
 
 **Constants** (`src/config/constants/`):
+
 - **Purpose**: Fixed values that never change
 - **Examples**: Error separators, hook names, default Foundry paths
 - **Access**: `config.constants.*`
 - **Files**: errors.yaml, foundry.yaml, hooks.yaml
 
 **Configs** (`src/config/configs/`):
+
 - **Purpose**: Behavioral settings that define module operation
 - **Examples**: Logging levels, occlusion triggers, placeable settings
 - **Access**: `config.configs.*`

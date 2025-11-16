@@ -10,6 +10,7 @@ The utils are organized into functional categories:
 
 - **Module Lifecycle**: [`Logger`](#logger)
 - **Hook Management**: [`HookFormatter`](#hookformatter) (P2/P3)
+- **Error Handling**: [`ErrorFormatter`](#errorformatter) (P1–P4 in progress)
 - **String Formatting**: [`StringFormatter`](#stringformatter) (P1)
 - **Static Utilities**: [`StaticUtils`](#staticutils) (via `static.ts` entrypoint)
 
@@ -97,6 +98,23 @@ formatHookName('setting', { settingKey: 'maxTokens' }, config.constants.hooks);
   - P3 real config patterns: 3 tests
   - Verifies all hooks and patterns work correctly with actual config
   - Total: 7 tests
+
+## ErrorFormatter
+
+Centralizes all module-aware error formatting rules, guaranteeing consistent prefixes, optional caller context, and stack trace handling across the module. The formatter is implemented in `src/utils/errorFormatter.ts` with helper utilities under `src/utils/helpers/errorFormatterHelpers.mts` and types in `src/utils/errorFormatter-types.ts`.
+
+### Planned Responsibilities (P1–P4)
+
+- Normalize any `Error | string` input and resolve the module name from the config singleton with documented fallbacks.
+- Apply configurable templates (`{{module}}`, `{{caller}}`, `{{error}}`, `{{stack}}`) and separators sourced from `src/config/constants/errors.yaml`.
+- Optionally insert caller labels with escaped braces and include stacks capped at 20 lines, persisting the full trace to a temp log file.
+- Guarantee zero global side effects: no mutation of console methods, config objects, or shared singletons.
+- Expose performance-safe behavior (<1 ms baseline) validated via dedicated unit, integration, and performance tests.
+
+### Upcoming Documentation & Tests
+
+- API samples will live in `docs/logger-reference.md` and `specs/006-error-formatter/quickstart.md` once implementation begins.
+- Unit coverage by story-specific suites (basic, stack, caller, pattern), plus integration and performance harnesses to meet the ≥80% requirement.
 
 ## 📁 Folder Structure
 

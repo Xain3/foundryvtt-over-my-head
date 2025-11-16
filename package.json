@@ -9,6 +9,8 @@
         "#src/": "./src/",
         "#config": "./src/config/config.ts",
         "#logger": "./src/utils/logger.ts",
+        "#/utils/errorFormatter": "./src/utils/errorFormatter.ts",
+        "#/utils/helpers/errorFormatterHelpers": "./src/utils/helpers/errorFormatterHelpers.ts",
         "#tests/": "./tests/",
         "#mocks/": "./tests/mocks/",
         "#devutils/": "./.dev/utils/"

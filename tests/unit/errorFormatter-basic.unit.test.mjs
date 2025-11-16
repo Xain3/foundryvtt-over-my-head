@@ -13,7 +13,7 @@ vi.mock('#/utils/static/moduleNameResolver.ts', () => ({
 const { resolveModuleName } = await import(
   '#/utils/static/moduleNameResolver.ts'
 );
-const { formatError } = await import('#/utils/errorFormatter.mts');
+const { formatError } = await import('#/utils/errorFormatter');
 
 describe('formatError – User Story 1', () => {
   it('formats Error instances with the module prefix and message', () => {

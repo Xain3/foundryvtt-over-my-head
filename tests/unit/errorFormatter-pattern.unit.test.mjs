@@ -10,7 +10,7 @@ vi.mock('#/utils/static/moduleNameResolver.ts', () => ({
   resolveModuleName: vi.fn(() => 'Mock Module'),
 }));
 
-const { formatError } = await import('#/utils/errorFormatter.mts');
+const { formatError } = await import('#/utils/errorFormatter');
 
 describe('formatError – User Story 4: Configurable Patterns', () => {
   beforeEach(() => {

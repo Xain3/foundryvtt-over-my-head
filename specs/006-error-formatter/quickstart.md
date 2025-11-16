@@ -1,10 +1,10 @@
 # Quickstart: Error Formatter Utility
 
-1. **Import the formatter** (the precise path may be `src/utils/errorFormatter.mts` once implemented). The formatter exposes a single `formatError(errorOrMessage, options)` helper.
+1. **Import the formatter** (the precise path may be `src/utils/errorFormatter.ts` once implemented). The formatter exposes a single `formatError(errorOrMessage, options)` helper.
 2. **Call it with a simple error** to verify the module prefix is added:
 
    ```javascript
-   import { formatError } from '#/utils/errorFormatter.mts';
+   import { formatError } from '#/utils/errorFormatter.ts';
 
    const output = formatError(new Error('Configuration failed'));
    console.log(output);

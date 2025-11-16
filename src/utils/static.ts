@@ -7,7 +7,7 @@
 import DevModeParser from './static/devModeParser.ts';
 import { formatString } from './static/stringFormatter.ts';
 import { formatHookName } from './static/hookFormatter.ts';
-import { formatError } from './errorFormatter.mts';
+import { formatError } from './errorFormatter.ts';
 import {
   findFoundryDataDir,
   findFoundryDataDirPath,

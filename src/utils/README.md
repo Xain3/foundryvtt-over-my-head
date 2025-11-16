@@ -101,7 +101,7 @@ formatHookName('setting', { settingKey: 'maxTokens' }, config.constants.hooks);
 
 ## ErrorFormatter
 
-Centralizes all module-aware error formatting rules, guaranteeing consistent prefixes, optional caller context, and stack trace handling across the module. The formatter is implemented in `src/utils/errorFormatter.mts` with helper utilities under `src/utils/helpers/errorFormatterHelpers.mts` and types in `src/utils/errorFormatter-types.ts`.
+Centralizes all module-aware error formatting rules, guaranteeing consistent prefixes, optional caller context, and stack trace handling across the module. The formatter is implemented in `src/utils/errorFormatter.ts` with helper utilities under `src/utils/helpers/errorFormatterHelpers.mts` and types in `src/utils/errorFormatter-types.ts`.
 
 ### Planned Responsibilities (P1–P4)
 

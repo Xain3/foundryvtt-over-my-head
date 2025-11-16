@@ -7,7 +7,7 @@
 // Import and initialize the configuration singleton on module load
 import OMH from './omh.mjs';
 
-export { formatError } from './utils/errorFormatter.mts';
+export { formatError } from './utils/errorFormatter';
 
 /**
  * Main module initialization function

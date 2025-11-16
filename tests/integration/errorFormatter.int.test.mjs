@@ -7,7 +7,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 
-import { formatError } from '#/utils/errorFormatter.mts';
+import { formatError } from '#/utils/errorFormatter';
 
 const createdFiles = [];
 

@@ -6,7 +6,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { formatError } from '#/utils/errorFormatter.mts';
+import { formatError } from '#/utils/errorFormatter';
 import { config } from '#/config/config.ts';
 import StaticUtils from '#/utils/static.ts';
 

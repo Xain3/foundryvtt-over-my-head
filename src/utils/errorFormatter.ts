@@ -1,7 +1,7 @@
 /**
- * @file errorFormatter.mts
+ * @file errorFormatter.ts
  * @description Entry point for the configurable error formatter utility.
- * @path src/utils/errorFormatter.mts
+ * @path src/utils/errorFormatter.ts
  */
 
 import { config } from '#config';
@@ -10,7 +10,7 @@ import type { ModuleNameResolverConfig } from '#/utils/static/moduleNameResolver
 import {
   prepareStackForOutput,
   escapeTemplateBraces,
-} from '#/utils/helpers/errorFormatterHelpers.mts';
+} from '#/utils/helpers/errorFormatterHelpers';
 
 import type {
   ErrorContext,

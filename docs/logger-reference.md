@@ -16,7 +16,7 @@ The `Logger` class is a **configurable, stateless logging utility** for the Over
 Pair the logger with the shared error formatter to keep diagnostic output consistent everywhere:
 
 ```javascript
-import { formatError } from '#/utils/errorFormatter.mts';
+import { formatError } from '#/utils/errorFormatter.ts';
 import { Logger } from '#/utils/logger.ts';
 
 const logger = new Logger({ moduleName: 'OMH', level: 'info' });

@@ -12,11 +12,11 @@ vi.mock('#/utils/static/moduleNameResolver.ts', () => ({
   resolveModuleName: vi.fn(() => 'Mock Module'),
 }));
 
-vi.mock('#/utils/helpers/errorFormatterHelpers.mts', () => ({
+vi.mock('#/utils/helpers/errorFormatterHelpers', () => ({
   prepareStackForOutput: helperMock,
 }));
 
-const { formatError } = await import('#/utils/errorFormatter.mts');
+const { formatError } = await import('#/utils/errorFormatter');
 
 describe('formatError – stack handling', () => {
   beforeEach(() => {

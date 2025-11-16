@@ -44,7 +44,11 @@ export const aliasEntries = [
   },
   {
     find: '#/utils/errorFormatter',
-    replacement: resolve(cwd, 'src/utils/errorFormatter.mts'),
+    replacement: resolve(cwd, 'src/utils/errorFormatter.ts'),
+  },
+  {
+    find: '#/utils/helpers/errorFormatterHelpers',
+    replacement: resolve(cwd, 'src/utils/helpers/errorFormatterHelpers.ts'),
   },
   {
     find: '#tests',

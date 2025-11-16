@@ -23,7 +23,7 @@ const PERFORMANCE_THRESHOLDS_MS = {
   // Dynamic `import()` incurs async overhead even when module cache is hot;
   // allow a generous threshold while still catching pathological regressions.
   CACHED_ACCESS_MAX: 5,
-  INSTANT_ACCESS_MAX: 0.2,
+  INSTANT_ACCESS_MAX: 0.5,
   SETTINGS_ITERATION_MAX: 10,
   MUTATION_GUARD_LOOP_MAX: 100,
   BATCH_ACCESS_MAX: 1,

@@ -18,6 +18,7 @@ import type { FormatOptions } from './stringFormatter-types.ts';
  * @param {string} [options.prefix] - String to prepend
  * @param {string} [options.suffix] - String to append
  * @returns {string} The formatted string with prefix and/or suffix applied
+ * @export
  *
  * @example
  * // Prefix only
